@@ -1,4 +1,4 @@
-from frontend.test import show_gui
+from frontend.frontend_ui import main
 
 if __name__ == "__main__":
-    show_gui()
+    main()
