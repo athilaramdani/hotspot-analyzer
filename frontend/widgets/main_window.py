@@ -1,131 +1,126 @@
 from pathlib import Path
-from typing import Dict
-
-import numpy as np
-from PyQt5.QtCore  import Qt
-from PyQt5.QtGui   import QPixmap, QImage
+from typing import Dict, List
+from functools import partial
+from PyQt5.QtCore import Qt 
 from PyQt5.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QLabel, QFileDialog,
-    QMessageBox, QToolBar, QAction, QSplitter
+    QMainWindow, QWidget, QPushButton, QMessageBox, 
+    QToolBar, QAction, QSplitter
 )
 
+from backend.directory_scanner import scan_dicom_directory
 from backend.dicom_loader import load_frames_and_metadata
-
-from .patient_info  import PatientInfoBar
-from .view_selector import ViewSelector
-from .side_panel    import SidePanel
-
+from .searchable_combobox import SearchableComboBox
+from .patient_info import PatientInfoBar
+from .scan_timeline import ScanTimelineWidget
+from .side_panel import SidePanel
 
 class MainWindow(QMainWindow):
-    """Patient bar → selector card → gambar; side-panel kanan."""
-
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("BSI Analyzer")
-        self.resize(1480, 880)
-        self._patients: Dict[str, dict] = {}
+        self.setWindowTitle("Hotspot Analyzer (Timeline View)")
+        self.resize(1600, 900)
+        self._patient_id_map: Dict[str, List[Path]] = {}
+        self._loaded_patients_cache: Dict[str, List[Dict]] = {}
         self._build_ui()
+        self._initial_patient_scan()
 
-    # --------------------------------------------------------- UI build
     def _build_ui(self):
-        # patient bar
+        # 1. Widget info pasien dengan dropdown kustom
+        searchable_id_combo = SearchableComboBox()
+        searchable_id_combo.item_selected.connect(self._on_patient_selected)
         self.patient_bar = PatientInfoBar()
-        self.patient_bar.id_combo.currentTextChanged.connect(self._on_patient_changed)
-        tb_patient = QToolBar(movable=False)
+        self.patient_bar.set_id_combobox(searchable_id_combo)
+        tb_patient = QToolBar("Patient Info", movable=False)
         tb_patient.addWidget(self.patient_bar)
         self.addToolBar(Qt.TopToolBarArea, tb_patient)
-
-        # actions toolbar
-        tb_act = QToolBar("Actions", movable=False)
-        tb_act.addAction(QAction("Open DICOM", self, triggered=self._open_dicom))
-        tb_act.addAction(QAction("Export Report", self, triggered=self._export_report))
+        
+        # 2. Toolbar untuk aksi global
+        tb_act = QToolBar("Global Actions", movable=False)
+        tb_act.addAction(QAction("Rescan Folder", self, triggered=self._initial_patient_scan))
         self.addToolBar(Qt.TopToolBarArea, tb_act)
+        
+        # 3. Toolbar untuk navigasi scan (Awalnya kosong)
+        self.scan_nav_toolbar = QToolBar("Scan Navigation", movable=False)
+        self.addToolBar(Qt.TopToolBarArea, self.scan_nav_toolbar)
 
-        # left side: selector + image
-        left = QWidget()
-        vbox = QVBoxLayout(left)
-        vbox.setContentsMargins(0, 0, 0, 0)
-        vbox.setSpacing(8)
+        # 4. KONTEN UTAMA: Splitter Horizontal
+        #    Ini adalah bagian yang membuat layout kiri (timeline) dan kanan (grafik)
+        self.timeline_widget = ScanTimelineWidget() # Panel Kiri
+        self.side_panel = SidePanel() # Panel Kanan
+        
+        main_splitter = QSplitter() # Widget pemisah
+        main_splitter.addWidget(self.timeline_widget)
+        main_splitter.addWidget(self.side_panel)
+        main_splitter.setStretchFactor(0, 4) # Panel kiri 4x lebih besar
+        main_splitter.setStretchFactor(1, 1) # Panel kanan
+        self.setCentralWidget(main_splitter)
 
-        self.view_selector = ViewSelector()
-        self.view_selector.view_changed.connect(self._update_image)
-        vbox.addWidget(self.view_selector, 0, Qt.AlignHCenter)
+    def _update_scan_navigation_toolbar(self, num_scans: int):
+        self.scan_nav_toolbar.clear()
+        if num_scans == 0: return
 
-        self.img_lbl = QLabel(alignment=Qt.AlignCenter)
-        self.img_lbl.setStyleSheet("background:#000;")
-        vbox.addWidget(self.img_lbl, 1)
+        self.view_toggle_buttons = {}
+        for view_name in ["Anterior", "Posterior"]:
+            btn = QPushButton(view_name)
+            btn.setCheckable(True)
+            btn.clicked.connect(partial(self._set_timeline_view, view_name))
+            self.scan_nav_toolbar.addWidget(btn)
+            self.view_toggle_buttons[view_name] = btn
+        
+        self.view_toggle_buttons["Anterior"].setChecked(True)
+        self.scan_nav_toolbar.addSeparator()
 
-        # right side
-        self.side_panel = SidePanel()
+        for i in range(num_scans):
+            action = QAction(f"Scan {i+1}", self)
+            action.triggered.connect(partial(self._on_scan_nav_button_clicked, i))
+            self.scan_nav_toolbar.addAction(action)
 
-        split = QSplitter()
-        split.addWidget(left)
-        split.addWidget(self.side_panel)
-        split.setStretchFactor(0, 3)
-        split.setStretchFactor(1, 1)
-        self.setCentralWidget(split)
+    def _initial_patient_scan(self):
+        self.patient_bar.id_combo.clear()
+        self.patient_bar.id_combo.addItem("Select Patient ID")
+        self._patient_id_map = scan_dicom_directory(Path("data"))
+        for pid in sorted(self._patient_id_map.keys()):
+            self.patient_bar.id_combo.addItem(f"ID: {pid}")
 
-    # --------------------------------------------------------- slots
-    def _open_dicom(self):
-        path, _ = QFileDialog.getOpenFileName(
-            self, "Select DICOM", "", "DICOM (*.dcm)"
-        )
-        if not path:
+    def _on_patient_selected(self, selected_text: str):
+        if "Select Patient ID" in selected_text:
+            self.patient_bar.clear_info(keep_id_list=True)
+            self.timeline_widget.display_timeline([])
+            self._update_scan_navigation_toolbar(0)
             return
-        try:
-            frames, meta = load_frames_and_metadata(path)
-        except Exception as exc:
-            QMessageBox.critical(self, "DICOM Error", str(exc))
-            return
-        if not frames:
-            QMessageBox.warning(self, "Empty", "Tidak ada frame di file.")
-            return
+        pid = selected_text.replace("ID: ", "").strip()
+        self._load_and_display_patient(pid)
 
-        pid = meta.get("patient_id") or f"patient_{len(self._patients)+1}"
-        self._patients[pid] = {"frames": frames, "meta": meta}
+    def _load_and_display_patient(self, pid: str):
+        if pid in self._loaded_patients_cache:
+            patient_timeline_data = self._loaded_patients_cache[pid]
+        else:
+            file_paths = self._patient_id_map.get(pid, [])
+            if not file_paths: return
+            all_scans = []
+            for path in file_paths:
+                try:
+                    frames, meta = load_frames_and_metadata(path)
+                    all_scans.append({"meta": meta, "frames": frames})
+                except Exception as e: print(f"Warning: Could not load file {path}: {e}")
+            if not all_scans: return
+            all_scans.sort(key=lambda scan: scan["meta"].get("study_date", "0"))
+            patient_timeline_data = all_scans
+            self._loaded_patients_cache[pid] = patient_timeline_data
+        
+        if patient_timeline_data:
+            self.patient_bar.set_patient_meta(patient_timeline_data[-1]["meta"])
+            self._update_scan_navigation_toolbar(len(patient_timeline_data))
+            self.timeline_widget.display_timeline(patient_timeline_data)
+        else:
+            self.timeline_widget.display_timeline([])
+            self._update_scan_navigation_toolbar(0)
 
-        if pid not in [self.patient_bar.id_combo.itemText(i)
-                       for i in range(self.patient_bar.id_combo.count())]:
-            self.patient_bar.id_combo.addItem(pid)
-        self.patient_bar.id_combo.setCurrentText(pid)  # trigger update
-
-    def _export_report(self):
-        print("[Export] – sambungkan backend nanti")
-
-    def _on_patient_changed(self, pid: str):
-        if pid not in self._patients:
-            return
-        data = self._patients[pid]
-        self.patient_bar.set_patient_meta(data["meta"])
-        self.view_selector.set_views(list(data["frames"].keys()))
-        self._update_image()
-
-    def _update_image(self):
-        pid = self.patient_bar.id_combo.currentText()
-        if pid not in self._patients:
-            return
-        view = self.view_selector.current_view()
-        frame = self._patients[pid]["frames"].get(view)
-        if frame is None:
-            self.img_lbl.clear()
-            return
-        pix = self._array_to_pixmap(frame)
-        self.img_lbl.setPixmap(
-            pix.scaled(self.img_lbl.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        )
-
-    def resizeEvent(self, e):
-        super().resizeEvent(e)
-        self._update_image()
-
-    # ------------------------------ helper
-    @staticmethod
-    def _array_to_pixmap(arr: np.ndarray) -> QPixmap:
-        img = arr.astype(np.float32)
-        img -= img.min()
-        if img.max() > 0:
-            img = img / img.max() * 255
-        img = img.astype(np.uint8)
-        h, w = img.shape
-        qimg = QImage(img.data, w, h, w, QImage.Format_Grayscale8)
-        return QPixmap.fromImage(qimg)
+    def _set_timeline_view(self, view_name: str):
+        for name, button in self.view_toggle_buttons.items():
+            button.setChecked(name == view_name)
+        self.timeline_widget.set_active_view(view_name)
+        
+    def _on_scan_nav_button_clicked(self, index: int):
+        print(f"Navigating to Scan {index + 1}")
+        self.timeline_widget.scroll_to_scan(index)
