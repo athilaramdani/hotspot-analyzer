@@ -1,5 +1,5 @@
-from PyQt5.QtCore    import pyqtSignal, Qt
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QComboBox
+from PySide6.QtCore    import Signal, Qt
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QComboBox
 
 
 class FrameSelector(QWidget):
@@ -7,7 +7,7 @@ class FrameSelector(QWidget):
     Dropdown kecil: Anterior | Posterior.
     Meng-emit signal frame_changed(index) tiap kali diganti.
     """
-    frame_changed = pyqtSignal(int)      # 0 = Anterior, 1 = Posterior
+    frame_changed = Signal(int)      # 0 = Anterior, 1 = Posterior
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)

@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import List
-from PyQt5.QtCore   import Qt
-from PyQt5.QtGui    import QPixmap
-from PyQt5.QtWidgets import (
+from PySide6.QtCore   import Qt
+from PySide6.QtGui    import QPixmap
+from PySide6.QtWidgets import (
     QWidget, QTabWidget, QScrollArea, QGridLayout,
     QVBoxLayout, QLabel
 )

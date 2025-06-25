@@ -1,15 +1,14 @@
 from typing import List
 
-from PyQt5.QtCore    import Qt, pyqtSignal
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QPushButton
-
+from PySide6.QtCore    import Qt, Signal
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton
 
 class ViewSelector(QWidget):
     """
     Dinamis: set_views([...]) → membuat tombol card.
     Signal: view_changed(str) – label view terpilih.
     """
-    view_changed = pyqtSignal(str)
+    view_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)

@@ -3,7 +3,7 @@ Entry-point launcher.
 Jalankan dengan:  python -m frontend.app   atau   python frontend/app.py
 """
 import sys
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 from .widgets.main_window import MainWindow
 
 
@@ -22,7 +22,7 @@ def main() -> None:
 
     mw = MainWindow()
     mw.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":
