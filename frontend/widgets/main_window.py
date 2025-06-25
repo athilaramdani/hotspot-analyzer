@@ -1,3 +1,4 @@
+# F:\projek dosen\prototype riset\hotspot-analyzer\frontend\widgets\main_window.py
 from pathlib import Path
 from typing import Dict, List
 from functools import partial
@@ -26,10 +27,14 @@ class MainWindow(QMainWindow):
 
     def _build_ui(self):
         # 1. Widget info pasien dengan dropdown kustom
+        # Menggunakan SearchableComboBox yang sudah diperbaiki
         searchable_id_combo = SearchableComboBox()
+        # Menghubungkan sinyal item_selected ke slot yang sesuai
         searchable_id_combo.item_selected.connect(self._on_patient_selected)
+        
         self.patient_bar = PatientInfoBar()
         self.patient_bar.set_id_combobox(searchable_id_combo)
+        
         tb_patient = QToolBar("Patient Info", movable=False)
         tb_patient.addWidget(self.patient_bar)
         self.addToolBar(Qt.TopToolBarArea, tb_patient)
@@ -76,19 +81,44 @@ class MainWindow(QMainWindow):
             self.scan_nav_toolbar.addAction(action)
 
     def _initial_patient_scan(self):
-        self.patient_bar.id_combo.clear()
-        self.patient_bar.id_combo.addItem("Select Patient ID")
+        """
+        Method ini memindai folder, mengisi combobox, dan mengatur ulang UI.
+        """
+        # Mendapatkan referensi langsung ke combobox agar lebih mudah dibaca
+        id_combo = self.patient_bar.id_combo
+        id_combo.clear() # Mengosongkan item yang sudah ada
+
+        # Memindai direktori untuk mendapatkan daftar pasien
         self._patient_id_map = scan_dicom_directory(Path("data"))
-        for pid in sorted(self._patient_id_map.keys()):
-            self.patient_bar.id_combo.addItem(f"ID: {pid}")
+        
+        # Membuat daftar item string untuk ditambahkan ke combobox
+        patient_id_items = [f"ID : {pid}" for pid in sorted(self._patient_id_map.keys())]
+
+        # Menambahkan HANYA ID pasien yang valid ke combobox
+        if patient_id_items:
+            id_combo.addItems(patient_id_items)
+
+        # Mengatur ulang pilihan combobox agar placeholder ditampilkan
+        id_combo.clearSelection()
+
+        # Membersihkan widget lain untuk mencerminkan keadaan awal
+        self.patient_bar.clear_info(keep_id_list=True)
+        self.timeline_widget.display_timeline([])
+        self._update_scan_navigation_toolbar(0)
 
     def _on_patient_selected(self, selected_text: str):
-        if "Select Patient ID" in selected_text:
-            self.patient_bar.clear_info(keep_id_list=True)
-            self.timeline_widget.display_timeline([])
-            self._update_scan_navigation_toolbar(0)
+        """
+        Slot ini menangani sinyal saat pengguna memilih ID pasien.
+        """
+        try:
+            # Mem-parsing ID pasien dari string dengan aman
+            pid = selected_text.split(" : ")[1].strip()
+        except IndexError:
+            # Menangani kasus jika format teks tidak terduga
+            print(f"Error: Format item tidak valid '{selected_text}'")
             return
-        pid = selected_text.replace("ID: ", "").strip()
+        
+        # Memuat dan menampilkan data untuk pasien yang dipilih
         self._load_and_display_patient(pid)
 
     def _load_and_display_patient(self, pid: str):
@@ -97,13 +127,17 @@ class MainWindow(QMainWindow):
         else:
             file_paths = self._patient_id_map.get(pid, [])
             if not file_paths: return
+            
             all_scans = []
             for path in file_paths:
                 try:
                     frames, meta = load_frames_and_metadata(path)
                     all_scans.append({"meta": meta, "frames": frames})
-                except Exception as e: print(f"Warning: Could not load file {path}: {e}")
+                except Exception as e: 
+                    print(f"Warning: Could not load file {path}: {e}")
+            
             if not all_scans: return
+            
             all_scans.sort(key=lambda scan: scan["meta"].get("study_date", "0"))
             patient_timeline_data = all_scans
             self._loaded_patients_cache[pid] = patient_timeline_data
