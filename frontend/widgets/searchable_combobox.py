@@ -1,8 +1,7 @@
 # F:\projek dosen\prototype riset\hotspot-analyzer\frontend\widgets\searchable_combobox.py
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QMouseEvent
-from PyQt5.QtWidgets import QComboBox, QLineEdit, QListView, QVBoxLayout, QWidget, QFrame
-
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QMouseEvent
+from PySide6.QtWidgets import QComboBox, QLineEdit, QListView, QVBoxLayout, QWidget, QFrame
 class SearchableComboBox(QComboBox):
     """
     Versi final dengan perbaikan stabilitas popup.
@@ -11,7 +10,7 @@ class SearchableComboBox(QComboBox):
     - [OK] Popup selalu muncul, bahkan jika hanya ada satu item.
     - [OK] Tinggi dropdown dibatasi untuk menampilkan maks 5 item.
     """
-    item_selected = pyqtSignal(str)
+    item_selected = Signal(str)
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)

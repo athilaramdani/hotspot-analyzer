@@ -2,11 +2,12 @@
 from pathlib import Path
 from typing import Dict, List
 from functools import partial
-from PyQt5.QtCore import Qt 
-from PyQt5.QtWidgets import (
-    QMainWindow, QWidget, QPushButton, QMessageBox, 
-    QToolBar, QAction, QSplitter
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QMainWindow, QWidget, QPushButton, QMessageBox,
+    QToolBar, QSplitter
 )
+from PySide6.QtGui import QAction
 
 from backend.directory_scanner import scan_dicom_directory
 from backend.dicom_loader import load_frames_and_metadata

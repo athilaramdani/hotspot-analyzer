@@ -1,9 +1,9 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QScrollArea, QFrame
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QScrollArea, QFrame
 from typing import List, Dict
 from datetime import datetime
 import numpy as np
-from PyQt5.QtGui import QPixmap, QImage
+from PySide6.QtGui import QPixmap, QImage
 
 def _array_to_pixmap(arr: np.ndarray, width: int) -> QPixmap:
     img_float = arr.astype(np.float32); min_val, max_val = img_float.min(), img_float.max()
