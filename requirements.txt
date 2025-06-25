@@ -1,0 +1,4 @@
+torch>=2.3
+nnunetv2>=2.3
+opencv-python
+pydicom
