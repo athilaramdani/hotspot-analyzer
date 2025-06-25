@@ -1,3 +1,4 @@
+from backend.segmenter import segment_image
 
 """
 Utility: load DICOM, kembalikan
