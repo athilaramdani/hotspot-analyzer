@@ -1,155 +1,169 @@
-# backend/segmenter.py
+# =====================================================================
+# backend/segmenter.py  – DEBUG VERSION
+# ---------------------------------------------------------------------
 """
-Lazy‑loaded nnUNet v2 segmenter **dengan logging rinci**.
-Gunakan:  `mask = segment_image(img, view="Anterior")`
+Segmentasi single-frame ndarray (Bone Scan).
+
+API
+---
+mask            = segment_image(img, view="Anterior")
+mask, rgb_image = segment_image(img, view="Anterior", color=True)
 """
 from __future__ import annotations
 
-from pathlib import Path
 import inspect
 import os
-import sys
+import time
+from pathlib import Path
+from typing import Tuple, Union
+
 import cv2
 import numpy as np
 import torch
 from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 
+# ------------------------------------------------------------------ try import colorizer
+print("[DEBUG] Importing colorizer …")
+try:
+    from .colorizer import label_mask_to_rgb           # 13-kelas palette
+    COLORIZER_OK = True
+    print("[DEBUG] Colorizer import - OK")
+except Exception as e:
+    COLORIZER_OK = False
+    print(f"[DEBUG] Colorizer import failed: {e!r}")
+
+    def label_mask_to_rgb(mask: np.ndarray) -> np.ndarray:   # fallback grayscale→RGB
+        g = (mask.astype(np.float32) / max(1, mask.max()) * 255).astype(np.uint8)
+        return np.stack([g, g, g], -1)
+
 # ------------------------------------------------------------------ env paths
-ROOT = Path(__file__).resolve().parents[1]  # /hotspot‑analyzer
-SEG_DIR = ROOT / "model" / "segmentation"  # anterior/ posterior
+ROOT    = Path(__file__).resolve().parents[1]
+SEG_DIR = ROOT / "model" / "segmentation" / "nnUNet_results"
 
-# Biarkan nnUNet "merasa" path sudah ter‑set.  
-# Untuk inference kita hanya butuh nnUNet_results → lokasi model.
-os.environ["nnUNet_raw"] = str(ROOT / "_nn_raw")              # dummy
-os.environ["nnUNet_preprocessed"] = str(ROOT / "_nn_pre")      # dummy
-os.environ["nnUNet_results"] = str(SEG_DIR)                    # **penting**
+os.environ.setdefault("nnUNet_raw",          str(ROOT / "_nn_raw"))
+os.environ.setdefault("nnUNet_preprocessed", str(ROOT / "_nn_pre"))
+os.environ["nnUNet_results"] = str(SEG_DIR)
 
-# ------------------------------------------------------------------ helper
+print(f"[DEBUG] nnUNet env set:")
+print(f"        nnUNet_raw         = {os.environ['nnUNet_raw']}")
+print(f"        nnUNet_preprocessed= {os.environ['nnUNet_preprocessed']}")
+print(f"        nnUNet_results     = {os.environ['nnUNet_results']}")
 
+# ------------------------------------------------------------------ helpers
 def _make_predictor() -> nnUNetPredictor:
-    """Buat nnUNetPredictor dengan kwargs yg kompatibel dgn versi runtime."""
-    base = dict(
-        tile_step_size=0.5,
-        use_mirroring=True,
-        perform_everything_on_device=torch.cuda.is_available(),
-        device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
+    use_cuda = torch.cuda.is_available()
+    device   = torch.device("cuda:0" if use_cuda else "cpu")
+    print(f"[SEG] CUDA available={use_cuda}, device={device}")
+
+    params = dict(
+        tile_step_size              = 0.5,
+        use_gaussian                = True,
+        use_mirroring               = True,
+        perform_everything_on_device= use_cuda,
+        device                      = device,
+        allow_tqdm                  = False,
     )
     if "fp16" in inspect.signature(nnUNetPredictor).parameters:
-        base["fp16"] = torch.cuda.is_available()
-    return nnUNetPredictor(**base)
+        params["fp16"] = use_cuda
+    return nnUNetPredictor(**params)
 
 
-def _good_model_folder(view_folder: Path) -> Path:
-    """Autodeteksi sub‑folder trainer/config jika ada (newer nnUNet layout)."""
-    if (view_folder / "fold_0").is_dir():
-        return view_folder  # old layout (our simplified copy)
-    # newer layout: Dataset*/nnUNetTrainer__nnUNetPlans__2d/
-    cands = list(view_folder.glob("**/fold_0"))
-    if cands:
-        return cands[0].parent
-    raise FileNotFoundError(f"fold_0 not found inside {view_folder}")
+def _load_model(view: str) -> nnUNetPredictor:
+    """Lazy-load + cache nnUNet model untuk view tertentu."""
+    cache: dict[str, nnUNetPredictor] = getattr(_load_model, "_cache", {})
+    v = view.capitalize()
+    if v not in ("Anterior", "Posterior"):
+        raise ValueError("view must be 'Anterior' or 'Posterior'")
 
+    if v not in cache:
+        ds      = f"Dataset00{'1' if v=='Anterior' else '2'}_BoneScan{v}"
+        ckptdir = SEG_DIR / ds / "nnUNetTrainer__nnUNetPlans__2d"
+        print(f"[SEG] Loading model for {v} from {ckptdir}")
 
-def _load_predictor(view_folder: Path) -> nnUNetPredictor:
-    view_folder = _good_model_folder(view_folder)
-    print(f"[SEG] Loading model from '{view_folder}'", file=sys.stderr)
-
-    pred = _make_predictor()
-
-    # --- siapkan kwargs yg didukung -------------------------------------------------
-    init_sig = inspect.signature(pred.initialize_from_trained_model_folder)
-    init_kwargs: dict = {}
-
-    if "use_folds" in init_sig.parameters:
-        init_kwargs["use_folds"] = (0,)
-    if "checkpoint_name" in init_sig.parameters:
-        init_kwargs["checkpoint_name"] = "checkpoint_best.pth"
-    if "configuration" in init_sig.parameters:
-        init_kwargs["configuration"] = "2d"
-
-    pred.initialize_from_trained_model_folder(str(view_folder), **init_kwargs)
-    return pred
-
-
-# ------------------------------------------------------------------ singleton cache
-class _SegPool:
-    _cache: dict[str, nnUNetPredictor] = {}
-
-    def __getitem__(self, view: str) -> nnUNetPredictor:
-        key = view.lower()
-        if key not in ("anterior", "posterior"):
-            raise ValueError("view must be 'Anterior' or 'Posterior'")
-        if key not in self._cache:
-            self._cache[key] = _load_predictor(SEG_DIR / key)
-        return self._cache[key]
-
-
-_SEG = _SegPool()
-
-# ------------------------------------------------------------------ public API
-
-def segment_image(img: np.ndarray, *, view: str) -> np.ndarray:
-    """
-    img  : ndarray H×W (uint8/uint16/RGB) – single frame
-    view : 'Anterior' | 'Posterior'
-    return : binary mask uint8, ukuran sama dgn input
-    """
-
-    # ---------------------------------------------------------------- 1. ambil 1‑channel
-    if img.ndim == 3:
-        img_c1 = img[..., 0]  # ambil channel 0
-    elif img.ndim == 2:
-        img_c1 = img
-    else:
-        raise ValueError(f"unexpected shape {img.shape}")
-
-    H0, W0 = img_c1.shape  # simpan ukuran asli
-
-    # ---------------------------------------------------------------- 2. pastikan portrait (H > W)
-    rotated = False
-    if W0 > H0:  # contoh: 1024×256 (landscape)
-        img_c1 = np.rot90(img_c1)  # ke 256×1024
-        rotated = True
-        H0, W0 = img_c1.shape
-
-    # ---------------------------------------------------------------- 3. resize persis 512×128
-    if (H0, W0) != (512, 128):
-        img_rs = cv2.resize(img_c1, (128, 512), interpolation=cv2.INTER_AREA)
-    else:
-        img_rs = img_c1
-
-    img_rs = img_rs.astype(np.float32)[None, None, ...]  # (1,1,512,128)
-    print(
-        f"[SEG] view={view}  input={img_rs.shape}  model_dir={SEG_DIR / view.lower()}",
-        file=sys.stderr,
-    )
-
-    # ---------------------------------------------------------------- 4. inference
-    pred = _SEG[view]
-
-    try:
-        out = pred.predict_single_npy_array(img_rs, None, None)
-    except Exception as e:
-        # Propagasi dgn info tambahan supaya gampang dilacak
-        raise RuntimeError(f"nnUNet inference failed: {e}") from e
-
-    # ------ handle berbagai format return -----------------------------------------
-    if out is None:
-        raise RuntimeError(
-            "predict_single_npy_array returned None → kemungkinan path model salah "
-            "atau checkpoint rusak. Cek log di atas & struktur folder nnUNet_results."
+        pred = _make_predictor()
+        pred.initialize_from_trained_model_folder(
+            str(ckptdir), use_folds=(0,), checkpoint_name="checkpoint_best.pth"
         )
-    if isinstance(out, tuple):
-        mask = out[0]
+        cache[v] = pred
+        _load_model._cache = cache           # simpan
+
+    return cache[v]
+
+
+def _run_inference(img_rs: np.ndarray, model: nnUNetPredictor) -> np.ndarray:
+    """img_rs (512×128) → mask 512×128 (uint8)."""
+    inp = torch.from_numpy(img_rs.astype(np.float32)[None, None]).to(model.device)
+    print(f"[DEBUG]   Input tensor  : {inp.shape}")
+
+    with torch.no_grad():
+        logits = model.predict_sliding_window_return_logits(inp)   # (C,H,W) atau (C,1,H,W)
+    print(f"[DEBUG]   Logits shape  : {logits.shape}")
+
+    if logits.ndim == 4:                # (C, B=1, H, W)
+        logits = logits[:, 0]
+    mask = torch.argmax(logits, dim=0).cpu().numpy().astype(np.uint8)   # (H,W)
+
+    print(f"[DEBUG]   Mask (raw)    : {mask.shape}, unique={np.unique(mask)}")
+    return mask
+
+# ------------------------------------------------------------------ public
+def segment_image(
+    img:   np.ndarray,
+    *,
+    view:  str,
+    color: bool = False
+) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+    """
+    Parameters
+    ----------
+    img   : ndarray (H,W[,3])
+    view  : 'Anterior' | 'Posterior'
+    color : True → also return colored RGB segmentation
+    """
+    print(f"[DEBUG] segment_image(view={view}, color={color})")
+    print(f"[DEBUG]   img.shape={img.shape}, dtype={img.dtype}")
+
+    # ------------ ensure 2-D input
+    if img.ndim == 3:
+        img = img[..., 0]
+        print("[DEBUG]   Using first channel of RGB")
+    if img.ndim != 2:
+        raise ValueError("img must be 2-D or 3-D RGB")
+
+    H0, W0 = img.shape
+    print(f"[DEBUG]   Original size : {H0}×{W0}")
+
+    # ------------ orientasi portrait + resize 512×128
+    rotated = False
+    if W0 > H0:
+        img = np.rot90(img)
+        rotated = True
+        H0, W0 = img.shape
+        print(f"[DEBUG]   Rotated to  : {H0}×{W0}")
+
+    if (H0, W0) != (512, 128):
+        img_rs = cv2.resize(img, (128, 512), interpolation=cv2.INTER_AREA)
     else:
-        mask = out
+        img_rs = img
+    print(f"[DEBUG]   Resized to    : {img_rs.shape}")
 
-    mask = (mask > 0).astype(np.uint8)  # (512,128)
+    # ------------ inference
+    model = _load_model(view)
+    t0 = time.time()
+    mask = _run_inference(img_rs, model)
+    print(f"[SEG]   Inference time : {time.time()-t0:.2f}s")
 
-    # ---------------------------------------------------------------- 5. kembalikan ukuran/orientasi
+    # ------------ restore size/orientation
     if (H0, W0) != (512, 128):
         mask = cv2.resize(mask, (W0, H0), interpolation=cv2.INTER_NEAREST)
     if rotated:
-        mask = np.rot90(mask, k=-1)  # rotate balik
+        mask = np.rot90(mask, k=-1)
 
-    return mask
+    print(f"[DEBUG]   Final mask    : {mask.shape}, unique={np.unique(mask)}")
+
+    if not color:
+        return mask
+
+    rgb = label_mask_to_rgb(mask)
+    print(f"[DEBUG]   RGB shape     : {rgb.shape}")
+    return mask, rgb
