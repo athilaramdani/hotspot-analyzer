@@ -1,55 +1,150 @@
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QScrollArea, QFrame
-from typing import List, Dict
+# frontend/widgets/scan_timeline.py
+from __future__ import annotations
+from pathlib import Path
+from typing  import List, Dict
+
 from datetime import datetime
 import numpy as np
-from PySide6.QtGui import QPixmap, QImage
 
+from PySide6.QtCore   import Qt
+from PySide6.QtGui    import QPixmap, QImage
+from PySide6.QtWidgets import (
+    QWidget, QHBoxLayout, QVBoxLayout, QLabel,
+    QScrollArea, QFrame
+)
+
+
+# --------------------------- helpers -----------------------------------------
 def _array_to_pixmap(arr: np.ndarray, width: int) -> QPixmap:
-    img_float = arr.astype(np.float32); min_val, max_val = img_float.min(), img_float.max()
-    if max_val > min_val: img_float = (img_float - min_val) / (max_val - min_val) * 255
-    img_uint8 = img_float.astype(np.uint8); height, width_orig = img_uint8.shape
-    q_image = QImage(img_uint8.data, width_orig, height, width_orig, QImage.Format_Grayscale8)
-    return QPixmap.fromImage(q_image).scaledToWidth(width, Qt.SmoothTransformation)
+    """
+    Convert ndarray (H×W, uint16/uint8/float) ke QPixmap ter-scale.
+    """
+    arr_f = arr.astype(np.float32)
+    mn, mx = float(arr_f.min()), float(arr_f.max())
+    if mx > mn:
+        arr_f = (arr_f - mn) / (mx - mn) * 255.0
+    img_u8 = arr_f.astype(np.uint8)
 
+    h, w = img_u8.shape
+    qim   = QImage(img_u8.data, w, h, w, QImage.Format_Grayscale8)
+    return QPixmap.fromImage(qim).scaledToWidth(width, Qt.SmoothTransformation)
+
+
+def _png_to_pixmap(png: Path, width: int) -> QPixmap | None:
+    if not png.exists():
+        return None
+    return QPixmap(str(png)).scaledToWidth(width, Qt.SmoothTransformation)
+
+
+# --------------------------- main widget -------------------------------------
 class ScanTimelineWidget(QScrollArea):
-    def __init__(self, parent=None):
-        super().__init__(parent); self.setWidgetResizable(True)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded); self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.container = QWidget(); self.main_layout = QHBoxLayout(self.container)
-        self.main_layout.setAlignment(Qt.AlignLeft); self.setWidget(self.container)
-        self.current_view = "Anterior"; self.scans_data_cache: List[Dict] = []
+    """
+    Timeline horizontal berisi kartu tiap scan.
+    • current_view : "Anterior" | "Posterior"
+    • current_mode : "Original" | "Segmentation"
+    """
 
-    def _clear_timeline(self):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setWidgetResizable(True)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        self.container    = QWidget()
+        self.main_layout  = QHBoxLayout(self.container)
+        self.main_layout.setAlignment(Qt.AlignLeft)
+
+        self.setWidget(self.container)
+
+        # state
+        self.current_view = "Anterior"
+        self.current_mode = "Original"
+        self._scans_cache: List[Dict] = []
+
+    # ---------------------------------------------------------------- public
+    def display_timeline(self, scans: List[Dict]) -> None:
+        """
+        scans: list[{"meta":dict, "frames":dict[str,np.ndarray], "path":Path}]
+        """
+        self._scans_cache = scans
+        self._rebuild()
+
+    def set_active_view(self, view: str) -> None:
+        self.current_view = view
+        self._rebuild()
+
+    def set_image_mode(self, mode: str) -> None:
+        self.current_mode = mode
+        self._rebuild()
+
+    def scroll_to_scan(self, idx: int) -> None:
+        if 0 <= idx < self.main_layout.count():
+            item = self.main_layout.itemAt(idx)
+            if item and item.widget():
+                self.horizontalScrollBar().setValue(item.widget().pos().x())
+
+    # ---------------------------------------------------------------- private
+    def _clear(self) -> None:
         while self.main_layout.count():
             child = self.main_layout.takeAt(0)
-            if child.widget(): child.widget().deleteLater()
+            if child.widget():
+                child.widget().deleteLater()
 
-    def display_timeline(self, scans: List[Dict]):
-        self.scans_data_cache = scans; self._clear_timeline()
-        if not scans: self.main_layout.addWidget(QLabel("No scans to display.", alignment=Qt.AlignCenter)); return
-        for scan_data in self.scans_data_cache: self.main_layout.addWidget(self._create_scan_card(scan_data))
+    def _rebuild(self) -> None:
+        self._clear()
+        if not self._scans_cache:
+            self.main_layout.addWidget(
+                QLabel("No scans to display.", alignment=Qt.AlignCenter)
+            )
+            return
+
+        for scan in self._scans_cache:
+            self.main_layout.addWidget(self._make_card(scan))
         self.main_layout.addStretch()
 
-    def set_active_view(self, view_name: str):
-        self.current_view = view_name; self.display_timeline(self.scans_data_cache)
-    
-    def scroll_to_scan(self, index: int):
-        if 0 <= index < self.main_layout.count():
-            widget_item = self.main_layout.itemAt(index)
-            if widget_item and widget_item.widget(): self.horizontalScrollBar().setValue(widget_item.widget().pos().x())
+    def _make_card(self, scan: Dict) -> QFrame:
+        card = QFrame()
+        card.setObjectName("ScanCard")
+        lay  = QVBoxLayout(card)
 
-    def _create_scan_card(self, scan_data: Dict) -> QWidget:
-        card = QFrame(); card.setObjectName("ScanCard"); card_layout = QVBoxLayout(card)
-        meta = scan_data["meta"]; study_date_str = meta.get("study_date", "")
-        try: formatted_date = datetime.strptime(study_date_str, "%Y%m%d").strftime("%b %d, %Y")
-        except ValueError: formatted_date = "Unknown Date"
-        bsi_value = meta.get("bsi_value", "N/A%")
-        header_label = QLabel(f"<b>{formatted_date}</b> &nbsp;&nbsp; BSI {bsi_value}")
-        image_label = QLabel(alignment=Qt.AlignCenter); image_label.setMinimumSize(220, 500)
-        frames = scan_data["frames"]
-        if self.current_view in frames: image_label.setPixmap(_array_to_pixmap(frames[self.current_view], width=220))
-        else: image_label.setText(f"'{self.current_view}' view not available"); image_label.setStyleSheet("color: #888;")
-        footer_label = QLabel(self.current_view, alignment=Qt.AlignCenter)
-        card_layout.addWidget(header_label); card_layout.addWidget(image_label); card_layout.addWidget(footer_label)
+        # -------- header ----------------------------------------------------
+        meta = scan["meta"]
+        date_raw = meta.get("study_date", "")
+        try:
+            hdr_date = datetime.strptime(date_raw, "%Y%m%d").strftime("%b %d, %Y")
+        except ValueError:
+            hdr_date = "Unknown"
+
+        bsi = meta.get("bsi_value", "N/A")
+        lay.addWidget(QLabel(f"<b>{hdr_date}</b>    BSI {bsi}", alignment=Qt.AlignLeft))
+
+        # -------- image -----------------------------------------------------
+        img_lbl = QLabel(alignment=Qt.AlignCenter)
+        img_lbl.setMinimumSize(220, 500)
+
+        if self.current_mode == "Original":
+            frame_map = scan["frames"]
+            if self.current_view in frame_map:
+                pix = _array_to_pixmap(frame_map[self.current_view], 220)
+                img_lbl.setPixmap(pix)
+            else:
+                img_lbl.setText(f"'{self.current_view}' view not available")
+                img_lbl.setStyleSheet("color:#888;")
+        else:  # "Segmentation"
+            dicom_path: Path = scan["path"]
+            base = dicom_path.stem
+            png  = dicom_path.with_name(
+                f"{base}_{self.current_view.lower()}_colored.png"
+            )
+            pix = _png_to_pixmap(png, 220)
+            if pix:
+                img_lbl.setPixmap(pix)
+            else:
+                img_lbl.setText("Segmentation not found")
+                img_lbl.setStyleSheet("color:#888;")
+
+        lay.addWidget(img_lbl)
+
+        # -------- footer label ---------------------------------------------
+        lay.addWidget(QLabel(self.current_view, alignment=Qt.AlignCenter))
         return card
