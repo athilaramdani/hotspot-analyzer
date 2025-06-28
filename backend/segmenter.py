@@ -1,8 +1,8 @@
 # =====================================================================
-# backend/segmenter.py  – DEBUG VERSION
+# backend/segmenter.py  – DEBUG VERSION (patched with Rifqi preprocessing)
 # ---------------------------------------------------------------------
 """
-Segmentasi single-frame ndarray (Bone Scan).
+Segmentasi single‑frame ndarray (Bone Scan).
 
 API
 ---
@@ -25,7 +25,7 @@ from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 # ------------------------------------------------------------------ try import colorizer
 print("[DEBUG] Importing colorizer …")
 try:
-    from .colorizer import label_mask_to_rgb           # 13-kelas palette
+    from .colorizer import label_mask_to_rgb           # 13‑kelas palette
     COLORIZER_OK = True
     print("[DEBUG] Colorizer import - OK")
 except Exception as e:
@@ -56,12 +56,12 @@ def _make_predictor() -> nnUNetPredictor:
     print(f"[SEG] CUDA available={use_cuda}, device={device}")
 
     params = dict(
-        tile_step_size              = 0.5,
-        use_gaussian                = True,
-        use_mirroring               = True,
-        perform_everything_on_device= use_cuda,
-        device                      = device,
-        allow_tqdm                  = False,
+        tile_step_size               = 0.5,
+        use_gaussian                 = True,
+        use_mirroring                = True,
+        perform_everything_on_device = use_cuda,
+        device                       = device,
+        allow_tqdm                   = False,
     )
     if "fp16" in inspect.signature(nnUNetPredictor).parameters:
         params["fp16"] = use_cuda
@@ -69,7 +69,7 @@ def _make_predictor() -> nnUNetPredictor:
 
 
 def _load_model(view: str) -> nnUNetPredictor:
-    """Lazy-load + cache nnUNet model untuk view tertentu."""
+    """Lazy‑load + cache nnUNet model untuk view tertentu."""
     cache: dict[str, nnUNetPredictor] = getattr(_load_model, "_cache", {})
     v = view.capitalize()
     if v not in ("Anterior", "Posterior"):
@@ -123,12 +123,19 @@ def segment_image(
     print(f"[DEBUG] segment_image(view={view}, color={color})")
     print(f"[DEBUG]   img.shape={img.shape}, dtype={img.dtype}")
 
-    # ------------ ensure 2-D input
+    # ------------ ensure 2‑D input
     if img.ndim == 3:
         img = img[..., 0]
         print("[DEBUG]   Using first channel of RGB")
     if img.ndim != 2:
-        raise ValueError("img must be 2-D or 3-D RGB")
+        raise ValueError("img must be 2‑D or 3‑D RGB")
+
+    # ------------ Rifqi preprocessing (normalize → invert → +13% contrast)
+    img_norm = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+    img_inv  = cv2.bitwise_not(img_norm)
+    img_pp   = cv2.convertScaleAbs(img_inv, alpha=1.13, beta=0)
+    img      = img_pp
+    print("[DEBUG]   Applied Rifqi preprocessing: normalize→invert→contrast+13%")
 
     H0, W0 = img.shape
     print(f"[DEBUG]   Original size : {H0}×{W0}")
