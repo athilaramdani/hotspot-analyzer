@@ -30,7 +30,10 @@ class ViewSelector(QWidget):
             btn.setStyleSheet("""
                 QPushButton {
                     border:1px solid #ccc; border-top-left-radius:6px;
-                    border-top-right-radius:6px; padding:6px 16px;
+                    border-top-right-radius:6px;
+                    /* THIS IS THE CHANGE ↓ */
+                    padding:6px 8px; /* <-- Reduced horizontal padding from 16px to 8px */
+                    /* THIS IS THE CHANGE ↑ */
                     background:#fafafa;
                 }
                 QPushButton:checked {

@@ -6,8 +6,8 @@ from typing  import List, Dict
 from datetime import datetime
 import numpy as np
 
-from PySide6.QtCore   import Qt
-from PySide6.QtGui    import QPixmap, QImage
+from PySide6.QtCore    import Qt
+from PySide6.QtGui     import QPixmap, QImage
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QLabel,
     QScrollArea, QFrame
@@ -60,6 +60,19 @@ class ScanTimelineWidget(QScrollArea):
         self.current_view = "Anterior"
         self.current_mode = "Original"
         self._scans_cache: List[Dict] = []
+        self._zoom_factor = 1.0  ## Keep track of the current zoom level
+
+    ## --- NEW: Corrected Zoom Logic --- ##
+    def zoom_in(self):
+        """Zooms in by increasing the zoom factor and rebuilding the UI."""
+        self._zoom_factor *= 1.2
+        self._rebuild() # Rebuild the cards at the new size
+
+    def zoom_out(self):
+        """Zooms out by decreasing the zoom factor and rebuilding the UI."""
+        self._zoom_factor *= 0.8
+        self._rebuild() # Rebuild the cards at the new size
+    ## --- End of Corrected Zoom Logic --- ##
 
     # ---------------------------------------------------------------- public
     def display_timeline(self, scans: List[Dict]) -> None:
@@ -67,6 +80,7 @@ class ScanTimelineWidget(QScrollArea):
         scans: list[{"meta":dict, "frames":dict[str,np.ndarray], "path":Path}]
         """
         self._scans_cache = scans
+        self._zoom_factor = 1.0  # Reset zoom whenever a new patient is loaded
         self._rebuild()
 
     def set_active_view(self, view: str) -> None:
@@ -98,11 +112,17 @@ class ScanTimelineWidget(QScrollArea):
             )
             return
 
+        ## --- CHANGE: Calculate the zoomed width here --- ##
+        # We use the zoom factor to determine the width for the images.
+        zoomed_width = int(220 * self._zoom_factor)
+
         for scan in self._scans_cache:
-            self.main_layout.addWidget(self._make_card(scan))
+            ## Pass the calculated width to the card maker ##
+            self.main_layout.addWidget(self._make_card(scan, zoomed_width))
+
         self.main_layout.addStretch()
 
-    def _make_card(self, scan: Dict) -> QFrame:
+    def _make_card(self, scan: Dict, image_width: int) -> QFrame: ## <-- CHANGED: Added image_width parameter
         card = QFrame()
         card.setObjectName("ScanCard")
         lay  = QVBoxLayout(card)
@@ -116,16 +136,17 @@ class ScanTimelineWidget(QScrollArea):
             hdr_date = "Unknown"
 
         bsi = meta.get("bsi_value", "N/A")
-        lay.addWidget(QLabel(f"<b>{hdr_date}</b>    BSI {bsi}", alignment=Qt.AlignLeft))
+        lay.addWidget(QLabel(f"<b>{hdr_date}</b>     BSI {bsi}", alignment=Qt.AlignLeft))
 
         # -------- image -----------------------------------------------------
         img_lbl = QLabel(alignment=Qt.AlignCenter)
-        img_lbl.setMinimumSize(220, 500)
+        # img_lbl.setMinimumSize(220, 500) # We don't need this anymore as size is controlled by the pixmap
 
         if self.current_mode == "Original":
             frame_map = scan["frames"]
             if self.current_view in frame_map:
-                pix = _array_to_pixmap(frame_map[self.current_view], 220)
+                ## Use the new image_width parameter instead of a fixed value ##
+                pix = _array_to_pixmap(frame_map[self.current_view], image_width)
                 img_lbl.setPixmap(pix)
             else:
                 img_lbl.setText(f"'{self.current_view}' view not available")
@@ -136,7 +157,8 @@ class ScanTimelineWidget(QScrollArea):
             png  = dicom_path.with_name(
                 f"{base}_{self.current_view.lower()}_colored.png"
             )
-            pix = _png_to_pixmap(png, 220)
+            ## Use the new image_width parameter instead of a fixed value ##
+            pix = _png_to_pixmap(png, image_width)
             if pix:
                 img_lbl.setPixmap(pix)
             else:

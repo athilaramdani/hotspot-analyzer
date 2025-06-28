@@ -22,7 +22,7 @@ from .side_panel               import SidePanel
 
 # **NEW**
 from .mode_selector            import ModeSelector
-
+from .view_selector           import ViewSelector
 
 class MainWindow(QMainWindow):
     """
@@ -67,6 +67,18 @@ class MainWindow(QMainWindow):
             QAction("Rescan Folder", self, triggered=self._scan_folder)
         )
         self.addToolBar(Qt.TopToolBarArea, tb_actions)
+        # Permanent Mode Selector Toolbar
+        tb_modes = QToolBar("Mode", movable=False)  # <-- Create a new toolbar
+
+        # Paste your old code here
+        self.mode_selector = ModeSelector()
+        self.mode_selector.mode_changed.connect(self._set_mode)
+        
+        # Add it to the NEW toolbar, not nav_toolbar
+        tb_modes.addWidget(self.mode_selector) # <-- This is the only line you change
+        
+        # Add the new, permanent toolbar to the window
+        self.addToolBar(Qt.TopToolBarArea, tb_modes)
 
         # ---------------- navigation bar  ---------------------------------
         self.nav_toolbar = QToolBar("Navigation", movable=False)
@@ -131,29 +143,35 @@ class MainWindow(QMainWindow):
         self._build_nav(len(scans))
         self.timeline_widget.display_timeline(scans)
 
-    # ------------------------------------------------------------------- nav bar
+   # In main_window.py
+
     def _build_nav(self, n_scans: int) -> None:
         self.nav_toolbar.clear()
         if not n_scans:
             return
 
-        # --- view selector -------------------------------------------------
-        self._view_btn: Dict[str, QPushButton] = {}
-        for v in ("Anterior", "Posterior"):
-            b = QPushButton(v, checkable=True)
-            b.clicked.connect(partial(self._set_view, v))
-            self.nav_toolbar.addWidget(b)
-            self._view_btn[v] = b
-        self._view_btn["Anterior"].setChecked(True)
+        # --- This is your existing view selector code ---
+        self.view_selector = ViewSelector()
+        self.view_selector.view_changed.connect(self._set_view)
+        self.nav_toolbar.addWidget(self.view_selector)
 
-        # --- mode selector (Original | Segmentation) -----------------------
-        self.mode_selector = ModeSelector()
-        self.mode_selector.mode_changed.connect(self._set_mode)
-        self.nav_toolbar.addWidget(self.mode_selector)
-
+        # --- ADD THIS SECTION FOR ZOOM BUTTONS ---
         self.nav_toolbar.addSeparator()
 
-        # --- scan buttons --------------------------------------------------
+        zoom_in_btn = QPushButton("Zoom In")
+        zoom_out_btn = QPushButton("Zoom Out")
+
+        # These lines connect the buttons to the functions in ScanTimelineWidget
+        zoom_in_btn.clicked.connect(self.timeline_widget.zoom_in)
+        zoom_out_btn.clicked.connect(self.timeline_widget.zoom_out)
+
+        self.nav_toolbar.addWidget(zoom_in_btn)
+        self.nav_toolbar.addWidget(zoom_out_btn)
+
+        self.nav_toolbar.addSeparator()
+        # --- END OF ZOOM BUTTONS SECTION ---
+
+        # --- This is your existing scan buttons code ---
         for i in range(n_scans):
             act = QAction(f"Scan {i+1}", self,
                           triggered=partial(self.timeline_widget.scroll_to_scan, i))
@@ -161,8 +179,7 @@ class MainWindow(QMainWindow):
 
     # ---------------- callbacks ------------------------------------------
     def _set_view(self, v: str) -> None:
-        for lbl, btn in self._view_btn.items():
-            btn.setChecked(lbl == v)
+        print(f"Calling set_active_view with: {v}")
         self.timeline_widget.set_active_view(v)
 
     def _set_mode(self, m: str) -> None:
