@@ -25,13 +25,14 @@ class ModeSelector(QWidget):
             btn = QPushButton(lbl, checkable=True)
             btn.setStyleSheet("""
                 QPushButton {
-                    border:1px solid #ccc; border-top-left-radius:6px;
-                    border-top-right-radius:6px; padding:6px 18px;
-                    background:#fafafa;
-                }
-                QPushButton:checked {
-                    background:#4e73ff; color:white; border:1px solid #4e73ff;
-                }
+        border:1px solid #ccc; border-top-left-radius:6px;
+        border-top-right-radius:6px;
+        padding:6px 8px; /* <-- The smaller padding */
+        background:#fafafa;
+    }
+    QPushButton:checked {
+        background:#4e73ff; color:white; border:1px solid #4e73ff;
+    }
             """)
             btn.clicked.connect(lambda _, k=lbl: self._on_clicked(k))
             lay.addWidget(btn)
