@@ -110,6 +110,7 @@ class MainWindow(QMainWindow):
         self.timeline_widget = ScanTimelineWidget()
 
         # Image display
+
         self.left_image_layout.addWidget(self.timeline_widget)
 
         main_splitter.addWidget(self.left_image_panel)
