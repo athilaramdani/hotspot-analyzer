@@ -8,7 +8,8 @@ from typing  import Dict, List
 from PySide6.QtCore    import Qt
 from PySide6.QtGui     import QAction
 from PySide6.QtWidgets import (
-    QMainWindow, QToolBar, QSplitter, QPushButton
+    QMainWindow, QToolBar, QSplitter, QPushButton,
+    QWidget, QVBoxLayout, QHBoxLayout,QLabel
 )
 
 from backend.directory_scanner import scan_dicom_directory
@@ -45,55 +46,95 @@ class MainWindow(QMainWindow):
         self._build_ui()
         self._scan_folder()
 
+    
     # ---------------------------------------------------------------- UI
     def _build_ui(self) -> None:
-        # ---------------- patient bar -------------------------------------
+        # ---------------- Patient Info Bar & Toolbar ----------------
         search_combo = SearchableComboBox()
         search_combo.item_selected.connect(self._on_patient_selected)
 
         self.patient_bar = PatientInfoBar()
         self.patient_bar.set_id_combobox(search_combo)
 
-        tb_patient = QToolBar(movable=False)
-        tb_patient.addWidget(self.patient_bar)
-        self.addToolBar(Qt.TopToolBarArea, tb_patient)
+        # Create top actions layout
+        top_actions = QWidget()
+        top_layout = QHBoxLayout(top_actions)
+        top_layout.setContentsMargins(10, 5, 10, 5)
+        top_layout.setSpacing(10)
 
-        # ---------------- global actions ----------------------------------
-        tb_actions = QToolBar("Global", movable=False)
-        tb_actions.addAction(
-            QAction("Import DICOM…", self, triggered=self._show_import_dialog)
-        )
-        tb_actions.addAction(
-            QAction("Rescan Folder", self, triggered=self._scan_folder)
-        )
-        self.addToolBar(Qt.TopToolBarArea, tb_actions)
-        # Permanent Mode Selector Toolbar
-        tb_modes = QToolBar("Mode", movable=False)  # <-- Create a new toolbar
+        top_layout.addWidget(self.patient_bar)
+        
+        # Import and Rescan buttons
+        import_btn = QPushButton("Import DICOM…")
+        import_btn.clicked.connect(self._show_import_dialog)
+        rescan_btn = QPushButton("Rescan Folder")
+        rescan_btn.clicked.connect(self._scan_folder)
 
-        # Paste your old code here
+        top_layout.addWidget(import_btn)
+        top_layout.addWidget(rescan_btn)
+
+        # Add mode/view selectors
         self.mode_selector = ModeSelector()
+        self.view_selector = ViewSelector()
         self.mode_selector.mode_changed.connect(self._set_mode)
-        
-        # Add it to the NEW toolbar, not nav_toolbar
-        tb_modes.addWidget(self.mode_selector) # <-- This is the only line you change
-        
-        # Add the new, permanent toolbar to the window
-        self.addToolBar(Qt.TopToolBarArea, tb_modes)
+        self.view_selector.view_changed.connect(self._set_view)
 
-        # ---------------- navigation bar  ---------------------------------
-        self.nav_toolbar = QToolBar("Navigation", movable=False)
-        self.addToolBar(Qt.TopToolBarArea, self.nav_toolbar)
+        top_layout.addWidget(self.mode_selector)
+        top_layout.addWidget(self.view_selector)
 
-        # ---------------- main splitter -----------------------------------
+        # ---------------- Zoom Buttons Only -----------------------------------
+        view_button_layout = QHBoxLayout()
+
+        zoom_in_btn = QPushButton("Zoom In")
+        zoom_in_btn.clicked.connect(self.zoom_in)
+        zoom_out_btn = QPushButton("Zoom Out")
+        zoom_out_btn.clicked.connect(self.zoom_out)
+
+        view_button_layout.addWidget(zoom_in_btn)
+        view_button_layout.addWidget(zoom_out_btn)
+        view_button_layout.addStretch()  # Optional: push buttons to left
+
+        view_button_widget = QWidget()
+        view_button_widget.setLayout(view_button_layout)
+
+
+        # ---------------- Split View: Left Image View | Right Panel --------------
+        main_splitter = QSplitter()
+
+        # Left view: image area with timeline
+        self.left_image_panel = QWidget()
+        self.left_image_panel.setMinimumWidth(600)
+        self.left_image_layout = QVBoxLayout(self.left_image_panel)
+
+        # Timeline Widget
         self.timeline_widget = ScanTimelineWidget()
-        self.side_panel      = SidePanel()
 
-        sp = QSplitter()
-        sp.addWidget(self.timeline_widget)
-        sp.addWidget(self.side_panel)
-        sp.setStretchFactor(0, 4)
-        sp.setStretchFactor(1, 1)
-        self.setCentralWidget(sp)
+        # Image display
+        self.left_image_label = QLabel("No scans to display", alignment=Qt.AlignCenter)
+        self.left_image_layout.addWidget(self.left_image_label)
+        self.left_image_layout.addWidget(self.timeline_widget)
+
+        main_splitter.addWidget(self.left_image_panel)
+
+        # Right: side panel with timeline + chart + quantitative summary
+        self.side_panel = SidePanel()
+        main_splitter.addWidget(self.side_panel)
+
+        main_splitter.setStretchFactor(0, 2)
+        main_splitter.setStretchFactor(1, 1)
+
+        # ---------------- Final Assembly -----------------------------------------
+        main_widget = QWidget()
+        main_layout = QVBoxLayout(main_widget)
+        main_layout.setContentsMargins(5, 5, 5, 5)
+        main_layout.setSpacing(10)
+
+        main_layout.addWidget(top_actions)
+        main_layout.addWidget(view_button_widget)
+        main_layout.addWidget(main_splitter, stretch=1)
+
+        self.setCentralWidget(main_widget)
+
 
     # ------------------------------------------------------------------- import
     def _show_import_dialog(self) -> None:
@@ -114,8 +155,9 @@ class MainWindow(QMainWindow):
         id_combo.clearSelection()
 
         self.patient_bar.clear_info(keep_id_list=True)
-        self.timeline_widget.display_timeline([])
-        self.nav_toolbar.clear()
+        if hasattr(self, 'timeline_widget'):
+            self.timeline_widget.display_timeline([])
+        
 
     # ------------------------------------------------------------------- patient
     def _on_patient_selected(self, txt: str) -> None:
@@ -140,42 +182,19 @@ class MainWindow(QMainWindow):
 
         # update ui
         self.patient_bar.set_patient_meta(scans[-1]["meta"] if scans else {})
-        self._build_nav(len(scans))
+        
         self.timeline_widget.display_timeline(scans)
 
    # In main_window.py
 
-    def _build_nav(self, n_scans: int) -> None:
-        self.nav_toolbar.clear()
-        if not n_scans:
-            return
+    # Add these methods inside the MainWindow class
+    def zoom_in(self):
+        if hasattr(self, 'timeline_widget'):
+            self.timeline_widget.zoom_in()
 
-        # --- This is your existing view selector code ---
-        self.view_selector = ViewSelector()
-        self.view_selector.view_changed.connect(self._set_view)
-        self.nav_toolbar.addWidget(self.view_selector)
-
-        # --- ADD THIS SECTION FOR ZOOM BUTTONS ---
-        self.nav_toolbar.addSeparator()
-
-        zoom_in_btn = QPushButton("Zoom In")
-        zoom_out_btn = QPushButton("Zoom Out")
-
-        # These lines connect the buttons to the functions in ScanTimelineWidget
-        zoom_in_btn.clicked.connect(self.timeline_widget.zoom_in)
-        zoom_out_btn.clicked.connect(self.timeline_widget.zoom_out)
-
-        self.nav_toolbar.addWidget(zoom_in_btn)
-        self.nav_toolbar.addWidget(zoom_out_btn)
-
-        self.nav_toolbar.addSeparator()
-        # --- END OF ZOOM BUTTONS SECTION ---
-
-        # --- This is your existing scan buttons code ---
-        for i in range(n_scans):
-            act = QAction(f"Scan {i+1}", self,
-                          triggered=partial(self.timeline_widget.scroll_to_scan, i))
-            self.nav_toolbar.addAction(act)
+    def zoom_out(self):
+        if hasattr(self, 'timeline_widget'):
+            self.timeline_widget.zoom_out()
 
     # ---------------- callbacks ------------------------------------------
     def _set_view(self, v: str) -> None:
