@@ -1,42 +1,47 @@
 # frontend/widgets/main_window.py
 from __future__ import annotations
-
 from pathlib import Path
 from functools import partial
 from typing  import Dict, List
 
 from PySide6.QtCore    import Qt
-from PySide6.QtGui     import QAction
+from PySide6.QtGui     import QAction, QIcon
 from PySide6.QtWidgets import (
-    QMainWindow, QToolBar, QSplitter, QPushButton
+    QMainWindow, QToolBar, QSplitter, QToolButton,
+    QApplication, QStyle
 )
 
 from backend.directory_scanner import scan_dicom_directory
 from backend.dicom_loader      import load_frames_and_metadata
 
-from .dicom_import_dialog      import DicomImportDialog
-from .searchable_combobox      import SearchableComboBox
-from .patient_info             import PatientInfoBar
-from .scan_timeline            import ScanTimelineWidget
-from .side_panel               import SidePanel
+from .dicom_import_dialog import DicomImportDialog
+from .searchable_combobox import SearchableComboBox
+from .patient_info        import PatientInfoBar
+from .scan_timeline       import ScanTimelineWidget
+from .side_panel          import SidePanel
+from .mode_selector       import ModeSelector
+from .view_selector       import ViewSelector
 
-# **NEW**
-from .mode_selector            import ModeSelector
-from .view_selector           import ViewSelector
+# palet helper dari app.py
+from frontend.app import make_light_palette, make_dark_palette
+
 
 class MainWindow(QMainWindow):
     """
-    Layout:
-        ┌ patient info
-        ├ global actions
-        ├ nav bar (view + mode + scan-buttons)
-        └ splitter  (timeline | side-panel)
+    Hotspot Analyzer main window.
+    • Baris-1 : PatientInfo | Import | Rescan | Mode selector | Theme toggle
+    • Baris-2 : View selector | Zoom (+/−) | Scan 1..N
+    • Bawah   : Timeline (kiri) + SidePanel (kanan)
     """
 
+    # ──────────────────────────── INIT ────────────────────────────────────
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Hotspot Analyzer")
         self.resize(1600, 900)
+
+        # theme state
+        self._dark_mode = False
 
         # caches
         self._patient_id_map: Dict[str, List[Path]] = {}
@@ -45,9 +50,9 @@ class MainWindow(QMainWindow):
         self._build_ui()
         self._scan_folder()
 
-    # ---------------------------------------------------------------- UI
+    # ─────────────────────────── UI BUILD ─────────────────────────────────
     def _build_ui(self) -> None:
-        # ---------------- patient bar -------------------------------------
+        # ▸ Patient bar
         search_combo = SearchableComboBox()
         search_combo.item_selected.connect(self._on_patient_selected)
 
@@ -58,7 +63,7 @@ class MainWindow(QMainWindow):
         tb_patient.addWidget(self.patient_bar)
         self.addToolBar(Qt.TopToolBarArea, tb_patient)
 
-        # ---------------- global actions ----------------------------------
+        # ▸ Global actions
         tb_actions = QToolBar("Global", movable=False)
         tb_actions.addAction(
             QAction("Import DICOM…", self, triggered=self._show_import_dialog)
@@ -67,24 +72,34 @@ class MainWindow(QMainWindow):
             QAction("Rescan Folder", self, triggered=self._scan_folder)
         )
         self.addToolBar(Qt.TopToolBarArea, tb_actions)
-        # Permanent Mode Selector Toolbar
-        tb_modes = QToolBar("Mode", movable=False)  # <-- Create a new toolbar
 
-        # Paste your old code here
+        # ▸ Mode selector
+        tb_modes = QToolBar("Mode", movable=False)
         self.mode_selector = ModeSelector()
         self.mode_selector.mode_changed.connect(self._set_mode)
-        
-        # Add it to the NEW toolbar, not nav_toolbar
-        tb_modes.addWidget(self.mode_selector) # <-- This is the only line you change
-        
-        # Add the new, permanent toolbar to the window
+        tb_modes.addWidget(self.mode_selector)
         self.addToolBar(Qt.TopToolBarArea, tb_modes)
 
-        # ---------------- navigation bar  ---------------------------------
+        # ▸ Theme toggle (🌞 / 🌙)
+        theme_btn = QToolButton()
+        theme_btn.setCheckable(True)
+        theme_btn.setToolTip("Toggle Dark / Light mode")
+        theme_btn.setIcon(QIcon.fromTheme("weather-clear"))
+        theme_btn.toggled.connect(self._toggle_theme)
+
+        tb_theme = QToolBar(movable=False)
+        tb_theme.addWidget(theme_btn)
+        tb_theme.setContentsMargins(0, 0, 8, 0)
+        self.addToolBar(Qt.TopToolBarArea, tb_theme)
+
+        # ── break → navigation bar di baris kedua
+        self.addToolBarBreak(Qt.TopToolBarArea)
+
+        # ▸ Navigation toolbar
         self.nav_toolbar = QToolBar("Navigation", movable=False)
         self.addToolBar(Qt.TopToolBarArea, self.nav_toolbar)
 
-        # ---------------- main splitter -----------------------------------
+        # ▸ Main splitter (timeline | side panel)
         self.timeline_widget = ScanTimelineWidget()
         self.side_panel      = SidePanel()
 
@@ -95,34 +110,42 @@ class MainWindow(QMainWindow):
         sp.setStretchFactor(1, 1)
         self.setCentralWidget(sp)
 
-    # ------------------------------------------------------------------- import
+    # ─────────────────────────── Theme toggle ────────────────────────────
+    def _toggle_theme(self, checked: bool) -> None:
+        self._dark_mode = checked
+        QApplication.instance().setPalette(
+            make_dark_palette() if checked else make_light_palette()
+        )
+        sender: QToolButton = self.sender()  # type: ignore
+        if sender:
+            sender.setIcon(
+                QIcon.fromTheme("weather-clear-night" if checked else "weather-clear")
+            )
+
+    # ─────────────────────────── Import dialog ───────────────────────────
     def _show_import_dialog(self) -> None:
         dlg = DicomImportDialog(Path("data"), self)
         dlg.files_imported.connect(lambda _: self._scan_folder())
         dlg.exec()
 
-    # ------------------------------------------------------------------- folder scan
+    # ─────────────────────────── Folder scan ─────────────────────────────
     def _scan_folder(self) -> None:
-        """
-        Scan ./data → refresh combobox & bersihkan tampilan.
-        """
-        id_combo = self.patient_bar.id_combo
-        id_combo.clear()
+        combo = self.patient_bar.id_combo
+        combo.clear()
 
         self._patient_id_map = scan_dicom_directory(Path("data"))
-        id_combo.addItems([f"ID : {pid}" for pid in sorted(self._patient_id_map)])
-        id_combo.clearSelection()
+        combo.addItems([f"ID : {pid}" for pid in sorted(self._patient_id_map)])
+        combo.clearSelection()
 
         self.patient_bar.clear_info(keep_id_list=True)
         self.timeline_widget.display_timeline([])
         self.nav_toolbar.clear()
 
-    # ------------------------------------------------------------------- patient
+    # ─────────────────────────── Patient ops ─────────────────────────────
     def _on_patient_selected(self, txt: str) -> None:
-        try:
-            pid = txt.split(" : ")[1]
-        except IndexError:
+        if " : " not in txt:
             return
+        pid = txt.split(" : ")[1]
         self._load_patient(pid)
 
     def _load_patient(self, pid: str) -> None:
@@ -138,48 +161,45 @@ class MainWindow(QMainWindow):
             scans.sort(key=lambda s: s["meta"].get("study_date", ""))
             self._loaded[pid] = scans
 
-        # update ui
         self.patient_bar.set_patient_meta(scans[-1]["meta"] if scans else {})
         self._build_nav(len(scans))
         self.timeline_widget.display_timeline(scans)
 
-   # In main_window.py
-
+    # ─────────────────────────── Navigation bar ──────────────────────────
     def _build_nav(self, n_scans: int) -> None:
         self.nav_toolbar.clear()
         if not n_scans:
             return
 
-        # --- This is your existing view selector code ---
+        # view selector
         self.view_selector = ViewSelector()
         self.view_selector.view_changed.connect(self._set_view)
         self.nav_toolbar.addWidget(self.view_selector)
 
-        # --- ADD THIS SECTION FOR ZOOM BUTTONS ---
+        # zoom buttons (icon + / -)
+        zoom_cfg = [
+            ("Zoom In",  self.timeline_widget.zoom_in ,
+             self.style().standardIcon(QStyle.SP_ArrowUp)),
+            ("Zoom Out", self.timeline_widget.zoom_out,
+             self.style().standardIcon(QStyle.SP_ArrowDown)),
+        ]
+        for tip, slot, icon in zoom_cfg:
+            btn = QToolButton()
+            btn.setToolTip(tip)
+            btn.setIcon(icon)
+            btn.clicked.connect(slot)
+            self.nav_toolbar.addWidget(btn)
+
         self.nav_toolbar.addSeparator()
 
-        zoom_in_btn = QPushButton("Zoom In")
-        zoom_out_btn = QPushButton("Zoom Out")
-
-        # These lines connect the buttons to the functions in ScanTimelineWidget
-        zoom_in_btn.clicked.connect(self.timeline_widget.zoom_in)
-        zoom_out_btn.clicked.connect(self.timeline_widget.zoom_out)
-
-        self.nav_toolbar.addWidget(zoom_in_btn)
-        self.nav_toolbar.addWidget(zoom_out_btn)
-
-        self.nav_toolbar.addSeparator()
-        # --- END OF ZOOM BUTTONS SECTION ---
-
-        # --- This is your existing scan buttons code ---
+        # scan jump buttons
         for i in range(n_scans):
             act = QAction(f"Scan {i+1}", self,
                           triggered=partial(self.timeline_widget.scroll_to_scan, i))
             self.nav_toolbar.addAction(act)
 
-    # ---------------- callbacks ------------------------------------------
+    # ─────────────────────────── Callbacks ───────────────────────────────
     def _set_view(self, v: str) -> None:
-        print(f"Calling set_active_view with: {v}")
         self.timeline_widget.set_active_view(v)
 
     def _set_mode(self, m: str) -> None:
