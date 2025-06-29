@@ -110,8 +110,6 @@ class MainWindow(QMainWindow):
         self.timeline_widget = ScanTimelineWidget()
 
         # Image display
-        self.left_image_label = QLabel("No scans to display", alignment=Qt.AlignCenter)
-        self.left_image_layout.addWidget(self.left_image_label)
         self.left_image_layout.addWidget(self.timeline_widget)
 
         main_splitter.addWidget(self.left_image_panel)
