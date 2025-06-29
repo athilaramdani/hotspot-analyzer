@@ -63,7 +63,7 @@ class MainWindow(QMainWindow):
         top_layout.setSpacing(10)
 
         top_layout.addWidget(self.patient_bar)
-        top_layout.addStretch()
+        
         # Import and Rescan buttons
         import_btn = QPushButton("Import DICOM…")
         import_btn.clicked.connect(self._show_import_dialog)
@@ -110,19 +110,18 @@ class MainWindow(QMainWindow):
         self.timeline_widget = ScanTimelineWidget()
 
         # Image display
+        self.left_image_label = QLabel("No scans to display", alignment=Qt.AlignCenter)
+        self.left_image_layout.addWidget(self.left_image_label)
         self.left_image_layout.addWidget(self.timeline_widget)
 
         main_splitter.addWidget(self.left_image_panel)
 
-        # Right: side panel with chart & text
+        # Right: side panel with timeline + chart + quantitative summary
         self.side_panel = SidePanel()
         main_splitter.addWidget(self.side_panel)
 
         main_splitter.setStretchFactor(0, 2)
         main_splitter.setStretchFactor(1, 1)
-
-
-    
 
         # ---------------- Final Assembly -----------------------------------------
         main_widget = QWidget()
