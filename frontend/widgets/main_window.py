@@ -3,162 +3,114 @@ from __future__ import annotations
 
 from pathlib import Path
 from functools import partial
-from typing  import Dict, List
+from typing import Dict, List
 
-from PySide6.QtCore    import Qt
-from PySide6.QtGui     import QAction
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QMainWindow, QToolBar, QSplitter, QPushButton,
-    QWidget, QVBoxLayout, QHBoxLayout,QLabel
+    QMainWindow, QSplitter, QPushButton,
+    QWidget, QVBoxLayout, QHBoxLayout
 )
 
 from backend.directory_scanner import scan_dicom_directory
-from backend.dicom_loader      import load_frames_and_metadata
+from backend.dicom_loader import load_frames_and_metadata
 
-from .dicom_import_dialog      import DicomImportDialog
-from .searchable_combobox      import SearchableComboBox
-from .patient_info             import PatientInfoBar
-from .scan_timeline            import ScanTimelineWidget
-from .side_panel               import SidePanel
-
-# **NEW**
-from .mode_selector            import ModeSelector
-from .view_selector           import ViewSelector
+from .dicom_import_dialog import DicomImportDialog
+from .searchable_combobox import SearchableComboBox
+from .patient_info import PatientInfoBar
+from .scan_timeline import ScanTimelineWidget  # Menggunakan timeline widget lagi
+from .side_panel import SidePanel
+from .mode_selector import ModeSelector
+from .view_selector import ViewSelector
 
 class MainWindow(QMainWindow):
-    """
-    Layout:
-        ┌ patient info
-        ├ global actions
-        ├ nav bar (view + mode + scan-buttons)
-        └ splitter  (timeline | side-panel)
-    """
 
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Hotspot Analyzer")
         self.resize(1600, 900)
 
-        # caches
+        # Caches
         self._patient_id_map: Dict[str, List[Path]] = {}
-        self._loaded: Dict[str, List[Dict]]         = {}
+        self._loaded: Dict[str, List[Dict]] = {}
+        self.scan_buttons: List[QPushButton] = []
 
         self._build_ui()
         self._scan_folder()
 
-    
-    # ---------------------------------------------------------------- UI
     def _build_ui(self) -> None:
-        # ---------------- Patient Info Bar & Toolbar ----------------
-        search_combo = SearchableComboBox()
-        search_combo.item_selected.connect(self._on_patient_selected)
-
-        self.patient_bar = PatientInfoBar()
-        self.patient_bar.set_id_combobox(search_combo)
-
-        # Create top actions layout
+        # --- Top Bar ---
         top_actions = QWidget()
         top_layout = QHBoxLayout(top_actions)
-        top_layout.setContentsMargins(10, 5, 10, 5)
-        top_layout.setSpacing(10)
 
+        search_combo = SearchableComboBox()
+        search_combo.item_selected.connect(self._on_patient_selected)
+        self.patient_bar = PatientInfoBar()
+        self.patient_bar.set_id_combobox(search_combo)
         top_layout.addWidget(self.patient_bar)
-        
-        # Import and Rescan buttons
+        top_layout.addStretch()
+
         import_btn = QPushButton("Import DICOM…")
         import_btn.clicked.connect(self._show_import_dialog)
         rescan_btn = QPushButton("Rescan Folder")
         rescan_btn.clicked.connect(self._scan_folder)
-
-        top_layout.addWidget(import_btn)
-        top_layout.addWidget(rescan_btn)
-
-        # Add mode/view selectors
         self.mode_selector = ModeSelector()
         self.view_selector = ViewSelector()
         self.mode_selector.mode_changed.connect(self._set_mode)
         self.view_selector.view_changed.connect(self._set_view)
 
+        top_layout.addWidget(import_btn)
+        top_layout.addWidget(rescan_btn)
         top_layout.addWidget(self.mode_selector)
         top_layout.addWidget(self.view_selector)
 
-        # ---------------- Zoom Buttons Only -----------------------------------
-        view_button_layout = QHBoxLayout()
-
+        # --- Scan & Zoom Buttons ---
+        view_button_widget = QWidget()
+        view_button_layout = QHBoxLayout(view_button_widget)
+        self.scan_button_container = QHBoxLayout()
+        view_button_layout.addLayout(self.scan_button_container)
+        view_button_layout.addStretch()
         zoom_in_btn = QPushButton("Zoom In")
         zoom_in_btn.clicked.connect(self.zoom_in)
         zoom_out_btn = QPushButton("Zoom Out")
         zoom_out_btn.clicked.connect(self.zoom_out)
-
         view_button_layout.addWidget(zoom_in_btn)
         view_button_layout.addWidget(zoom_out_btn)
-        view_button_layout.addStretch()  # Optional: push buttons to left
 
-        view_button_widget = QWidget()
-        view_button_widget.setLayout(view_button_layout)
+        # --- Splitter (UI Utama) ---
+        main_splitter = QSplitter(Qt.Orientation.Horizontal)
 
-
-        # ---------------- Split View: Left Image View | Right Panel --------------
-        main_splitter = QSplitter()
-
-        # Left view: image area with timeline
-        self.left_image_panel = QWidget()
-        self.left_image_panel.setMinimumWidth(600)
-        self.left_image_layout = QVBoxLayout(self.left_image_panel)
-
-        # Timeline Widget
+        # Panel Kiri: Timeline untuk menampilkan gambar
         self.timeline_widget = ScanTimelineWidget()
+        main_splitter.addWidget(self.timeline_widget)
 
-        # Image display
-
-        self.left_image_layout.addWidget(self.timeline_widget)
-
-        main_splitter.addWidget(self.left_image_panel)
-
-        # Right: side panel with timeline + chart + quantitative summary
+        # Panel Kanan: Grafik dan ringkasan
         self.side_panel = SidePanel()
         main_splitter.addWidget(self.side_panel)
-
         main_splitter.setStretchFactor(0, 2)
         main_splitter.setStretchFactor(1, 1)
 
-        # ---------------- Final Assembly -----------------------------------------
+        # --- Perakitan Final ---
         main_widget = QWidget()
         main_layout = QVBoxLayout(main_widget)
-        main_layout.setContentsMargins(5, 5, 5, 5)
-        main_layout.setSpacing(10)
-
         main_layout.addWidget(top_actions)
         main_layout.addWidget(view_button_widget)
         main_layout.addWidget(main_splitter, stretch=1)
-
         self.setCentralWidget(main_widget)
 
-
-    # ------------------------------------------------------------------- import
     def _show_import_dialog(self) -> None:
         dlg = DicomImportDialog(Path("data"), self)
         dlg.files_imported.connect(lambda _: self._scan_folder())
         dlg.exec()
 
-    # ------------------------------------------------------------------- folder scan
     def _scan_folder(self) -> None:
-        """
-        Scan ./data → refresh combobox & bersihkan tampilan.
-        """
         id_combo = self.patient_bar.id_combo
         id_combo.clear()
-
         self._patient_id_map = scan_dicom_directory(Path("data"))
         id_combo.addItems([f"ID : {pid}" for pid in sorted(self._patient_id_map)])
         id_combo.clearSelection()
-
         self.patient_bar.clear_info(keep_id_list=True)
-        if hasattr(self, 'timeline_widget'):
-            self.timeline_widget.display_timeline([])
-        
+        self.timeline_widget.display_timeline([]) # Kosongkan timeline
 
-    # ------------------------------------------------------------------- patient
     def _on_patient_selected(self, txt: str) -> None:
         try:
             pid = txt.split(" : ")[1]
@@ -179,25 +131,62 @@ class MainWindow(QMainWindow):
             scans.sort(key=lambda s: s["meta"].get("study_date", ""))
             self._loaded[pid] = scans
 
-        # update ui
         self.patient_bar.set_patient_meta(scans[-1]["meta"] if scans else {})
+        self._populate_scan_buttons(scans)
+
+        if scans:
+            self._on_scan_button_clicked(0)
+
+    def _populate_scan_buttons(self, scans: List[Dict]) -> None:
+        for btn in self.scan_buttons:
+            btn.deleteLater()
+        self.scan_buttons.clear()
+
+        for i, scan in enumerate(scans):
+            btn = QPushButton(f"Scan {i + 1}")
+            btn.setCheckable(True)
+            btn.clicked.connect(partial(self._on_scan_button_clicked, i))
+            self.scan_button_container.addWidget(btn)
+            self.scan_buttons.append(btn)
+
+    def _on_scan_button_clicked(self, index: int) -> None:
+        """Fungsi ini sekarang menjadi pusat logika yang benar."""
         
-        self.timeline_widget.display_timeline(scans)
+        # 1. Update tampilan tombol
+        for i, btn in enumerate(self.scan_buttons):
+            btn.setChecked(i == index)
 
-   # In main_window.py
+        # 2. Ambil data scan untuk pasien saat ini (CARA YANG BENAR)
+        try:
+            # Ambil teks dari ComboBox, contoh: "ID : 0001443575"
+            id_text = self.patient_bar.id_combo.currentText()
+            # Pisahkan teks untuk mendapatkan ID saja
+            pid = id_text.split(" : ")[1]
+        except (IndexError, AttributeError):
+            # Jika gagal (tidak ada pasien terpilih), hentikan fungsi
+            return
 
-    # Add these methods inside the MainWindow class
+        scans = self._loaded.get(pid, [])
+        if not scans or index >= len(scans):
+            return
+        
+        selected_scan = scans[index]
+
+        # 3. Perintahkan timeline di KIRI untuk menampilkan HANYA scan yang dipilih
+        self.timeline_widget.display_timeline(scans, active_index=index)
+
+        # 4. Perintahkan panel di KANAN untuk update grafik dan ringkasan
+        self.side_panel.set_chart_data(scans)
+        self.side_panel.set_summary(selected_scan["meta"])
+
+    # --- Callbacks untuk zoom, view, dan mode ---
     def zoom_in(self):
-        if hasattr(self, 'timeline_widget'):
-            self.timeline_widget.zoom_in()
+        self.timeline_widget.zoom_in()
 
     def zoom_out(self):
-        if hasattr(self, 'timeline_widget'):
-            self.timeline_widget.zoom_out()
+        self.timeline_widget.zoom_out()
 
-    # ---------------- callbacks ------------------------------------------
     def _set_view(self, v: str) -> None:
-        print(f"Calling set_active_view with: {v}")
         self.timeline_widget.set_active_view(v)
 
     def _set_mode(self, m: str) -> None:
