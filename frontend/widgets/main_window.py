@@ -151,7 +151,7 @@ class MainWindow(QMainWindow):
 
     def _on_scan_button_clicked(self, index: int) -> None:
         """Fungsi ini sekarang menjadi pusat logika yang benar."""
-        
+        self.timeline_widget.set_image_mode("Both") 
         # 1. Update tampilan tombol
         for i, btn in enumerate(self.scan_buttons):
             btn.setChecked(i == index)

@@ -126,18 +126,83 @@ class ScanTimelineWidget(QScrollArea):
     def _rebuild(self) -> None:
         self._clear_layout()
 
-        if not self._scans_cache or self.active_scan_index < 0 or self.active_scan_index >= len(self._scans_cache):
+        if not self._scans_cache:
             self.main_layout.addWidget(QLabel("No scans to display"))
             return
 
         zoomed_width = int(self.card_width * self._zoom_factor)
-        scan = self._scans_cache[self.active_scan_index]
-        card = self._make_card(scan, zoomed_width, self.active_scan_index, self.active_scan_index)
- 
-        self.main_layout.addWidget(card)
+
+        # --- Logika Baru Berdasarkan Mode ---
+        
+        if self.current_mode == "Original":
+            # Tampilkan SEMUA gambar original dengan header
+            for scan in self._scans_cache:
+                # Buat widget vertikal untuk menampung header + gambar
+                mini_card_widget = QWidget()
+                mini_card_layout = QVBoxLayout(mini_card_widget)
+                
+                # 1. Buat Header
+                meta = scan["meta"]
+                date_raw = meta.get("study_date", "")
+                try:
+                    hdr_date = datetime.strptime(date_raw, "%Y%m%d").strftime("%b %d, %Y")
+                except ValueError:
+                    hdr_date = "Unknown"
+                bsi = meta.get("bsi_value", "N/A")
+                header_label = QLabel(f"<b>{hdr_date}</b>   BSI {bsi}")
+                mini_card_layout.addWidget(header_label)
+
+                # 2. Buat Gambar
+                frame_map = scan["frames"]
+                if self.current_view in frame_map:
+                    pix = _array_to_pixmap(frame_map[self.current_view], zoomed_width)
+                    img_label = QLabel()
+                    img_label.setPixmap(pix)
+                    mini_card_layout.addWidget(img_label)
+                
+                self.main_layout.addWidget(mini_card_widget)
+
+        elif self.current_mode == "Segmentation":
+            # Tampilkan SEMUA gambar segmentasi dengan header
+            for scan in self._scans_cache:
+                # Buat widget vertikal untuk menampung header + gambar
+                mini_card_widget = QWidget()
+                mini_card_layout = QVBoxLayout(mini_card_widget)
+                
+                # 1. Buat Header
+                meta = scan["meta"]
+                date_raw = meta.get("study_date", "")
+                try:
+                    hdr_date = datetime.strptime(date_raw, "%Y%m%d").strftime("%b %d, %Y")
+                except ValueError:
+                    hdr_date = "Unknown"
+                bsi = meta.get("bsi_value", "N/A")
+                header_label = QLabel(f"<b>{hdr_date}</b>   BSI {bsi}")
+                mini_card_layout.addWidget(header_label)
+
+                # 2. Buat Gambar
+                dicom_path: Path = scan["path"]
+                base = dicom_path.stem
+                seg_path = dicom_path.with_name(f"{base}_{self.current_view.lower()}_colored.png")
+                seg_pix = _png_to_pixmap(seg_path, zoomed_width)
+                if seg_pix:
+                    img_label = QLabel()
+                    img_label.setPixmap(seg_pix)
+                    mini_card_layout.addWidget(img_label)
+
+                self.main_layout.addWidget(mini_card_widget)
+
+        else:  # Mode "Both" (default)
+            # Tampilkan HANYA SATU kartu untuk scan yang aktif
+            if 0 <= self.active_scan_index < len(self._scans_cache):
+                scan = self._scans_cache[self.active_scan_index]
+                card = self._make_card(scan, zoomed_width)
+                self.main_layout.addWidget(card)
+
         self.main_layout.addStretch()
 
-    def _make_card(self, scan: Dict, image_width: int, scan_index: int, active_scan_index: int) -> QFrame:
+    # KODE BARU (hanya 2 argumen)
+    def _make_card(self, scan: Dict, image_width: int) -> QFrame:
 
         card = QFrame()
         card.setObjectName("ScanCard")
