@@ -14,6 +14,9 @@ from PySide6.QtWidgets import (
 )
 
 
+
+
+
 # --------------------------- helpers -----------------------------------------
 def _array_to_pixmap(arr: np.ndarray, width: int) -> QPixmap:
     """
@@ -60,7 +63,21 @@ class ScanTimelineWidget(QScrollArea):
         self.current_view = "Anterior"
         self.current_mode = "Original"
         self._scans_cache: List[Dict] = []
-        self._zoom_factor = 1.0  ## Keep track of the current zoom level
+        self.active_scan_index = 0
+        self._zoom_factor = 1.0
+        self.card_width = 350   ## Keep track of the current zoom level
+
+    def _clear_layout(self) -> None:
+        while self.main_layout.count():
+            item = self.main_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+
+    def set_active_scan(self, index: int) -> None:
+        self.active_scan_index = index
+        self._rebuild()
+
 
     ## --- NEW: Corrected Zoom Logic --- ##
     def zoom_in(self):
@@ -75,12 +92,14 @@ class ScanTimelineWidget(QScrollArea):
     ## --- End of Corrected Zoom Logic --- ##
 
     # ---------------------------------------------------------------- public
-    def display_timeline(self, scans: List[Dict]) -> None:
+    def display_timeline(self, scans: List[Dict], active_index: int = -1) -> None:
+
         """
         scans: list[{"meta":dict, "frames":dict[str,np.ndarray], "path":Path}]
         """
         self._scans_cache = scans
         self._zoom_factor = 1.0  # Reset zoom whenever a new patient is loaded
+        self.active_scan_index = active_index
         self._rebuild()
 
     def set_active_view(self, view: str) -> None:
@@ -105,68 +124,110 @@ class ScanTimelineWidget(QScrollArea):
                 child.widget().deleteLater()
 
     def _rebuild(self) -> None:
-        self._clear()
-        if not self._scans_cache:
-            self.main_layout.addWidget(
-                QLabel("No scans to display.", alignment=Qt.AlignCenter)
-            )
+        self._clear_layout()
+
+        if not self._scans_cache or self.active_scan_index < 0 or self.active_scan_index >= len(self._scans_cache):
+            self.main_layout.addWidget(QLabel("No scans to display"))
             return
 
-        ## --- CHANGE: Calculate the zoomed width here --- ##
-        # We use the zoom factor to determine the width for the images.
-        zoomed_width = int(220 * self._zoom_factor)
-
-        for scan in self._scans_cache:
-            ## Pass the calculated width to the card maker ##
-            self.main_layout.addWidget(self._make_card(scan, zoomed_width))
-
+        zoomed_width = int(self.card_width * self._zoom_factor)
+        scan = self._scans_cache[self.active_scan_index]
+        card = self._make_card(scan, zoomed_width, self.active_scan_index, self.active_scan_index)
+ 
+        self.main_layout.addWidget(card)
         self.main_layout.addStretch()
 
-    def _make_card(self, scan: Dict, image_width: int) -> QFrame: ## <-- CHANGED: Added image_width parameter
+    def _make_card(self, scan: Dict, image_width: int, scan_index: int, active_scan_index: int) -> QFrame:
+
         card = QFrame()
         card.setObjectName("ScanCard")
-        lay  = QVBoxLayout(card)
+        lay = QVBoxLayout(card)
 
-        # -------- header ----------------------------------------------------
         meta = scan["meta"]
         date_raw = meta.get("study_date", "")
         try:
             hdr_date = datetime.strptime(date_raw, "%Y%m%d").strftime("%b %d, %Y")
         except ValueError:
             hdr_date = "Unknown"
-
         bsi = meta.get("bsi_value", "N/A")
         lay.addWidget(QLabel(f"<b>{hdr_date}</b>     BSI {bsi}", alignment=Qt.AlignLeft))
 
-        # -------- image -----------------------------------------------------
-        img_lbl = QLabel(alignment=Qt.AlignCenter)
-        # img_lbl.setMinimumSize(220, 500) # We don't need this anymore as size is controlled by the pixmap
+        # Image row: Original + Segmentation
+        image_row = QHBoxLayout()
 
-        if self.current_mode == "Original":
-            frame_map = scan["frames"]
-            if self.current_view in frame_map:
-                ## Use the new image_width parameter instead of a fixed value ##
-                pix = _array_to_pixmap(frame_map[self.current_view], image_width)
-                img_lbl.setPixmap(pix)
-            else:
-                img_lbl.setText(f"'{self.current_view}' view not available")
-                img_lbl.setStyleSheet("color:#888;")
-        else:  # "Segmentation"
-            dicom_path: Path = scan["path"]
-            base = dicom_path.stem
-            png  = dicom_path.with_name(
-                f"{base}_{self.current_view.lower()}_colored.png"
-            )
-            ## Use the new image_width parameter instead of a fixed value ##
-            pix = _png_to_pixmap(png, image_width)
-            if pix:
-                img_lbl.setPixmap(pix)
-            else:
-                img_lbl.setText("Segmentation not found")
-                img_lbl.setStyleSheet("color:#888;")
+        # --- Original ---
+        orig_lbl = QLabel(alignment=Qt.AlignCenter)
+        frame_map = scan["frames"]
+        if self.current_view in frame_map:
+            pix = _array_to_pixmap(frame_map[self.current_view], image_width)
+            orig_lbl.setPixmap(pix)
+        else:
+            orig_lbl.setText(f"No {self.current_view} view")
+            orig_lbl.setStyleSheet("color:#888;")
+        image_row.addWidget(orig_lbl)
 
-        lay.addWidget(img_lbl)
+        # --- Segmentation ---
+        seg_lbl = QLabel(alignment=Qt.AlignCenter)
+        dicom_path: Path = scan["path"]
+        base = dicom_path.stem
+        seg_path = dicom_path.with_name(f"{base}_{self.current_view.lower()}_colored.png")
+        seg_pix = _png_to_pixmap(seg_path, image_width)
+        if seg_pix:
+            seg_lbl.setPixmap(seg_pix)
+        else:
+            seg_lbl.setText("Segmentation not found")
+            seg_lbl.setStyleSheet("color:#888;")
+        image_row.addWidget(seg_lbl)
 
-        # -------- footer label ---------------------------------------------
+        lay.addLayout(image_row)
+
+        # Footer: view name
         lay.addWidget(QLabel(self.current_view, alignment=Qt.AlignCenter))
+
         return card
+
+
+    def _make_single_image(self, frame_map: Dict, seg_path: Path, image_width: int, mode: str) -> QLabel:
+        lbl = QLabel(alignment=Qt.AlignCenter)
+
+        if mode == "Original":
+            if self.current_view in frame_map:
+                pix = _array_to_pixmap(frame_map[self.current_view], image_width)
+                lbl.setPixmap(pix)
+            else:
+                lbl.setText(f"No {self.current_view} view")
+                lbl.setStyleSheet("color:#888;")
+        elif mode == "Segmentation":
+            pix = _png_to_pixmap(seg_path, image_width)
+            if pix:
+                lbl.setPixmap(pix)
+            else:
+                lbl.setText("Segmentation not found")
+                lbl.setStyleSheet("color:#888;")
+
+        return lbl
+    def _make_dual_image_row(self, frame_map: Dict, seg_path: Path, image_width: int) -> QHBoxLayout:
+        row = QHBoxLayout()
+
+        # --- Original ---
+        orig_lbl = QLabel(alignment=Qt.AlignCenter)
+        if self.current_view in frame_map:
+            pix = _array_to_pixmap(frame_map[self.current_view], image_width)
+            orig_lbl.setPixmap(pix)
+        else:
+            orig_lbl.setText(f"No {self.current_view} view")
+            orig_lbl.setStyleSheet("color:#888;")
+        row.addWidget(orig_lbl)
+
+        # --- Segmentation ---
+        seg_lbl = QLabel(alignment=Qt.AlignCenter)
+        seg_pix = _png_to_pixmap(seg_path, image_width)
+        if seg_pix:
+            seg_lbl.setPixmap(seg_pix)
+        else:
+            seg_lbl.setText("Segmentation not found")
+            seg_lbl.setStyleSheet("color:#888;")
+        row.addWidget(seg_lbl)
+
+        return row
+
