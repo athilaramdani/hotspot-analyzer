@@ -232,6 +232,10 @@ class _Canvas(QGraphicsView):
 
         # mask layer
         self._mask_arr = mask.astype(np.uint8)
+        # --- NEW: bank layer per-label ---------------------------------
+        self._layers = {lbl: (self._mask_arr == lbl).astype(np.uint8)
+                        for lbl in range(len(_PALETTE))}
+        # ---------------------------------------------------------------
         self._mask_img = self._mask_to_qimage(show_all=False, label=1)
         self._item_mask = QGraphicsPixmapItem(QPixmap.fromImage(self._mask_img))
         self._scene.addItem(self._item_mask)
@@ -295,7 +299,8 @@ class _Canvas(QGraphicsView):
             # label-0 transparency:
             alpha[self._mask_arr == 0] = int(self._bg_alpha * 255)
         else:
-            sel = (self._mask_arr == label)
+            sel = (self._layers[label] == 1)   
+            rgb[sel] = np.array(_PALETTE[label], dtype=np.uint8)# ← inilah baris baru
             alpha = np.zeros((h, w), np.uint8)
             alpha[sel] = 255
 
@@ -365,6 +370,15 @@ class _Canvas(QGraphicsView):
         return self._mask_arr
 
     # -------- refresh mask pixmap
+    # -------- NEW: rebuild gabungan dari semua layer ------------
+    def _rebuild_combined(self):
+        """Merge self._layers → self._mask_arr (prioritas label kecil→besar)."""
+        combined = np.zeros_like(self._mask_arr)
+        for lbl in range(len(_PALETTE)):              # 0 … 12
+            layer = self._layers[lbl]
+            combined[layer == 1] = lbl
+        self._mask_arr = combined
+    # ------------------------------------------------------------
     def _refresh_mask(self):
         self._mask_img = self._mask_to_qimage(
             show_all=self._show_all, label=self._cur_label)
@@ -381,28 +395,30 @@ class _Canvas(QGraphicsView):
         h, w = self._mask_arr.shape
         
         if self._brush_sz == 1:
-            # Single pixel brush - langsung apply
-            if 0 <= x < w and 0 <= y < h:
-                if self._eraser:
-                    self._mask_arr[y, x] = 0
-                else:
-                    self._mask_arr[y, x] = self._cur_label
+            targets = [(x, y)]
         else:
-            # Multi-pixel brush dengan area yang konsisten
+            targets = []
             radius = self._brush_sz
             for dy in range(-radius, radius + 1):
                 for dx in range(-radius, radius + 1):
-                    # Circular brush untuk hasil yang lebih smooth
                     if dx*dx + dy*dy <= radius*radius:
-                        px = x + dx
-                        py = y + dy
+                        px, py = x + dx, y + dy
                         if 0 <= px < w and 0 <= py < h:
-                            if self._eraser:
-                                self._mask_arr[py, px] = 0
-                            else:
-                                self._mask_arr[py, px] = self._cur_label
-        
+                            targets.append((px, py))
+
+        # ---- NEW core: sentuh hanya layer aktif -----------------------
+        lay = self._layers[self._cur_label]
+        for px, py in targets:
+            if self._eraser:
+                lay[py, px] = 0            # hapus hanya label aktif
+            else:
+                lay[py, px] = 1            # warnai label aktif
+        # --------------------------------------------------------------
+
+        # selesai → re-compose lalu refresh
+        self._rebuild_combined()
         self._refresh_mask()
+
 
     # -------- Qt events dengan koordinat yang diperbaiki
     def mousePressEvent(self, ev):
