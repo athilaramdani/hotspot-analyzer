@@ -18,9 +18,9 @@ import math
 import numpy as np
 from PIL import Image
 
-from PySide6.QtCore    import Qt, QRectF, QPointF
+from PySide6.QtCore    import Qt, QRectF, QPointF, Signal
 from PySide6.QtGui     import (
-    QPixmap, QImage, QPainter, QColor, QPen, QWheelEvent, QCursor
+    QPixmap, QImage, QPainter, QColor, QPen, QWheelEvent, QCursor, QLinearGradient
 )
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
@@ -50,6 +50,157 @@ _LABEL_INFO: List[Tuple[str, str]] = [
     ("Femur", "Paha"),
 ]
 
+class _BCPad(QWidget):
+    """Pad 2-D:  X  = brightness (−1 … +1)
+                Y  = contrast   (0.5 … 2.0)"""
+    valueChanged = Signal(float, float)          # (brightness, contrast)
+
+    def __init__(self, size: int = 200, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(size, size)
+        self._b = 0.0          # brightness
+        self._c = 1.0          # contrast
+        self._dragging = False
+        self._hover     = False
+        self.setMouseTracking(True)              # enable hover feedback
+
+    # ---------- helpers -------------------------------------------------
+    def _emit(self):
+        self.valueChanged.emit(self._b, self._c)
+
+    def _update_from_pos(self, ev):
+        # ambil posisi kursor lalu konversi → nilai B & C
+        x = ev.position().x()
+        y = ev.position().y()
+        w, h = self.width(), self.height()
+        # clamp agar tidak keluar kotak
+        x = max(0, min(w, x))
+        y = max(0, min(h, y))
+        # map ke rentang
+        self._b = (x / w) * 2.0 - 1.0            # −1 … +1
+        self._c = 0.5 + (1.0 - y / h) * 1.5      # 2.0 (atas) … 0.5 (bawah)
+        self._emit()
+        self.update()
+
+    # ---------- mouse events -------------------------------------------
+    def mousePressEvent(self, ev):
+        if ev.buttons() & Qt.LeftButton:
+            self._dragging = True
+            self._update_from_pos(ev)
+
+    def mouseMoveEvent(self, ev):
+        if self._dragging:
+            self._update_from_pos(ev)
+        else:
+            self._hover = True
+            self.update()
+
+    def mouseReleaseEvent(self, ev):
+        self._dragging = False
+        self.update()
+
+    def leaveEvent(self, ev):
+        self._hover = False
+        self.update()
+
+    # ---------- paint ---------------------------------------------------
+    def paintEvent(self, ev):
+        p = QPainter(self)
+
+        # --- background: kombinasi 2 gradient (brightness & contrast) ---
+        grad_h = QLinearGradient(0, 0, self.width(), 0)      # brightness
+        grad_h.setColorAt(0.0, QColor("#404040"))
+        grad_h.setColorAt(0.5, QColor("#808080"))
+        grad_h.setColorAt(1.0, QColor("#c0c0c0"))
+
+        grad_v = QLinearGradient(0, 0, 0, self.height())      # contrast
+        grad_v.setColorAt(0.0, QColor("#ffffff"))
+        grad_v.setColorAt(0.5, QColor("#808080"))
+        grad_v.setColorAt(1.0, QColor("#404040"))
+
+        p.fillRect(self.rect(), grad_h)
+        p.setCompositionMode(QPainter.CompositionMode_Multiply)
+        p.fillRect(self.rect(), grad_v)
+        p.setCompositionMode(QPainter.CompositionMode_SourceOver)
+
+        # --- grid & label garis referensi ------------------------------
+        center_x = self.width() // 2
+        center_y = int(self.height() * (1 - (1.0 - 0.5) / 1.5))  # C=1.0 pos-Y
+
+        # garis utama
+        p.setPen(QPen(QColor(255, 255, 255, 80), 1))
+        p.drawLine(center_x, 0, center_x, self.height())   # B = 0
+        p.drawLine(0, center_y, self.width(), center_y)    # C = 1
+
+        # garis kuartil
+        p.setPen(QPen(QColor(255, 255, 255, 40), 1))
+        quarter_x = self.width() // 4
+        p.drawLine(quarter_x, 0, quarter_x, self.height())
+        p.drawLine(3*quarter_x, 0, 3*quarter_x, self.height())
+
+        # label teks sederhana
+        p.setPen(QColor(255, 255, 255, 180))
+        fm = p.fontMetrics()
+        p.drawText(5, self.height()-5, "-1")
+        p.drawText(quarter_x-10, self.height()-5, "-0.5")
+        p.drawText(center_x-5, self.height()-5, "0")
+        p.drawText(3*quarter_x-10, self.height()-5, "+0.5")
+        p.drawText(self.width()-20, self.height()-5, "+1")
+
+        p.drawText(5, 15,  "2.0")        # contrast top
+        p.drawText(5, center_y+5, "1.0") # contrast mid
+        p.drawText(5, self.height()-15, "0.5")  # contrast bottom
+
+        # --- crosshair & live indicator --------------------------------
+        cx = int((self._b + 1) / 2 * self.width())
+        cy = int((1 - (self._c - 0.5) / 1.5) * self.height())
+
+        # garis live (green brightness, blue contrast)
+        p.setPen(QPen(QColor(0, 255, 0, 150), 2))
+        p.drawLine(cx, 0, cx, self.height())
+        p.setPen(QPen(QColor(0, 150, 255, 150), 2))
+        p.drawLine(0, cy, self.width(), cy)
+
+        # crosshair dengan outline
+        p.setPen(QPen(QColor(255, 255, 255), 2))
+        p.drawLine(cx-10, cy, cx+10, cy)
+        p.drawLine(cx, cy-10, cx, cy+10)
+        p.setPen(QPen(QColor(255, 0, 0), 1))
+        p.drawLine(cx-8, cy, cx+8, cy)
+        p.drawLine(cx, cy-8, cx, cy+8)
+
+        # lingkaran pusat
+        p.setBrush(QColor(255, 0, 0))
+        p.drawEllipse(cx-2, cy-2, 4, 4)
+
+        # value tooltip di tepi
+        p.setPen(QPen(QColor(255, 255, 255), 1))
+        p.setBrush(QColor(0, 0, 0, 180))
+        b_txt = f"B: {self._b:+.2f}"
+        c_txt = f"C: {self._c:.2f}"
+        b_rect = fm.boundingRect(b_txt)
+        c_rect = fm.boundingRect(c_txt)
+        # brightness box (bottom)
+        bx = cx - b_rect.width()//2
+        by = self.height() - b_rect.height() - 4
+        p.drawRect(bx-2, by-2, b_rect.width()+4, b_rect.height()+4)
+        p.drawText(bx, by + b_rect.height(), b_txt)
+        # contrast box (right)
+        cxr = self.width() - c_rect.width() - 6
+        cyr = cy - c_rect.height()//2
+        p.drawRect(cxr-2, cyr-2, c_rect.width()+4, c_rect.height()+4)
+        p.drawText(cxr, cyr + c_rect.height(), c_txt)
+
+        # highlight saat drag / hover
+        if self._dragging:
+            p.setPen(QPen(QColor(255, 255, 0, 200), 3))
+            p.setBrush(QColor(255, 255, 0, 50))
+            p.drawEllipse(cx-8, cy-8, 16, 16)
+        elif self._hover:
+            p.setPen(QPen(QColor(255, 255, 255, 150), 2))
+            p.setBrush(QColor(255, 255, 255, 30))
+            p.drawEllipse(cx-6, cy-6, 12, 12)
+
 # ==================================================================== Canvas
 class _Canvas(QGraphicsView):
     """Interactive view: pan, zoom, brush / eraser dengan koordinat presisi tinggi."""
@@ -72,7 +223,9 @@ class _Canvas(QGraphicsView):
         self._img_height, self._img_width = orig.shape
 
         # original grayscale (opacity 0.5)
-        gray_q = self._nd_gray_to_qimage(orig)
+        self._orig_base = ((orig - orig.min()) / max(1, orig.ptp()) * 255).astype(np.uint8)
+        gray_q = QImage(self._orig_base.data, self._img_width, self._img_height,
+                        self._img_width, QImage.Format_Grayscale8).copy()
         self._item_gray = QGraphicsPixmapItem(QPixmap.fromImage(gray_q))
         self._item_gray.setOpacity(0.5)
         self._scene.addItem(self._item_gray)
@@ -82,6 +235,21 @@ class _Canvas(QGraphicsView):
         self._mask_img = self._mask_to_qimage(show_all=False, label=1)
         self._item_mask = QGraphicsPixmapItem(QPixmap.fromImage(self._mask_img))
         self._scene.addItem(self._item_mask)
+
+        # [OPSI] Tambah ini buat atur transparansi mask biar layer bawah kelihatan:
+        self._item_mask.setOpacity(1.0)
+        # -------- opacity states ---------------------------------
+        self._bg_alpha = 0.0    # label-0 (background) opacity (0-1)
+
+        
+        print("===== DEBUG _Canvas =====")
+        print("Shape original image:", orig.shape)
+        print("Shape mask array     :", mask.shape)
+        print("Unique mask values   :", np.unique(self._mask_arr))
+        print("Opacity gray image   :", self._item_gray.opacity())
+        print("Mask QImage size     :", self._mask_img.size())
+        print("QGraphicsScene items :", self._scene.items())
+        print("=========================\n")
 
         self._cur_label = 1
         self._brush_sz  = 1     # radius in pixels (true 1 pixel)
@@ -117,13 +285,26 @@ class _Canvas(QGraphicsView):
         return QImage(u8.data, w, h, w, QImage.Format_Grayscale8).copy()
 
     def _mask_to_qimage(self, *, show_all: bool, label: int) -> QImage:
-        rgb = label_mask_to_rgb(self._mask_arr)
-        if not show_all:
-            sel = self._mask_arr == label
-            rgb[~sel] = (0, 0, 0)
+        rgb = label_mask_to_rgb(self._mask_arr)          # (H, W, 3)
         h, w, _ = rgb.shape
-        rgba = np.concatenate([rgb, np.full((h, w, 1), 255, np.uint8)], axis=-1)
-        return QImage(rgba.data, w, h, 4 * w, QImage.Format_RGBA8888).copy()
+
+        # build an alpha channel: fully opaque where we want to show,
+        #  fully transparent everywhere else
+        if show_all:
+            alpha = np.full((h, w), 255, np.uint8)
+            # label-0 transparency:
+            alpha[self._mask_arr == 0] = int(self._bg_alpha * 255)
+        else:
+            sel = (self._mask_arr == label)
+            alpha = np.zeros((h, w), np.uint8)
+            alpha[sel] = 255
+
+        # stack RGB + alpha → RGBA image
+        rgba = np.dstack([rgb, alpha])
+
+        # create QImage from the raw data
+        return QImage(rgba.data, w, h, 4*w, QImage.Format_RGBA8888).copy()
+
 
     # -------- public setters
     def set_brush_size(self, sz: int):        
@@ -142,6 +323,43 @@ class _Canvas(QGraphicsView):
     def toggle_show_all(self, on: bool):
         self._show_all = bool(on)
         self._refresh_mask()
+
+    # ---- new: opacity setters ---------------------------------
+    def set_gray_opacity(self, alpha: float):
+        """alpha 0-1 untuk layer grayscale"""
+        self._item_gray.setOpacity(alpha)
+
+    def set_mask_opacity(self, alpha: float):
+        """alpha 0-1 untuk layer mask/segmen"""
+        self._item_mask.setOpacity(alpha)
+        
+    def set_bc(self, brightness: float, contrast: float):
+        """
+        brightness –1..+1, contrast 0.5..2
+        simple formula: new = (orig-128)*contrast + 128 + brightness*128
+        """
+        arr = (self._orig_base.astype(np.float32) - 128) * contrast + 128 + brightness*128
+        arr = np.clip(arr, 0, 255).astype(np.uint8)
+        q = QImage(arr.data, self._img_width, self._img_height,
+                   self._img_width, QImage.Format_Grayscale8).copy()
+        self._item_gray.setPixmap(QPixmap.fromImage(q))
+
+        
+    # -- background (label-0) opacity -----------------------------
+    def set_bg_opacity(self, alpha: float):
+        """alpha 0-1 hanya untuk label-0 (background)."""
+        self._bg_alpha = alpha
+        self._refresh_mask()      
+        # rebuild RGBA so change is visible
+    # -- contrast -------------------------------------------------
+    def set_contrast(self, factor: float):
+        """factor 0.5–2.0 : adjust brightness-contrast layer original"""
+        arr = (self._orig_base * factor).clip(0, 255).astype(np.uint8)
+        q   = QImage(arr.data, self._img_width, self._img_height,
+                     self._img_width, QImage.Format_Grayscale8).copy()
+        self._item_gray.setPixmap(QPixmap.fromImage(q))
+
+
     
     def current_mask(self) -> np.ndarray:     
         return self._mask_arr
@@ -299,6 +517,13 @@ class SegmentationEditorDialog(QDialog):
         self._png_color = base.with_name(f"{base.stem}_{vtag}_colored.png")
         self._dcm_mask  = base.with_name(f"{base.stem}_{vtag}_mask.dcm")
         self._dcm_color = base.with_name(f"{base.stem}_{vtag}_colored.dcm")
+        
+        # ===== DEBUG: cek isi frame & view =====
+        print("\n======================")
+        print(">>> DEBUG: SegmentationEditorDialog")
+        print(f"View diminta        : '{view}'")
+        print(f"Keys di scan[frames]: {list(scan['frames'].keys())}")
+        print("======================\n")
 
         # Load original array dari DICOM frames
         orig_arr = scan["frames"][view]
@@ -320,10 +545,12 @@ class SegmentationEditorDialog(QDialog):
             except Exception as e:
                 print(f"✗ Failed to load PNG {orig_png_path}: {e}")
                 orig_png_arr = orig_arr
+                print(f"✓ DEBUG Original image range: min={orig_png_arr.min()}, max={orig_png_arr.max()}, shape={orig_png_arr.shape}")
         else:
             # Gunakan data dari DICOM frame langsung
             orig_png_arr = orig_arr
             print(f"✓ Using DICOM frame data for {view}")
+            print(f"✓ DEBUG Original DICOM image range: min={orig_png_arr.min()}, max={orig_png_arr.max()}, shape={orig_png_arr.shape}")
 
         # ================= UI =================
         root = QHBoxLayout(self)
@@ -367,6 +594,39 @@ class SegmentationEditorDialog(QDialog):
         zoom_row.addWidget(self.slider_zoom)
         zoom_row.addWidget(self.lbl_zoom)
         bar.addLayout(zoom_row)
+        
+        # --- Original opacity slider ---
+        bar.addWidget(QLabel("Original Opacity"))
+        self.slider_gray = QSlider(Qt.Horizontal)
+        self.slider_gray.setRange(0, 100)
+        self.slider_gray.setValue(50)           # default 50 %
+        self.lbl_gray = QLabel("50 %")
+        g_row = QHBoxLayout(); g_row.addWidget(self.slider_gray); g_row.addWidget(self.lbl_gray)
+        bar.addLayout(g_row)
+
+        # --- Mask opacity slider ---
+        bar.addWidget(QLabel("Mask Opacity"))
+        self.slider_mask = QSlider(Qt.Horizontal)
+        self.slider_mask.setRange(0, 100)
+        self.slider_mask.setValue(100)          # default 100 %
+        self.lbl_mask = QLabel("100 %")
+        m_row = QHBoxLayout(); m_row.addWidget(self.slider_mask); m_row.addWidget(self.lbl_mask)
+        bar.addLayout(m_row)
+
+        # --- Background opacity slider (label-0) ---
+        bar.addWidget(QLabel("BG Opacity"))
+        self.slider_bg = QSlider(Qt.Horizontal)
+        self.slider_bg.setRange(0, 100)
+        self.slider_bg.setValue(0)           # start invisible
+        self.lbl_bg = QLabel("0 %")
+        bg_row = QHBoxLayout(); bg_row.addWidget(self.slider_bg); bg_row.addWidget(self.lbl_bg)
+        bar.addLayout(bg_row)
+        
+                # --- Contrast button ---
+        btn_contrast = QPushButton("Contrast…")
+        bar.addWidget(btn_contrast)
+
+
 
         # Instructions dengan info yang lebih jelas
         data_source = "Original PNG loaded" if self._has_orig_png else "DICOM frames used"
@@ -424,6 +684,10 @@ class SegmentationEditorDialog(QDialog):
         self.btn_showall.toggled.connect(self.canvas.toggle_show_all)
         self.btn_brush.clicked.connect(self._select_brush)
         self.btn_eraser.clicked.connect(self._select_eraser)
+        self.slider_gray.valueChanged.connect(self._gray_alpha_changed)
+        self.slider_mask.valueChanged.connect(self._mask_alpha_changed)
+        self.slider_bg.valueChanged.connect(self._bg_alpha_changed)
+        btn_contrast.clicked.connect(self._open_contrast_popup)
         btn_save.clicked.connect(self._save_all)
         btn_cancel.clicked.connect(self.reject)
 
@@ -454,6 +718,56 @@ class SegmentationEditorDialog(QDialog):
         zoom_factor = val / 10.0   # 0.1 – 100.0x
         self.canvas.set_zoom(zoom_factor)
         self.lbl_zoom.setText(f"{zoom_factor:.1f}x")
+
+    # -- new handlers: update opacity label + kirim ke canvas ----
+    def _gray_alpha_changed(self, val: int):
+        alpha = val / 100.0
+        self.canvas.set_gray_opacity(alpha)
+        self.lbl_gray.setText(f"{val} %")
+
+    def _mask_alpha_changed(self, val: int):
+        alpha = val / 100.0
+        self.canvas.set_mask_opacity(alpha)
+        self.lbl_mask.setText(f"{val} %")
+
+    def _bg_alpha_changed(self, val: int):
+        a = val / 100.0
+        self.canvas.set_bg_opacity(a)
+        self.lbl_bg.setText(f"{val} %")
+        
+    # ---------- contrast mini-popup ------------------------------
+    def _open_contrast_popup(self):
+        dlg = QDialog(self); dlg.setWindowTitle("Brightness / Contrast")
+        dlg.setFixedSize(300, 400)  # TAMBAHKAN: Fixed size untuk konsistensi
+        lay = QVBoxLayout(dlg)
+
+        pad = _BCPad()
+        lbl = QLabel("B 0.00  C 1.00")
+        lay.addWidget(QLabel("Drag crosshair – X = brightness, Y = contrast"))
+        lay.addWidget(pad, 0, Qt.AlignCenter)
+        # TAMBAHKAN: Labels untuk reference
+        ref_layout = QHBoxLayout()
+        ref_layout.addWidget(QLabel("Dark"))
+        ref_layout.addStretch()
+        ref_layout.addWidget(QLabel("Normal"))
+        ref_layout.addStretch()
+        ref_layout.addWidget(QLabel("Bright"))
+        lay.addLayout(ref_layout)
+
+        # Labels untuk contrast (vertikal)
+        contrast_info = QLabel("↑ High Contrast\n↓ Low Contrast")
+        contrast_info.setAlignment(Qt.AlignCenter)
+        lay.addWidget(contrast_info)
+        lay.addWidget(lbl, 0, Qt.AlignCenter)
+
+        def _on_change(b, c):
+            lbl.setText(f"B {b:+.2f}   C {c:.2f}")
+            self.canvas.set_bc(b, c)
+        pad.valueChanged.connect(_on_change)
+
+        dlg.exec()
+
+
 
     # ---------- palette & tools
     def _select_brush(self):
