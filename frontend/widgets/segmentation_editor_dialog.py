@@ -595,54 +595,85 @@ class SegmentationEditorDialog(QDialog):
         row.addWidget(self.btn_brush); row.addWidget(self.btn_eraser); row.addWidget(self.btn_showall)
         bar.addLayout(row)
 
+        # ===== BRUSH SIZE SLIDER DENGAN TOMBOL +/- =====
         bar.addWidget(QLabel("Brush Size (pixels)"))
         self.slider_size = QSlider(Qt.Horizontal); self.slider_size.setRange(1,15); self.slider_size.setValue(1)
-        self.lbl_size = QLabel("1px")
+        self.lbl_size = QLabel("1px"); self.lbl_size.setFixedWidth(35); self.lbl_size.setAlignment(Qt.AlignRight)
+        self.btn_size_minus = QPushButton("-"); self.btn_size_minus.setFixedSize(30, 22)
+        self.btn_size_plus = QPushButton("+"); self.btn_size_plus.setFixedSize(30, 22)
         size_row = QHBoxLayout()
-        size_row.addWidget(self.slider_size)
+        size_row.setSpacing(3)
+        size_row.addWidget(self.btn_size_minus)
+        size_row.addWidget(self.slider_size, 1)
+        size_row.addWidget(self.btn_size_plus)
         size_row.addWidget(self.lbl_size)
         bar.addLayout(size_row)
 
+        # ===== ZOOM SLIDER DENGAN TOMBOL +/- =====
         bar.addWidget(QLabel("Zoom"))
         self.slider_zoom = QSlider(Qt.Horizontal); self.slider_zoom.setRange(1,1000); self.slider_zoom.setValue(10)
-        self.lbl_zoom = QLabel("1.0x")
+        self.lbl_zoom = QLabel("1.0x"); self.lbl_zoom.setFixedWidth(35); self.lbl_zoom.setAlignment(Qt.AlignRight)
+        self.btn_zoom_minus = QPushButton("-"); self.btn_zoom_minus.setFixedSize(30, 22)
+        self.btn_zoom_plus = QPushButton("+"); self.btn_zoom_plus.setFixedSize(30, 22)
         zoom_row = QHBoxLayout()
-        zoom_row.addWidget(self.slider_zoom)
+        zoom_row.setSpacing(3)
+        zoom_row.addWidget(self.btn_zoom_minus)
+        zoom_row.addWidget(self.slider_zoom, 1)
+        zoom_row.addWidget(self.btn_zoom_plus)
         zoom_row.addWidget(self.lbl_zoom)
         bar.addLayout(zoom_row)
         
-        # --- Original opacity slider ---
+        # ===== ORIGINAL OPACITY SLIDER DENGAN TOMBOL +/- =====
         bar.addWidget(QLabel("Original Opacity"))
         self.slider_gray = QSlider(Qt.Horizontal)
         self.slider_gray.setRange(0, 100)
         self.slider_gray.setValue(50)           # default 50 %
-        self.lbl_gray = QLabel("50 %")
-        g_row = QHBoxLayout(); g_row.addWidget(self.slider_gray); g_row.addWidget(self.lbl_gray)
+        self.lbl_gray = QLabel("50 %"); self.lbl_gray.setFixedWidth(35); self.lbl_gray.setAlignment(Qt.AlignRight)
+        self.btn_gray_minus = QPushButton("-"); self.btn_gray_minus.setFixedSize(30, 22)
+        self.btn_gray_plus = QPushButton("+"); self.btn_gray_plus.setFixedSize(30, 22)
+        g_row = QHBoxLayout()
+        g_row.setSpacing(3)
+        g_row.addWidget(self.btn_gray_minus)
+        g_row.addWidget(self.slider_gray, 1)
+        g_row.addWidget(self.btn_gray_plus)
+        g_row.addWidget(self.lbl_gray)
         bar.addLayout(g_row)
 
-        # --- Mask opacity slider ---
+        # ===== MASK OPACITY SLIDER DENGAN TOMBOL +/- =====
         bar.addWidget(QLabel("Mask Opacity"))
         self.slider_mask = QSlider(Qt.Horizontal)
         self.slider_mask.setRange(0, 100)
         self.slider_mask.setValue(100)          # default 100 %
-        self.lbl_mask = QLabel("100 %")
-        m_row = QHBoxLayout(); m_row.addWidget(self.slider_mask); m_row.addWidget(self.lbl_mask)
+        self.lbl_mask = QLabel("100 %"); self.lbl_mask.setFixedWidth(35); self.lbl_mask.setAlignment(Qt.AlignRight)
+        self.btn_mask_minus = QPushButton("-"); self.btn_mask_minus.setFixedSize(30, 22)
+        self.btn_mask_plus = QPushButton("+"); self.btn_mask_plus.setFixedSize(30, 22)
+        m_row = QHBoxLayout()
+        m_row.setSpacing(3)
+        m_row.addWidget(self.btn_mask_minus)
+        m_row.addWidget(self.slider_mask, 1)
+        m_row.addWidget(self.btn_mask_plus)
+        m_row.addWidget(self.lbl_mask)
         bar.addLayout(m_row)
 
-        # --- Background opacity slider (label-0) ---
+        # ===== BACKGROUND OPACITY SLIDER DENGAN TOMBOL +/- =====
         bar.addWidget(QLabel("BG Opacity"))
         self.slider_bg = QSlider(Qt.Horizontal)
         self.slider_bg.setRange(0, 100)
         self.slider_bg.setValue(0)           # start invisible
-        self.lbl_bg = QLabel("0 %")
-        bg_row = QHBoxLayout(); bg_row.addWidget(self.slider_bg); bg_row.addWidget(self.lbl_bg)
+        self.lbl_bg = QLabel("0 %"); self.lbl_bg.setFixedWidth(35); self.lbl_bg.setAlignment(Qt.AlignRight)
+        self.btn_bg_minus = QPushButton("-"); self.btn_bg_minus.setFixedSize(30, 22)
+        self.btn_bg_plus = QPushButton("+"); self.btn_bg_plus.setFixedSize(30, 22)
+        bg_row = QHBoxLayout()
+        bg_row.setSpacing(3)
+        bg_row.addWidget(self.btn_bg_minus)
+        bg_row.addWidget(self.slider_bg, 1)
+        bg_row.addWidget(self.btn_bg_plus)
+        bg_row.addWidget(self.lbl_bg)
         bar.addLayout(bg_row)
         
-                # --- Contrast button ---
+        # --- Contrast button ---
         btn_contrast = QPushButton("Contrast…")
         bar.addWidget(btn_contrast)
-
-
 
         # Instructions dengan info yang lebih jelas
         data_source = "Original PNG loaded" if self._has_orig_png else "DICOM frames used"
@@ -693,7 +724,7 @@ class SegmentationEditorDialog(QDialog):
         self.canvas.set_info_callback(self._update_info_display)
         right_layout.addWidget(self.canvas)
 
-        # ===== signals =====
+        # ===== SIGNALS =====
         self.list_palette.currentRowChanged.connect(self._change_label)
         self.slider_size.valueChanged.connect(self._size_changed)
         self.slider_zoom.valueChanged.connect(self._zoom_slider_changed)
@@ -706,6 +737,38 @@ class SegmentationEditorDialog(QDialog):
         btn_contrast.clicked.connect(self._open_contrast_popup)
         btn_save.clicked.connect(self._save_all)
         btn_cancel.clicked.connect(self.reject)
+        
+        # Brush size buttons
+        self.btn_size_minus.clicked.connect(lambda: self._adjust_slider(self.slider_size, -1))
+        self.btn_size_plus.clicked.connect(lambda: self._adjust_slider(self.slider_size, 1))
+        
+        # Zoom buttons
+        self.btn_zoom_minus.clicked.connect(lambda: self._adjust_slider(self.slider_zoom, -5))
+        self.btn_zoom_plus.clicked.connect(lambda: self._adjust_slider(self.slider_zoom, 5))
+        
+        # Original opacity buttons
+        self.btn_gray_minus.clicked.connect(lambda: self._adjust_slider(self.slider_gray, -5))
+        self.btn_gray_plus.clicked.connect(lambda: self._adjust_slider(self.slider_gray, 5))
+        
+        # Mask opacity buttons
+        self.btn_mask_minus.clicked.connect(lambda: self._adjust_slider(self.slider_mask, -5))
+        self.btn_mask_plus.clicked.connect(lambda: self._adjust_slider(self.slider_mask, 5))
+        
+        # Background opacity buttons
+        self.btn_bg_minus.clicked.connect(lambda: self._adjust_slider(self.slider_bg, -5))
+        self.btn_bg_plus.clicked.connect(lambda: self._adjust_slider(self.slider_bg, 5))
+
+    def _adjust_slider(self, slider, step):
+        """Helper method untuk mengubah nilai slider dengan step tertentu"""
+        current_value = slider.value()
+        new_value = current_value + step
+        
+        # Pastikan nilai tidak melampaui range
+        min_val = slider.minimum()
+        max_val = slider.maximum()
+        new_value = max(min_val, min(max_val, new_value))
+        
+        slider.setValue(new_value)
 
     def _update_info_display(self, width, height, zoom, grid_size):
         """Update the info display"""
@@ -727,8 +790,9 @@ class SegmentationEditorDialog(QDialog):
         else:
             # Circular brush area calculation
             area_pixels = int(math.pi * size * size)
-            self.lbl_size.setText(f"R{size} (~{area_pixels}px)")
-
+            self.lbl_size.setText(f"{area_pixels}px")
+            self.lbl_size.styleSheet("font-size: 10pt;")
+            
     def _zoom_slider_changed(self, val: int):
         """Handle zoom slider change"""
         zoom_factor = val / 10.0   # 0.1 – 100.0x
