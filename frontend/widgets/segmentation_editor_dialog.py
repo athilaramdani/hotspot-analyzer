@@ -269,6 +269,73 @@ class _Canvas(QGraphicsView):
         # Info callback
         self._info_callback = None
 
+        # State management per layer
+        self._layer_history = {}  # {label_id: {'undo': [], 'redo': []}}
+        self._max_history = 50  # Batas maksimal history per layer
+        
+        # Inisialisasi history untuk setiap layer
+        for label_id in range(len(_PALETTE)):
+            self._init_layer_history(label_id)
+            
+        # Simpan state awal untuk semua layer
+        self._save_all_states()
+
+    def _init_layer_history(self, label_id: int):
+        """Inisialisasi struktur history untuk layer tertentu"""
+        self._layer_history[label_id] = {
+            'undo': [],
+            'redo': []
+        }
+
+    def _save_layer_state(self, label_id: int):
+        """Simpan state layer tertentu ke undo stack"""
+        history = self._layer_history[label_id]
+        
+        # Salinan array layer saat ini
+        state = self._layers[label_id].copy()
+        
+        # Batasi jumlah history
+        if len(history['undo']) >= self._max_history:
+            history['undo'].pop(0)
+        
+        history['undo'].append(state)
+        history['redo'].clear()  # Reset redo setelah perubahan baru
+
+    def _save_all_states(self):
+        """Simpan state semua layer (digunakan saat inisialisasi)"""
+        for label_id in range(len(_PALETTE)):
+            self._save_layer_state(label_id)
+
+    def _restore_layer_state(self, label_id: int, state: np.ndarray):
+        """Kembalikan state untuk layer tertentu"""
+        self._layers[label_id] = state.copy()
+        self._rebuild_combined()
+        self._refresh_mask()
+
+    def undo(self, label_id: int):
+        """Kembalikan ke state sebelumnya untuk layer tertentu"""
+        history = self._layer_history.get(label_id)
+        if not history or len(history['undo']) < 2:
+            return  # Tidak ada history yang cukup
+        
+        # Pindahkan state saat ini ke redo stack
+        current_state = history['undo'].pop()
+        history['redo'].append(current_state)
+        
+        # Kembalikan ke state sebelumnya
+        prev_state = history['undo'][-1]
+        self._restore_layer_state(label_id, prev_state)
+
+    def redo(self, label_id: int):
+        """Kembalikan perubahan yang di-undo untuk layer tertentu"""
+        history = self._layer_history.get(label_id)
+        if not history or not history['redo']:
+            return
+        
+        state = history['redo'].pop()
+        history['undo'].append(state)
+        self._restore_layer_state(label_id, state)
+
     def set_info_callback(self, callback):
         """Set callback to update info display"""
         self._info_callback = callback
@@ -447,6 +514,11 @@ class _Canvas(QGraphicsView):
             super().mouseMoveEvent(ev)
 
     def mouseReleaseEvent(self, ev):
+        if ev.button() == Qt.LeftButton and self._drawing:
+            # Simpan state layer yang sedang diedit
+            self._save_layer_state(self._cur_label)
+            self._drawing = False
+
         if ev.button() == Qt.LeftButton:
             self._drawing = False
         elif ev.button() == Qt.MiddleButton:
@@ -595,6 +667,14 @@ class SegmentationEditorDialog(QDialog):
         row.addWidget(self.btn_brush); row.addWidget(self.btn_eraser); row.addWidget(self.btn_showall)
         bar.addLayout(row)
 
+        # Tambahkan tombol undo/redo
+        btn_row = QHBoxLayout()
+        self.btn_undo = QPushButton("Undo")
+        self.btn_redo = QPushButton("Redo")
+        btn_row.addWidget(self.btn_undo)
+        btn_row.addWidget(self.btn_redo)
+        bar.addLayout(btn_row)
+
         # ===== BRUSH SIZE SLIDER DENGAN TOMBOL +/- =====
         bar.addWidget(QLabel("Brush Size (pixels)"))
         self.slider_size = QSlider(Qt.Horizontal); self.slider_size.setRange(1,15); self.slider_size.setValue(1)
@@ -684,6 +764,8 @@ class SegmentationEditorDialog(QDialog):
             "• Left click/drag: Paint<br>"
             "• Middle click/drag: Pan<br>"
             "• Ctrl+scroll: Zoom<br>"
+            "• Ctrl+Z: Undo edit<br>"
+            "• Ctrl+Y: Redo Edit<br>"
             "• Grid appears at 2x+ zoom<br><br>"
             f"<b>Data Info:</b><br>"
             f"• Image: {data_source}<br>"
@@ -737,7 +819,9 @@ class SegmentationEditorDialog(QDialog):
         btn_contrast.clicked.connect(self._open_contrast_popup)
         btn_save.clicked.connect(self._save_all)
         btn_cancel.clicked.connect(self.reject)
-        
+        self.btn_undo.clicked.connect(self._perform_undo)
+        self.btn_redo.clicked.connect(self._perform_redo)
+
         # Brush size buttons
         self.btn_size_minus.clicked.connect(lambda: self._adjust_slider(self.slider_size, -1))
         self.btn_size_plus.clicked.connect(lambda: self._adjust_slider(self.slider_size, 1))
@@ -770,6 +854,31 @@ class SegmentationEditorDialog(QDialog):
         
         slider.setValue(new_value)
 
+    def _perform_undo(self):
+        """Undo untuk layer yang sedang aktif"""
+        current_label = self.list_palette.currentRow()
+        self.canvas.undo(current_label)
+
+    def _perform_redo(self):
+        """Redo untuk layer yang sedang aktif"""
+        current_label = self.list_palette.currentRow()
+        self.canvas.redo(current_label)
+
+    def keyPressEvent(self, event):
+        """Handle keyboard shortcuts"""
+        if event.modifiers() & Qt.ControlModifier:
+            current_label = self.list_palette.currentRow()
+            
+            if event.key() == Qt.Key_Z:
+                self.canvas.undo(current_label)
+                event.accept()
+                return
+            elif event.key() == Qt.Key_Y:
+                self.canvas.redo(current_label)
+                event.accept()
+                return
+        super().keyPressEvent(event)
+
     def _update_info_display(self, width, height, zoom, grid_size):
         """Update the info display"""
         self.lbl_image_info.setText(f"Image: {width}×{height}")
@@ -791,7 +900,6 @@ class SegmentationEditorDialog(QDialog):
             # Circular brush area calculation
             area_pixels = int(math.pi * size * size)
             self.lbl_size.setText(f"{area_pixels}px")
-            self.lbl_size.styleSheet("font-size: 10pt;")
             
     def _zoom_slider_changed(self, val: int):
         """Handle zoom slider change"""
@@ -846,8 +954,6 @@ class SegmentationEditorDialog(QDialog):
         pad.valueChanged.connect(_on_change)
 
         dlg.exec()
-
-
 
     # ---------- palette & tools
     def _select_brush(self):
