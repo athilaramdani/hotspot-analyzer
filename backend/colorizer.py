@@ -47,3 +47,11 @@ def label_mask_to_rgb(mask: np.ndarray) -> np.ndarray:
 
 def save_colored(mask: np.ndarray, save_path: Path) -> None:
     Image.fromarray(label_mask_to_rgb(mask)).save(save_path)
+
+def get_anatomy_names():
+    return [
+        "Background", "Skull", "Cervical Vertebrae", 
+        "Thoracic Vertebrae", "Rib", "Sternum", "Collarbone",
+        "Scapula", "Humerus", "Lumbar Vertebrae", "Sacrum",
+        "Pelvis", "Femur"
+    ]
