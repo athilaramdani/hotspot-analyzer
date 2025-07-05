@@ -1,0 +1,22 @@
+{
+    "channel_names": {
+        "0": "Main"
+    },
+    "labels": {
+        "background": 0,
+        "skull": 1,
+        "cervical vertebrae": 2,
+        "thoracic vertebrae": 3,
+        "rib": 4,
+        "sternum": 5,
+        "collarbone": 6,
+        "scapula": 7,
+        "humerus": 8,
+        "lumbar vertebrae": 9,
+        "sacrum": 10,
+        "pelvis": 11,
+        "femur": 12
+    },
+    "numTraining": 1664,
+    "file_ending": ".png"
+}
