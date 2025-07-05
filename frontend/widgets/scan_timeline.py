@@ -15,16 +15,18 @@ from PySide6.QtWidgets import (
 )
 
 from .segmentation_editor_dialog import SegmentationEditorDialog
+from pydicom import dcmread
 
 
 # --------------------------- helpers -----------------------------------------
 def _array_to_pixmap(arr: np.ndarray, width: int) -> QPixmap:
     arr_f = arr.astype(np.float32)
-    arr_f = (arr_f - arr_f.min()) / max(1, arr_f.ptp()) * 255.0
+    arr_f = (arr_f - arr_f.min()) / max(1, np.ptp(arr_f)) * 255.0
     img_u8 = arr_f.astype(np.uint8)
     h, w = img_u8.shape
     qim   = QImage(img_u8.data, w, h, w, QImage.Format_Grayscale8)
     return QPixmap.fromImage(qim).scaledToWidth(width, Qt.SmoothTransformation)
+
 
 
 def _png_to_pixmap(png: Path, width: int) -> QPixmap | None:
@@ -57,6 +59,7 @@ class ScanTimelineWidget(QScrollArea):
         self.active_scan_index = 0
         self._zoom_factor = 1.0
         self.card_width   = 350
+        
 
     # ------------------------------------------------------ zoom
     def zoom_in(self):  self._zoom_factor *= 1.2; self._rebuild()
@@ -64,6 +67,7 @@ class ScanTimelineWidget(QScrollArea):
 
     # ------------------------------------------------------ public API
     def display_timeline(self, scans: List[Dict], active_index: int = -1):
+        print(f"[DEBUG] display_timeline dipanggil dengan {len(scans)} scan(s), active_index = {active_index}")
         self._scans_cache      = scans
         self.active_scan_index = active_index
         self._zoom_factor      = 1.0
@@ -111,16 +115,23 @@ class ScanTimelineWidget(QScrollArea):
         btn.clicked.connect(lambda *_: self._open_editor(idx))
         hbox.addWidget(btn)
         return hbox
+    
+   
 
+    
     def _make_single(self, scan: Dict, w: int, idx: int) -> QFrame:
         card, lay = QFrame(), QVBoxLayout()
         card.setLayout(lay)
         lay.addLayout(self._make_header(scan, idx))
 
         frame_map = scan["frames"]
-        dicom     = scan["path"]
-        base      = dicom.with_suffix("")
-        seg_png   = base.with_name(f"{base.stem}_{self.current_view.lower()}_colored.png")
+        dicom = scan["path"]
+        filename = dicom.stem  # contoh: '11'
+        seg_png = dicom.parent / f"{filename}_{self.current_view.lower()}_colored.png"
+
+
+        print(f"[DEBUG] Looking for segmentation PNG: {seg_png}")
+        print(f"        Exists? {seg_png.exists()}")
 
         lbl = QLabel(alignment=Qt.AlignCenter)
         if self.current_mode == "Original":
@@ -146,6 +157,10 @@ class ScanTimelineWidget(QScrollArea):
         base  = dicom.with_suffix("")
         seg_png = base.with_name(f"{base.stem}_{self.current_view.lower()}_colored.png")
 
+
+        print(f"[DEBUG] Looking for segmentation PNG: {seg_png}")
+        print(f"        Exists? {seg_png.exists()}")
+        
         # original
         o = QLabel(alignment=Qt.AlignCenter)
         pix_o = ( _array_to_pixmap(frame_map[self.current_view], w)

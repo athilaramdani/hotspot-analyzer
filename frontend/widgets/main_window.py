@@ -14,7 +14,20 @@ from PySide6.QtWidgets import (
 from backend.directory_scanner import scan_dicom_directory
 from backend.dicom_loader import load_frames_and_metadata
 
-from .dicom_import_dialog import DicomImportDialog
+import importlib
+import frontend.widgets.dicom_import_dialog_v2 as did
+
+# ⏪ Paksa reload modul
+importlib.reload(did  )
+
+# ✅ Print ulang dan ambil class-nya
+print(">>> DicomImportDialog loaded from:", did.__file__)
+import inspect
+print(">>> Signature:", inspect.signature(did.DicomImportDialog.__init__))
+
+DicomImportDialog = did.DicomImportDialog
+
+
 from .searchable_combobox import SearchableComboBox
 from .patient_info import PatientInfoBar
 from .scan_timeline import ScanTimelineWidget  # Menggunakan timeline widget lagi
@@ -24,10 +37,13 @@ from .view_selector import ViewSelector
 
 class MainWindow(QMainWindow):
 
-    def __init__(self) -> None:
+    def __init__(self, data_root: Path, parent=None, session_code: str | None = None):
         super().__init__()
         self.setWindowTitle("Hotspot Analyzer")
         self.resize(1600, 900)
+        self.session_code = session_code
+        self.data_root = data_root
+        print("[DEBUG] session_code in MainWindow =", self.session_code)
 
         # Caches
         self._patient_id_map: Dict[str, List[Path]] = {}
@@ -98,44 +114,77 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(main_widget)
 
     def _show_import_dialog(self) -> None:
-        dlg = DicomImportDialog(Path("data"), self)
+        dlg = DicomImportDialog(self.data_root, self, session_code=self.session_code)
         dlg.files_imported.connect(lambda _: self._scan_folder())
         dlg.exec()
 
     def _scan_folder(self) -> None:
         id_combo = self.patient_bar.id_combo
         id_combo.clear()
-        self._patient_id_map = scan_dicom_directory(Path("data"))
-        id_combo.addItems([f"ID : {pid}" for pid in sorted(self._patient_id_map)])
+        # 1. Pindai semua direktori seperti biasa
+        all_patients_map = scan_dicom_directory(self.data_root)
+        print(f"[DEBUG] Semua patient ID dari scanner:")
+        for pid in all_patients_map.keys():
+            print(f"  - {pid}")
+        # 2. ✅ Saring (filter) hasilnya untuk hanya menyertakan yang berakhiran '_kode'
+        filter_suffix = f"_{self.session_code}"
+        self._patient_id_map = {
+            pid: path
+            for pid, path in all_patients_map.items()
+            if pid.endswith(filter_suffix)
+        }
+        print(f"[DEBUG] ID pasien dengan suffix {filter_suffix}: {list(self._patient_id_map.keys())}")
+
+        # Tampilkan hasil saringan (tanpa akhiran _kode)
+        id_combo.addItems([
+            f"ID : {pid.removesuffix(filter_suffix)} ({self.session_code})"
+            for pid in sorted(self._patient_id_map)
+        ])
+        print(f"[DEBUG] Added {id_combo.count()} patient IDs to combo box")
+
         id_combo.clearSelection()
         self.patient_bar.clear_info(keep_id_list=True)
-        self.timeline_widget.display_timeline([]) # Kosongkan timeline
+        self.timeline_widget.display_timeline([])
+        
+        id_combo.clearSelection()
+        self.patient_bar.clear_info(keep_id_list=True)
+        self.timeline_widget.display_timeline([])
+
 
     def _on_patient_selected(self, txt: str) -> None:
+        print(f"[DEBUG] _on_patient_selected: {txt}")
         try:
-            pid = txt.split(" : ")[1]
+        # Ambil hanya bagian ID tanpa (NSY)
+         pid = txt.split(" : ")[1].split(" ")[0]
         except IndexError:
             return
         self._load_patient(pid)
 
     def _load_patient(self, pid: str) -> None:
-        scans = self._loaded.get(pid)
+        full_pid = f"{pid}_{self.session_code}"
+        scans = self._loaded.get(full_pid)
         if scans is None:
             scans = []
-            for p in self._patient_id_map.get(pid, []):
+            for p in self._patient_id_map.get(full_pid, []):
                 try:
                     frames, meta = load_frames_and_metadata(p)
+                    print(f"[DEBUG] > Loaded DICOM: {p.name}")
+                    print(f"[DEBUG]   - Frames: {list(frames.keys())}")
+                    print(f"[DEBUG]   - Meta: {meta}")
                     scans.append({"meta": meta, "frames": frames, "path": p})
                 except Exception as e:
                     print(f"[WARN] failed to read {p}: {e}")
             scans.sort(key=lambda s: s["meta"].get("study_date", ""))
-            self._loaded[pid] = scans
+            self._loaded[full_pid] = scans  # ⬅️ SIMPAN DI SINI
 
+        print(f"[DEBUG] Total scan ditemukan untuk {full_pid}: {len(scans)}")
         self.patient_bar.set_patient_meta(scans[-1]["meta"] if scans else {})
         self._populate_scan_buttons(scans)
 
+        # ⬇️ Pastikan ini dipanggil TERAKHIR
         if scans:
             self._on_scan_button_clicked(0)
+
 
     def _populate_scan_buttons(self, scans: List[Dict]) -> None:
         for btn in self.scan_buttons:
@@ -151,6 +200,7 @@ class MainWindow(QMainWindow):
 
     def _on_scan_button_clicked(self, index: int) -> None:
         """Fungsi ini sekarang menjadi pusat logika yang benar."""
+        print(f"[DEBUG] Scan button clicked: index = {index}")
         self.timeline_widget.set_image_mode("Both") 
         # 1. Update tampilan tombol
         for i, btn in enumerate(self.scan_buttons):
@@ -158,15 +208,16 @@ class MainWindow(QMainWindow):
 
         # 2. Ambil data scan untuk pasien saat ini (CARA YANG BENAR)
         try:
-            # Ambil teks dari ComboBox, contoh: "ID : 0001443575"
             id_text = self.patient_bar.id_combo.currentText()
-            # Pisahkan teks untuk mendapatkan ID saja
-            pid = id_text.split(" : ")[1]
+            # Ambil hanya angka sebelum spasi atau tanda kurung
+            pid = id_text.split(" : ")[1].split(" ")[0]
         except (IndexError, AttributeError):
-            # Jika gagal (tidak ada pasien terpilih), hentikan fungsi
             return
 
-        scans = self._loaded.get(pid, [])
+        # ✅ BANGUN KEMBALI NAMA LENGKAP & GUNAKAN UNTUK MENCARI
+        full_pid = f"{pid}_{self.session_code}"
+        scans = self._loaded.get(full_pid, []) 
+
         if not scans or index >= len(scans):
             return
         
@@ -178,6 +229,7 @@ class MainWindow(QMainWindow):
         # 4. Perintahkan panel di KANAN untuk update grafik dan ringkasan
         self.side_panel.set_chart_data(scans)
         self.side_panel.set_summary(selected_scan["meta"])
+        print(f"[DEBUG] Menampilkan {len(scans)} scan di timeline")
 
     # --- Callbacks untuk zoom, view, dan mode ---
     def zoom_in(self):
