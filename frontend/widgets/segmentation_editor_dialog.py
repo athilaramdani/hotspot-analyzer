@@ -223,7 +223,8 @@ class _Canvas(QGraphicsView):
         self._img_height, self._img_width = orig.shape
 
         # original grayscale (opacity 0.5)
-        self._orig_base = ((orig - orig.min()) / max(1, orig.ptp()) * 255).astype(np.uint8)
+        self._orig_base = ((orig - orig.min()) / max(1, np.ptp(orig)) * 255).astype(np.uint8)
+
         gray_q = QImage(self._orig_base.data, self._img_width, self._img_height,
                         self._img_width, QImage.Format_Grayscale8).copy()
         self._item_gray = QGraphicsPixmapItem(QPixmap.fromImage(gray_q))
