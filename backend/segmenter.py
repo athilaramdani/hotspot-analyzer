@@ -21,6 +21,7 @@ import cv2
 import numpy as np
 import torch
 from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
+from .log import _log
 
 # ------------------------------------------------------------------ try import colorizer
 print("[DEBUG] Importing colorizer …")
@@ -53,6 +54,7 @@ print(f"        nnUNet_results     = {os.environ['nnUNet_results']}")
 def _make_predictor() -> nnUNetPredictor:
     use_cuda = torch.cuda.is_available()
     device   = torch.device("cuda:0" if use_cuda else "cpu")
+    _log(f"[INFO]  CUDA available: {torch.cuda.is_available()} – using {device}")
     print(f"[SEG] CUDA available={use_cuda}, device={device}")
 
     params = dict(
@@ -81,6 +83,7 @@ def _load_model(view: str) -> nnUNetPredictor:
         print(f"[SEG] Loading model for {v} from {ckptdir}")
 
         pred = _make_predictor()
+        _log(f"[INFO]  Loading segmentation model for {v} view…")
         pred.initialize_from_trained_model_folder(
             str(ckptdir), use_folds=(0,), checkpoint_name="checkpoint_best.pth"
         )
@@ -120,6 +123,7 @@ def segment_image(
     view  : 'Anterior' | 'Posterior'
     color : True → also return colored RGB segmentation
     """
+    _log(f"[INFO]  Segmenting image – view={view}, color={color}")
     print(f"[DEBUG] segment_image(view={view}, color={color})")
     print(f"[DEBUG]   img.shape={img.shape}, dtype={img.dtype}")
 
@@ -131,6 +135,7 @@ def segment_image(
         raise ValueError("img must be 2‑D or 3‑D RGB")
 
     # ------------ Rifqi preprocessing (normalize → invert → +13% contrast)
+    _log("[INFO]  Pre-processing done (normalize → invert → contrast +13%)")
     img_norm = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
     img_inv  = cv2.bitwise_not(img_norm)
     img_pp   = cv2.convertScaleAbs(img_inv, alpha=1.13, beta=0)
@@ -158,7 +163,10 @@ def segment_image(
     model = _load_model(view)
     t0 = time.time()
     mask = _run_inference(img_rs, model)
+    
     print(f"[SEG]   Inference time : {time.time()-t0:.2f}s")
+    elapsed = time.time() - t0
+    _log(f"[INFO]  Inference finished in {elapsed:.2f}s – unique labels: {np.unique(mask)}")
 
     # ------------ restore size/orientation
     if (H0, W0) != (512, 128):
@@ -172,5 +180,6 @@ def segment_image(
         return mask
 
     rgb = label_mask_to_rgb(mask)
+    _log("[INFO]  segment overlay generated")
     print(f"[DEBUG]   RGB shape     : {rgb.shape}")
     return mask, rgb
