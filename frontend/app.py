@@ -1,12 +1,16 @@
 import sys
 from pathlib import Path
+
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QPalette, QColor
 
-from .widgets.main_window import MainWindow
+# ── jendela utama untuk SPECT dan PET ────────────────
+from .widgets.main_window import MainWindow           # SPECT
+from .widgets.main_window_pet import MainWindowPet    # PET  (pastikan file ini ada)
+
 from .widgets.patient_selection_dialog import PatientSelectionDialog
 
-# ----------------- (Fungsi make_light_palette & make_dark_palette Anda) -----------------
+# ----- Tema (light palette) --------------------------
 def make_light_palette() -> QPalette:
     pal = QPalette()
     pal.setColor(QPalette.Window, QColor("#f5f6fa"))
@@ -20,9 +24,7 @@ def make_light_palette() -> QPalette:
     pal.setColor(QPalette.HighlightedText, QColor("#ffffff"))
     return pal
 
-# ... (make_dark_palette jika ada) ...
-# ------------------------------------------------------------------------------------
-
+# -----------------------------------------------------
 def main() -> None:
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
@@ -32,18 +34,24 @@ def main() -> None:
         QLabel { color:inherit; }
     """)
 
-    selection_dialog = PatientSelectionDialog()
-    
-    if selection_dialog.exec():
-        session_code = selection_dialog.selected_patient_id
-        data_dir = Path("data")
-        
-        mw = MainWindow(session_code=session_code, data_root=data_dir)
-        mw.show()
-        
-        sys.exit(app.exec())
-    else:
-        sys.exit(0)
+    # ── dialog pemilihan pasien + modalitas ───────────
+    dlg = PatientSelectionDialog()
+    if not dlg.exec():
+        sys.exit(0)                       # user menutup dialog
 
+    session_code    = dlg.selected_patient_id
+    selected_mod    = dlg.selected_modality   # "SPECT" | "PET"
+    data_dir        = Path("data")            # sesuaikan jika perlu
+
+    # ── buka window sesuai modalitas ──────────────────
+    if selected_mod == "SPECT":
+        mw = MainWindow(session_code=session_code, data_root=data_dir)
+    else:  # "PET"
+        mw = MainWindowPet(session_code=session_code, data_root=data_dir)
+
+    mw.show()
+    sys.exit(app.exec())
+
+# -----------------------------------------------------
 if __name__ == "__main__":
     main()
