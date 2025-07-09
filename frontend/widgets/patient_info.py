@@ -1,3 +1,4 @@
+# frontend/widgets/patient_info.py
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit
@@ -104,10 +105,79 @@ class PatientInfoBar(QWidget):
         except (ValueError, TypeError):
             self.study_edit.setText(study_date_str or "N/A")
 
+    def update_from_pet_data(self, pet_data):
+        """Update patient info from PET data"""
+        if not pet_data:
+            self.clear_info(keep_id_list=True)
+            return
+
+        # Set patient ID directly since we don't have a combobox in PET mode
+        if hasattr(self, 'id_combo'):
+            # For SPECT mode with combo box
+            pass
+        else:
+            # For PET mode, create a simple label or linedit for patient ID
+            if not hasattr(self, 'id_label_created'):
+                self.id_edit = QLineEdit(readOnly=True)
+                font = QFont("Poppins", 10) if "Poppins" in QFont().families() else QFont("Arial", 10)
+                self.id_edit.setFont(font)
+                self.id_edit.setMinimumWidth(150)
+                self.grid_layout.addWidget(self.id_edit, 0, 1)
+                self.id_label_created = True
+
+        # Set patient ID
+        if hasattr(self, 'id_edit'):
+            self.id_edit.setText(pet_data.patient_id)
+
+        # Extract info from PET metadata
+        pet_info = self._extract_pet_info(pet_data)
+        
+        # Update fields with available info
+        self.name_edit.setText(pet_info.get("name", "N/A"))
+        self.birth_edit.setText(pet_info.get("birth_date", "N/A"))
+        self.sex_edit.setText(pet_info.get("sex", "N/A"))
+        self.study_edit.setText(pet_info.get("study_date", "N/A"))
+
+    def _extract_pet_info(self, pet_data):
+        """Extract patient info from PET data"""
+        info = {
+            "name": "N/A",
+            "birth_date": "N/A", 
+            "sex": "N/A",
+            "study_date": "N/A"
+        }
+        
+        # Try to extract from metadata if available
+        if pet_data.pet_metadata:
+            # Check if metadata contains patient info
+            metadata = pet_data.pet_metadata
+            
+            # Some NIfTI files might have patient info in header
+            if 'patient_name' in metadata:
+                info["name"] = metadata['patient_name']
+            if 'patient_birth_date' in metadata:
+                info["birth_date"] = metadata['patient_birth_date']
+            if 'patient_sex' in metadata:
+                info["sex"] = metadata['patient_sex']
+            if 'study_date' in metadata:
+                info["study_date"] = metadata['study_date']
+        
+        # For NIfTI files, patient info is usually not embedded
+        # So we'll show basic info based on what we know
+        info["name"] = f"Patient {pet_data.patient_id}"
+        
+        return info
+
     def clear_info(self, keep_id_list=False):
         if not keep_id_list and hasattr(self, 'id_combo'):
             self.id_combo.setCurrentIndex(0)
+        if hasattr(self, 'id_edit'):
+            self.id_edit.setText("N/A")
         self.name_edit.setText("N/A")
         self.birth_edit.setText("N/A")
         self.sex_edit.setText("N/A")
         self.study_edit.setText("N/A")
+
+    def clear(self):
+        """Clear all info - alias for clear_info"""
+        self.clear_info(keep_id_list=False)

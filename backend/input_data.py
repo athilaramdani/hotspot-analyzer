@@ -29,17 +29,12 @@ from pydicom.uid     import (
 
 from .dicom_loader import load_frames_and_metadata
 from .segmenter    import segment_image
+from .log import _log, set_log_callback
 
 # ---------------------------------------------------------------- config
 _DATA_DIR  = Path(__file__).resolve().parents[1] / "data"
 _VERBOSE   = True
 _LOG_FILE  = None            # bisa diisi Path("debug.log")
-
-def _log(msg: str) -> None:
-    if _VERBOSE:
-        print(msg)
-        if _LOG_FILE:
-            _LOG_FILE.write_text(msg + "\n")
 
 # ---------------------------------------------------------------- overlay util
 def _insert_overlay(ds: Dataset, mask: np.ndarray, *, group: int, desc: str) -> None:
@@ -108,11 +103,13 @@ def _ensure_2d(mask: np.ndarray) -> np.ndarray:
     return mask if mask.ndim == 2 else mask[0] if mask.shape[0] == 1 else mask[:, :, 0]
 
 # ---------------------------------------------------------------- core
-def _process_one(src: Path, dest_root: Path) -> Path:
+def _process_one(src: Path, dest_root: Path, session_code: str | None = None) -> Path:
     _log(f"\n=== Processing {src} ===")
 
     pid = str(pydicom.dcmread(src, stop_before_pixels=True).PatientID)
-    dest_dir = dest_root / pid
+    folder_name = f"{pid}_{session_code}" if session_code else pid
+    dest_dir = dest_root / folder_name
+
     dest_dir.mkdir(parents=True, exist_ok=True)
     dest_path = dest_dir / src.name
     if src.resolve() != dest_path.resolve():
@@ -120,6 +117,9 @@ def _process_one(src: Path, dest_root: Path) -> Path:
     _log(f"  Copied → {dest_path}")
 
     ds = pydicom.dcmread(dest_path)
+    if session_code:
+        ds.PatientID = f"{pid}_{session_code}"
+
     frames, _ = load_frames_and_metadata(dest_path)
     _log(f"  Frames detected: {list(frames.keys())}")
 
@@ -168,10 +168,20 @@ def process_files(
     *,
     data_root: str | Path | None = None,
     progress_cb: Callable[[int, int, str], None] | None = None,
+    log_cb: Callable[[str], None] | None = None,
+    session_code: str | None = None 
 ) -> List[Path]:
 
     dest_root = Path(data_root) if data_root else _DATA_DIR
     dest_root.mkdir(parents=True, exist_ok=True)
+    # ---------- proxy _log agar bisa dikirim ke frontend ----------
+    orig_log = _log
+    def _proxy(msg: str) -> None:
+        orig_log(msg)          # tetap tulis ke console/file
+        if log_cb:
+            log_cb(msg)        # kirim ke frontend jika callback ada
+    globals()["_log"] = _proxy
+    # --------------------------------------------------------------
 
     out: List[Path] = []
     total = len(paths)
@@ -179,7 +189,7 @@ def process_files(
 
     for i, p in enumerate(paths, 1):
         try:
-            out.append(_process_one(Path(p), dest_root))
+            out.append(_process_one(Path(p), dest_root, session_code))
         except Exception as e:
             _log(f"[ERROR] {p} failed: {e}\n{traceback.format_exc()}")
         finally:
@@ -187,4 +197,5 @@ def process_files(
                 progress_cb(i, total, str(p))
 
     _log("## Batch finished\n")
+    globals()["_log"] = orig_log      # kembalikan logger asli
     return out

@@ -26,7 +26,7 @@ class SearchableComboBox(QComboBox):
         self._search_bar = None
         self._popup_customized = False
         
-        self.activated.connect(self._on_item_activated)
+        self.currentIndexChanged.connect(self._on_item_activated)
 
     def mousePressEvent(self, event: QMouseEvent):
         """
@@ -107,4 +107,9 @@ class SearchableComboBox(QComboBox):
         """
         Mengirim sinyal 'item_selected' dengan teks dari item yang dipilih.
         """
-        self.item_selected.emit(self.itemText(index))
+        text = self.itemText(index)
+        print(f"[DEBUG] item activated → {text} @ index {index}")
+        if index >= 0:
+            text = self.itemText(index)
+            print(f"[DEBUG] item activated → {text}")
+            self.item_selected.emit(text)
