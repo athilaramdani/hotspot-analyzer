@@ -6,12 +6,14 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton
 class ModeSelector(QWidget):
     """
     Tombol toggle untuk memilih tampilan gambar:
-        • Original   – raw grayscale
-        • Segment    – hasil AI (RGB)
+        • Original     – raw grayscale
+        • Segment      – hasil AI (RGB)
+        • Hotspot      – hotspot detection with bounding boxes
+        • Both         – combined view
     """
-    mode_changed = Signal(str)            # "Original" | "Segmentation"
+    mode_changed = Signal(str)            # "Original" | "Segmentation" | "Hotspot" | "Both"
 
-    _LABELS = ["Original", "Segmentation", "Both"]
+    _LABELS = ["Original", "Segmentation", "Hotspot", "Both"]
 
 
     def __init__(self, parent: QWidget | None = None) -> None:
