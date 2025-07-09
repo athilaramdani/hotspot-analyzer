@@ -148,6 +148,7 @@ class MainWindow(QMainWindow):
 
         # Panel Kiri: Timeline untuk menampilkan gambar
         self.timeline_widget = ScanTimelineWidget()
+        self.timeline_widget.set_session_code(self.session_code)
         main_splitter.addWidget(self.timeline_widget)
 
         # Panel Kanan: Grafik dan ringkasan
