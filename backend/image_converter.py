@@ -2,7 +2,7 @@ import pydicom
 import numpy as np
 
 
-def load_frames_and_metadata(path: str):
+def load_frames_and_metadata_matrix(path: str):
     """
     Baca file DICOM dan kembalikan:
     - frames : np.ndarray  (shape = [N, H, W] , minimal 2 frame)
