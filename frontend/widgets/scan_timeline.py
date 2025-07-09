@@ -1,5 +1,5 @@
 # =====================================================================
-# frontend/widgets/scan_timeline.py   – v3 (with Hotspot support)
+# frontend/widgets/scan_timeline.py   – v3 (with Hotspot support) - FIXED
 # ---------------------------------------------------------------------
 from __future__ import annotations
 from pathlib import Path
@@ -28,7 +28,6 @@ def _array_to_pixmap(arr: np.ndarray, width: int) -> QPixmap:
     h, w = img_u8.shape
     qim   = QImage(img_u8.data, w, h, w, QImage.Format_Grayscale8)
     return QPixmap.fromImage(qim).scaledToWidth(width, Qt.SmoothTransformation)
-
 
 
 def _png_to_pixmap(png: Path, width: int) -> QPixmap | None:
@@ -87,6 +86,9 @@ class ScanTimelineWidget(QScrollArea):
         self._zoom_factor = 1.0
         self.card_width   = 350
         
+        # Add session code for path resolution
+        self.session_code = None
+        
 
     # ------------------------------------------------------ zoom
     def zoom_in(self):  self._zoom_factor *= 1.2; self._rebuild()
@@ -102,6 +104,10 @@ class ScanTimelineWidget(QScrollArea):
 
     def set_active_view(self, v: str): self.current_view = v; self._rebuild()
     def set_image_mode (self, m: str): self.current_mode = m; self._rebuild()
+    
+    def set_session_code(self, session_code: str):
+        """Set session code for path resolution"""
+        self.session_code = session_code
 
     # ------------------------------------------------------ rebuild
     def _clear(self):
@@ -143,10 +149,16 @@ class ScanTimelineWidget(QScrollArea):
         hbox.addWidget(btn)
         return hbox
     
-   
-
-
-
+    def _get_patient_id_from_scan(self, scan: Dict) -> str:
+        folder = scan["path"].parent.name          # ex: 12_NSY
+        if "_" in folder:
+            pid, code = folder.split("_", 1)       # ['12', 'NSY']
+            # isi otomatis kalau dev lupa set session_code
+            if self.session_code is None:
+                self.session_code = code
+            return pid
+        return folder
+    
     def _get_hotspot_frame(self, scan: Dict, view: str) -> np.ndarray | None:
         """Get hotspot frame for a specific view."""
         if view == "Anterior":
@@ -158,7 +170,7 @@ class ScanTimelineWidget(QScrollArea):
         
         # Get the frame index for this view
         frame_map = scan["frames"]
-        if view in frame_map and hotspot_frames:
+        if view in frame_map and len(hotspot_frames) > 0:  # Fixed: use len() instead of direct boolean
             frame_idx = list(frame_map.keys()).index(view) if view in frame_map else 0
             if frame_idx < len(hotspot_frames):
                 return hotspot_frames[frame_idx]
@@ -173,7 +185,6 @@ class ScanTimelineWidget(QScrollArea):
         dicom = scan["path"]
         filename = dicom.stem  # contoh: '11'
         seg_png = dicom.parent / f"{filename}_{self.current_view.lower()}_colored.png"
-
 
         print(f"[DEBUG] Looking for segmentation PNG: {seg_png}")
         print(f"        Exists? {seg_png.exists()}")
@@ -191,9 +202,10 @@ class ScanTimelineWidget(QScrollArea):
             lbl.setPixmap(pix) if pix else lbl.setText("Seg not found")
         
         elif self.current_mode == "Hotspot":
-            patient_id = base.parent.name
+            # Fixed: Get patient ID properly
+            patient_id = self._get_patient_id_from_scan(scan)
             v = "ant" if "ant" in self.current_view.lower() else "post"
-            hotspot_png = Path(f"data/{patient_id}/{patient_id}_{v}_hotspot_colored.png")
+            hotspot_png = Path(f"data/{patient_id}_{self.session_code}/{patient_id}_{v}_hotspot_colored.png")
 
             if hotspot_png.exists() and self.current_view in frame_map:
                 try:
@@ -231,7 +243,6 @@ class ScanTimelineWidget(QScrollArea):
         lay.addWidget(QLabel(self.current_view, alignment=Qt.AlignCenter))
         return card
 
-
     def _make_dual(self, scan: Dict, w: int, idx: int) -> QFrame:
         card, lay = QFrame(), QVBoxLayout()
         card.setLayout(lay)
@@ -240,10 +251,8 @@ class ScanTimelineWidget(QScrollArea):
         row = QHBoxLayout()
         frame_map = scan["frames"]
         dicom = scan["path"]
-        base  = dicom.with_suffix("")
-        seg_png = base.with_name(f"{base.stem}_{self.current_view.lower()}_colored.png")
-        
-
+        filename = dicom.stem
+        seg_png = dicom.parent / f"{filename}_{self.current_view.lower()}_colored.png"
 
         print(f"[DEBUG] Looking for segmentation PNG: {seg_png}")
         print(f"        Exists? {seg_png.exists()}")
@@ -276,9 +285,15 @@ class ScanTimelineWidget(QScrollArea):
             hotspot_label.setStyleSheet("font-size: 10px; color: #666;")
             hotspot_img = QLabel(alignment=Qt.AlignCenter)
 
-            patient_id = base.parent.name
+            # Fixed: Get patient ID properly
+            patient_id = self._get_patient_id_from_scan(scan)
             v = "ant" if "ant" in self.current_view.lower() else "post"
-            hotspot_png = Path(f"data/{patient_id}/{patient_id}_{v}_hotspot_colored.png")
+            hotspot_png = Path(f"data/{patient_id}_{self.session_code}/{patient_id}_{v}_hotspot_colored.png")
+            print(f"[HOTDEBUG] session_code   = {self.session_code}")
+            print(f"[HOTDEBUG] patient_id     = {patient_id}")
+            print(f"[HOTDEBUG] current_view   = {self.current_view}")
+            print(f"[HOTDEBUG] hotspot_png    = {hotspot_png.resolve()}")
+            print(f"[HOTDEBUG] file exists?   = {hotspot_png.exists()}")
 
             if hotspot_png.exists() and self.current_view in frame_map:
                 try:
