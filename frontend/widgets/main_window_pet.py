@@ -45,13 +45,21 @@ class MainWindowPet(QMainWindow):
         # Create UI
         self._create_ui()
         
-        # Load initial data
-        self._refresh_patient_list()
+        QTimer.singleShot(0, self.initial_load)
+        # # Load initial data
+        # self._refresh_patient_list()
         
-        # Auto-select session patient if available
-        if self.session_code:
-            self._auto_select_patient()
+        # # Auto-select session patient if available
+        # if self.session_code:
+        #     self._auto_select_patient()
         
+    def initial_load(self):
+            """Performs the initial data scan and patient selection."""
+            print("[DEBUG] Starting initial data load for PET window...")
+            self._refresh_patient_list()
+            if self.session_code:
+                self._auto_select_patient()    
+
     
     def _create_ui(self):
         central_widget = QWidget()
@@ -258,6 +266,7 @@ class MainWindowPet(QMainWindow):
     
     def closeEvent(self, event):
         """Handle application close"""
-        # Clean up resources if needed
-        self.pet_viewer.cleanup()
+        print("[DEBUG] Cleaning up PET window resources...")
+        if hasattr(self, 'pet_viewer') and hasattr(self.pet_viewer, 'cleanup'):
+            self.pet_viewer.cleanup()
         event.accept()

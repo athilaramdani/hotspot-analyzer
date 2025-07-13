@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QDialog
 )
 from PySide6.QtGui import QCloseEvent
-
+import multiprocessing
 from backend.directory_scanner import scan_dicom_directory
 from backend.dicom_loader import load_frames_and_metadata
 from backend.hotspot_processor import HotspotProcessor
@@ -27,7 +27,7 @@ from .scan_timeline import ScanTimelineWidget
 from .side_panel import SidePanel
 from .mode_selector import ModeSelector
 from .view_selector import ViewSelector
-
+from backend.processing_wrapper import run_hotspot_processing_in_process
 
 class MainWindow(QMainWindow):
     logout_requested = Signal()
@@ -36,6 +36,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Hotspot Analyzer")
         self.resize(1600, 900)
         self.session_code = session_code
+        self.pool = multiprocessing.Pool(processes=1)
         self.data_root = data_root
         print("[DEBUG] session_code in MainWindow =", self.session_code)
 
@@ -45,7 +46,7 @@ class MainWindow(QMainWindow):
         self.scan_buttons: List[QPushButton] = []
         
         # Hotspot processor
-        self.hotspot_processor = HotspotProcessor()
+        #self.hotspot_processor = HotspotProcessor()
 
         self._build_ui()
         self._scan_folder()
@@ -176,56 +177,46 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(view_button_widget)
         main_layout.addWidget(main_splitter, stretch=1)
         self.setCentralWidget(main_widget)
-
+   
     def _handle_logout(self):
         """Emits the logout signal and closes the window."""
         self.logout_requested.emit()
         self.close()
     
     def closeEvent(self, event: QCloseEvent):
-        """
-        Membersihkan semua sumber daya sebelum window ditutup.
-        Ini PENTING untuk mencegah state yang bocor.
-        """
         print("[DEBUG] Membersihkan sumber daya di MainWindow (SPECT)...")
-
-        # 1. Bersihkan widget-widget custom
+        print("[DEBUG] Menutup process pool...")
+        self.pool.close()
+        self.pool.join()
+        print("[DEBUG] Process pool ditutup.")
         if hasattr(self, 'timeline_widget') and hasattr(self.timeline_widget, 'cleanup'):
             self.timeline_widget.cleanup()
-            print("[DEBUG] ScanTimelineWidget dibersihkan.")
-
         if hasattr(self, 'side_panel') and hasattr(self.side_panel, 'cleanup'):
             self.side_panel.cleanup()
-            print("[DEBUG] SidePanel dibersihkan.")
-
-        # 2. Bersihkan prosesor data (SANGAT PENTING)
-        if hasattr(self, 'hotspot_processor') and hasattr(self.hotspot_processor, 'cleanup'):
-            self.hotspot_processor.cleanup()
-            print("[DEBUG] HotspotProcessor dibersihkan.")
-
+        super().closeEvent(event)
         # Panggil metode asli untuk melanjutkan proses penutupan
         super().closeEvent(event)
 
     def _show_import_dialog(self) -> None:
-        """Show the updated import dialog"""
-        print("[DEBUG] Opening DICOM import dialog...")
-        
-        dlg = DicomImportDialog(
-            data_root=self.data_root, 
-            parent=self, 
-            session_code=self.session_code
-        )
-        
-        # Connect signal untuk auto-rescan setelah import
-        dlg.files_imported.connect(self._on_files_imported)
-        
-        # Show dialog
-        result = dlg.exec()
-        
-        if result == QDialog.Accepted:
-            print("[DEBUG] Import dialog accepted")
-        else:
-            print("[DEBUG] Import dialog cancelled")
+            """Show the updated import dialog"""
+            print("[DEBUG] Opening DICOM import dialog...")
+            
+            dlg = DicomImportDialog(
+                data_root=self.data_root, 
+                parent=self, 
+                session_code=self.session_code
+            )
+            
+            # Connect signal untuk auto-rescan setelah import
+            dlg.files_imported.connect(self._on_files_imported)
+            
+            # Show dialog
+            result = dlg.exec()
+            
+            if result == QDialog.Accepted:
+                print("[DEBUG] Import dialog accepted")
+            else:
+                print("[DEBUG] Import dialog cancelled")
 
     def _on_files_imported(self):
         """Handle files imported signal"""
@@ -267,7 +258,7 @@ class MainWindow(QMainWindow):
         self.timeline_widget.display_timeline([])
         
         print("[DEBUG] Folder scan completed")
-
+    
     def _on_patient_selected(self, txt: str) -> None:
         """Handle patient selection"""
         print(f"[DEBUG] _on_patient_selected: {txt}")
@@ -278,162 +269,61 @@ class MainWindow(QMainWindow):
             print("[DEBUG] Failed to parse patient ID from selection")
             return
         self._load_patient(pid)
-
+    
     def _load_patient(self, pid: str) -> None:
-        """Load patient data"""
+        """Load patient data using a multiprocessing pool for backend processing."""
         print(f"[DEBUG] Loading patient: {pid}")
-        
         full_pid = f"{pid}_{self.session_code}"
-        scans = self._loaded.get(full_pid)
         
-        if scans is None:
+        if full_pid in self._loaded:
+            scans = self._loaded[full_pid]
+        else:
             print(f"[DEBUG] Loading scans for {full_pid} from disk...")
-            scans = []
+            initial_scans = []
+            async_results = []
+
             for p in self._patient_id_map.get(full_pid, []):
                 try:
                     frames, meta = load_frames_and_metadata(p)
-                    print(frames)
-                    print()
                     scan_data = {"meta": meta, "frames": frames, "path": p}
+                    initial_scans.append(scan_data)
                     
-                    frame_bb, meta = load_frames_and_metadata_matrix(p)
-                    # Add hotspot processing capability
-                    hotspot_data = self._process_hotspot_frames_dual_view(frame_bb, p, pid)
-                    scan_data["hotspot_frames"] = hotspot_data["frames"]
-                    scan_data["hotspot_frames_ant"] = hotspot_data["ant_frames"]
-                    scan_data["hotspot_frames_post"] = hotspot_data["post_frames"]
-
-                    #Versi Lama - 1 
-                    # scan_data["hotspot_frames"] = self._process_hotspot_frames(frame_bb, p)
-
-                    
-                    scans.append(scan_data)
+                    # --- FIX 4: Gunakan nama fungsi yang benar sesuai yang di-import ---
+                    result = self.pool.apply_async(run_hotspot_processing_in_process, args=(p, pid))
+                    async_results.append(result)
                 except Exception as e:
-                    print(f"[WARN] failed to read {p}: {e}")
-                    
-            scans.sort(key=lambda s: s["meta"].get("study_date", ""))
-            self._loaded[full_pid] = scans  # Simpan di cache
+                    print(f"[WARN] Gagal membaca data awal {p}: {e}")
+            
+            print(f"[DEBUG] Menunggu {len(async_results)} pekerjaan backend selesai...")
+            processed_scans = []
+            for i, scan_data in enumerate(initial_scans):
+                try:
+                    hotspot_data = async_results[i].get(timeout=120)
+                    if hotspot_data:
+                        scan_data["hotspot_frames"] = hotspot_data.get("frames")
+                        scan_data["hotspot_frames_ant"] = hotspot_data.get("ant_frames")
+                        scan_data["hotspot_frames_post"] = hotspot_data.get("post_frames")
+                    else:
+                        scan_data["hotspot_frames"] = scan_data["frames"]
+                        scan_data["hotspot_frames_ant"] = scan_data["frames"]
+                        scan_data["hotspot_frames_post"] = scan_data["frames"]
+                    processed_scans.append(scan_data)
+                except Exception as e:
+                    print(f"[ERROR] Gagal mendapatkan hasil dari backend untuk {scan_data['path']}: {e}")
 
-        print(f"[DEBUG] Total scan ditemukan untuk {full_pid}: {len(scans)}")
-        self.patient_bar.set_patient_meta(scans[-1]["meta"] if scans else {})
-        self._populate_scan_buttons(scans)
+            scans = sorted(processed_scans, key=lambda s: s["meta"].get("study_date", ""))
+            self._loaded[full_pid] = scans
 
-        # Set initial scan selection
+        print(f"[DEBUG] Semua data dimuat. Total scan: {len(scans)}")
         if scans:
+            self.patient_bar.set_patient_meta(scans[-1]["meta"])
+            self._populate_scan_buttons(scans)
             self._on_scan_button_clicked(0)
-    
-    # def _process_hotspot_frames_dual_view(self, frames: List, scan_path: Path, patient_id: str) -> Dict:
-    #     """
-    #     Process each frame with hotspot detection using XML annotations for both anterior and posterior views.
+        else:
+            self.patient_bar.clear_info()
+            self._populate_scan_buttons([])
+            self.timeline_widget.display_timeline([])
 
-    #     Args:
-    #         frames: List of image frames (expected as np.ndarray).
-    #         scan_path: Path to the scan file (e.g., data/2/2.dcm).
-    #         patient_id: Patient ID for XML file lookup.
-
-    #     Returns:
-    #         Dictionary containing:
-    #         - frames: Combined processed frames (fallback to original if no XML)
-    #         - ant_frames: Anterior view processed frames
-    #         - post_frames: Posterior view processed frames
-    #     """
-    #     import numpy as np
-    #     from PIL import Image
-    #     from pathlib import Path
-
-    #     # Initialize result structure
-    #     result = {
-    #         "frames": [],
-    #         "ant_frames": [],
-    #         "post_frames": []
-    #     }
-
-    #     # --- Determine XML paths for both views ---
-    #     ant_xml_path = Path(f"data/{patient_id}/{patient_id}_ant.xml")
-    #     post_xml_path = Path(f"data/{patient_id}/{patient_id}_post.xml")
-        
-    #     print(f"[INFO] Anterior XML path: {ant_xml_path}")
-    #     print(f"[INFO] Posterior XML path: {post_xml_path}")
-
-    #     # Check which XML files exist
-    #     ant_xml_exists = ant_xml_path.exists()
-    #     post_xml_exists = post_xml_path.exists()
-        
-    #     if not ant_xml_exists and not post_xml_exists:
-    #         print(f"[WARN] No XML files found for patient {patient_id}")
-    #         # Return original frames for all views
-    #         result["frames"] = frames
-    #         result["ant_frames"] = frames
-    #         result["post_frames"] = frames
-    #         return result
-
-    #     # --- Process each frame for both views ---
-    #     for i, frame in enumerate(frames):
-    #         try:
-    #             # Verify frame is a valid numpy image
-    #             if not isinstance(frame, np.ndarray) or frame.ndim != 2:
-    #                 print(f"[WARN] Skipping frame {i}, unsupported type or dimension: {type(frame)}, shape={getattr(frame, 'shape', 'N/A')}")
-    #                 result["frames"].append(frame)
-    #                 result["ant_frames"].append(frame)
-    #                 result["post_frames"].append(frame)
-    #                 continue
-
-    #             # Save the frame as a temporary grayscale PNG
-    #             temp_image_path = self.hotspot_processor.temp_dir / f"temp_frame_{i}.png"
-    #             frame_normalized = ((frame - frame.min()) / max(1e-5, frame.ptp()) * 255).astype(np.uint8)
-    #             Image.fromarray(frame_normalized).save(temp_image_path)
-    #             print(f"[INFO] Temp image saved: {temp_image_path}")
-
-    #             # Process anterior view
-    #             ant_processed = None
-    #             if ant_xml_exists:
-    #                 ant_processed = self.hotspot_processor.process_image_with_xml(
-    #                     str(temp_image_path), str(ant_xml_path), patient_id, "ant"
-    #                 )
-    #                 if ant_processed is not None:
-    #                     print(f"[INFO] Anterior hotspot processed for frame {i}")
-    #                 else:
-    #                     print(f"[WARN] Failed to process anterior hotspot for frame {i}")
-
-    #             # Process posterior view
-    #             post_processed = None
-    #             if post_xml_exists:
-    #                 post_processed = self.hotspot_processor.process_image_with_xml(
-    #                     str(temp_image_path), str(post_xml_path), patient_id, "post"
-    #                 )
-    #                 if post_processed is not None:
-    #                     print(f"[INFO] Posterior hotspot processed for frame {i}")
-    #                 else:
-    #                     print(f"[WARN] Failed to process posterior hotspot for frame {i}")
-
-    #             # Store results
-    #             result["ant_frames"].append(ant_processed if ant_processed is not None else frame)
-    #             result["post_frames"].append(post_processed if post_processed is not None else frame)
-                
-    #             # For the main frames, prefer the view that matches the scan filename, or use anterior as default
-    #             filename_lower = scan_path.stem.lower()
-    #             if "post" in filename_lower and post_processed is not None:
-    #                 result["frames"].append(post_processed)
-    #             elif "ant" in filename_lower and ant_processed is not None:
-    #                 result["frames"].append(ant_processed)
-    #             elif ant_processed is not None:
-    #                 result["frames"].append(ant_processed)
-    #             elif post_processed is not None:
-    #                 result["frames"].append(post_processed)
-    #             else:
-    #                 result["frames"].append(frame)
-
-    #             # Optionally remove the temp image
-    #             if temp_image_path.exists():
-    #                 temp_image_path.unlink()
-
-    #         except Exception as e:
-    #             print(f"[ERROR] Exception while processing frame {i}: {e}")
-    #             result["frames"].append(frame)
-    #             result["ant_frames"].append(frame)
-    #             result["post_frames"].append(frame)
-
-    #     return result
     def _process_hotspot_frames_dual_view(self, frames: List, scan_path: Path, patient_id: str) -> Dict:
         """
         Process each frame with hotspot detection using XML annotations for both anterior and posterior views.
@@ -713,3 +603,4 @@ class MainWindow(QMainWindow):
                 if btn.isChecked():
                     self._on_scan_button_clicked(i)
                     break
+    
