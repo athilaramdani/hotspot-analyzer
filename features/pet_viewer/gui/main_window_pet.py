@@ -1,4 +1,4 @@
-# frontend/widgets/main_window_pet.py
+# features/pet_viewer/gui/main_window_pet.py
 from __future__ import annotations
 
 from pathlib import Path
@@ -18,11 +18,20 @@ from features.pet_viewer.logic.pet_loader import load_pet_data, PETData
 
 from .pet_import_dialog import PETImportDialog
 from core.gui.patient_info_bar import PatientInfoBar
+from core.gui.searchable_combobox import SearchableComboBox
 from .pet_viewer_widget import PETViewerWidget
+
+# Import UI constants for consistent styling
+from core.gui.ui_constants import (
+    PRIMARY_BUTTON_STYLE,
+    SUCCESS_BUTTON_STYLE,
+    GRAY_BUTTON_STYLE,
+)
 
 
 class MainWindowPet(QMainWindow):
     logout_requested = Signal()
+    
     def __init__(self, data_root: Path, parent=None, session_code: str | None = None):
         super().__init__()
         self.setWindowTitle("PET Viewer - Hotspot Analyzer")
@@ -45,64 +54,68 @@ class MainWindowPet(QMainWindow):
         # Create UI
         self._create_ui()
         
+        # Load initial data after UI is ready
         QTimer.singleShot(0, self.initial_load)
-        # # Load initial data
-        # self._refresh_patient_list()
-        
-        # # Auto-select session patient if available
-        # if self.session_code:
-        #     self._auto_select_patient()
         
     def initial_load(self):
-            """Performs the initial data scan and patient selection."""
-            print("[DEBUG] Starting initial data load for PET window...")
-            self._refresh_patient_list()
-            if self.session_code:
-                self._auto_select_patient()    
+        """Performs the initial data scan and patient selection."""
+        print("[DEBUG] Starting initial data load for PET window...")
+        self._refresh_patient_list()
+        if self.session_code:
+            self._auto_select_patient()    
 
-    
     def _create_ui(self):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(10, 10, 10, 10)  # Set reasonable margins
+        main_layout.setSpacing(10)  # Set consistent spacing
         
-        # Top toolbar
-        toolbar_layout = QHBoxLayout()
+        # --- Top Bar (matching SPECT layout) ---
+        top_actions = QWidget()
+        top_layout = QHBoxLayout(top_actions)
+        top_layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
+        top_layout.setSpacing(10)  # Set consistent spacing
         
-        # Import button
-        self.import_btn = QPushButton("Import PET Data")
+        # Create SearchableComboBox for patient selection
+        search_combo = SearchableComboBox()
+        search_combo.item_selected.connect(self._on_patient_selected)
+        
+        # Patient info bar with integrated search combo
+        self.patient_bar = PatientInfoBar()
+        self.patient_bar.set_id_combobox(search_combo)
+        self.patient_bar.setFixedHeight(80)  # Ensure consistent height
+        top_layout.addWidget(self.patient_bar)
+        
+        # Add stretch to push buttons to the right
+        top_layout.addStretch()
+        
+        # Import button with primary style
+        self.import_btn = QPushButton("Import PET Data…")
+        self.import_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
         self.import_btn.clicked.connect(self._import_pet_data)
-        toolbar_layout.addWidget(self.import_btn)
+        top_layout.addWidget(self.import_btn)
         
-        # Patient selection
-        toolbar_layout.addWidget(QLabel("Patient:"))
-        self.patient_combo = QComboBox()
-        self.patient_combo.currentTextChanged.connect(self._on_patient_changed)
-        toolbar_layout.addWidget(self.patient_combo)
-        
-        # Refresh button
+        # Refresh button with success style
         self.refresh_btn = QPushButton("Refresh")
+        self.refresh_btn.setStyleSheet(SUCCESS_BUTTON_STYLE)
         self.refresh_btn.clicked.connect(self._refresh_patient_list)
-        toolbar_layout.addWidget(self.refresh_btn)
+        top_layout.addWidget(self.refresh_btn)
         
-        toolbar_layout.addStretch()
-        #logout button
+        # Logout button with gray style
         self.logout_btn = QPushButton("Logout")
+        self.logout_btn.setStyleSheet(GRAY_BUTTON_STYLE)
         self.logout_btn.clicked.connect(self._handle_logout)
+        top_layout.addWidget(self.logout_btn)
 
-        toolbar_layout.addWidget(self.logout_btn)
-
-        main_layout.addLayout(toolbar_layout)
+        main_layout.addWidget(top_actions)
+        main_layout.setSpacing(5)  # Reduce spacing between main layout items
         
-        # Patient info bar
-        self.patient_info = PatientInfoBar()
-        main_layout.addWidget(self.patient_info)
-        
-        # Main content area
+        # --- Main content area ---
         self.splitter = QSplitter(Qt.Horizontal)
         main_layout.addWidget(self.splitter)
         
-        # Left panel for controls (if needed later)
+        # Left panel for controls
         left_panel = QWidget()
         left_panel.setMaximumWidth(200)
         left_panel.setMinimumWidth(200)
@@ -111,6 +124,13 @@ class MainWindowPet(QMainWindow):
         # Status label
         self.status_label = QLabel("No PET data loaded")
         left_layout.addWidget(self.status_label)
+        
+        # Add image type selector
+        left_layout.addWidget(QLabel("Image Type:"))
+        self.image_type_combo = QComboBox()
+        self.image_type_combo.addItems(["PET", "CT", "SEG", "SUV"])
+        self.image_type_combo.currentTextChanged.connect(self._on_image_type_changed)
+        left_layout.addWidget(self.image_type_combo)
         
         left_layout.addStretch()
         self.splitter.addWidget(left_panel)
@@ -125,25 +145,36 @@ class MainWindowPet(QMainWindow):
         
         # Status bar
         self.statusBar().showMessage("Ready")
+    
     def _handle_logout(self):
         """Handle logout request"""
         self.logout_requested.emit()
         self.close()
-
     
     def _refresh_patient_list(self):
         """Refresh the patient list from PET data directory"""
         try:
             self._patient_id_map = scan_pet_directory(self.pet_data_root)
             
-            # Update combo box
-            self.patient_combo.clear()
+            # Update searchable combo box
+            search_combo = self.patient_bar.id_combo
+            search_combo.clear()
+            
             if self._patient_id_map:
                 patient_ids = sorted(self._patient_id_map.keys())
-                self.patient_combo.addItems(patient_ids)
+                # Add patients to searchable combo with consistent format
+                for patient_id in patient_ids:
+                    search_combo.addItem(f"ID : {patient_id}")
+                
                 self.statusBar().showMessage(f"Found {len(patient_ids)} patients")
             else:
                 self.statusBar().showMessage("No PET data found")
+            
+            # Clear selection and reset UI
+            search_combo.clearSelection()
+            self.patient_bar.clear_info(keep_id_list=True)
+            self.pet_viewer.clear()
+            self.status_label.setText("No PET data loaded")
                 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to scan PET directory: {str(e)}")
@@ -152,22 +183,31 @@ class MainWindowPet(QMainWindow):
     def _auto_select_patient(self):
         """Auto-select the session patient if available"""
         if self.session_code:
-            index = self.patient_combo.findText(self.session_code)
-            if index >= 0:
-                self.patient_combo.setCurrentIndex(index)
+            search_combo = self.patient_bar.id_combo
+            # Find patient by searching for the session code
+            for i in range(search_combo.count()):
+                item_text = search_combo.itemText(i)
+                if self.session_code in item_text:
+                    search_combo.setCurrentIndex(i)
+                    break
     
-    def _on_patient_changed(self, patient_id: str):
-        """Handle patient selection change"""
-        if not patient_id:
-            self.current_patient_id = None
-            self.current_pet_data = None
-            self.pet_viewer.clear()
-            self.status_label.setText("No PET data loaded")
-            self.patient_info.clear()
+    def _on_patient_selected(self, txt: str):
+        """Handle patient selection from searchable combo box"""
+        print(f"[DEBUG] _on_patient_selected: {txt}")
+        try:
+            # Extract patient ID from format "ID : patient_id"
+            patient_id = txt.split(" : ")[1].strip()
+        except IndexError:
+            print("[DEBUG] Failed to parse patient ID from selection")
             return
         
         self.current_patient_id = patient_id
         self._load_patient_data(patient_id)
+    
+    def _on_image_type_changed(self, image_type: str):
+        """Handle image type selection change"""
+        if self.pet_viewer and self.current_pet_data:
+            self.pet_viewer.set_image_type(image_type)
     
     def _load_patient_data(self, patient_id: str):
         """Load PET data for the selected patient"""
@@ -211,11 +251,42 @@ class MainWindowPet(QMainWindow):
         if not self.current_pet_data:
             return
         
-        # Update patient info
-        self.patient_info.update_from_pet_data(self.current_pet_data)
+        # Update patient info - extract from PET metadata if available
+        patient_meta = {
+            "patient_id": self.current_patient_id,
+            "patient_name": f"Patient {self.current_patient_id}",
+            "patient_sex": "N/A",
+            "patient_birth_date": "",
+            "study_date": ""
+        }
+        
+        # Try to get better info from PET metadata
+        if self.current_pet_data.pet_metadata:
+            meta = self.current_pet_data.pet_metadata
+            if "patient_name" in meta:
+                patient_meta["patient_name"] = meta["patient_name"]
+            if "patient_sex" in meta:
+                patient_meta["patient_sex"] = meta["patient_sex"]
+            if "patient_birth_date" in meta:
+                patient_meta["patient_birth_date"] = meta["patient_birth_date"]
+            if "study_date" in meta:
+                patient_meta["study_date"] = meta["study_date"]
+        
+        self.patient_bar.set_patient_meta(patient_meta)
         
         # Update viewer
         self.pet_viewer.set_pet_data(self.current_pet_data)
+        
+        # Update image type combo based on available data
+        available_types = self.pet_viewer.get_available_image_types()
+        self.image_type_combo.clear()
+        for img_type, is_available in available_types.items():
+            if is_available:
+                self.image_type_combo.addItem(img_type)
+        
+        # Select first available type
+        if self.image_type_combo.count() > 0:
+            self.image_type_combo.setCurrentIndex(0)
         
         # Update status
         self.status_label.setText(f"Patient: {self.current_patient_id}\nPET data loaded")
@@ -233,9 +304,11 @@ class MainWindowPet(QMainWindow):
                     self._refresh_patient_list()
                     
                     # Auto-select the imported patient
-                    index = self.patient_combo.findText(patient_id)
-                    if index >= 0:
-                        self.patient_combo.setCurrentIndex(index)
+                    search_combo = self.patient_bar.id_combo
+                    for i in range(search_combo.count()):
+                        if patient_id in search_combo.itemText(i):
+                            search_combo.setCurrentIndex(i)
+                            break
                         
                     QMessageBox.information(self, "Success", 
                                           f"PET data imported successfully for patient {patient_id}")
