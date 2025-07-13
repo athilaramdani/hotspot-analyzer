@@ -1,24 +1,42 @@
-# Di file backend, misal: backend/processing_wrapper.py
+# backend/processing_wrapper.py
 
 from pathlib import Path
-from typing import List, Dict
-# Import yang diperlukan oleh HotspotProcessor di sini
+from typing import Dict
+
+# Pastikan path import ini benar sesuai struktur proyek Anda
 from .hotspot_processor import HotspotProcessor
+from .image_converter import load_frames_and_metadata_matrix
 
-def run_hotspot_processing_in_process(frames: List, scan_path: Path, patient_id: str) -> Dict:
+# --- Pastikan definisi fungsi ini menerima DUA argumen: scan_path dan patient_id ---
+def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict | None:
     """
-    Fungsi ini akan dijalankan dalam proses terpisah.
+    Fungsi ini dijalankan di proses terpisah untuk isolasi total.
     """
-    # Inisialisasi prosesor HANYA di dalam proses ini
-    processor = HotspotProcessor()
+    try:
+        # 1. Inisialisasi prosesor HANYA di dalam proses ini
+        print(f"[PROCESS-{patient_id}] Inisialisasi HotspotProcessor...")
+        processor = HotspotProcessor()
 
-    # Lakukan pemrosesan
-    # (Salin logika dari _process_hotspot_frames_dual_view di sini)
-    # Contoh sederhana:
-    result = processor.process_image_with_xml(...) # Panggil fungsi asli Anda
+        # 2. Lakukan pekerjaan backend
+        print(f"[PROCESS-{patient_id}] Memuat data matriks dari {scan_path.name}...")
+        frame_bb, _ = load_frames_and_metadata_matrix(scan_path)
+        
+        # Anda mungkin perlu menyesuaikan pemanggilan di bawah ini dengan metode asli di HotspotProcessor.
+        # Saya asumsikan ada metode bernama `process_dual_view`.
+        print(f"[PROCESS-{patient_id}] Memulai pemrosesan hotspot...")
+        hotspot_data = processor.process_dual_view(frame_bb, scan_path, patient_id)
+        
+        # 3. Bersihkan sumber daya prosesor jika ada
+        if hasattr(processor, 'cleanup'):
+            processor.cleanup()
 
-    # Bersihkan direktori temporary jika perlu
-    processor.cleanup()
+        print(f"[PROCESS-{patient_id}] Pemrosesan selesai.")
+        # 4. Kembalikan hasilnya
+        return hotspot_data
 
-    # Kembalikan hasilnya (harus bisa di-"pickle")
-    return result
+    except Exception as e:
+        # Cetak error yang terjadi di dalam proses worker
+        import traceback
+        print(f"[FATAL IN PROCESS-{patient_id}] Gagal memproses {scan_path.name}: {e}")
+        traceback.print_exc()
+        return None
