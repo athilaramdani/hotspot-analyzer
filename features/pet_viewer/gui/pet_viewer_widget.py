@@ -1,6 +1,6 @@
-# frontend/widgets/pet_viewer_widget.py
+# features/pet_viewer/gui/pet_viewer_widget.py
 """
-Widget untuk menampilkan PET data dalam 4 panel view (R, G, Y, P)
+Widget untuk menampilkan PET data dalam 4 panel view (R, G, Y, Plot)
 """
 from typing import Optional, Dict, Any
 import numpy as np
@@ -8,9 +8,9 @@ import numpy as np
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSlider, 
-    QGridLayout, QFrame, QSizePolicy, QPushButton
+    QGridLayout, QFrame, QSizePolicy, QPushButton, QTextEdit
 )
-from PySide6.QtGui import QPixmap, QImage, QPainter, QPen, QColor
+from PySide6.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QFont
 
 from features.pet_viewer.logic.pet_loader import PETData, get_slice_data, normalize_image_for_display
 
@@ -53,7 +53,7 @@ class PETSliceViewer(QWidget):
         
         layout.addWidget(title_frame)
         
-        # Slider control - DIPINDAH KE ATAS GAMBAR
+        # Slider control
         slider_layout = QHBoxLayout()
         slider_layout.addWidget(QLabel(f"{self.slider_label}:"))
         
@@ -71,7 +71,6 @@ class PETSliceViewer(QWidget):
         self.image_label.setMinimumSize(200, 200)
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.setStyleSheet(f"border: 2px solid {self.color}; background-color: black;")
-        # IMPORTANT: Jangan gunakan setScaledContents untuk maintain aspect ratio
         self.image_label.setScaledContents(False)
         layout.addWidget(self.image_label)
         
@@ -133,7 +132,7 @@ class PETSliceViewer(QWidget):
         self._update_display()
     
     def _update_display(self):
-        """Update tampilan slice PET"""
+        """Update tampilan slice PET dengan orientasi yang benar sesuai 3D Slicer"""
         if self.image_data is None:
             self.clear()
             return
@@ -150,16 +149,23 @@ class PETSliceViewer(QWidget):
         # Make a copy to avoid modifying original data
         slice_data = slice_data.copy()
         
-        # PERBAIKAN ORIENTASI: Apply proper orientation for each view
-        # Note: Orientasi ini mungkin perlu disesuaikan tergantung data source
-        if self.axis == 0:  # Sagittal (Left-Right)
-            slice_data = np.flipud(slice_data)
-        elif self.axis == 1:  # Coronal (Anterior-Posterior)  
-            slice_data = np.flipud(slice_data)
-        elif self.axis == 2:  # Axial (Superior-Inferior)
-            # For axial view, just transpose to get proper orientation
-            slice_data = slice_data.T
-            slice_data = np.flipud(slice_data)
+        # ORIENTASI STANDAR MEDIS (RADIOLOGICAL CONVENTION):
+        # Following 3D Slicer's standard orientations
+        if self.axis == 0:  # Sagittal (Left-Right view)
+            # Standard: Anterior on left, Superior on top
+            # No flip needed for standard sagittal view
+            pass
+            
+        elif self.axis == 1:  # Coronal (Anterior-Posterior view)
+            # Standard: Left on right (radiological), Superior on top
+            # Flip horizontally for radiological convention
+            slice_data = np.fliplr(slice_data)
+            
+        elif self.axis == 2:  # Axial (Superior-Inferior view)
+            # Standard: Anterior on top, Left on right (radiological)
+            # Rotate 90 degrees counterclockwise and flip horizontally
+            slice_data = np.rot90(slice_data, k=1)
+            slice_data = np.fliplr(slice_data)
 
         # Normalisasi dan pastikan buffer C-contiguous
         normalized = normalize_image_for_display(slice_data)
@@ -190,7 +196,7 @@ class PETSliceViewer(QWidget):
             self.clear()
             return
 
-        # PERBAIKAN KUALITAS GAMBAR: Scale dengan maintain aspect ratio
+        # Scale dengan maintain aspect ratio untuk kualitas terbaik
         pixmap = QPixmap.fromImage(q_image)
         
         if pixmap.isNull():
@@ -204,7 +210,7 @@ class PETSliceViewer(QWidget):
             scaled_pixmap = pixmap.scaled(
                 label_size,
                 Qt.KeepAspectRatio,
-                Qt.SmoothTransformation  # Gunakan smooth transformation untuk kualitas lebih baik
+                Qt.SmoothTransformation
             )
             self.image_label.setPixmap(scaled_pixmap)
         else:
@@ -239,8 +245,110 @@ class PETSliceViewer(QWidget):
             QTimer.singleShot(100, self._update_display)
 
 
+class PlotViewer(QWidget):
+    """Widget untuk menampilkan plot/statistics panel seperti di 3D Slicer"""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._create_ui()
+        self._setup_styling()
+        
+    def _create_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setSpacing(5)
+        
+        # Title bar
+        title_frame = QFrame()
+        title_frame.setFixedHeight(30)
+        title_layout = QHBoxLayout(title_frame)
+        title_layout.setContentsMargins(10, 5, 10, 5)
+        
+        title_label = QLabel("Plot")
+        title_label.setStyleSheet("font-weight: bold; color: #808080;")  # Gray color for Plot
+        title_layout.addWidget(title_label)
+        
+        layout.addWidget(title_frame)
+        
+        # Plot area - for now, show statistics or placeholder
+        self.plot_area = QTextEdit()
+        self.plot_area.setReadOnly(True)
+        self.plot_area.setStyleSheet("""
+            QTextEdit {
+                border: 2px solid #808080;
+                background-color: #1e1e1e;
+                color: #ffffff;
+                font-family: monospace;
+                font-size: 10pt;
+            }
+        """)
+        self.plot_area.setPlainText("Plot view\n\nNo data loaded")
+        
+        layout.addWidget(self.plot_area)
+        
+    def _setup_styling(self):
+        """Setup styling untuk plot panel"""
+        self.setStyleSheet("""
+            QFrame {
+                background-color: rgba(0, 0, 0, 0.1);
+                border-radius: 5px;
+            }
+        """)
+    
+    def update_statistics(self, pet_data: Optional[PETData], image_type: str):
+        """Update plot area with statistics from current data"""
+        if not pet_data:
+            self.plot_area.setPlainText("Plot view\n\nNo data loaded")
+            return
+            
+        stats_text = f"Plot view - {image_type} Statistics\n"
+        stats_text += "="*40 + "\n\n"
+        
+        # Get current image data
+        image_data = None
+        if image_type == "PET":
+            image_data = pet_data.pet_image if pet_data.pet_image is not None else pet_data.pet_corr_image
+        elif image_type == "CT":
+            image_data = pet_data.ct_image
+        elif image_type == "SEG":
+            image_data = pet_data.seg_image
+        elif image_type == "SUV":
+            image_data = pet_data.suv_image
+            
+        if image_data is not None:
+            stats_text += f"Image shape: {image_data.shape}\n"
+            stats_text += f"Data type: {image_data.dtype}\n\n"
+            
+            # Calculate statistics
+            non_zero_data = image_data[image_data > 0]
+            if len(non_zero_data) > 0:
+                stats_text += "Intensity Statistics (non-zero voxels):\n"
+                stats_text += f"  Min: {non_zero_data.min():.2f}\n"
+                stats_text += f"  Max: {non_zero_data.max():.2f}\n"
+                stats_text += f"  Mean: {non_zero_data.mean():.2f}\n"
+                stats_text += f"  Std Dev: {non_zero_data.std():.2f}\n"
+                stats_text += f"  Median: {np.median(non_zero_data):.2f}\n"
+                stats_text += f"\nTotal voxels: {image_data.size:,}\n"
+                stats_text += f"Non-zero voxels: {len(non_zero_data):,} ({100*len(non_zero_data)/image_data.size:.1f}%)\n"
+            else:
+                stats_text += "No non-zero voxels found\n"
+                
+            # Add metadata if available
+            if hasattr(pet_data, f'{image_type.lower()}_metadata') and getattr(pet_data, f'{image_type.lower()}_metadata'):
+                metadata = getattr(pet_data, f'{image_type.lower()}_metadata')
+                if 'voxel_size' in metadata:
+                    stats_text += f"\nVoxel size: {metadata['voxel_size']}\n"
+        else:
+            stats_text += f"No {image_type} data available\n"
+            
+        self.plot_area.setPlainText(stats_text)
+    
+    def clear(self):
+        """Clear the plot display"""
+        self.plot_area.setPlainText("Plot view\n\nNo data loaded")
+
+
 class PETViewerWidget(QWidget):
-    """Widget utama untuk menampilkan PET data dalam 4 panel"""
+    """Widget utama untuk menampilkan PET data dalam 4 panel (R, G, Y, Plot)"""
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -249,42 +357,31 @@ class PETViewerWidget(QWidget):
         self.current_image_type: str = "PET"  # PET, CT, SEG, SUV
         
         self._create_ui()
-        self._setup_image_type_controls()
     
     def _create_ui(self):
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(5)
         
-        # Control panel
-        control_layout = QHBoxLayout()
-        
-        # Image type selector
-        control_layout.addWidget(QLabel("Image Type:"))
-        
-        # Placeholder for image type selector (will be added later)
-        control_layout.addStretch()
-        
-        layout.addLayout(control_layout)
-        
-        # Main viewer area - 2x2 grid dengan posisi yang BENAR
+        # Main viewer area - 2x2 grid
         viewer_layout = QGridLayout()
         viewer_layout.setSpacing(10)
         
-        # PERBAIKAN POSISI PANEL:
-        # Red panel (Axial) - KIRI ATAS (0, 0)
+        # Red panel (Axial) - TOP LEFT (0, 0)
         self.red_panel = PETSliceViewer("Red (Axial)", "#FF0000", 2, "Superior-Inferior")
         viewer_layout.addWidget(self.red_panel, 0, 0)
         
-        # Purple panel - KANAN ATAS (0, 1) 
-        self.purple_panel = PETSliceViewer("Purple (3D/MIP)", "#800080", 2, "Slice")
-        viewer_layout.addWidget(self.purple_panel, 0, 1)
-        
-        # Green panel (Coronal) - KIRI BAWAH (1, 0)
+        # Green panel (Coronal) - BOTTOM LEFT (1, 0)
         self.green_panel = PETSliceViewer("Green (Coronal)", "#00FF00", 1, "Anterior-Posterior")
         viewer_layout.addWidget(self.green_panel, 1, 0)
         
-        # Yellow panel (Sagittal) - KANAN BAWAH (1, 1)
+        # Yellow panel (Sagittal) - BOTTOM RIGHT (1, 1)
         self.yellow_panel = PETSliceViewer("Yellow (Sagittal)", "#FFFF00", 0, "Left-Right")
         viewer_layout.addWidget(self.yellow_panel, 1, 1)
+        
+        # Plot panel - TOP RIGHT (0, 1)
+        self.plot_panel = PlotViewer()
+        viewer_layout.addWidget(self.plot_panel, 0, 1)
         
         # Set equal stretch factors
         for i in range(2):
@@ -293,19 +390,10 @@ class PETViewerWidget(QWidget):
         
         layout.addLayout(viewer_layout)
         
-        # Set stretch factors
-        layout.setStretchFactor(control_layout, 0)
-        layout.setStretchFactor(viewer_layout, 1)
+        # Store slice panels for easy access
+        self.slice_panels = [self.red_panel, self.green_panel, self.yellow_panel]
         
-        # Store panels for easy access
-        self.panels = [self.red_panel, self.green_panel, self.yellow_panel, self.purple_panel]
-        
-        print("[DEBUG] PETViewerWidget._create_ui completed - created {} panels".format(len(self.panels)))
-    
-    def _setup_image_type_controls(self):
-        """Setup controls untuk memilih tipe image"""
-        # TODO: Implement image type selector
-        pass
+        print("[DEBUG] PETViewerWidget._create_ui completed")
     
     def set_pet_data(self, pet_data: PETData):
         """Set PET data untuk ditampilkan"""
@@ -330,9 +418,12 @@ class PETViewerWidget(QWidget):
         print(f"[DEBUG] PETViewerWidget._update_display - image_type: {self.current_image_type}, data shape: {image_data.shape if image_data is not None else 'None'}")
 
         if image_data is not None:
-            # Kirim image yang sama ke semua panel slice-viewer
-            for panel in self.panels:
+            # Kirim image ke semua slice viewer panels
+            for panel in self.slice_panels:
                 panel.set_image_data(image_data)
+            
+            # Update plot panel with statistics
+            self.plot_panel.update_statistics(self.pet_data, self.current_image_type)
         else:
             print("[WARNING] No image data available to display")
             self.clear()
@@ -374,8 +465,9 @@ class PETViewerWidget(QWidget):
     
     def clear(self):
         """Clear semua panel"""
-        for panel in self.panels:
+        for panel in self.slice_panels:
             panel.clear()
+        self.plot_panel.clear()
     
     def cleanup(self):
         """Cleanup resources"""
