@@ -1,16 +1,14 @@
 import sys
 from pathlib import Path
-
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow
+from PySide6.QtCore import QTimer, Signal
 from PySide6.QtGui import QPalette, QColor
-
-# ── jendela utama untuk SPECT dan PET ────────────────
+# Import jendela utama
 from .widgets.main_window import MainWindow           # SPECT
-from .widgets.main_window_pet import MainWindowPet    # PET  (pastikan file ini ada)
-
+from .widgets.main_window_pet import MainWindowPet    # PET
 from .widgets.patient_selection_dialog import PatientSelectionDialog
 
-# ----- Tema (light palette) --------------------------
+# Tema light
 def make_light_palette() -> QPalette:
     pal = QPalette()
     pal.setColor(QPalette.Window, QColor("#f5f6fa"))
@@ -24,34 +22,46 @@ def make_light_palette() -> QPalette:
     pal.setColor(QPalette.HighlightedText, QColor("#ffffff"))
     return pal
 
-# -----------------------------------------------------
-def main() -> None:
+# Fungsi utama
+def main():
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     app.setPalette(make_light_palette())
-    app.setStyleSheet("""
-        * { font-family:'Poppins', sans-serif; font-size:11pt; }
-        QLabel { color:inherit; }
-    """)
 
-    # ── dialog pemilihan pasien + modalitas ───────────
-    dlg = PatientSelectionDialog()
-    if not dlg.exec():
-        sys.exit(0)                       # user menutup dialog
+    windows = []  # simpan referensi agar window tidak di-GC
 
-    session_code    = dlg.selected_patient_id
-    selected_mod    = dlg.selected_modality   # "SPECT" | "PET"
-    data_dir        = Path("data")            # sesuaikan jika perlu
+    def start_new_session():
+        dlg = PatientSelectionDialog()
+        if not dlg.exec():
+            print("[DEBUG] Dialog dibatalkan, keluar aplikasi")
+            app.quit()
+            return
 
-    # ── buka window sesuai modalitas ──────────────────
-    if selected_mod == "SPECT":
-        mw = MainWindow(session_code=session_code, data_root=data_dir)
-    else:  # "PET"
-        mw = MainWindowPet(session_code=session_code, data_root=data_dir)
+        session_code = dlg.selected_patient_id
+        selected_mod = dlg.selected_modality
+        data_dir = Path("data")  # Pastikan ini Path, bukan string
 
-    mw.show()
+        if selected_mod == "SPECT":
+            window = MainWindow(session_code=session_code, data_root=data_dir)
+        elif selected_mod == "PET":
+            window = MainWindowPet(session_code=session_code, data_root=data_dir)
+        else:
+            QMessageBox.critical(None, "Error", "Modality tidak dikenal")
+            QTimer.singleShot(100, start_new_session)
+            return
+
+        def handle_logout():
+            print("[DEBUG] Logout diklik")
+            window.hide()
+            window.deleteLater()
+            QTimer.singleShot(200, start_new_session)
+
+        window.logout_requested.connect(handle_logout)
+        window.show()
+        windows.append(window)
+
+    start_new_session()
     sys.exit(app.exec())
 
-# -----------------------------------------------------
 if __name__ == "__main__":
     main()
