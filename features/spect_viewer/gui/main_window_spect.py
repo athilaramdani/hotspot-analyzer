@@ -187,6 +187,7 @@ class MainWindowSpect(QMainWindow):
         id_combo = self.patient_bar.id_combo
         id_combo.clear()
         
+        spect_data_dir = self.data_root / "SPECT"
         # 1. Pindai semua direktori seperti biasa
         all_patients_map = scan_dicom_directory(self.data_root)
         print(f"[DEBUG] Semua patient ID dari scanner:")
@@ -228,26 +229,34 @@ class MainWindowSpect(QMainWindow):
         self._load_patient(pid)
     
     def _load_patient(self, pid: str) -> None:
-        """Load patient data using a multiprocessing pool for backend processing."""
+        """Loads patient data using a multiprocessing pool for backend processing."""
         print(f"[DEBUG] Loading patient: {pid}")
+        print(f"[CACHE DEBUG] Isi cache sebelum load: {list(self._loaded.keys())}")
+
         full_pid = f"{pid}_{self.session_code}"
         
         if full_pid in self._loaded:
+            print(f"[DEBUG] Data untuk {full_pid} ditemukan di cache.")
             scans = self._loaded[full_pid]
         else:
             print(f"[DEBUG] Loading scans for {full_pid} from disk...")
             initial_scans = []
             async_results = []
 
+            spect_data_dir = self.data_root / "SPECT"
+            all_patients_map = scan_dicom_directory(spect_data_dir)
+            self._patient_id_map.update(all_patients_map)
+
             for p in self._patient_id_map.get(full_pid, []):
                 try:
                     frames, meta = load_frames_and_metadata(p)
                     scan_data = {"meta": meta, "frames": frames, "path": p}
                     initial_scans.append(scan_data)
-                    
-                    # --- FIX 4: Gunakan nama fungsi yang benar sesuai yang di-import ---
+                    print(f"--> [TES] MEMANGGIL BACKEND DENGAN patient_id: {pid}")
+                    # --- FIX DI SINI: Pastikan 'pid' ditambahkan sebagai argumen kedua ---
                     result = self.pool.apply_async(run_hotspot_processing_in_process, args=(p, pid))
                     async_results.append(result)
+
                 except Exception as e:
                     print(f"[WARN] Gagal membaca data awal {p}: {e}")
             
@@ -255,7 +264,7 @@ class MainWindowSpect(QMainWindow):
             processed_scans = []
             for i, scan_data in enumerate(initial_scans):
                 try:
-                    hotspot_data = async_results[i].get(timeout=120)
+                    hotspot_data = async_results[i].get(timeout=120) # Timeout 2 menit
                     if hotspot_data:
                         scan_data["hotspot_frames"] = hotspot_data.get("frames")
                         scan_data["hotspot_frames_ant"] = hotspot_data.get("ant_frames")
@@ -267,9 +276,14 @@ class MainWindowSpect(QMainWindow):
                     processed_scans.append(scan_data)
                 except Exception as e:
                     print(f"[ERROR] Gagal mendapatkan hasil dari backend untuk {scan_data['path']}: {e}")
-
+            
             scans = sorted(processed_scans, key=lambda s: s["meta"].get("study_date", ""))
-            self._loaded[full_pid] = scans
+            
+            if scans:
+                print(f"[DEBUG] Menyimpan {len(scans)} scan ke cache untuk {full_pid}")
+                self._loaded[full_pid] = scans
+            else:
+                print(f"[WARN] Tidak ada scan yang diproses untuk {full_pid}. Cache tidak disimpan.")
 
         print(f"[DEBUG] Semua data dimuat. Total scan: {len(scans)}")
         if scans:
