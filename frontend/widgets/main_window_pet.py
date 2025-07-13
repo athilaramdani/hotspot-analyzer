@@ -5,7 +5,7 @@ from pathlib import Path
 from functools import partial
 from typing import Dict, List
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QMainWindow, QSplitter, QPushButton,
     QWidget, QVBoxLayout, QHBoxLayout, QDialog, QLabel,
@@ -22,6 +22,7 @@ from .pet_viewer_widget import PETViewerWidget
 
 
 class MainWindowPet(QMainWindow):
+    logout_requested = Signal()
     def __init__(self, data_root: Path, parent=None, session_code: str | None = None):
         super().__init__()
         self.setWindowTitle("PET Viewer - Hotspot Analyzer")
@@ -50,6 +51,7 @@ class MainWindowPet(QMainWindow):
         # Auto-select session patient if available
         if self.session_code:
             self._auto_select_patient()
+        
     
     def _create_ui(self):
         central_widget = QWidget()
@@ -76,6 +78,12 @@ class MainWindowPet(QMainWindow):
         toolbar_layout.addWidget(self.refresh_btn)
         
         toolbar_layout.addStretch()
+        #logout button
+        self.logout_btn = QPushButton("Logout")
+        self.logout_btn.clicked.connect(self._handle_logout)
+
+        toolbar_layout.addWidget(self.logout_btn)
+
         main_layout.addLayout(toolbar_layout)
         
         # Patient info bar
@@ -109,6 +117,11 @@ class MainWindowPet(QMainWindow):
         
         # Status bar
         self.statusBar().showMessage("Ready")
+    def _handle_logout(self):
+        """Handle logout request"""
+        self.logout_requested.emit()
+        self.close()
+
     
     def _refresh_patient_list(self):
         """Refresh the patient list from PET data directory"""

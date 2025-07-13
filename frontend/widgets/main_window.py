@@ -6,11 +6,12 @@ from functools import partial
 from typing import Dict, List
 import numpy as np
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QMainWindow, QSplitter, QPushButton,
     QWidget, QVBoxLayout, QHBoxLayout, QDialog
 )
+from PySide6.QtGui import QCloseEvent
 
 from backend.directory_scanner import scan_dicom_directory
 from backend.dicom_loader import load_frames_and_metadata
@@ -29,7 +30,7 @@ from .view_selector import ViewSelector
 
 
 class MainWindow(QMainWindow):
-
+    logout_requested = Signal()
     def __init__(self, data_root: Path, parent=None, session_code: str | None = None):
         super().__init__()
         self.setWindowTitle("Hotspot Analyzer")
@@ -108,6 +109,17 @@ class MainWindow(QMainWindow):
         top_layout.addWidget(self.mode_selector)
         top_layout.addWidget(self.view_selector)
 
+        # add logout button
+        logout_btn = QPushButton("Logout")
+        logout_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #6c757d; color: white; border: none;
+                padding: 8px 16px; border-radius: 4px;
+            }
+            QPushButton:hover { background-color: #5a6268; }
+        """)
+        logout_btn.clicked.connect(self._handle_logout)
+        top_layout.addWidget(logout_btn)
         # --- Scan & Zoom Buttons ---
         view_button_widget = QWidget()
         view_button_layout = QHBoxLayout(view_button_widget)
@@ -164,6 +176,35 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(view_button_widget)
         main_layout.addWidget(main_splitter, stretch=1)
         self.setCentralWidget(main_widget)
+
+    def _handle_logout(self):
+        """Emits the logout signal and closes the window."""
+        self.logout_requested.emit()
+        self.close()
+    
+    def closeEvent(self, event: QCloseEvent):
+        """
+        Membersihkan semua sumber daya sebelum window ditutup.
+        Ini PENTING untuk mencegah state yang bocor.
+        """
+        print("[DEBUG] Membersihkan sumber daya di MainWindow (SPECT)...")
+
+        # 1. Bersihkan widget-widget custom
+        if hasattr(self, 'timeline_widget') and hasattr(self.timeline_widget, 'cleanup'):
+            self.timeline_widget.cleanup()
+            print("[DEBUG] ScanTimelineWidget dibersihkan.")
+
+        if hasattr(self, 'side_panel') and hasattr(self.side_panel, 'cleanup'):
+            self.side_panel.cleanup()
+            print("[DEBUG] SidePanel dibersihkan.")
+
+        # 2. Bersihkan prosesor data (SANGAT PENTING)
+        if hasattr(self, 'hotspot_processor') and hasattr(self.hotspot_processor, 'cleanup'):
+            self.hotspot_processor.cleanup()
+            print("[DEBUG] HotspotProcessor dibersihkan.")
+
+        # Panggil metode asli untuk melanjutkan proses penutupan
+        super().closeEvent(event)
 
     def _show_import_dialog(self) -> None:
         """Show the updated import dialog"""
