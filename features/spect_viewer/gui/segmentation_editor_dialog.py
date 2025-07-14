@@ -1,14 +1,8 @@
-# =====================================================================
-# frontend/widgets/segmentation_editor_dialog.py  – v2.1-precision-fixed
+# features/spect_viewer/gui/segmentation_editor_dialog.py  – v2.1-precision-fixed
 # ---------------------------------------------------------------------
 """
 Full-screen dialog untuk manual edit segmentasi.
-
-Perbaikan v2.1:
-- Fix koordinat brush yang miss/meleset
-- Fix loading PNG dari DICOM frames yang benar
-- Improve pixel precision untuk drawing
-- Better handling untuk DICOM dengan multiple frames
+Updated to use config paths for better path management.
 """
 from __future__ import annotations
 from pathlib import Path
@@ -30,6 +24,9 @@ from PySide6.QtWidgets import (
 
 import pydicom
 from pydicom.uid import ExplicitVRLittleEndian, SecondaryCaptureImageStorage, generate_uid
+
+# Import config paths
+from core.config.paths import get_segmentation_files
 
 from features.spect_viewer.logic.colorizer import label_mask_to_rgb, _PALETTE
 
@@ -599,19 +596,25 @@ class SegmentationEditorDialog(QDialog):
         geom = QGuiApplication.primaryScreen().availableGeometry()
         self.resize(int(geom.width()*0.9), int(geom.height()*0.9))
 
-        # ----- FIXED: file paths dengan handling DICOM yang benar
-        base = Path(scan["path"]).with_suffix("")
-        vtag = view.lower()
-        self._png_mask  = base.with_name(f"{base.stem}_{vtag}_mask.png")
-        self._png_color = base.with_name(f"{base.stem}_{vtag}_colored.png")
-        self._dcm_mask  = base.with_name(f"{base.stem}_{vtag}_mask.dcm")
-        self._dcm_color = base.with_name(f"{base.stem}_{vtag}_colored.dcm")
+        # Use config paths for file management
+        dicom_path = scan["path"]
+        filename_stem = dicom_path.stem
+        
+        # Get all segmentation file paths using config
+        self.seg_files = get_segmentation_files(dicom_path.parent, filename_stem, view)
+        
+        # Store individual paths for compatibility
+        self._png_mask = self.seg_files['png_mask']
+        self._png_color = self.seg_files['png_colored']
+        self._dcm_mask = self.seg_files['dcm_mask']
+        self._dcm_color = self.seg_files['dcm_colored']
         
         # ===== DEBUG: cek isi frame & view =====
         print("\n======================")
         print(">>> DEBUG: SegmentationEditorDialog")
         print(f"View diminta        : '{view}'")
         print(f"Keys di scan[frames]: {list(scan['frames'].keys())}")
+        print(f"Segmentation files  : {self.seg_files}")
         print("======================\n")
 
         # Load original array dari DICOM frames
@@ -624,7 +627,7 @@ class SegmentationEditorDialog(QDialog):
             mask_arr = np.zeros_like(orig_arr, np.uint8)
 
         # FIXED: Cek PNG original yang sudah ada untuk reference yang lebih akurat
-        orig_png_path = base.with_name(f"{base.stem}_{vtag}.png")
+        orig_png_path = dicom_path.parent / f"{filename_stem}_{view.lower()}.png"
         self._has_orig_png = orig_png_path.exists()
         
         if self._has_orig_png:
@@ -771,7 +774,8 @@ class SegmentationEditorDialog(QDialog):
             f"<b>Data Info:</b><br>"
             f"• Image: {data_source}<br>"
             f"• Mask: {mask_status}<br>"
-            f"• Size: {orig_png_arr.shape[1]}×{orig_png_arr.shape[0]}"
+            f"• Size: {orig_png_arr.shape[1]}×{orig_png_arr.shape[0]}<br>"
+            f"• Files: {len([f for f in self.seg_files.values() if f.exists()])} exist"
         )
         instructions.setWordWrap(True)
         instructions.setStyleSheet("QLabel { background: #f0f0f0; padding: 8px; border-radius: 4px; }")

@@ -1,5 +1,4 @@
-# =====================================================================
-# frontend/widgets/scan_timeline.py   – v3 (with Hotspot support) - FIXED
+# features/spect_viewer/gui/scan_timeline.py – v3 (with Hotspot support) - FIXED
 # ---------------------------------------------------------------------
 from __future__ import annotations
 from pathlib import Path
@@ -14,6 +13,9 @@ from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QLabel, QScrollArea,
     QFrame, QPushButton
 )
+
+# Import config paths
+from core.config.paths import get_hotspot_files, get_segmentation_files
 
 from .segmentation_editor_dialog import SegmentationEditorDialog
 from .hotspot_editor_dialog import HotspotEditorDialog
@@ -150,6 +152,7 @@ class ScanTimelineWidget(QScrollArea):
         return hbox
     
     def _get_patient_id_from_scan(self, scan: Dict) -> str:
+        """Extract patient ID from scan path using config paths logic"""
         folder = scan["path"].parent.name          # ex: 12_NSY
         if "_" in folder:
             pid, code = folder.split("_", 1)       # ['12', 'NSY']
@@ -170,7 +173,7 @@ class ScanTimelineWidget(QScrollArea):
         
         # Get the frame index for this view
         frame_map = scan["frames"]
-        if view in frame_map and len(hotspot_frames) > 0:  # Fixed: use len() instead of direct boolean
+        if view in frame_map and len(hotspot_frames) > 0:
             frame_idx = list(frame_map.keys()).index(view) if view in frame_map else 0
             if frame_idx < len(hotspot_frames):
                 return hotspot_frames[frame_idx]
@@ -182,9 +185,12 @@ class ScanTimelineWidget(QScrollArea):
         lay.addLayout(self._make_header(scan, idx))
         
         frame_map = scan["frames"]
-        dicom = scan["path"]
-        filename = dicom.stem  # contoh: '11'
-        seg_png = dicom.parent / f"{filename}_{self.current_view.lower()}_colored.png"
+        dicom_path = scan["path"]
+        filename = dicom_path.stem
+        
+        # Use config paths for segmentation files
+        seg_files = get_segmentation_files(dicom_path.parent, filename, self.current_view)
+        seg_png = seg_files['png_colored']
 
         print(f"[DEBUG] Looking for segmentation PNG: {seg_png}")
         print(f"        Exists? {seg_png.exists()}")
@@ -202,10 +208,10 @@ class ScanTimelineWidget(QScrollArea):
             lbl.setPixmap(pix) if pix else lbl.setText("Seg not found")
         
         elif self.current_mode == "Hotspot":
-            # Fixed: Get patient ID properly
+            # Use config paths for hotspot files
             patient_id = self._get_patient_id_from_scan(scan)
-            v = "ant" if "ant" in self.current_view.lower() else "post"
-            hotspot_png = Path(f"data/SPECT/{patient_id}_{self.session_code}/{patient_id}_{v}_hotspot_colored.png")
+            hotspot_files = get_hotspot_files(patient_id, self.session_code, self.current_view)
+            hotspot_png = hotspot_files['colored_png']
 
             if hotspot_png.exists() and self.current_view in frame_map:
                 try:
@@ -250,9 +256,12 @@ class ScanTimelineWidget(QScrollArea):
 
         row = QHBoxLayout()
         frame_map = scan["frames"]
-        dicom = scan["path"]
-        filename = dicom.stem
-        seg_png = dicom.parent / f"{filename}_{self.current_view.lower()}_colored.png"
+        dicom_path = scan["path"]
+        filename = dicom_path.stem
+        
+        # Use config paths for segmentation files
+        seg_files = get_segmentation_files(dicom_path.parent, filename, self.current_view)
+        seg_png = seg_files['png_colored']
 
         print(f"[DEBUG] Looking for segmentation PNG: {seg_png}")
         print(f"        Exists? {seg_png.exists()}")
@@ -285,10 +294,11 @@ class ScanTimelineWidget(QScrollArea):
             hotspot_label.setStyleSheet("font-size: 10px; color: #666;")
             hotspot_img = QLabel(alignment=Qt.AlignCenter)
 
-            # Fixed: Get patient ID properly
+            # Use config paths for hotspot files
             patient_id = self._get_patient_id_from_scan(scan)
-            v = "ant" if "ant" in self.current_view.lower() else "post"
-            hotspot_png = Path(f"data/{patient_id}_{self.session_code}/{patient_id}_{v}_hotspot_colored.png")
+            hotspot_files = get_hotspot_files(patient_id, self.session_code, self.current_view)
+            hotspot_png = hotspot_files['colored_png']
+            
             print(f"[HOTDEBUG] session_code   = {self.session_code}")
             print(f"[HOTDEBUG] patient_id     = {patient_id}")
             print(f"[HOTDEBUG] current_view   = {self.current_view}")
