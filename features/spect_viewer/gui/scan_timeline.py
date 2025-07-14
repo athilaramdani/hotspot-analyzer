@@ -205,7 +205,7 @@ class ScanTimelineWidget(QScrollArea):
             # Fixed: Get patient ID properly
             patient_id = self._get_patient_id_from_scan(scan)
             v = "ant" if "ant" in self.current_view.lower() else "post"
-            hotspot_png = Path(f"data/{patient_id}_{self.session_code}/{patient_id}_{v}_hotspot_colored.png")
+            hotspot_png = Path(f"data/SPECT/{patient_id}_{self.session_code}/{patient_id}_{v}_hotspot_colored.png")
 
             if hotspot_png.exists() and self.current_view in frame_map:
                 try:

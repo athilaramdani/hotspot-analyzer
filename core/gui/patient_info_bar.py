@@ -8,7 +8,8 @@ from .searchable_combobox import SearchableComboBox
 class PatientInfoBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedHeight(80)
+        self.setMinimumHeight(80)
+        self.setMaximumHeight(120)  # Beri batas maksimal
         self.grid_layout = QGridLayout(self)
         self.grid_layout.setContentsMargins(16, 8, 16, 8)
         self.grid_layout.setHorizontalSpacing(24)
