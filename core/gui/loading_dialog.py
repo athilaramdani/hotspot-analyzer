@@ -175,6 +175,26 @@ class LoadingDialog(QDialog):
         super().closeEvent(event)
 
 
+class SPECTLoadingDialog(LoadingDialog):
+    """Specialized loading dialog for SPECT data loading"""
+    
+    def __init__(self, patient_id: str, parent=None):
+        super().__init__(
+            title="Loading SPECT Data",
+            message=f"Loading SPECT data for patient {patient_id}...",
+            show_progress=True,
+            show_cancel=True,
+            parent=parent
+        )
+        self.patient_id = patient_id
+    
+    def update_loading_step(self, step: str, progress: int = None):
+        """Update loading step and progress"""
+        self.set_message(f"Loading SPECT data for patient {self.patient_id}\n{step}")
+        if progress is not None:
+            self.set_progress(progress)
+
+
 class PETLoadingDialog(LoadingDialog):
     """Specialized loading dialog for PET data loading"""
     
@@ -199,6 +219,13 @@ class PETLoadingDialog(LoadingDialog):
 def show_loading_dialog(parent=None, title: str = "Loading", message: str = "Please wait...") -> LoadingDialog:
     """Show a simple loading dialog"""
     dialog = LoadingDialog(title, message, show_progress=False, show_cancel=False, parent=parent)
+    dialog.show()
+    return dialog
+
+
+def show_spect_loading_dialog(patient_id: str, parent=None) -> SPECTLoadingDialog:
+    """Show SPECT loading dialog"""
+    dialog = SPECTLoadingDialog(patient_id, parent)
     dialog.show()
     return dialog
 

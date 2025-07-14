@@ -15,6 +15,7 @@ from __future__ import annotations
 from pathlib import Path
 from shutil  import copy2
 from typing  import Callable, Sequence, List
+from core.config.paths import SPECT_DATA_PATH
 import traceback
 
 import numpy as np
@@ -33,7 +34,7 @@ from core.logger import _log
 
 
 # ---------------------------------------------------------------- config
-_DATA_DIR  = Path(__file__).resolve().parents[1] / "data"
+_DATA_DIR  = SPECT_DATA_PATH  # Gunakan dari config
 _VERBOSE   = True
 _LOG_FILE  = None            # bisa diisi Path("debug.log")
 
@@ -173,7 +174,10 @@ def process_files(
     session_code: str | None = None 
 ) -> List[Path]:
 
-    dest_root = Path(data_root) if data_root else _DATA_DIR
+    if data_root:
+        dest_root = Path(data_root) / "SPECT"
+    else:
+        dest_root = SPECT_DATA_PATH
     dest_root.mkdir(parents=True, exist_ok=True)
     # ---------- proxy _log agar bisa dikirim ke frontend ----------
     orig_log = _log

@@ -1,0 +1,11 @@
+{
+  "auto_login": false,
+  "remember_last_session": true,
+  "default_modality": "SPECT",
+  "session_timeout_minutes": 60,
+  "max_concurrent_sessions": 3,
+  "last_session": {
+    "session_code": "NBL",
+    "modality": "SPECT"
+  }
+}
