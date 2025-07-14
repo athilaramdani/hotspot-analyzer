@@ -19,6 +19,9 @@ from features.pet_viewer.logic.pet_loader import load_pet_data, PETData
 from .pet_import_dialog import PETImportDialog
 from core.gui.patient_info_bar import PatientInfoBar
 from core.gui.searchable_combobox import SearchableComboBox
+# ===== TAMBAHKAN IMPORT INI =====
+from core.gui.loading_dialog import PETLoadingDialog
+# =================================
 from .pet_viewer_widget import PETViewerWidget
 
 # Import UI constants for consistent styling
@@ -68,14 +71,14 @@ class MainWindowPet(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
-        main_layout.setContentsMargins(10, 10, 10, 10)  # Set reasonable margins
-        main_layout.setSpacing(10)  # Set consistent spacing
+        main_layout.setContentsMargins(5, 5, 5, 5)  # Set reasonable margins
+        main_layout.setSpacing(3)  # Set consistent spacing
         
         # --- Top Bar (matching SPECT layout) ---
         top_actions = QWidget()
         top_layout = QHBoxLayout(top_actions)
         top_layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
-        top_layout.setSpacing(10)  # Set consistent spacing
+        top_layout.setSpacing(5)  # Set consistent spacing
         
         # Create SearchableComboBox for patient selection
         search_combo = SearchableComboBox()
@@ -84,7 +87,6 @@ class MainWindowPet(QMainWindow):
         # Patient info bar with integrated search combo
         self.patient_bar = PatientInfoBar()
         self.patient_bar.set_id_combobox(search_combo)
-        self.patient_bar.setFixedHeight(80)  # Ensure consistent height
         top_layout.addWidget(self.patient_bar)
         
         # Add stretch to push buttons to the right
@@ -109,11 +111,10 @@ class MainWindowPet(QMainWindow):
         top_layout.addWidget(self.logout_btn)
 
         main_layout.addWidget(top_actions)
-        main_layout.setSpacing(5)  # Reduce spacing between main layout items
         
         # --- Main content area ---
         self.splitter = QSplitter(Qt.Horizontal)
-        main_layout.addWidget(self.splitter)
+        main_layout.addWidget(self.splitter, 1)  # Tambah stretch factor 1
         
         # Left panel for controls
         left_panel = QWidget()
@@ -142,7 +143,7 @@ class MainWindowPet(QMainWindow):
         # Set splitter proportions
         self.splitter.setStretchFactor(0, 0)
         self.splitter.setStretchFactor(1, 1)
-        
+        self.splitter.setSizes([200, 1400])  # Fix ukuran splitter
         # Status bar
         self.statusBar().showMessage("Ready")
     
@@ -211,6 +212,13 @@ class MainWindowPet(QMainWindow):
     
     def _load_patient_data(self, patient_id: str):
         """Load PET data for the selected patient"""
+        loading_dialog = None
+        
+        def progress_callback(message: str, progress: int):
+            if loading_dialog:
+                loading_dialog.update_loading_step(message, progress)
+                QApplication.processEvents()
+        
         try:
             # Check if already loaded
             if patient_id in self._loaded:
@@ -224,14 +232,16 @@ class MainWindowPet(QMainWindow):
                 self.status_label.setText(f"No data found for patient {patient_id}")
                 return
             
-            # Load from first folder (assuming one folder per patient)
+            # Load from first folder
             patient_folder = patient_folders[0]
             
-            self.statusBar().showMessage(f"Loading PET data for patient {patient_id}...")
-            QApplication.processEvents()  # Update UI
+            # Show loading dialog
+            loading_dialog = PETLoadingDialog(patient_id, parent=self)
+            loading_dialog.show()
+            QApplication.processEvents()
             
-            # Load PET data
-            pet_data = load_pet_data(patient_folder)
+            # Load PET data dengan progress callback
+            pet_data = load_pet_data(patient_folder, progress_callback)
             
             if pet_data:
                 self._loaded[patient_id] = pet_data
@@ -245,6 +255,10 @@ class MainWindowPet(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load PET data: {str(e)}")
             self.statusBar().showMessage("Error loading PET data")
+        
+        finally:
+            if loading_dialog:
+                loading_dialog.close()
     
     def _update_ui_with_data(self):
         """Update UI with loaded PET data"""
@@ -299,9 +313,26 @@ class MainWindowPet(QMainWindow):
             patient_id = dialog.patient_id
             
             if source_path and patient_id:
+                # ===== SHOW LOADING DIALOG FOR IMPORT =====
+                loading_dialog = PETLoadingDialog(patient_id, parent=self)
+                loading_dialog.set_message(f"Importing PET data for patient {patient_id}...")
+                loading_dialog.show()
+                QApplication.processEvents()
+                # ==========================================
+                
                 try:
+                    loading_dialog.update_loading_step("Copying files...", 30)
+                    QApplication.processEvents()
+                    
                     self._copy_pet_data_to_storage(source_path, patient_id)
+                    
+                    loading_dialog.update_loading_step("Refreshing patient list...", 70)
+                    QApplication.processEvents()
+                    
                     self._refresh_patient_list()
+                    
+                    loading_dialog.update_loading_step("Selecting patient...", 90)
+                    QApplication.processEvents()
                     
                     # Auto-select the imported patient
                     search_combo = self.patient_bar.id_combo
@@ -309,12 +340,18 @@ class MainWindowPet(QMainWindow):
                         if patient_id in search_combo.itemText(i):
                             search_combo.setCurrentIndex(i)
                             break
-                        
+                    
+                    loading_dialog.update_loading_step("Import completed!", 100)
+                    QApplication.processEvents()
+                    
                     QMessageBox.information(self, "Success", 
                                           f"PET data imported successfully for patient {patient_id}")
                     
                 except Exception as e:
                     QMessageBox.critical(self, "Error", f"Failed to import PET data: {str(e)}")
+                
+                finally:
+                    loading_dialog.close()
     
     def _copy_pet_data_to_storage(self, source_path: Path, patient_id: str):
         """Copy PET data from source to data storage"""

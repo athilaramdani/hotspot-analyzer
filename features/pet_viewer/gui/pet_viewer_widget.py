@@ -5,7 +5,7 @@ Widget untuk menampilkan PET data dalam 4 panel view (R, G, Y, Plot)
 from typing import Optional, Dict, Any
 import numpy as np
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSlider, 
     QGridLayout, QFrame, QSizePolicy, QPushButton, QTextEdit
@@ -18,12 +18,16 @@ from features.pet_viewer.logic.pet_loader import PETData, get_slice_data, normal
 class PETSliceViewer(QWidget):
     """Widget untuk menampilkan single slice dengan slider control"""
     
+    # Signal untuk fullscreen toggle
+    fullscreen_toggled = Signal(object)  # Mengirim referensi ke widget ini
+    
     def __init__(self, title: str, color: str, axis: int, slider_label: str, parent=None):
         super().__init__(parent)
         self.title = title
         self.color = color
         self.axis = axis  # 0=sagittal, 1=coronal, 2=axial
         self.slider_label = slider_label
+        self.is_fullscreen = False
         
         self.image_data: Optional[np.ndarray] = None
         self.current_slice: int = 0
@@ -36,7 +40,7 @@ class PETSliceViewer(QWidget):
         layout = QVBoxLayout(self)
         layout.setSpacing(5)
         
-        # Title bar dengan warna
+        # Title bar dengan warna dan tombol fullscreen
         title_frame = QFrame()
         title_frame.setFixedHeight(30)
         title_layout = QHBoxLayout(title_frame)
@@ -51,20 +55,42 @@ class PETSliceViewer(QWidget):
         self.slice_info_label.setStyleSheet(f"color: {self.color};")
         title_layout.addWidget(self.slice_info_label)
         
+        # Spacer
+        title_layout.addStretch()
+        
+        # Fullscreen button
+        self.fullscreen_btn = QPushButton("⛶")
+        self.fullscreen_btn.setFixedSize(20, 20)
+        self.fullscreen_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {self.color};
+                color: white;
+                border: none;
+                border-radius: 3px;
+                font-weight: bold;
+                font-size: 12px;
+            }}
+            QPushButton:hover {{
+                background-color: rgba(255, 255, 255, 0.2);
+            }}
+        """)
+        self.fullscreen_btn.clicked.connect(self._toggle_fullscreen)
+        title_layout.addWidget(self.fullscreen_btn)
+        
         layout.addWidget(title_frame)
         
         # Slider control
-        slider_layout = QHBoxLayout()
-        slider_layout.addWidget(QLabel(f"{self.slider_label}:"))
+        self.slider_layout = QHBoxLayout()
+        self.slider_layout.addWidget(QLabel(f"{self.slider_label}:"))
         
         self.slice_slider = QSlider(Qt.Horizontal)
         self.slice_slider.setMinimum(0)
         self.slice_slider.setMaximum(0)
         self.slice_slider.setValue(0)
         self.slice_slider.valueChanged.connect(self._on_slice_changed)
-        slider_layout.addWidget(self.slice_slider)
+        self.slider_layout.addWidget(self.slice_slider)
         
-        layout.addLayout(slider_layout)
+        layout.addLayout(self.slider_layout)
         
         # Image display area
         self.image_label = QLabel()
@@ -76,8 +102,21 @@ class PETSliceViewer(QWidget):
         
         # Set stretch factors
         layout.setStretchFactor(title_frame, 0)
-        layout.setStretchFactor(slider_layout, 0)
+        layout.setStretchFactor(self.slider_layout, 0)
         layout.setStretchFactor(self.image_label, 1)
+    
+    def _toggle_fullscreen(self):
+        """Toggle fullscreen mode"""
+        self.is_fullscreen = not self.is_fullscreen
+        
+        # Update button text
+        if self.is_fullscreen:
+            self.fullscreen_btn.setText("⛶")  # Minimize icon
+        else:
+            self.fullscreen_btn.setText("⛶")  # Maximize icon
+            
+        # Emit signal ke parent widget
+        self.fullscreen_toggled.emit(self)
     
     def _setup_styling(self):
         """Setup styling untuk panel"""
@@ -151,17 +190,18 @@ class PETSliceViewer(QWidget):
         
         # ORIENTASI STANDAR MEDIS (RADIOLOGICAL CONVENTION):
         # Following 3D Slicer's standard orientations
-        if self.axis == 0:  # Sagittal (Left-Right view)
+        if self.axis == 0:  # Sagittal (Left-Right view) - YELLOW
             # Standard: Anterior on left, Superior on top
-            # No flip needed for standard sagittal view
-            pass
+            # Rotate 90 degrees LEFT (counterclockwise) and flip as requested
+            slice_data = np.rot90(slice_data, k=1)  # 90 degrees counterclockwise (left)
+            slice_data = np.fliplr(slice_data)      # Flip vertically
             
-        elif self.axis == 1:  # Coronal (Anterior-Posterior view)
+        elif self.axis == 1:  # Coronal (Anterior-Posterior view) - GREEN
             # Standard: Left on right (radiological), Superior on top
-            # Flip horizontally for radiological convention
-            slice_data = np.fliplr(slice_data)
+            # Rotate 90 degrees RIGHT (clockwise) as requested
+            slice_data = np.rot90(slice_data, k=1)  # 90 degrees clockwise (right)
             
-        elif self.axis == 2:  # Axial (Superior-Inferior view)
+        elif self.axis == 2:  # Axial (Superior-Inferior view) - RED
             # Standard: Anterior on top, Left on right (radiological)
             # Rotate 90 degrees counterclockwise and flip horizontally
             slice_data = np.rot90(slice_data, k=1)
@@ -248,16 +288,33 @@ class PETSliceViewer(QWidget):
 class PlotViewer(QWidget):
     """Widget untuk menampilkan plot/statistics panel seperti di 3D Slicer"""
     
+    # Signal untuk fullscreen toggle
+    fullscreen_toggled = Signal(object)
+    
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.is_fullscreen = False
         self._create_ui()
         self._setup_styling()
+    
+    def _toggle_fullscreen(self):
+        """Toggle fullscreen mode"""
+        self.is_fullscreen = not self.is_fullscreen
+        
+        # Update button text
+        if self.is_fullscreen:
+            self.fullscreen_btn.setText("⛶")
+        else:
+            self.fullscreen_btn.setText("⛶")
+            
+        # Emit signal ke parent widget
+        self.fullscreen_toggled.emit(self)
         
     def _create_ui(self):
         layout = QVBoxLayout(self)
         layout.setSpacing(5)
         
-        # Title bar
+        # Title bar dengan tombol fullscreen
         title_frame = QFrame()
         title_frame.setFixedHeight(30)
         title_layout = QHBoxLayout(title_frame)
@@ -266,6 +323,28 @@ class PlotViewer(QWidget):
         title_label = QLabel("Plot")
         title_label.setStyleSheet("font-weight: bold; color: #808080;")  # Gray color for Plot
         title_layout.addWidget(title_label)
+        
+        # Spacer
+        title_layout.addStretch()
+        
+        # Fullscreen button
+        self.fullscreen_btn = QPushButton("⛶")
+        self.fullscreen_btn.setFixedSize(20, 20)
+        self.fullscreen_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #808080;
+                color: white;
+                border: none;
+                border-radius: 3px;
+                font-weight: bold;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+        """)
+        self.fullscreen_btn.clicked.connect(self._toggle_fullscreen)
+        title_layout.addWidget(self.fullscreen_btn)
         
         layout.addWidget(title_frame)
         
@@ -355,45 +434,122 @@ class PETViewerWidget(QWidget):
         print("[DEBUG] PETViewerWidget.__init__ called")
         self.pet_data: Optional[PETData] = None
         self.current_image_type: str = "PET"  # PET, CT, SEG, SUV
+        self.fullscreen_widget: Optional[QWidget] = None  # Widget yang sedang fullscreen
         
         self._create_ui()
     
     def _create_ui(self):
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(5, 5, 5, 5)
-        layout.setSpacing(5)
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(5, 5, 5, 5)
+        self.main_layout.setSpacing(5)
         
         # Main viewer area - 2x2 grid
-        viewer_layout = QGridLayout()
-        viewer_layout.setSpacing(10)
+        self.viewer_layout = QGridLayout()
+        self.viewer_layout.setSpacing(10)
         
         # Red panel (Axial) - TOP LEFT (0, 0)
         self.red_panel = PETSliceViewer("Red (Axial)", "#FF0000", 2, "Superior-Inferior")
-        viewer_layout.addWidget(self.red_panel, 0, 0)
+        self.red_panel.fullscreen_toggled.connect(self._handle_fullscreen_toggle)
+        self.viewer_layout.addWidget(self.red_panel, 0, 0)
         
         # Green panel (Coronal) - BOTTOM LEFT (1, 0)
         self.green_panel = PETSliceViewer("Green (Coronal)", "#00FF00", 1, "Anterior-Posterior")
-        viewer_layout.addWidget(self.green_panel, 1, 0)
+        self.green_panel.fullscreen_toggled.connect(self._handle_fullscreen_toggle)
+        self.viewer_layout.addWidget(self.green_panel, 1, 0)
         
         # Yellow panel (Sagittal) - BOTTOM RIGHT (1, 1)
         self.yellow_panel = PETSliceViewer("Yellow (Sagittal)", "#FFFF00", 0, "Left-Right")
-        viewer_layout.addWidget(self.yellow_panel, 1, 1)
+        self.yellow_panel.fullscreen_toggled.connect(self._handle_fullscreen_toggle)
+        self.viewer_layout.addWidget(self.yellow_panel, 1, 1)
         
         # Plot panel - TOP RIGHT (0, 1)
         self.plot_panel = PlotViewer()
-        viewer_layout.addWidget(self.plot_panel, 0, 1)
+        self.plot_panel.fullscreen_toggled.connect(self._handle_fullscreen_toggle)
+        self.viewer_layout.addWidget(self.plot_panel, 0, 1)
         
         # Set equal stretch factors
         for i in range(2):
-            viewer_layout.setRowStretch(i, 1)
-            viewer_layout.setColumnStretch(i, 1)
+            self.viewer_layout.setRowStretch(i, 1)
+            self.viewer_layout.setColumnStretch(i, 1)
         
-        layout.addLayout(viewer_layout)
+        self.main_layout.addLayout(self.viewer_layout)
         
         # Store slice panels for easy access
         self.slice_panels = [self.red_panel, self.green_panel, self.yellow_panel]
+        self.all_panels = [self.red_panel, self.green_panel, self.yellow_panel, self.plot_panel]
         
         print("[DEBUG] PETViewerWidget._create_ui completed")
+    
+    def _handle_fullscreen_toggle(self, widget):
+        """Handle fullscreen toggle from any panel"""
+        if self.fullscreen_widget is None:
+            # Enter fullscreen mode
+            self._enter_fullscreen(widget)
+        else:
+            # Exit fullscreen mode
+            self._exit_fullscreen()
+    
+    def _enter_fullscreen(self, widget):
+        """Enter fullscreen mode for specified widget"""
+        self.fullscreen_widget = widget
+        
+        # Hide all other panels
+        for panel in self.all_panels:
+            if panel != widget:
+                panel.hide()
+        
+        # Clear the grid layout
+        self._clear_layout(self.viewer_layout)
+        
+        # Add only the fullscreen widget to fill the entire area
+        self.viewer_layout.addWidget(widget, 0, 0, 2, 2)  # Span 2 rows and 2 columns
+        
+        # Update stretch factors to make it fill completely
+        self.viewer_layout.setRowStretch(0, 1)
+        self.viewer_layout.setRowStretch(1, 1)
+        self.viewer_layout.setColumnStretch(0, 1)
+        self.viewer_layout.setColumnStretch(1, 1)
+        
+        # Show the widget
+        widget.show()
+        
+        print(f"[DEBUG] Entered fullscreen mode for {widget.title if hasattr(widget, 'title') else 'Plot'}")
+    
+    def _exit_fullscreen(self):
+        """Exit fullscreen mode and restore 2x2 grid layout"""
+        if self.fullscreen_widget is None:
+            return
+        
+        # Clear the layout
+        self._clear_layout(self.viewer_layout)
+        
+        # Restore original 2x2 grid layout
+        self.viewer_layout.addWidget(self.red_panel, 0, 0)
+        self.viewer_layout.addWidget(self.green_panel, 1, 0)
+        self.viewer_layout.addWidget(self.yellow_panel, 1, 1)
+        self.viewer_layout.addWidget(self.plot_panel, 0, 1)
+        
+        # Set equal stretch factors
+        for i in range(2):
+            self.viewer_layout.setRowStretch(i, 1)
+            self.viewer_layout.setColumnStretch(i, 1)
+        
+        # Show all panels
+        for panel in self.all_panels:
+            panel.show()
+        
+        # Reset fullscreen widget
+        self.fullscreen_widget = None
+        
+        print("[DEBUG] Exited fullscreen mode")
+    
+    def _clear_layout(self, layout):
+        """Clear all items from layout without deleting widgets"""
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                # Don't delete the widget, just remove from layout
+                child.widget().setParent(None)
     
     def set_pet_data(self, pet_data: PETData):
         """Set PET data untuk ditampilkan"""
@@ -471,6 +627,10 @@ class PETViewerWidget(QWidget):
     
     def cleanup(self):
         """Cleanup resources"""
+        # Exit fullscreen if active
+        if self.fullscreen_widget:
+            self._exit_fullscreen()
+        
         self.clear()
         self.pet_data = None
     

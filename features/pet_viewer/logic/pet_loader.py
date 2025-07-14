@@ -1,9 +1,9 @@
-# backend/pet_loader.py
+# features/pet_viewer/logic/pet_loader.py
 """
 Loader untuk data PET menggunakan nibabel dan monai
 """
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, Callable
 from dataclasses import dataclass
 import numpy as np
 import nibabel as nib
@@ -44,19 +44,26 @@ class PETData:
             self.suv_metadata = {}
 
 
-def load_pet_data(patient_folder: Path) -> Optional[PETData]:
+def load_pet_data(patient_folder: Path, progress_callback: Optional[Callable[[str, int], None]] = None) -> Optional[PETData]:
     """
     Load PET data dari folder pasien
     
     Args:
         patient_folder: Path ke folder pasien yang berisi file PET
+        progress_callback: Optional callback function(message, progress_percent)
         
     Returns:
         PETData object atau None jika gagal
     """
+    def report_progress(message: str, progress: int):
+        if progress_callback:
+            progress_callback(message, progress)
+    
     try:
         patient_id = patient_folder.name
         print(f"Loading PET data for patient {patient_id} from {patient_folder}")
+        
+        report_progress("Scanning folder for PET files...", 10)
         
         # Dapatkan file-file PET yang tersedia
         pet_files = get_pet_files(patient_folder)
@@ -65,26 +72,43 @@ def load_pet_data(patient_folder: Path) -> Optional[PETData]:
             print(f"No PET files found in {patient_folder}")
             return None
         
+        report_progress("Initializing data structure...", 20)
+        
         # Inisialisasi PETData
         pet_data = PETData(patient_id=patient_id)
         
+        total_files = len(pet_files)
+        current_file = 0
+        
         # Load PET image (prioritas utama)
         if "PET" in pet_files:
+            current_file += 1
+            report_progress(f"Loading PET image ({current_file}/{total_files})...", 30 + (current_file * 10))
             pet_data.pet_image, pet_data.pet_affine, pet_data.pet_metadata = _load_nii_file(pet_files["PET"])
         elif "PET_CORR" in pet_files:
+            current_file += 1
+            report_progress(f"Loading PET corrected image ({current_file}/{total_files})...", 30 + (current_file * 10))
             pet_data.pet_corr_image, pet_data.pet_affine, pet_data.pet_metadata = _load_nii_file(pet_files["PET_CORR"])
         
         # Load CT image (opsional)
         if "CT" in pet_files:
+            current_file += 1
+            report_progress(f"Loading CT image ({current_file}/{total_files})...", 30 + (current_file * 10))
             pet_data.ct_image, pet_data.ct_affine, pet_data.ct_metadata = _load_nii_file(pet_files["CT"])
         
         # Load segmentation (opsional)
         if "SEG" in pet_files:
+            current_file += 1
+            report_progress(f"Loading segmentation ({current_file}/{total_files})...", 30 + (current_file * 10))
             pet_data.seg_image, pet_data.seg_affine, pet_data.seg_metadata = _load_nii_file(pet_files["SEG"])
         
         # Load SUV (opsional)
         if "SUV" in pet_files:
+            current_file += 1
+            report_progress(f"Loading SUV image ({current_file}/{total_files})...", 30 + (current_file * 10))
             pet_data.suv_image, pet_data.suv_affine, pet_data.suv_metadata = _load_nii_file(pet_files["SUV"])
+        
+        report_progress("Validating loaded data...", 90)
         
         # Validasi minimal ada satu image yang berhasil dimuat
         if (pet_data.pet_image is None and 
@@ -93,11 +117,15 @@ def load_pet_data(patient_folder: Path) -> Optional[PETData]:
             print(f"No valid images loaded for patient {patient_id}")
             return None
         
+        report_progress("Loading completed successfully!", 100)
+        
         print(f"Successfully loaded PET data for patient {patient_id}")
         return pet_data
         
     except Exception as e:
         print(f"Error loading PET data from {patient_folder}: {e}")
+        if progress_callback:
+            progress_callback(f"Error: {str(e)}", 0)
         return None
 
 
