@@ -23,6 +23,9 @@ import torch
 from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 from core.logger import _log
 
+# ===== FIXED: Import path configuration from core =====
+from core.config.paths import SEGMENTATION_MODEL_PATH
+
 # ------------------------------------------------------------------ try import colorizer
 print("[DEBUG] Importing colorizer …")
 try:
@@ -37,18 +40,26 @@ except Exception as e:
         g = (mask.astype(np.float32) / max(1, mask.max()) * 255).astype(np.uint8)
         return np.stack([g, g, g], -1)
 
-# ------------------------------------------------------------------ env paths
-ROOT    = Path(__file__).resolve().parents[1]
-SEG_DIR = ROOT / "model" / "segmentation" / "nnUNet_results"
+# ===== FIXED: Use centralized path configuration =====
+# OLD CODE (BROKEN):
+# ROOT    = Path(__file__).resolve().parents[1]
+# SEG_DIR = ROOT / "model" / "segmentation" / "nnUNet_results"
 
-os.environ.setdefault("nnUNet_raw",          str(ROOT / "_nn_raw"))
-os.environ.setdefault("nnUNet_preprocessed", str(ROOT / "_nn_pre"))
+# NEW CODE (FIXED):
+SEG_DIR = SEGMENTATION_MODEL_PATH / "nnUNet_results"
+
+# ===== FIXED: Update nnUNet environment paths =====
+PROJECT_ROOT = SEGMENTATION_MODEL_PATH.parent.parent  # Go up to project root
+os.environ.setdefault("nnUNet_raw",          str(PROJECT_ROOT / "_nn_raw"))
+os.environ.setdefault("nnUNet_preprocessed", str(PROJECT_ROOT / "_nn_pre"))
 os.environ["nnUNet_results"] = str(SEG_DIR)
 
 print(f"[DEBUG] nnUNet env set:")
 print(f"        nnUNet_raw         = {os.environ['nnUNet_raw']}")
 print(f"        nnUNet_preprocessed= {os.environ['nnUNet_preprocessed']}")
 print(f"        nnUNet_results     = {os.environ['nnUNet_results']}")
+print(f"[DEBUG] SEGMENTATION_MODEL_PATH = {SEGMENTATION_MODEL_PATH}")
+print(f"[DEBUG] SEG_DIR = {SEG_DIR}")
 
 # ------------------------------------------------------------------ helpers
 def _make_predictor() -> nnUNetPredictor:
@@ -81,6 +92,22 @@ def _load_model(view: str) -> nnUNetPredictor:
         ds      = f"Dataset00{'1' if v=='Anterior' else '2'}_BoneScan{v}"
         ckptdir = SEG_DIR / ds / "nnUNetTrainer__nnUNetPlans__2d"
         print(f"[SEG] Loading model for {v} from {ckptdir}")
+        
+        # ===== ADDED: Verify model path exists =====
+        if not ckptdir.exists():
+            raise FileNotFoundError(f"Model directory not found: {ckptdir}")
+        
+        dataset_json = ckptdir / "dataset.json"
+        if not dataset_json.exists():
+            raise FileNotFoundError(f"dataset.json not found: {dataset_json}")
+        
+        checkpoint_path = ckptdir / "fold_0" / "checkpoint_best.pth"
+        if not checkpoint_path.exists():
+            raise FileNotFoundError(f"checkpoint_best.pth not found: {checkpoint_path}")
+        
+        print(f"[DEBUG] Model files verified:")
+        print(f"        dataset.json: {dataset_json}")
+        print(f"        checkpoint: {checkpoint_path}")
 
         pred = _make_predictor()
         _log(f"[INFO]  Loading segmentation model for {v} view…")
