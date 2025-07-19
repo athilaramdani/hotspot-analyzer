@@ -1,36 +1,14 @@
-# core/utils/image_converter.py
-import pydicom
+# core/utils/image_transparency.py
+"""
+Image transparency utilities for layer processing in Hotspot Analyzer.
+Handles making black pixels transparent for segmentation and hotspot overlays.
+"""
+
 import numpy as np
 from PIL import Image
 from pathlib import Path
 from typing import Union, Tuple, Optional
 
-
-def load_frames_and_metadata_matrix(path: str):
-    """
-    Baca file DICOM dan kembalikan:
-    - frames : np.ndarray  (shape = [N, H, W] , minimal 2 frame)
-    - meta   : dict        (patient / study metadata)
-    """
-    ds = pydicom.dcmread(path)
-
-    # pixel_array bisa 2-D (single-frame) atau 3-D (multi-frame)
-    frames = ds.pixel_array
-    if frames.ndim == 2:                        # jika cuma satu frame
-        frames = np.expand_dims(frames, 0)
-
-    meta = {
-        "patient_id":   getattr(ds, "PatientID",   ""),
-        "patient_name": str(getattr(ds, "PatientName", "")),
-        "patient_birth": getattr(ds, "PatientBirthDate", ""),
-        "patient_sex":  getattr(ds, "PatientSex",  ""),
-        "study_date":   getattr(ds, "StudyDate",   ""),
-    }
-
-    return frames, meta
-
-
-# ===== NEW: Transparency and Layer Processing Functions =====
 
 def make_black_transparent(image: Union[Image.Image, np.ndarray], 
                           tolerance: int = 5) -> Image.Image:
@@ -315,45 +293,3 @@ def get_transparency_stats(image: Image.Image) -> dict:
         "total_pixels": int(total_pixels),
         "transparency_percentage": (transparent_pixels / total_pixels) * 100 if total_pixels > 0 else 0
     }
-
-
-def normalize_image_for_display(image: Union[Image.Image, np.ndarray]) -> Image.Image:
-    """
-    Normalize an image for consistent display.
-    
-    Args:
-        image: PIL Image or numpy array
-        
-    Returns:
-        Normalized PIL Image
-    """
-    if isinstance(image, np.ndarray):
-        # Normalize numpy array to 0-255
-        if image.dtype != np.uint8:
-            image_norm = ((image - image.min()) / (image.max() - image.min()) * 255).astype(np.uint8)
-        else:
-            image_norm = image
-            
-        # Convert to PIL Image
-        if len(image_norm.shape) == 2:
-            image = Image.fromarray(image_norm, 'L')
-        else:
-            image = Image.fromarray(image_norm)
-    
-    return image
-
-
-def convert_grayscale_to_rgb(image: Image.Image) -> Image.Image:
-    """Convert grayscale image to RGB."""
-    if image.mode == 'L':
-        return image.convert('RGB')
-    elif image.mode == 'LA':
-        return image.convert('RGBA')
-    return image
-
-
-def ensure_rgba_mode(image: Image.Image) -> Image.Image:
-    """Ensure image is in RGBA mode for transparency support."""
-    if image.mode != 'RGBA':
-        return image.convert('RGBA')
-    return image

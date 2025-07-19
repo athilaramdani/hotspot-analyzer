@@ -1,0 +1,7 @@
+keyID:
+005e0eb279dd94b0000000001
+keyName:
+hotspot-analyzer-key
+applicationKey:
+K005mNv2j73NcxdZgBRx2xhl/ET6Qow
+

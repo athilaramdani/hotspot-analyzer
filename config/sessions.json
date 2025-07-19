@@ -5,7 +5,7 @@
   "session_timeout_minutes": 60,
   "max_concurrent_sessions": 3,
   "last_session": {
-    "session_code": "NSY",
+    "session_code": "NBL",
     "modality": "SPECT"
   }
 }

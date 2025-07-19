@@ -9,19 +9,30 @@ import numpy as np
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QMainWindow, QSplitter, QPushButton,
-    QWidget, QVBoxLayout, QHBoxLayout, QDialog, QApplication
+    QWidget, QVBoxLayout, QHBoxLayout, QDialog, QApplication, QLabel
 )
 from PySide6.QtGui import QCloseEvent
 import multiprocessing
 
-# Import config paths
-from core.config.paths import SPECT_DATA_PATH, get_patient_spect_path
+# Import NEW config paths and session management
+from core.config.paths import (
+    get_session_spect_path,
+    get_patient_spect_path,
+    SPECT_DATA_PATH
+)
+from core.config.sessions import get_current_session
+
+# Import NEW directory scanner for new structure
+from features.dicom_import.logic.directory_scanner import (
+    scan_spect_directory_new_structure,
+    get_session_patients,
+    get_patient_dicom_files
+)
 
 # ===== TAMBAHKAN IMPORT LOADING DIALOG =====
 from core.gui.loading_dialog import SPECTLoadingDialog
 # ===========================================
 
-from features.dicom_import.logic.directory_scanner import scan_dicom_directory
 from features.dicom_import.logic.dicom_loader import load_frames_and_metadata
 from features.spect_viewer.logic.hotspot_processor import HotspotProcessor
 from core.utils.image_converter import load_frames_and_metadata_matrix
@@ -46,22 +57,20 @@ from features.spect_viewer.logic.processing_wrapper import run_hotspot_processin
 
 class MainWindowSpect(QMainWindow):
     logout_requested = Signal()
+    
     def __init__(self, data_root: Path, parent=None, session_code: str | None = None):
         super().__init__()
-        self.setWindowTitle("Hotspot Analyzer")
+        self.setWindowTitle(f"Hotspot Analyzer - Session: {session_code or 'Unknown'}")
         self.resize(1600, 900)
         self.session_code = session_code
         self.pool = multiprocessing.Pool(processes=1)
         self.data_root = data_root
-        print("[DEBUG] session_code in MainWindow =", self.session_code)
+        print(f"[DEBUG] session_code in MainWindow = {self.session_code}")
 
-        # Caches
-        self._patient_id_map: Dict[str, List[Path]] = {}
+        # NEW: Store session-patient mapping from new structure
+        self._session_patients_map: Dict[str, List[str]] = {}
         self._loaded: Dict[str, List[Dict]] = {}
         self.scan_buttons: List[QPushButton] = []
-        
-        # Hotspot processor
-        #self.hotspot_processor = HotspotProcessor()
 
         self._build_ui()
         self._scan_folder()
@@ -78,7 +87,7 @@ class MainWindowSpect(QMainWindow):
         top_layout.addWidget(self.patient_bar)
         top_layout.addStretch()
 
-        # Updated Import button dengan styling yang lebih baik
+        # Import and action buttons
         import_btn = QPushButton("Import DICOM…")
         import_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
         import_btn.clicked.connect(self._show_import_dialog)
@@ -87,21 +96,20 @@ class MainWindowSpect(QMainWindow):
         rescan_btn.setStyleSheet(SUCCESS_BUTTON_STYLE)
         rescan_btn.clicked.connect(self._scan_folder)
         
-        self.mode_selector = ModeSelector()
+        # View selector (keep on top bar)
         self.view_selector = ViewSelector()
-        self.mode_selector.mode_changed.connect(self._set_mode)
         self.view_selector.view_changed.connect(self._set_view)
 
         top_layout.addWidget(import_btn)
         top_layout.addWidget(rescan_btn)
-        top_layout.addWidget(self.mode_selector)
         top_layout.addWidget(self.view_selector)
 
-        # add logout button
+        # Logout button
         logout_btn = QPushButton("Logout")
         logout_btn.setStyleSheet(GRAY_BUTTON_STYLE)
         logout_btn.clicked.connect(self._handle_logout)
         top_layout.addWidget(logout_btn)
+        
         # --- Scan & Zoom Buttons ---
         view_button_widget = QWidget()
         view_button_layout = QHBoxLayout(view_button_widget)
@@ -121,19 +129,74 @@ class MainWindowSpect(QMainWindow):
         view_button_layout.addWidget(zoom_in_btn)
         view_button_layout.addWidget(zoom_out_btn)
 
-        # --- Splitter (UI Utama) ---
+        # --- Main Splitter (RESIZABLE LAYOUT: Mode Selector | Timeline | Side Panel) ---
         main_splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        # Panel Kiri: Timeline untuk menampilkan gambar
+        # LEFT PANEL: Mode selector (RESIZABLE - no fixed width)
+        left_panel = QWidget()
+        left_panel.setMinimumWidth(200)   # Minimum width only
+        left_panel.setMaximumWidth(500)   # Maximum width for usability
+        left_layout = QVBoxLayout(left_panel)
+        left_layout.setContentsMargins(8, 8, 8, 8)
+        
+        # Panel title untuk clarity
+        title_label = QLabel("<b>Layer Controls</b>")
+        title_label.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                color: #495057;
+                padding: 8px;
+                background: #f8f9fa;
+                border-radius: 4px;
+                border: 1px solid #e9ecef;
+                margin-bottom: 8px;
+            }
+        """)
+        left_layout.addWidget(title_label)
+        
+        # NEW: Enhanced mode selector with checkboxes
+        self.mode_selector = ModeSelector()
+        
+        # Connect NEW signals for checkbox-based mode selector
+        self.mode_selector.layers_changed.connect(self._on_layers_changed)
+        self.mode_selector.opacity_changed.connect(self._set_layer_opacity)
+        
+        left_layout.addWidget(self.mode_selector)
+        left_layout.addStretch()
+        
+        main_splitter.addWidget(left_panel)
+
+        # MIDDLE PANEL: Timeline untuk menampilkan gambar
         self.timeline_widget = ScanTimelineWidget()
         self.timeline_widget.set_session_code(self.session_code)
         main_splitter.addWidget(self.timeline_widget)
 
-        # Panel Kanan: Grafik dan ringkasan
+        # RIGHT PANEL: Grafik dan ringkasan
         self.side_panel = SidePanel()
         main_splitter.addWidget(self.side_panel)
-        main_splitter.setStretchFactor(0, 2)
-        main_splitter.setStretchFactor(1, 1)
+        
+        # Set splitter proportions: Mode Selector | Timeline | Side Panel
+        # Make all panels resizable with proper ratios
+        main_splitter.setStretchFactor(0, 1)  # Mode selector: resizable
+        main_splitter.setStretchFactor(1, 3)  # Timeline: gets most space
+        main_splitter.setStretchFactor(2, 1)  # Side panel: resizable
+        main_splitter.setSizes([280, 900, 320])  # Initial sizes (total: 1500)
+        
+        # Style the splitter handles for better visibility
+        main_splitter.setStyleSheet("""
+            QSplitter::handle {
+                background-color: #e9ecef;
+                width: 4px;
+                margin: 2px 0px;
+                border-radius: 2px;
+            }
+            QSplitter::handle:hover {
+                background-color: #4e73ff;
+            }
+            QSplitter::handle:pressed {
+                background-color: #324fc7;
+            }
+        """)
 
         # --- Perakitan Final ---
         main_widget = QWidget()
@@ -142,7 +205,130 @@ class MainWindowSpect(QMainWindow):
         main_layout.addWidget(view_button_widget)
         main_layout.addWidget(main_splitter, stretch=1)
         self.setCentralWidget(main_widget)
-   
+
+    # NEW: Handle checkbox-based layer changes
+    def _on_layers_changed(self, active_layers: list) -> None:
+        """Handle layer selection changes from checkbox mode selector"""
+        print(f"[DEBUG] Active layers changed to: {active_layers}")
+        self.timeline_widget.set_active_layers(active_layers)
+
+    def _set_layer_opacity(self, layer: str, opacity: float) -> None:
+        """Handle layer opacity changes from mode selector"""
+        print(f"[DEBUG] Setting {layer} opacity to {opacity:.2f}")
+        self.timeline_widget.set_layer_opacity(layer, opacity)
+
+    def _set_view(self, v: str) -> None:
+        """Set active view"""
+        print(f"[DEBUG] Setting view to: {v}")
+        self.timeline_widget.set_active_view(v)
+
+    # UPDATED: Enhanced scan button click handler for checkbox system
+    def _on_scan_button_clicked(self, index: int) -> None:
+        """Handle scan button click with checkbox mode support"""
+        # Get current active layers and sync timeline settings
+        active_layers = self.mode_selector.get_active_layers()
+        self.timeline_widget.set_active_layers(active_layers)
+        
+        # Sync all opacity settings from mode selector to timeline
+        all_opacities = self.mode_selector.get_all_opacities()
+        for layer, opacity in all_opacities.items():
+            self.timeline_widget.set_layer_opacity(layer, opacity)
+        
+        # Update button display
+        for i, btn in enumerate(self.scan_buttons):
+            btn.setChecked(i == index)
+
+        # Get current patient data
+        try:
+            id_text = self.patient_bar.id_combo.currentText()
+            # Parse "ID: 12 (NSY)" format correctly
+            if not id_text.startswith("ID: "):
+                print(f"[DEBUG] Invalid format: {id_text}")
+                return
+                
+            remainder = id_text[4:]  # Remove "ID: "
+            patient_id = remainder.split(" (")[0]  # "12"
+            session_part = remainder.split(" (")[1]  # "NSY)"
+            session = session_part.rstrip(")")  # "NSY"
+            
+            cache_key = f"{patient_id}_{session}"
+        except (IndexError, AttributeError):
+            print("[DEBUG] Failed to get current patient ID")
+            return
+
+        # Load scan data
+        scans = self._loaded.get(cache_key, []) 
+
+        if not scans or index >= len(scans):
+            print(f"[DEBUG] Invalid scan index {index} for patient {cache_key}")
+            return
+        
+        selected_scan = scans[index]
+
+        # Update timeline display with current settings
+        self.timeline_widget.display_timeline(scans, active_index=index)
+
+        # Update side panel
+        self.side_panel.set_chart_data(scans)
+        self.side_panel.set_summary(selected_scan["meta"])
+        
+        print(f"[DEBUG] Displaying {len(scans)} scans in timeline with layers: {active_layers}")
+
+    # UPDATED: Remove old _set_mode method, add layer management methods
+    def reset_mode_selector(self):
+        """Reset mode selector to default values"""
+        self.mode_selector.reset_to_defaults()
+        self.timeline_widget.set_active_layers([])
+        
+        # Reset all opacity values in timeline
+        default_opacities = {
+            "Original": 1.0,
+            "Segmentation": 0.7,
+            "Hotspot": 0.8
+        }
+        for layer, opacity in default_opacities.items():
+            self.timeline_widget.set_layer_opacity(layer, opacity)
+
+    def set_default_layers(self):
+        """Set default layer configuration (Original only)"""
+        self.mode_selector.set_layer_active("Original", True)
+        
+    def get_current_layer_status(self) -> dict:
+        """Get current layer status for debugging/logging"""
+        return {
+            "active_layers": self.mode_selector.get_active_layers(),
+            "opacities": self.mode_selector.get_all_opacities(),
+            "both_mode": self.mode_selector.is_both_mode(),
+            "has_active_layers": self.mode_selector.has_any_active_layers()
+        }
+
+    # BACKWARD COMPATIBILITY: Keep old method names but adapt to new system
+    def _set_mode(self, mode: str) -> None:
+        """Backward compatibility method for old mode system"""
+        print(f"[DEBUG] Legacy mode set to: {mode} - converting to layer system")
+        
+        # Reset all layers first
+        self.mode_selector.reset_to_defaults()
+        
+        # Convert old mode to layer selections
+        if mode == "Original":
+            self.mode_selector.set_layer_active("Original", True)
+        elif mode == "Segmentation":
+            self.mode_selector.set_layer_active("Original", True)
+            self.mode_selector.set_layer_active("Segmentation", True)
+        elif mode == "Hotspot":
+            self.mode_selector.set_layer_active("Original", True)
+            self.mode_selector.set_layer_active("Hotspot", True)
+        elif mode == "Both":
+            self.mode_selector.set_layer_active("Both", True)
+        
+        # Refresh current scan if any is selected
+        if hasattr(self, 'scan_buttons'):
+            for i, btn in enumerate(self.scan_buttons):
+                if btn.isChecked():
+                    self._on_scan_button_clicked(i)
+                    break
+
     def _handle_logout(self):
         """Emits the logout signal and closes the window."""
         self.logout_requested.emit()
@@ -187,36 +373,48 @@ class MainWindowSpect(QMainWindow):
         self._scan_folder()
 
     def _scan_folder(self) -> None:
-        """Scan folder untuk mencari DICOM files using config paths"""
-        print("[DEBUG] Starting folder scan...")
+        """Scan folder using NEW directory structure - FIXED to filter by current session only"""
+        print(f"[DEBUG] Starting folder scan for session: {self.session_code}")
         
         id_combo = self.patient_bar.id_combo
         id_combo.clear()
         
-        # Use config path instead of hardcoded path
-        spect_data_dir = SPECT_DATA_PATH
+        # Use NEW directory scanner for new structure
+        all_sessions_map = scan_spect_directory_new_structure(SPECT_DATA_PATH)
+        print(f"[DEBUG] Found {len(all_sessions_map)} total sessions: {list(all_sessions_map.keys())}")
         
-        # 1. Pindai semua direktori seperti biasa
-        all_patients_map = scan_dicom_directory(spect_data_dir)
-        print(f"[DEBUG] Semua patient ID dari scanner:")
-        for pid in all_patients_map.keys():
-            print(f"  - {pid}")
-            
-        # 2. Saring (filter) hasilnya untuk hanya menyertakan yang berakhiran '_kode'
-        filter_suffix = f"_{self.session_code}"
-        self._patient_id_map = {
-            pid: path
-            for pid, path in all_patients_map.items()
-            if pid.endswith(filter_suffix)
-        }
-        print(f"[DEBUG] ID pasien dengan suffix {filter_suffix}: {list(self._patient_id_map.keys())}")
-
-        # Tampilkan hasil saringan (tanpa akhiran _kode)
-        id_combo.addItems([
-            f"ID : {pid.removesuffix(filter_suffix)} ({self.session_code})"
-            for pid in sorted(self._patient_id_map)
-        ])
-        print(f"[DEBUG] Added {id_combo.count()} patient IDs to combo box")
+        # FIXED: Only use current session if specified
+        if self.session_code:
+            if self.session_code in all_sessions_map:
+                # Only show patients from current session
+                session_patients = {self.session_code: all_sessions_map[self.session_code]}
+                print(f"[DEBUG] Filtered to session {self.session_code}: {len(session_patients[self.session_code])} patients")
+            else:
+                # Session not found, show empty
+                session_patients = {}
+                print(f"[DEBUG] Session {self.session_code} not found in data")
+        else:
+            # No session specified, show all (fallback)
+            session_patients = all_sessions_map
+            print(f"[DEBUG] No session filter, showing all sessions")
+        
+        self._session_patients_map = session_patients
+        
+        # Populate combo box with patients from filtered sessions only
+        all_patients = []
+        for session, patients in session_patients.items():
+            for patient_id in patients.keys():
+                display_text = f"ID: {patient_id} ({session})"
+                all_patients.append((display_text, patient_id, session))
+        
+        # Sort by patient ID
+        all_patients.sort(key=lambda x: x[1])
+        
+        # Add to combo box
+        for display_text, patient_id, session in all_patients:
+            id_combo.addItem(display_text)
+        
+        print(f"[DEBUG] Added {len(all_patients)} patients to combo box for session {self.session_code}")
 
         # Clear selections dan reset UI
         id_combo.clearSelection()
@@ -226,86 +424,105 @@ class MainWindowSpect(QMainWindow):
         print("[DEBUG] Folder scan completed")
     
     def _on_patient_selected(self, txt: str) -> None:
-        """Handle patient selection"""
+        """Handle patient selection with new structure - FIXED parsing logic"""
         print(f"[DEBUG] _on_patient_selected: {txt}")
         try:
-            # Ambil hanya bagian ID tanpa (session_code)
-            pid = txt.split(" : ")[1].split(" ")[0]
-        except IndexError:
-            print("[DEBUG] Failed to parse patient ID from selection")
-            return
-        self._load_patient(pid)
-    
-    def _load_patient(self, pid: str) -> None:
-        """Loads patient data using a multiprocessing pool for backend processing with loading dialog."""
-        print(f"[DEBUG] Loading patient: {pid}")
-        print(f"[CACHE DEBUG] Isi cache sebelum load: {list(self._loaded.keys())}")
-
-        full_pid = f"{pid}_{self.session_code}"
-        
-        # ===== TAMBAHKAN LOADING DIALOG =====
-        loading_dialog = None
-        # ====================================
-        
-        if full_pid in self._loaded:
-            print(f"[DEBUG] Data untuk {full_pid} ditemukan di cache.")
-            scans = self._loaded[full_pid]
-        else:
-            print(f"[DEBUG] Loading scans for {full_pid} from disk...")
+            # FIXED: Parse "ID: 12 (NSY)" format correctly
+            # Split by "ID: " first, then parse the rest
+            if not txt.startswith("ID: "):
+                print(f"[DEBUG] Invalid format: {txt}")
+                return
+                
+            # Remove "ID: " prefix and get "12 (NSY)"
+            remainder = txt[4:]  # Remove "ID: "
             
-            # ===== SHOW LOADING DIALOG =====
-            loading_dialog = SPECTLoadingDialog(pid, parent=self)
+            # Split by " (" to separate patient_id and session
+            if " (" not in remainder:
+                print(f"[DEBUG] No session found in: {remainder}")
+                return
+                
+            patient_id = remainder.split(" (")[0]  # "12"
+            session_part = remainder.split(" (")[1]  # "NSY)"
+            session = session_part.rstrip(")")  # "NSY"
+            
+            print(f"[DEBUG] Parsed - Patient: {patient_id}, Session: {session}")
+            self._load_patient(patient_id, session)
+            
+        except (IndexError, ValueError) as e:
+            print(f"[DEBUG] Failed to parse patient selection: {e}")
+            print(f"[DEBUG] Original text: '{txt}'")
+            return
+    
+    def _load_patient(self, patient_id: str, session_code: str) -> None:
+        """Load patient data using new directory structure"""
+        print(f"[DEBUG] Loading patient: {patient_id} from session: {session_code}")
+        
+        # Create cache key
+        cache_key = f"{patient_id}_{session_code}"
+        print(f"[CACHE DEBUG] Cache key: {cache_key}")
+        print(f"[CACHE DEBUG] Existing cache keys: {list(self._loaded.keys())}")
+
+        loading_dialog = None
+        
+        if cache_key in self._loaded:
+            print(f"[DEBUG] Data untuk {cache_key} ditemukan di cache.")
+            scans = self._loaded[cache_key]
+        else:
+            print(f"[DEBUG] Loading scans for {cache_key} from disk...")
+            
+            # Show loading dialog
+            loading_dialog = SPECTLoadingDialog(patient_id, parent=self)
             loading_dialog.show()
-            QApplication.processEvents()  # Update UI immediately
-            # ===============================
+            QApplication.processEvents()
             
             initial_scans = []
             async_results = []
 
-            # Update loading step
-            loading_dialog.update_loading_step("Scanning DICOM directories...", 10)
+            loading_dialog.update_loading_step("Scanning patient directory...", 10)
             QApplication.processEvents()
 
-            # Use config path functions
-            all_patients_map = scan_dicom_directory(SPECT_DATA_PATH)
-            self._patient_id_map.update(all_patients_map)
+            # Get patient DICOM files using new structure
+            dicom_files = get_patient_dicom_files(session_code, patient_id, primary_only=True)
+            print(f"[DEBUG] Found {len(dicom_files)} DICOM files for patient {patient_id}")
 
-            # Update loading step
             loading_dialog.update_loading_step("Loading DICOM files...", 25)
             QApplication.processEvents()
 
-            for p in self._patient_id_map.get(full_pid, []):
+            for dicom_file in dicom_files:
                 try:
-                    frames, meta = load_frames_and_metadata(p)
-                    scan_data = {"meta": meta, "frames": frames, "path": p}
+                    frames, meta = load_frames_and_metadata(dicom_file)
+                    scan_data = {"meta": meta, "frames": frames, "path": dicom_file}
                     initial_scans.append(scan_data)
-                    print(f"--> [TES] MEMANGGIL BACKEND DENGAN patient_id: {pid}")
+                    print(f"[DEBUG] Processed DICOM: {dicom_file.name}")
                     
-                    # Update loading step
                     loading_dialog.update_loading_step(f"Processing scan {len(initial_scans)}...", 40)
                     QApplication.processEvents()
                     
-                    # --- FIX DI SINI: Pastikan 'pid' ditambahkan sebagai argumen kedua ---
-                    result = self.pool.apply_async(run_hotspot_processing_in_process, args=(p, pid))
+                    # Process hotspot detection
+                    result = self.pool.apply_async(
+                        run_hotspot_processing_in_process, 
+                        args=(dicom_file, patient_id)
+                    )
                     async_results.append(result)
 
                 except Exception as e:
-                    print(f"[WARN] Gagal membaca data awal {p}: {e}")
+                    print(f"[WARN] Failed to read DICOM {dicom_file}: {e}")
             
-            # Update loading step
             loading_dialog.update_loading_step("Processing hotspot detection...", 60)
             QApplication.processEvents()
             
-            print(f"[DEBUG] Menunggu {len(async_results)} pekerjaan backend selesai...")
+            print(f"[DEBUG] Waiting for {len(async_results)} backend jobs to complete...")
             processed_scans = []
             for i, scan_data in enumerate(initial_scans):
                 try:
-                    # Update progress per scan
                     progress = 60 + (i + 1) / len(initial_scans) * 30  # 60-90%
-                    loading_dialog.update_loading_step(f"Processing hotspot for scan {i + 1}/{len(initial_scans)}...", int(progress))
+                    loading_dialog.update_loading_step(
+                        f"Processing hotspot for scan {i + 1}/{len(initial_scans)}...", 
+                        int(progress)
+                    )
                     QApplication.processEvents()
                     
-                    hotspot_data = async_results[i].get(timeout=120) # Timeout 2 menit
+                    hotspot_data = async_results[i].get(timeout=120)
                     if hotspot_data:
                         scan_data["hotspot_frames"] = hotspot_data.get("frames")
                         scan_data["hotspot_frames_ant"] = hotspot_data.get("ant_frames")
@@ -316,30 +533,27 @@ class MainWindowSpect(QMainWindow):
                         scan_data["hotspot_frames_post"] = scan_data["frames"]
                     processed_scans.append(scan_data)
                 except Exception as e:
-                    print(f"[ERROR] Gagal mendapatkan hasil dari backend untuk {scan_data['path']}: {e}")
+                    print(f"[ERROR] Failed to get backend result for {scan_data['path']}: {e}")
             
-            # Update loading step
             loading_dialog.update_loading_step("Finalizing data...", 95)
             QApplication.processEvents()
             
             scans = sorted(processed_scans, key=lambda s: s["meta"].get("study_date", ""))
             
             if scans:
-                print(f"[DEBUG] Menyimpan {len(scans)} scan ke cache untuk {full_pid}")
-                self._loaded[full_pid] = scans
+                print(f"[DEBUG] Saving {len(scans)} scans to cache for {cache_key}")
+                self._loaded[cache_key] = scans
             else:
-                print(f"[WARN] Tidak ada scan yang diproses untuk {full_pid}. Cache tidak disimpan.")
+                print(f"[WARN] No scans processed for {cache_key}. Cache not saved.")
 
-            # Update loading step
             loading_dialog.update_loading_step("Loading completed!", 100)
             QApplication.processEvents()
 
-        # ===== CLOSE LOADING DIALOG =====
+        # Close loading dialog
         if loading_dialog:
             loading_dialog.close()
-        # ================================
 
-        print(f"[DEBUG] Semua data dimuat. Total scan: {len(scans)}")
+        print(f"[DEBUG] All data loaded. Total scans: {len(scans)}")
         if scans:
             self.patient_bar.set_patient_meta(scans[-1]["meta"])
             self._populate_scan_buttons(scans)
@@ -365,42 +579,6 @@ class MainWindowSpect(QMainWindow):
             self.scan_button_container.addWidget(btn)
             self.scan_buttons.append(btn)
 
-    def _on_scan_button_clicked(self, index: int) -> None:
-        """Fungsi ini sekarang menjadi pusat logika yang benar."""
-        current_mode = self.mode_selector.current_mode()
-        self.timeline_widget.set_image_mode(current_mode) 
-        
-        # 1. Update tampilan tombol
-        for i, btn in enumerate(self.scan_buttons):
-            btn.setChecked(i == index)
-
-        # Get current patient data
-        try:
-            id_text = self.patient_bar.id_combo.currentText()
-            pid = id_text.split(" : ")[1].split(" ")[0]
-        except (IndexError, AttributeError):
-            print("[DEBUG] Failed to get current patient ID")
-            return
-
-        # Load scan data
-        full_pid = f"{pid}_{self.session_code}"
-        scans = self._loaded.get(full_pid, []) 
-
-        if not scans or index >= len(scans):
-            print(f"[DEBUG] Invalid scan index {index} for patient {full_pid}")
-            return
-        
-        selected_scan = scans[index]
-
-        # Update timeline display
-        self.timeline_widget.display_timeline(scans, active_index=index)
-
-        # Update side panel
-        self.side_panel.set_chart_data(scans)
-        self.side_panel.set_summary(selected_scan["meta"])
-        
-        print(f"[DEBUG] Menampilkan {len(scans)} scan di timeline")
-
     # --- Zoom and view callbacks ---
     def zoom_in(self):
         """Zoom in timeline"""
@@ -409,19 +587,3 @@ class MainWindowSpect(QMainWindow):
     def zoom_out(self):
         """Zoom out timeline"""
         self.timeline_widget.zoom_out()
-
-    def _set_view(self, v: str) -> None:
-        """Set active view"""
-        self.timeline_widget.set_active_view(v)
-
-    def _set_mode(self, m: str) -> None:
-        """Handle mode changes including hotspot mode."""
-        self.timeline_widget.set_image_mode(m)
-        
-        # If switching to hotspot mode, refresh the current scan
-        if m == "Hotspot":
-            # Get currently selected scan and refresh it
-            for i, btn in enumerate(self.scan_buttons):
-                if btn.isChecked():
-                    self._on_scan_button_clicked(i)
-                    break

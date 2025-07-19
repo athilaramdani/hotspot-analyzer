@@ -7,7 +7,7 @@ from PySide6.QtGui import QFont
 # Import jendela utama
 from features.spect_viewer.gui.main_window_spect import MainWindowSpect           # SPECT
 from features.pet_viewer.gui.main_window_pet import MainWindowPet    # PET
-from features.dicom_import.gui.patient_selection_dialog import PatientSelectionDialog
+from features.dicom_import.gui.doctor_selection_dialog import DoctorSelectionDialog
 
 # Tema light
 def make_light_palette() -> QPalette:
@@ -33,13 +33,13 @@ def main():
     windows = []  # simpan referensi agar window tidak di-GC
 
     def start_new_session():
-        dlg = PatientSelectionDialog()
+        dlg = DoctorSelectionDialog()
         if not dlg.exec():
             print("[DEBUG] Dialog dibatalkan, keluar aplikasi")
             app.quit()
             return
 
-        session_code = dlg.selected_patient_id
+        session_code = dlg.selected_doctor_id
         selected_mod = dlg.selected_modality
         data_dir = Path("data")  # Pastikan ini Path, bukan string
 

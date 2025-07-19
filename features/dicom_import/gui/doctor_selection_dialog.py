@@ -1,4 +1,4 @@
-# features/dicom_import/gui/patient_selection_dialog.py
+# features/dicom_import/gui/doctor_selection_dialog.py
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QComboBox, QPushButton
@@ -11,11 +11,11 @@ from core.config.sessions import (
     get_session_manager
 )
 
-class PatientSelectionDialog(QDialog):
+class DoctorSelectionDialog(QDialog):
     """
     Dialog pemilihan pasien *dan* jenis modalitas (SPECT / PET).
     Setelah OK ditekan, atribut:
-        • self.selected_patient_id
+        • self.selected_doctor_id
         • self.selected_modality        (string "SPECT" | "PET")
     akan terisi.
     """
@@ -27,7 +27,7 @@ class PatientSelectionDialog(QDialog):
         # Hilangkan tombol close (✕)
         self.setWindowFlag(self.windowFlags() & ~Qt.WindowCloseButtonHint)
 
-        self.selected_patient_id: str | None = None
+        self.selected_doctor_id: str | None = None
         self.selected_modality: str | None = None
         self.session_manager = get_session_manager()
 
@@ -36,12 +36,12 @@ class PatientSelectionDialog(QDialog):
 
         # Pilih kode pasien
         layout.addWidget(QLabel("Pilih kode pasien:"))
-        self.patient_combo = QComboBox()
+        self.doctor_combo = QComboBox()
         
         # Load dari config sessions.py
         available_codes = get_available_session_codes()
-        self.patient_combo.addItems(available_codes)
-        layout.addWidget(self.patient_combo)
+        self.doctor_combo.addItems(available_codes)
+        layout.addWidget(self.doctor_combo)
 
         # Pilih modalitas
         layout.addWidget(QLabel("Pilih modalitas gambar:"))
@@ -65,12 +65,12 @@ class PatientSelectionDialog(QDialog):
         if self.session_manager.get_session_config("remember_last_session", True):
             last_session = self.session_manager.get_last_session()
             if last_session:
-                # Set patient combo
+                # Set doctor combo
                 session_code = last_session.get("session_code")
                 if session_code:
-                    index = self.patient_combo.findText(session_code)
+                    index = self.doctor_combo.findText(session_code)
                     if index >= 0:
-                        self.patient_combo.setCurrentIndex(index)
+                        self.doctor_combo.setCurrentIndex(index)
                 
                 # Set modality combo
                 modality = last_session.get("modality", "SPECT")
@@ -81,13 +81,13 @@ class PatientSelectionDialog(QDialog):
     # --------------------------------------------------
     def accept(self):
         """Simpan pilihan & tutup dialog."""
-        self.selected_patient_id = self.patient_combo.currentText()
+        self.selected_doctor_id = self.doctor_combo.currentText()
         self.selected_modality = self.modality_combo.currentText()
         
         # Create session menggunakan session manager
         try:
             session = self.session_manager.create_session(
-                self.selected_patient_id,
+                self.selected_doctor_id,
                 self.selected_modality
             )
             print(f"[SESSION] Created: {session['session_id']}")

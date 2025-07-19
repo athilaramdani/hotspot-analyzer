@@ -1,4 +1,29 @@
+# Core ML libraries
 torch>=2.3
 nnunetv2>=2.3
 opencv-python
+scikit-image
+scipy
+numpy>=1.26.0,<2.0
+
+# Medical imaging
 pydicom
+SimpleITK>=2.2.1
+
+# Data handling
+pandas>=2.0.0
+
+# GUI
+PySide6>=6.5.0
+
+# Cloud storage dependencies
+boto3>=1.26.0
+botocore>=1.29.0
+python-dotenv>=1.0.0
+
+# Utilities
+tqdm
+requests
+
+# Development
+pytest
