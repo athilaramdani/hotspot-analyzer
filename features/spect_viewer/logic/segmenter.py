@@ -1,13 +1,13 @@
 # =====================================================================
-# backend/segmenter.py  – DEBUG VERSION (patched with Rifqi preprocessing)
+# backend/segmenter.py  –  MODERN VERSION
 # ---------------------------------------------------------------------
 """
-Segmentasi single‑frame ndarray (Bone Scan).
+Segmentasi single-frame ndarray (Bone Scan).
 
 API
 ---
-mask            = segment_image(img, view="Anterior")
-mask, rgb_image = segment_image(img, view="Anterior", color=True)
+mask            = predict_bone_mask(image)
+mask, rgb_image = predict_bone_mask(image, to_rgb=True)
 """
 from __future__ import annotations
 
@@ -23,205 +23,121 @@ import torch
 from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 from core.logger import _log
 
-# ===== FIXED: Import path configuration from core =====
+# ===== Import path configuration from core =====
 from core.config.paths import SEGMENTATION_MODEL_PATH
 
 # ------------------------------------------------------------------ try import colorizer
-print("[DEBUG] Importing colorizer …")
+# (Bagian ini tidak diubah, tetap diperlukan untuk fallback)
 try:
-    from .colorizer import label_mask_to_rgb           # 13‑kelas palette
+    from .colorizer import label_mask_to_rgb      # 13-kelas palette
     COLORIZER_OK = True
-    print("[DEBUG] Colorizer import - OK")
-except Exception as e:
+except Exception:
     COLORIZER_OK = False
-    print(f"[DEBUG] Colorizer import failed: {e!r}")
-
-    def label_mask_to_rgb(mask: np.ndarray) -> np.ndarray:   # fallback grayscale→RGB
+    def label_mask_to_rgb(mask: np.ndarray) -> np.ndarray:  # fallback grayscale→RGB
         g = (mask.astype(np.float32) / max(1, mask.max()) * 255).astype(np.uint8)
         return np.stack([g, g, g], -1)
 
-# ===== FIXED: Use centralized path configuration =====
-# OLD CODE (BROKEN):
-# ROOT    = Path(__file__).resolve().parents[1]
-# SEG_DIR = ROOT / "model" / "segmentation" / "nnUNet_results"
-
-# NEW CODE (FIXED):
+# ===== Use centralized path configuration =====
 SEG_DIR = SEGMENTATION_MODEL_PATH / "nnUNet_results"
 
-# ===== FIXED: Update nnUNet environment paths =====
-PROJECT_ROOT = SEGMENTATION_MODEL_PATH.parent.parent  # Go up to project root
+# ===== Update nnUNet environment paths =====
+PROJECT_ROOT = SEGMENTATION_MODEL_PATH.parent.parent
 os.environ.setdefault("nnUNet_raw",          str(PROJECT_ROOT / "_nn_raw"))
 os.environ.setdefault("nnUNet_preprocessed", str(PROJECT_ROOT / "_nn_pre"))
 os.environ["nnUNet_results"] = str(SEG_DIR)
 
-print(f"[DEBUG] nnUNet env set:")
-print(f"        nnUNet_raw         = {os.environ['nnUNet_raw']}")
-print(f"        nnUNet_preprocessed= {os.environ['nnUNet_preprocessed']}")
-print(f"        nnUNet_results     = {os.environ['nnUNet_results']}")
-print(f"[DEBUG] SEGMENTATION_MODEL_PATH = {SEGMENTATION_MODEL_PATH}")
-print(f"[DEBUG] SEG_DIR = {SEG_DIR}")
 
-# ------------------------------------------------------------------ helpers
-def _make_predictor() -> nnUNetPredictor:
+# ------------------------------------------------------------------ HELPERS (ADAPTED FROM NEW LOGIC)
+def create_predictor() -> nnUNetPredictor:
+    """Creates the nnUNet predictor with standardized settings."""
     use_cuda = torch.cuda.is_available()
-    device   = torch.device("cuda:0" if use_cuda else "cpu")
-    _log(f"[INFO]  CUDA available: {torch.cuda.is_available()} – using {device}")
-    print(f"[SEG] CUDA available={use_cuda}, device={device}")
+    device = torch.device("cuda:0" if use_cuda else "cpu")
+    _log(f"[INFO]  CUDA available: {use_cuda} – using {device}")
 
-    params = dict(
-        tile_step_size               = 0.5,
-        use_gaussian                 = True,
-        use_mirroring                = True,
-        perform_everything_on_device = use_cuda,
-        device                       = device,
-        allow_tqdm                   = True,
+    settings = dict(
+        tile_step_size=0.5,
+        use_gaussian=True,
+        use_mirroring=True,
+        perform_everything_on_device=use_cuda,
+        device=device,
+        allow_tqdm=True
     )
     if "fp16" in inspect.signature(nnUNetPredictor).parameters:
-        params["fp16"] = use_cuda
-    return nnUNetPredictor(**params)
+        settings["fp16"] = use_cuda
+    return nnUNetPredictor(**settings)
 
 
-def _load_model(view: str) -> nnUNetPredictor:
-    """Lazy‑load + cache nnUNet model untuk view tertentu."""
-    cache: dict[str, nnUNetPredictor] = getattr(_load_model, "_cache", {})
-    v = view.capitalize()
-    if v not in ("Anterior", "Posterior"):
-        raise ValueError("view must be 'Anterior' or 'Posterior'")
+def load_bone_model() -> nnUNetPredictor:
+    """Lazy-load + cache the bone segmentation model."""
+    # <-- RENAMED & SIMPLIFIED: from _load_model(view) to load_bone_model()
+    if not hasattr(load_bone_model, "_cache"):
+        load_bone_model._cache = {}
+    cache = load_bone_model._cache
 
+    if "bone" not in cache:
+        dataset = "Dataset001_BoneRegion"
+        model_path = SEG_DIR / dataset / "nnUNetTrainer_50epochs__nnUNetPlans__2d"
+        _log(f"[INFO]  Loading bone segmentation model from {model_path}")
 
-    if v not in cache:
-        ds = "Dataset001_BoneRegion"
-        ckptdir = SEG_DIR / ds / "nnUNetTrainer_50epochs__nnUNetPlans__2d"
+        if not model_path.exists():
+            raise FileNotFoundError(f"Model directory not found: {model_path}")
 
-        print(f"[SEG] Loading model for {v} from {ckptdir}")
-        
-        # ===== ADDED: Verify model path exists =====
-        if not ckptdir.exists():
-            raise FileNotFoundError(f"Model directory not found: {ckptdir}")
-        
-        dataset_json = ckptdir / "dataset.json"
-        if not dataset_json.exists():
-            raise FileNotFoundError(f"dataset.json not found: {dataset_json}")
-        
-        checkpoint_path = ckptdir / "fold_0" / "checkpoint_best.pth"
-        if not checkpoint_path.exists():
-            raise FileNotFoundError(f"checkpoint_best.pth not found: {checkpoint_path}")
-        
-        print(f"[DEBUG] Model files verified:")
-        print(f"        dataset.json: {dataset_json}")
-        print(f"        checkpoint: {checkpoint_path}")
-
-        pred = _make_predictor()
-        _log(f"[INFO]  Loading segmentation model for {v} view…")
-        pred.initialize_from_trained_model_folder(
-            str(ckptdir), use_folds=(0,), checkpoint_name="checkpoint_best.pth"
+        predictor = create_predictor()
+        predictor.initialize_from_trained_model_folder(
+            str(model_path), use_folds=(0,), checkpoint_name="checkpoint_best.pth"
         )
-        cache[v] = pred
-        _load_model._cache = cache           # simpan
-
-    return cache[v]
+        cache["bone"] = predictor
+    return cache["bone"]
 
 
-def _run_inference(img_rs: np.ndarray, model: nnUNetPredictor) -> np.ndarray:
-    """img_rs (512×128) → mask 512×128 (uint8)."""
-    inp = torch.from_numpy(img_rs.astype(np.float32)[None, None]).to(model.device)
-    print(f"[DEBUG]   Input tensor  : {inp.shape}")
-
+def run_prediction(image: np.ndarray, model: nnUNetPredictor) -> np.ndarray:
+    """Runs sliding window inference on a pre-processed image."""
+    # <-- RENAMED: from _run_inference to run_prediction
+    tensor = torch.from_numpy(image.astype(np.float32)[None, None]).to(model.device)
     with torch.no_grad():
-        logits = model.predict_sliding_window_return_logits(inp)   # (C,H,W) atau (C,1,H,W)
-    print(f"[DEBUG]   Logits shape  : {logits.shape}")
-
-    if logits.ndim == 4:                # (C, B=1, H, W)
+        logits = model.predict_sliding_window_return_logits(tensor)
+    if logits.ndim == 4:
         logits = logits[:, 0]
-    mask = torch.argmax(logits, dim=0).cpu().numpy().astype(np.uint8)   # (H,W)
+    return torch.argmax(logits, dim=0).cpu().numpy().astype(np.uint8)
 
-    print(f"[DEBUG]   Mask (raw)    : {mask.shape}, unique={np.unique(mask)}")
-    return mask
 
-# ------------------------------------------------------------------ public
-def segment_image(
-    img:   np.ndarray,
-    *,
-    view:  str,
-    color: bool = False
-) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+# ------------------------------------------------------------------ PUBLIC API (COMPLETELY REPLACED)
+def predict_bone_mask(
+    image: np.ndarray, *, to_rgb: bool = False
+) -> np.ndarray: # Sekarang selalu mengembalikan satu nilai: np.ndarray
     """
-    Parameters
-    ----------
-    img   : ndarray (H,W[,3])
-    view  : 'Anterior' | 'Posterior'
-    color : True → also return colored RGB segmentation
+    Performs bone segmentation on an input image using simple resize preprocessing.
+    ... (docstring tidak berubah) ...
+    Returns
+    -------
+    np.ndarray
+        - `mask` (1024, 256) jika `to_rgb=False`.
+        - `rgb_image` (1024, 256, 3) jika `to_rgb=True`.
     """
-    _log(f"[INFO]  Segmenting image – view={view}, color={color}")
-    print(f"[DEBUG] segment_image(view={view}, color={color})")
-    print(f"[DEBUG]   img.shape={img.shape}, dtype={img.dtype}")
+    _log(f"[INFO]  Segmenting bone mask (simple preprocessing)...")
+    t_start = time.time()
 
-    # ------------ ensure 2‑D input
-    if img.ndim == 3:
-        img = img[..., 0]
-        print("[DEBUG]   Using first channel of RGB")
-    if img.ndim != 2:
-        raise ValueError("img must be 2‑D or 3‑D RGB")
+    # --- Ensure 2-D input ---
+    if image.ndim == 3:
+        image = image[..., 0] # Use first channel if RGB
+    if image.ndim != 2:
+        raise ValueError("image must be 2-D or 3-D")
 
-   # ------------ Preprocessing: crop by contour + resize + CLAHE
-    _log("[INFO]  Pre-processing: crop by contour → resize → CLAHE")
-    if img.dtype != np.uint8:
-        img = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-    print("[DEBUG]   Normalized image to uint8")
+    # --- Preprocessing: Simple resize to model's input size ---
+    resized = cv2.resize(image, (256, 1024), interpolation=cv2.INTER_AREA)
 
-    gray = img
-    _, thresh = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # --- Inference ---
+    model = load_bone_model()
+    mask = run_prediction(resized, model) # Output shape is (1024, 256)
 
-    if not contours:
-        raise ValueError("No contour found in the image.")
+    # --- Return results ---
+    elapsed = time.time() - t_start
+    _log(f"[INFO]  Prediction finished in {elapsed:.2f}s. Mask shape: {mask.shape}")
 
-    x, y, w, h = cv2.boundingRect(max(contours, key=cv2.contourArea))
-    cropped = gray[y:y+h, x:x+w]
-    resized = cv2.resize(cropped, (1024, 256), interpolation=cv2.INTER_AREA)
-
-    clahe = cv2.createCLAHE(clipLimit=1.5, tileGridSize=(8, 8))
-    img_pp = clahe.apply(resized)
-
-    img = img_pp
-    print("[DEBUG]   Applied preprocessing: crop→resize(1024×256)→CLAHE")
-
-    H0, W0 = img.shape
-    print(f"[DEBUG]   Original size : {H0}×{W0}")
-
-    # ------------ orientasi portrait + resize 512×128
-    rotated = False
-    if W0 > H0:
-        img = np.rot90(img)
-        rotated = True
-        H0, W0 = img.shape
-        print(f"[DEBUG]   Rotated to  : {H0}×{W0}")
-
-    img_rs = img  # Sudah di-resize sebelumnya ke (256,1024)
-    print(f"[DEBUG]   img_rs shape : {img_rs.shape}")
-
-
-    # ------------ inference
-    model = _load_model(view)
-    t0 = time.time()
-    mask = _run_inference(img_rs, model)
-    
-    print(f"[SEG]   Inference time : {time.time()-t0:.2f}s")
-    elapsed = time.time() - t0
-    _log(f"[INFO]  Inference finished in {elapsed:.2f}s – unique labels: {np.unique(mask)}")
-
-    # ------------ restore size/orientation
-    if (H0, W0) != (512, 128):
-        mask = cv2.resize(mask, (W0, H0), interpolation=cv2.INTER_NEAREST)
-    if rotated:
-        mask = np.rot90(mask, k=-1)
-
-    print(f"[DEBUG]   Final mask    : {mask.shape}, unique={np.unique(mask)}")
-
-    if not color:
+    # ✅ PERBAIKAN LOGIKA RETURN
+    if to_rgb:
+        # Jika to_rgb=True, buat gambar berwarna dan kembalikan HANYA itu.
+        return label_mask_to_rgb(mask)
+    else:
+        # Jika to_rgb=False, kembalikan mask mentah seperti biasa.
         return mask
-
-    rgb = label_mask_to_rgb(mask)
-    _log("[INFO]  segment overlay generated")
-    print(f"[DEBUG]   RGB shape     : {rgb.shape}")
-    return mask, rgb

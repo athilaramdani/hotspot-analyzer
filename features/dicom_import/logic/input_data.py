@@ -29,7 +29,7 @@ from pydicom.uid     import (
 )
 
 from .dicom_loader import load_frames_and_metadata
-from features.spect_viewer.logic.segmenter import segment_image
+from features.spect_viewer.logic.segmenter import predict_bone_mask
 from core.logger import _log
 
 # Use new directory structure from paths.py
@@ -134,10 +134,7 @@ def _upload_to_cloud(file_path: Path, session_code: str, patient_id: str, is_edi
 def _process_one(src: Path, session_code: str) -> Path:
     _log(f"\n=== Processing {src} ===")
 
-    # Extract patient ID from DICOM
     pid = str(pydicom.dcmread(src, stop_before_pixels=True).PatientID)
-    
-    # Use new directory structure: data/SPECT/[session_code]/[patient_id]/
     dest_dir = get_patient_spect_path(pid, session_code)
     dest_dir.mkdir(parents=True, exist_ok=True)
     
@@ -146,13 +143,10 @@ def _process_one(src: Path, session_code: str) -> Path:
         copy2(src, dest_path)
     _log(f"  Copied → {dest_path}")
 
-    # Upload original DICOM to cloud
     _upload_to_cloud(dest_path, session_code, pid)
 
     ds = pydicom.dcmread(dest_path)
     
-    # Update Patient ID to include session code if needed
-    original_pid = ds.PatientID
     if session_code not in str(ds.PatientID):
         ds.PatientID = f"{pid}_{session_code}"
 
@@ -162,15 +156,18 @@ def _process_one(src: Path, session_code: str) -> Path:
     overlay_group = 0x6000
     saved: List[str] = []
 
+    # ✅ PERBAIKAN: Unpack 'view' dan 'img' dari frames.items()
     for view, img in frames.items():
         _log(f"  >> Segmenting {view}")
         try:
-            mask, rgb = segment_image(img, view=view, color=True)
+            # ✅ PERBAIKAN: Gunakan parameter 'to_rgb=True'
+            mask = predict_bone_mask(img, to_rgb=False) # Get raw mask for overlay & binary files
+            rgb = predict_bone_mask(img, to_rgb=True)   # Get colored image for saving
+
         except Exception as e:
-            _log(f"     [ERROR] Segmentation failed: {e}")
+            _log(f"    [ERROR] Segmentation failed: {e}")
             continue
 
-        mask = _ensure_2d(mask)
         _insert_overlay(ds, mask, group=overlay_group, desc=f"Seg {view}")
         overlay_group += 0x2
 
@@ -185,7 +182,6 @@ def _process_one(src: Path, session_code: str) -> Path:
         
         saved += [f"{base}_mask.png", f"{base}_colored.png"]
         
-        # Upload PNG files to cloud
         _upload_to_cloud(mask_png_path, session_code, pid)
         _upload_to_cloud(colored_png_path, session_code, pid)
 
@@ -200,25 +196,22 @@ def _process_one(src: Path, session_code: str) -> Path:
             
             saved += [f"{base}_mask.dcm", f"{base}_colored.dcm"]
             
-            # Upload DICOM files to cloud
             _upload_to_cloud(mask_dcm_path, session_code, pid)
             _upload_to_cloud(colored_dcm_path, session_code, pid)
             
         except Exception as e:
-            _log(f"     [WARN] SC-DICOM save failed: {e}")
+            _log(f"    [WARN] SC-DICOM save failed: {e}")
 
     # Save updated DICOM with overlays
     ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
     ds.is_little_endian = True
-    ds.is_implicit_VR   = False
+    ds.is_implicit_VR = False
     ds.save_as(dest_path, write_like_original=False)
     
-    # Upload updated DICOM to cloud
     _upload_to_cloud(dest_path, session_code, pid)
     
     _log(f"  DICOM updated – files saved: {', '.join(saved)}")
     
-    # Log cloud sync status
     if is_cloud_enabled():
         _log(f"  Cloud sync: {'✅ Enabled' if CLOUD_AVAILABLE else '❌ Not available'}")
     
