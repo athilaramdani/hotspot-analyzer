@@ -74,7 +74,7 @@ def _make_predictor() -> nnUNetPredictor:
         use_mirroring                = True,
         perform_everything_on_device = use_cuda,
         device                       = device,
-        allow_tqdm                   = False,
+        allow_tqdm                   = True,
     )
     if "fp16" in inspect.signature(nnUNetPredictor).parameters:
         params["fp16"] = use_cuda
@@ -88,9 +88,11 @@ def _load_model(view: str) -> nnUNetPredictor:
     if v not in ("Anterior", "Posterior"):
         raise ValueError("view must be 'Anterior' or 'Posterior'")
 
+
     if v not in cache:
-        ds      = f"Dataset00{'1' if v=='Anterior' else '2'}_BoneScan{v}"
-        ckptdir = SEG_DIR / ds / "nnUNetTrainer__nnUNetPlans__2d"
+        ds = "Dataset001_BoneRegion"
+        ckptdir = SEG_DIR / ds / "nnUNetTrainer_50epochs__nnUNetPlans__2d"
+
         print(f"[SEG] Loading model for {v} from {ckptdir}")
         
         # ===== ADDED: Verify model path exists =====
@@ -161,13 +163,28 @@ def segment_image(
     if img.ndim != 2:
         raise ValueError("img must be 2‑D or 3‑D RGB")
 
-    # ------------ Rifqi preprocessing (normalize → invert → +13% contrast)
-    _log("[INFO]  Pre-processing done (normalize → invert → contrast +13%)")
-    img_norm = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-    img_inv  = cv2.bitwise_not(img_norm)
-    img_pp   = cv2.convertScaleAbs(img_inv, alpha=1.13, beta=0)
-    img      = img_pp
-    print("[DEBUG]   Applied Rifqi preprocessing: normalize→invert→contrast+13%")
+   # ------------ Preprocessing: crop by contour + resize + CLAHE
+    _log("[INFO]  Pre-processing: crop by contour → resize → CLAHE")
+    if img.dtype != np.uint8:
+        img = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+    print("[DEBUG]   Normalized image to uint8")
+
+    gray = img
+    _, thresh = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    if not contours:
+        raise ValueError("No contour found in the image.")
+
+    x, y, w, h = cv2.boundingRect(max(contours, key=cv2.contourArea))
+    cropped = gray[y:y+h, x:x+w]
+    resized = cv2.resize(cropped, (1024, 256), interpolation=cv2.INTER_AREA)
+
+    clahe = cv2.createCLAHE(clipLimit=1.5, tileGridSize=(8, 8))
+    img_pp = clahe.apply(resized)
+
+    img = img_pp
+    print("[DEBUG]   Applied preprocessing: crop→resize(1024×256)→CLAHE")
 
     H0, W0 = img.shape
     print(f"[DEBUG]   Original size : {H0}×{W0}")
@@ -180,11 +197,9 @@ def segment_image(
         H0, W0 = img.shape
         print(f"[DEBUG]   Rotated to  : {H0}×{W0}")
 
-    if (H0, W0) != (512, 128):
-        img_rs = cv2.resize(img, (128, 512), interpolation=cv2.INTER_AREA)
-    else:
-        img_rs = img
-    print(f"[DEBUG]   Resized to    : {img_rs.shape}")
+    img_rs = img  # Sudah di-resize sebelumnya ke (256,1024)
+    print(f"[DEBUG]   img_rs shape : {img_rs.shape}")
+
 
     # ------------ inference
     model = _load_model(view)

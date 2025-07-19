@@ -1,0 +1,1845 @@
+
+#######################################################################
+Please cite the following paper when using nnU-Net:
+Isensee, F., Jaeger, P. F., Kohl, S. A., Petersen, J., & Maier-Hein, K. H. (2021). nnU-Net: a self-configuring method for deep learning-based biomedical image segmentation. Nature methods, 18(2), 203-211.
+#######################################################################
+ 
+2025-07-13 16:40:38.468683: Using torch.compile... 
+2025-07-13 16:40:41.221820: do_dummy_2d_data_aug: False 
+2025-07-13 16:40:41.234238: Creating new 5-fold cross-validation split... 
+2025-07-13 16:40:41.274142: Desired fold for training: 0 
+2025-07-13 16:40:41.274300: This split has 2835 training and 709 validation cases. 
+
+This is the configuration used by this training:
+Configuration name: 2d
+ {'data_identifier': 'nnUNetPlans_2d', 'preprocessor_name': 'DefaultPreprocessor', 'batch_size': 12, 'patch_size': [1024, 256], 'median_image_size_in_voxels': [1024.0, 256.0], 'spacing': [1.0, 1.0], 'normalization_schemes': ['ZScoreNormalization'], 'use_mask_for_norm': [False], 'resampling_fn_data': 'resample_data_or_seg_to_shape', 'resampling_fn_seg': 'resample_data_or_seg_to_shape', 'resampling_fn_data_kwargs': {'is_seg': False, 'order': 3, 'order_z': 0, 'force_separate_z': None}, 'resampling_fn_seg_kwargs': {'is_seg': True, 'order': 1, 'order_z': 0, 'force_separate_z': None}, 'resampling_fn_probabilities': 'resample_data_or_seg_to_shape', 'resampling_fn_probabilities_kwargs': {'is_seg': False, 'order': 1, 'order_z': 0, 'force_separate_z': None}, 'architecture': {'network_class_name': 'dynamic_network_architectures.architectures.unet.PlainConvUNet', 'arch_kwargs': {'n_stages': 8, 'features_per_stage': [32, 64, 128, 256, 512, 512, 512, 512], 'conv_op': 'torch.nn.modules.conv.Conv2d', 'kernel_sizes': [[3, 3], [3, 3], [3, 3], [3, 3], [3, 3], [3, 3], [3, 3], [3, 3]], 'strides': [[1, 1], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 1]], 'n_conv_per_stage': [2, 2, 2, 2, 2, 2, 2, 2], 'n_conv_per_stage_decoder': [2, 2, 2, 2, 2, 2, 2], 'conv_bias': True, 'norm_op': 'torch.nn.modules.instancenorm.InstanceNorm2d', 'norm_op_kwargs': {'eps': 1e-05, 'affine': True}, 'dropout_op': None, 'dropout_op_kwargs': None, 'nonlin': 'torch.nn.LeakyReLU', 'nonlin_kwargs': {'inplace': True}}, '_kw_requires_import': ['conv_op', 'norm_op', 'dropout_op', 'nonlin']}, 'batch_dice': True} 
+ 
+These are the global plan.json settings:
+ {'dataset_name': 'Dataset001_BoneRegion', 'plans_name': 'nnUNetPlans', 'original_median_spacing_after_transp': [999.0, 1.0, 1.0], 'original_median_shape_after_transp': [1, 1024, 256], 'image_reader_writer': 'NaturalImage2DIO', 'transpose_forward': [0, 1, 2], 'transpose_backward': [0, 1, 2], 'experiment_planner_used': 'ExperimentPlanner', 'label_manager': 'LabelManager', 'foreground_intensity_properties_per_channel': {'0': {'max': 255.0, 'mean': 54.88926696777344, 'median': 46.0, 'min': 1.0, 'percentile_00_5': 2.0, 'percentile_99_5': 187.0, 'std': 36.03028869628906}}} 
+ 
+2025-07-13 16:40:45.289763: Unable to plot network architecture: nnUNet_compile is enabled! 
+2025-07-13 16:40:45.399992:  
+2025-07-13 16:40:45.400213: Epoch 0 
+2025-07-13 16:40:45.400566: Current learning rate: 0.01 
+2025-07-13 16:46:08.378201: train_loss 0.7224 
+2025-07-13 16:46:08.379540: val_loss 0.4905 
+2025-07-13 16:46:08.379973: Pseudo dice [np.float32(0.0), np.float32(0.0), np.float32(0.3022), np.float32(1e-04), np.float32(0.0), np.float32(0.0), np.float32(0.0), np.float32(0.0), np.float32(0.0), np.float32(0.0), np.float32(0.0156), np.float32(0.0)] 
+2025-07-13 16:46:08.380201: Epoch time: 323.0 s 
+2025-07-13 16:46:08.380410: Yayy! New best EMA pseudo Dice: 0.026499999687075615 
+2025-07-13 16:46:10.728260:  
+2025-07-13 16:46:10.728506: Epoch 1 
+2025-07-13 16:46:10.728686: Current learning rate: 0.00982 
+2025-07-13 16:48:53.327627: train_loss 0.218 
+2025-07-13 16:48:53.334371: val_loss -0.0424 
+2025-07-13 16:48:53.334798: Pseudo dice [np.float32(0.489), np.float32(0.0), np.float32(0.5157), np.float32(0.7825), np.float32(0.0), np.float32(0.0), np.float32(0.265), np.float32(0.5098), np.float32(0.3383), np.float32(0.0), np.float32(0.2876), np.float32(0.4728)] 
+2025-07-13 16:48:53.335002: Epoch time: 162.59 s 
+2025-07-13 16:48:53.335207: Yayy! New best EMA pseudo Dice: 0.0544000007212162 
+2025-07-13 16:48:57.813974:  
+2025-07-13 16:48:57.814281: Epoch 2 
+2025-07-13 16:48:57.814510: Current learning rate: 0.00964 
+2025-07-13 16:51:37.561757: train_loss -0.3089 
+2025-07-13 16:51:37.566298: val_loss -0.5528 
+2025-07-13 16:51:37.566673: Pseudo dice [np.float32(0.9267), np.float32(0.7832), np.float32(0.7439), np.float32(0.8662), np.float32(0.777), np.float32(0.0816), np.float32(0.6576), np.float32(0.8331), np.float32(0.7984), np.float32(0.7627), np.float32(0.8306), np.float32(0.8429)] 
+2025-07-13 16:51:37.567211: Epoch time: 159.75 s 
+2025-07-13 16:51:37.567478: Yayy! New best EMA pseudo Dice: 0.12309999763965607 
+2025-07-13 16:51:41.499833:  
+2025-07-13 16:51:41.500081: Epoch 3 
+2025-07-13 16:51:41.500247: Current learning rate: 0.00946 
+2025-07-13 16:54:20.065423: train_loss -0.5926 
+2025-07-13 16:54:20.070653: val_loss -0.6544 
+2025-07-13 16:54:20.070958: Pseudo dice [np.float32(0.9375), np.float32(0.8051), np.float32(0.801), np.float32(0.8806), np.float32(0.8123), np.float32(0.6122), np.float32(0.7878), np.float32(0.8516), np.float32(0.8304), np.float32(0.8023), np.float32(0.8746), np.float32(0.8723)] 
+2025-07-13 16:54:20.071168: Epoch time: 158.57 s 
+2025-07-13 16:54:20.071295: Yayy! New best EMA pseudo Dice: 0.19300000369548798 
+2025-07-13 16:54:24.399866:  
+2025-07-13 16:54:24.400228: Epoch 4 
+2025-07-13 16:54:24.400433: Current learning rate: 0.00928 
+2025-07-13 16:57:02.317107: train_loss -0.652 
+2025-07-13 16:57:02.318221: val_loss -0.6656 
+2025-07-13 16:57:02.318574: Pseudo dice [np.float32(0.9388), np.float32(0.8071), np.float32(0.7977), np.float32(0.8873), np.float32(0.8163), np.float32(0.6471), np.float32(0.7993), np.float32(0.8494), np.float32(0.8311), np.float32(0.8061), np.float32(0.8763), np.float32(0.8736)] 
+2025-07-13 16:57:02.318927: Epoch time: 157.92 s 
+2025-07-13 16:57:02.319152: Yayy! New best EMA pseudo Dice: 0.2565000057220459 
+2025-07-13 16:57:04.798160:  
+2025-07-13 16:57:04.798460: Epoch 5 
+2025-07-13 16:57:04.798646: Current learning rate: 0.0091 
+2025-07-13 16:59:41.968312: train_loss -0.6596 
+2025-07-13 16:59:41.971992: val_loss -0.6896 
+2025-07-13 16:59:41.972491: Pseudo dice [np.float32(0.9469), np.float32(0.8223), np.float32(0.8089), np.float32(0.8919), np.float32(0.8239), np.float32(0.6525), np.float32(0.8238), np.float32(0.8572), np.float32(0.8349), np.float32(0.8107), np.float32(0.8825), np.float32(0.877)] 
+2025-07-13 16:59:41.972767: Epoch time: 157.17 s 
+2025-07-13 16:59:41.972978: Yayy! New best EMA pseudo Dice: 0.31439998745918274 
+2025-07-13 16:59:45.402058:  
+2025-07-13 16:59:45.402331: Epoch 6 
+2025-07-13 16:59:45.402533: Current learning rate: 0.00891 
+2025-07-13 17:02:17.961087: train_loss -0.6647 
+2025-07-13 17:02:17.962388: val_loss -0.6659 
+2025-07-13 17:02:17.962656: Pseudo dice [np.float32(0.9425), np.float32(0.8141), np.float32(0.7864), np.float32(0.8903), np.float32(0.7973), np.float32(0.6392), np.float32(0.8111), np.float32(0.8555), np.float32(0.8375), np.float32(0.7994), np.float32(0.8743), np.float32(0.8726)] 
+2025-07-13 17:02:17.962837: Epoch time: 152.56 s 
+2025-07-13 17:02:17.962963: Yayy! New best EMA pseudo Dice: 0.36570000648498535 
+2025-07-13 17:02:21.497186:  
+2025-07-13 17:02:21.497484: Epoch 7 
+2025-07-13 17:02:21.497671: Current learning rate: 0.00873 
+2025-07-13 17:05:02.593763: train_loss -0.6745 
+2025-07-13 17:05:02.598187: val_loss -0.6899 
+2025-07-13 17:05:02.598544: Pseudo dice [np.float32(0.9432), np.float32(0.8212), np.float32(0.8102), np.float32(0.8934), np.float32(0.8189), np.float32(0.6493), np.float32(0.8182), np.float32(0.8627), np.float32(0.8473), np.float32(0.8051), np.float32(0.8849), np.float32(0.8764)] 
+2025-07-13 17:05:02.598845: Epoch time: 161.1 s 
+2025-07-13 17:05:02.599057: Yayy! New best EMA pseudo Dice: 0.41269999742507935 
+2025-07-13 17:05:04.992950:  
+2025-07-13 17:05:04.993236: Epoch 8 
+2025-07-13 17:05:04.993431: Current learning rate: 0.00855 
+2025-07-13 17:07:41.957994: train_loss -0.6709 
+2025-07-13 17:07:41.961618: val_loss -0.6969 
+2025-07-13 17:07:41.961924: Pseudo dice [np.float32(0.9499), np.float32(0.8154), np.float32(0.8187), np.float32(0.8963), np.float32(0.8205), np.float32(0.6437), np.float32(0.8258), np.float32(0.8621), np.float32(0.8393), np.float32(0.8155), np.float32(0.8885), np.float32(0.8819)] 
+2025-07-13 17:07:41.962152: Epoch time: 156.97 s 
+2025-07-13 17:07:41.962327: Yayy! New best EMA pseudo Dice: 0.4551999866962433 
+2025-07-13 17:07:45.442531:  
+2025-07-13 17:07:45.442817: Epoch 9 
+2025-07-13 17:07:45.443016: Current learning rate: 0.00836 
+2025-07-13 17:10:27.139816: train_loss -0.6732 
+2025-07-13 17:10:27.140172: val_loss -0.6966 
+2025-07-13 17:10:27.140462: Pseudo dice [np.float32(0.9497), np.float32(0.8351), np.float32(0.8232), np.float32(0.8955), np.float32(0.8132), np.float32(0.6365), np.float32(0.8281), np.float32(0.8644), np.float32(0.8458), np.float32(0.8129), np.float32(0.8836), np.float32(0.8802)] 
+2025-07-13 17:10:27.140683: Epoch time: 161.7 s 
+2025-07-13 17:10:27.140807: Yayy! New best EMA pseudo Dice: 0.4936000108718872 
+2025-07-13 17:10:29.627896:  
+2025-07-13 17:10:29.628685: Epoch 10 
+2025-07-13 17:10:29.628888: Current learning rate: 0.00818 
+2025-07-13 17:13:10.053539: train_loss -0.6954 
+2025-07-13 17:13:10.058537: val_loss -0.7087 
+2025-07-13 17:13:10.058867: Pseudo dice [np.float32(0.9521), np.float32(0.8318), np.float32(0.8152), np.float32(0.9021), np.float32(0.8248), np.float32(0.6507), np.float32(0.8307), np.float32(0.8662), np.float32(0.8491), np.float32(0.8142), np.float32(0.894), np.float32(0.8836)] 
+2025-07-13 17:13:10.059099: Epoch time: 160.43 s 
+2025-07-13 17:13:10.059270: Yayy! New best EMA pseudo Dice: 0.5285000205039978 
+2025-07-13 17:13:13.065204:  
+2025-07-13 17:13:13.065439: Epoch 11 
+2025-07-13 17:13:13.065625: Current learning rate: 0.008 
+2025-07-13 17:15:53.921996: train_loss -0.6819 
+2025-07-13 17:15:53.924167: val_loss -0.7065 
+2025-07-13 17:15:53.924664: Pseudo dice [np.float32(0.9502), np.float32(0.8281), np.float32(0.8146), np.float32(0.9002), np.float32(0.8307), np.float32(0.6595), np.float32(0.821), np.float32(0.8669), np.float32(0.8539), np.float32(0.819), np.float32(0.8911), np.float32(0.8843)] 
+2025-07-13 17:15:53.924914: Epoch time: 160.86 s 
+2025-07-13 17:15:53.925050: Yayy! New best EMA pseudo Dice: 0.5600000023841858 
+2025-07-13 17:16:02.287738:  
+2025-07-13 17:16:02.287990: Epoch 12 
+2025-07-13 17:16:02.288169: Current learning rate: 0.00781 
+2025-07-13 17:18:42.916588: train_loss -0.6926 
+2025-07-13 17:18:42.920450: val_loss -0.717 
+2025-07-13 17:18:42.920696: Pseudo dice [np.float32(0.9531), np.float32(0.8287), np.float32(0.8182), np.float32(0.9014), np.float32(0.8167), np.float32(0.6436), np.float32(0.8368), np.float32(0.8699), np.float32(0.854), np.float32(0.8222), np.float32(0.8951), np.float32(0.8871)] 
+2025-07-13 17:18:42.920850: Epoch time: 160.63 s 
+2025-07-13 17:18:42.920955: Yayy! New best EMA pseudo Dice: 0.5884000062942505 
+2025-07-13 17:18:46.523965:  
+2025-07-13 17:18:46.524270: Epoch 13 
+2025-07-13 17:18:46.524481: Current learning rate: 0.00763 
+2025-07-13 17:21:25.112147: train_loss -0.7004 
+2025-07-13 17:21:25.124802: val_loss -0.7106 
+2025-07-13 17:21:25.125121: Pseudo dice [np.float32(0.9529), np.float32(0.8247), np.float32(0.8082), np.float32(0.8979), np.float32(0.8092), np.float32(0.6476), np.float32(0.8302), np.float32(0.8662), np.float32(0.8516), np.float32(0.8132), np.float32(0.8959), np.float32(0.8862)] 
+2025-07-13 17:21:25.125366: Epoch time: 158.59 s 
+2025-07-13 17:21:25.125519: Yayy! New best EMA pseudo Dice: 0.6136000156402588 
+2025-07-13 17:21:27.715274:  
+2025-07-13 17:21:27.715581: Epoch 14 
+2025-07-13 17:21:27.715761: Current learning rate: 0.00744 
+2025-07-13 17:24:06.460830: train_loss -0.697 
+2025-07-13 17:24:06.467599: val_loss -0.6941 
+2025-07-13 17:24:06.467894: Pseudo dice [np.float32(0.9415), np.float32(0.8217), np.float32(0.8152), np.float32(0.8918), np.float32(0.8115), np.float32(0.65), np.float32(0.8148), np.float32(0.8637), np.float32(0.8541), np.float32(0.8126), np.float32(0.8876), np.float32(0.8834)] 
+2025-07-13 17:24:06.468096: Epoch time: 158.75 s 
+2025-07-13 17:24:06.468305: Yayy! New best EMA pseudo Dice: 0.6359999775886536 
+2025-07-13 17:24:09.908834:  
+2025-07-13 17:24:09.909121: Epoch 15 
+2025-07-13 17:24:09.909325: Current learning rate: 0.00725 
+2025-07-13 17:26:52.528944: train_loss -0.6915 
+2025-07-13 17:26:52.536925: val_loss -0.7172 
+2025-07-13 17:26:52.537296: Pseudo dice [np.float32(0.9543), np.float32(0.8319), np.float32(0.8197), np.float32(0.9048), np.float32(0.8383), np.float32(0.6577), np.float32(0.8382), np.float32(0.8631), np.float32(0.851), np.float32(0.8173), np.float32(0.8978), np.float32(0.8844)] 
+2025-07-13 17:26:52.537594: Epoch time: 162.62 s 
+2025-07-13 17:26:52.537735: Yayy! New best EMA pseudo Dice: 0.6570000052452087 
+2025-07-13 17:26:55.147542:  
+2025-07-13 17:26:55.147860: Epoch 16 
+2025-07-13 17:26:55.148073: Current learning rate: 0.00707 
+2025-07-13 17:29:34.447617: train_loss -0.6994 
+2025-07-13 17:29:34.459226: val_loss -0.7091 
+2025-07-13 17:29:34.459517: Pseudo dice [np.float32(0.9529), np.float32(0.8366), np.float32(0.8116), np.float32(0.9008), np.float32(0.8254), np.float32(0.6523), np.float32(0.8258), np.float32(0.8628), np.float32(0.8502), np.float32(0.812), np.float32(0.8931), np.float32(0.8818)] 
+2025-07-13 17:29:34.459681: Epoch time: 159.3 s 
+2025-07-13 17:29:34.459786: Yayy! New best EMA pseudo Dice: 0.6754999756813049 
+2025-07-13 17:29:38.056309:  
+2025-07-13 17:29:38.056612: Epoch 17 
+2025-07-13 17:29:38.056781: Current learning rate: 0.00688 
+2025-07-13 17:32:17.415956: train_loss -0.6996 
+2025-07-13 17:32:17.422925: val_loss -0.7078 
+2025-07-13 17:32:17.423342: Pseudo dice [np.float32(0.9523), np.float32(0.8297), np.float32(0.817), np.float32(0.9013), np.float32(0.8385), np.float32(0.6643), np.float32(0.8339), np.float32(0.8622), np.float32(0.8522), np.float32(0.8149), np.float32(0.8906), np.float32(0.8815)] 
+2025-07-13 17:32:17.423574: Epoch time: 159.36 s 
+2025-07-13 17:32:17.423807: Yayy! New best EMA pseudo Dice: 0.6924999952316284 
+2025-07-13 17:32:25.072855:  
+2025-07-13 17:32:25.073094: Epoch 18 
+2025-07-13 17:32:25.073275: Current learning rate: 0.00669 
+2025-07-13 17:35:03.906164: train_loss -0.7005 
+2025-07-13 17:35:03.916193: val_loss -0.7112 
+2025-07-13 17:35:03.916448: Pseudo dice [np.float32(0.9549), np.float32(0.8321), np.float32(0.8075), np.float32(0.8956), np.float32(0.8122), np.float32(0.6504), np.float32(0.8346), np.float32(0.8688), np.float32(0.8565), np.float32(0.8167), np.float32(0.8957), np.float32(0.8838)] 
+2025-07-13 17:35:03.916646: Epoch time: 158.84 s 
+2025-07-13 17:35:03.916848: Yayy! New best EMA pseudo Dice: 0.7074999809265137 
+2025-07-13 17:35:06.747513:  
+2025-07-13 17:35:06.747755: Epoch 19 
+2025-07-13 17:35:06.747926: Current learning rate: 0.0065 
+2025-07-13 17:37:40.617900: train_loss -0.7019 
+2025-07-13 17:37:40.629740: val_loss -0.723 
+2025-07-13 17:37:40.629938: Pseudo dice [np.float32(0.9542), np.float32(0.8386), np.float32(0.8221), np.float32(0.9067), np.float32(0.8333), np.float32(0.6623), np.float32(0.832), np.float32(0.8674), np.float32(0.8515), np.float32(0.8283), np.float32(0.9002), np.float32(0.8871)] 
+2025-07-13 17:37:40.630103: Epoch time: 153.87 s 
+2025-07-13 17:37:40.630325: Yayy! New best EMA pseudo Dice: 0.7215999960899353 
+2025-07-13 17:37:43.482555:  
+2025-07-13 17:37:43.482876: Epoch 20 
+2025-07-13 17:37:43.483101: Current learning rate: 0.00631 
+2025-07-13 17:40:25.761028: train_loss -0.706 
+2025-07-13 17:40:25.762589: val_loss -0.7079 
+2025-07-13 17:40:25.762915: Pseudo dice [np.float32(0.9518), np.float32(0.8313), np.float32(0.8184), np.float32(0.9012), np.float32(0.8363), np.float32(0.6604), np.float32(0.827), np.float32(0.8634), np.float32(0.851), np.float32(0.8184), np.float32(0.8899), np.float32(0.8819)] 
+2025-07-13 17:40:25.763126: Epoch time: 162.28 s 
+2025-07-13 17:40:25.763274: Yayy! New best EMA pseudo Dice: 0.7337999939918518 
+2025-07-13 17:40:29.628422:  
+2025-07-13 17:40:29.628714: Epoch 21 
+2025-07-13 17:40:29.628898: Current learning rate: 0.00612 
+2025-07-13 17:43:11.754395: train_loss -0.7069 
+2025-07-13 17:43:11.760663: val_loss -0.7144 
+2025-07-13 17:43:11.761003: Pseudo dice [np.float32(0.9522), np.float32(0.8316), np.float32(0.8094), np.float32(0.8946), np.float32(0.815), np.float32(0.6514), np.float32(0.8368), np.float32(0.8706), np.float32(0.8516), np.float32(0.824), np.float32(0.8984), np.float32(0.8862)] 
+2025-07-13 17:43:11.761277: Epoch time: 162.13 s 
+2025-07-13 17:43:11.761488: Yayy! New best EMA pseudo Dice: 0.7447999715805054 
+2025-07-13 17:43:19.047863:  
+2025-07-13 17:43:19.048175: Epoch 22 
+2025-07-13 17:43:19.048438: Current learning rate: 0.00593 
+2025-07-13 17:45:58.617143: train_loss -0.7074 
+2025-07-13 17:45:58.624430: val_loss -0.7195 
+2025-07-13 17:45:58.624667: Pseudo dice [np.float32(0.9562), np.float32(0.8385), np.float32(0.8212), np.float32(0.9012), np.float32(0.8258), np.float32(0.6533), np.float32(0.8397), np.float32(0.8685), np.float32(0.8542), np.float32(0.8279), np.float32(0.8977), np.float32(0.8861)] 
+2025-07-13 17:45:58.624816: Epoch time: 159.57 s 
+2025-07-13 17:45:58.624944: Yayy! New best EMA pseudo Dice: 0.7551000118255615 
+2025-07-13 17:46:03.479601:  
+2025-07-13 17:46:03.479881: Epoch 23 
+2025-07-13 17:46:03.480092: Current learning rate: 0.00574 
+2025-07-13 17:48:41.683626: train_loss -0.7034 
+2025-07-13 17:48:41.690917: val_loss -0.7092 
+2025-07-13 17:48:41.691183: Pseudo dice [np.float32(0.9519), np.float32(0.8299), np.float32(0.7999), np.float32(0.9001), np.float32(0.7926), np.float32(0.6508), np.float32(0.8301), np.float32(0.8704), np.float32(0.8535), np.float32(0.8181), np.float32(0.8986), np.float32(0.8849)] 
+2025-07-13 17:48:41.691378: Epoch time: 158.21 s 
+2025-07-13 17:48:41.691507: Yayy! New best EMA pseudo Dice: 0.7635999917984009 
+2025-07-13 17:48:47.807767:  
+2025-07-13 17:48:47.808079: Epoch 24 
+2025-07-13 17:48:47.808266: Current learning rate: 0.00555 
+2025-07-13 17:51:26.736768: train_loss -0.7013 
+2025-07-13 17:51:26.740822: val_loss -0.7025 
+2025-07-13 17:51:26.741100: Pseudo dice [np.float32(0.9529), np.float32(0.8302), np.float32(0.8187), np.float32(0.8984), np.float32(0.8165), np.float32(0.6486), np.float32(0.8333), np.float32(0.8653), np.float32(0.8486), np.float32(0.814), np.float32(0.8897), np.float32(0.8827)] 
+2025-07-13 17:51:26.741263: Epoch time: 158.93 s 
+2025-07-13 17:51:26.741395: Yayy! New best EMA pseudo Dice: 0.771399974822998 
+2025-07-13 17:51:34.043695:  
+2025-07-13 17:51:34.043956: Epoch 25 
+2025-07-13 17:51:34.044161: Current learning rate: 0.00536 
+2025-07-13 17:54:15.726500: train_loss -0.7119 
+2025-07-13 17:54:15.739258: val_loss -0.7185 
+2025-07-13 17:54:15.739596: Pseudo dice [np.float32(0.9522), np.float32(0.8314), np.float32(0.8165), np.float32(0.9054), np.float32(0.8229), np.float32(0.6547), np.float32(0.833), np.float32(0.8702), np.float32(0.8532), np.float32(0.8227), np.float32(0.8933), np.float32(0.8854)] 
+2025-07-13 17:54:15.739776: Epoch time: 161.68 s 
+2025-07-13 17:54:15.739904: Yayy! New best EMA pseudo Dice: 0.7786999940872192 
+2025-07-13 17:54:23.742730:  
+2025-07-13 17:54:23.743028: Epoch 26 
+2025-07-13 17:54:23.743201: Current learning rate: 0.00517 
+2025-07-13 17:57:03.701697: train_loss -0.7105 
+2025-07-13 17:57:03.703111: val_loss -0.7048 
+2025-07-13 17:57:03.703516: Pseudo dice [np.float32(0.9542), np.float32(0.8314), np.float32(0.8179), np.float32(0.8994), np.float32(0.8138), np.float32(0.6579), np.float32(0.8286), np.float32(0.8716), np.float32(0.8506), np.float32(0.8103), np.float32(0.8916), np.float32(0.8831)] 
+2025-07-13 17:57:03.703723: Epoch time: 159.96 s 
+2025-07-13 17:57:03.703930: Yayy! New best EMA pseudo Dice: 0.785099983215332 
+2025-07-13 17:57:08.075036:  
+2025-07-13 17:57:08.075336: Epoch 27 
+2025-07-13 17:57:08.075563: Current learning rate: 0.00497 
+2025-07-13 17:59:47.713991: train_loss -0.7162 
+2025-07-13 17:59:47.718248: val_loss -0.7188 
+2025-07-13 17:59:47.720646: Pseudo dice [np.float32(0.9546), np.float32(0.8308), np.float32(0.8156), np.float32(0.9027), np.float32(0.8295), np.float32(0.674), np.float32(0.8286), np.float32(0.8686), np.float32(0.8541), np.float32(0.8188), np.float32(0.8965), np.float32(0.8836)] 
+2025-07-13 17:59:47.721925: Epoch time: 159.64 s 
+2025-07-13 17:59:47.722126: Yayy! New best EMA pseudo Dice: 0.7912999987602234 
+2025-07-13 17:59:50.382439:  
+2025-07-13 17:59:50.382738: Epoch 28 
+2025-07-13 17:59:50.382910: Current learning rate: 0.00478 
+2025-07-13 18:02:31.882153: train_loss -0.7168 
+2025-07-13 18:02:31.896373: val_loss -0.7012 
+2025-07-13 18:02:31.896652: Pseudo dice [np.float32(0.9513), np.float32(0.8282), np.float32(0.8021), np.float32(0.8956), np.float32(0.811), np.float32(0.6523), np.float32(0.8278), np.float32(0.8625), np.float32(0.8482), np.float32(0.8171), np.float32(0.8911), np.float32(0.8811)] 
+2025-07-13 18:02:31.896815: Epoch time: 161.5 s 
+2025-07-13 18:02:31.896924: Yayy! New best EMA pseudo Dice: 0.7960000038146973 
+2025-07-13 18:02:35.153742:  
+2025-07-13 18:02:35.153975: Epoch 29 
+2025-07-13 18:02:35.154179: Current learning rate: 0.00458 
+2025-07-13 18:05:19.501399: train_loss -0.7068 
+2025-07-13 18:05:19.510712: val_loss -0.7117 
+2025-07-13 18:05:19.511250: Pseudo dice [np.float32(0.9548), np.float32(0.8353), np.float32(0.8063), np.float32(0.9018), np.float32(0.8081), np.float32(0.662), np.float32(0.8355), np.float32(0.8689), np.float32(0.8506), np.float32(0.813), np.float32(0.8983), np.float32(0.8852)] 
+2025-07-13 18:05:19.511462: Epoch time: 164.35 s 
+2025-07-13 18:05:19.511589: Yayy! New best EMA pseudo Dice: 0.8008000254631042 
+2025-07-13 18:05:23.539119:  
+2025-07-13 18:05:23.539421: Epoch 30 
+2025-07-13 18:05:23.539602: Current learning rate: 0.00438 
+2025-07-13 18:08:02.526535: train_loss -0.7214 
+2025-07-13 18:08:02.533307: val_loss -0.7106 
+2025-07-13 18:08:02.533583: Pseudo dice [np.float32(0.9536), np.float32(0.8305), np.float32(0.8239), np.float32(0.9027), np.float32(0.8066), np.float32(0.6472), np.float32(0.8402), np.float32(0.8672), np.float32(0.8536), np.float32(0.8238), np.float32(0.8948), np.float32(0.8852)] 
+2025-07-13 18:08:02.533730: Epoch time: 158.99 s 
+2025-07-13 18:08:02.533842: Yayy! New best EMA pseudo Dice: 0.8051000237464905 
+2025-07-13 18:08:07.002086:  
+2025-07-13 18:08:07.002394: Epoch 31 
+2025-07-13 18:08:07.002575: Current learning rate: 0.00419 
+2025-07-13 18:10:48.561446: train_loss -0.7173 
+2025-07-13 18:10:48.576561: val_loss -0.7126 
+2025-07-13 18:10:48.576771: Pseudo dice [np.float32(0.954), np.float32(0.8319), np.float32(0.8209), np.float32(0.9023), np.float32(0.8224), np.float32(0.6502), np.float32(0.8404), np.float32(0.867), np.float32(0.8519), np.float32(0.8166), np.float32(0.8967), np.float32(0.8836)] 
+2025-07-13 18:10:48.576892: Epoch time: 161.56 s 
+2025-07-13 18:10:48.576975: Yayy! New best EMA pseudo Dice: 0.8090999722480774 
+2025-07-13 18:10:51.340788:  
+2025-07-13 18:10:51.341125: Epoch 32 
+2025-07-13 18:10:51.341334: Current learning rate: 0.00399 
+2025-07-13 18:13:33.842621: train_loss -0.7283 
+2025-07-13 18:13:33.851257: val_loss -0.7021 
+2025-07-13 18:13:33.851615: Pseudo dice [np.float32(0.9515), np.float32(0.8296), np.float32(0.81), np.float32(0.8984), np.float32(0.8054), np.float32(0.6421), np.float32(0.8349), np.float32(0.8651), np.float32(0.8515), np.float32(0.8141), np.float32(0.8933), np.float32(0.8802)] 
+2025-07-13 18:13:33.851931: Epoch time: 162.5 s 
+2025-07-13 18:13:33.852135: Yayy! New best EMA pseudo Dice: 0.8120999932289124 
+2025-07-13 18:13:45.023523:  
+2025-07-13 18:13:45.023816: Epoch 33 
+2025-07-13 18:13:45.023998: Current learning rate: 0.00379 
+2025-07-13 18:16:29.309903: train_loss -0.7198 
+2025-07-13 18:16:29.314711: val_loss -0.7122 
+2025-07-13 18:16:29.314984: Pseudo dice [np.float32(0.9527), np.float32(0.8263), np.float32(0.8078), np.float32(0.9031), np.float32(0.8161), np.float32(0.6626), np.float32(0.8334), np.float32(0.8708), np.float32(0.846), np.float32(0.8173), np.float32(0.8964), np.float32(0.8862)] 
+2025-07-13 18:16:29.315141: Epoch time: 164.29 s 
+2025-07-13 18:16:29.315341: Yayy! New best EMA pseudo Dice: 0.8151999711990356 
+2025-07-13 18:16:32.197798:  
+2025-07-13 18:16:32.198064: Epoch 34 
+2025-07-13 18:16:32.198221: Current learning rate: 0.00359 
+2025-07-13 18:19:17.553711: train_loss -0.7249 
+2025-07-13 18:19:17.556888: val_loss -0.7282 
+2025-07-13 18:19:17.557251: Pseudo dice [np.float32(0.955), np.float32(0.8365), np.float32(0.8226), np.float32(0.9047), np.float32(0.8268), np.float32(0.6561), np.float32(0.8424), np.float32(0.8729), np.float32(0.8557), np.float32(0.8252), np.float32(0.9007), np.float32(0.8884)] 
+2025-07-13 18:19:17.557528: Epoch time: 165.36 s 
+2025-07-13 18:19:17.557701: Yayy! New best EMA pseudo Dice: 0.8185999989509583 
+2025-07-13 18:19:20.344926:  
+2025-07-13 18:19:20.345244: Epoch 35 
+2025-07-13 18:19:20.345454: Current learning rate: 0.00338 
+2025-07-13 18:21:59.162841: train_loss -0.7182 
+2025-07-13 18:21:59.170598: val_loss -0.7251 
+2025-07-13 18:21:59.170954: Pseudo dice [np.float32(0.9569), np.float32(0.835), np.float32(0.825), np.float32(0.9057), np.float32(0.8322), np.float32(0.6554), np.float32(0.8431), np.float32(0.8697), np.float32(0.8552), np.float32(0.8242), np.float32(0.8993), np.float32(0.8875)] 
+2025-07-13 18:21:59.171174: Epoch time: 158.82 s 
+2025-07-13 18:21:59.171320: Yayy! New best EMA pseudo Dice: 0.8216999769210815 
+2025-07-13 18:22:02.058408:  
+2025-07-13 18:22:02.058706: Epoch 36 
+2025-07-13 18:22:02.058895: Current learning rate: 0.00318 
+2025-07-13 18:24:43.513644: train_loss -0.7208 
+2025-07-13 18:24:43.521351: val_loss -0.7082 
+2025-07-13 18:24:43.521729: Pseudo dice [np.float32(0.954), np.float32(0.8339), np.float32(0.8179), np.float32(0.9027), np.float32(0.8219), np.float32(0.6555), np.float32(0.834), np.float32(0.8681), np.float32(0.8536), np.float32(0.8183), np.float32(0.8933), np.float32(0.8832)] 
+2025-07-13 18:24:43.522013: Epoch time: 161.46 s 
+2025-07-13 18:24:43.522424: Yayy! New best EMA pseudo Dice: 0.8240000009536743 
+2025-07-13 18:24:46.542019:  
+2025-07-13 18:24:46.542377: Epoch 37 
+2025-07-13 18:24:46.542569: Current learning rate: 0.00297 
+2025-07-13 18:27:32.586489: train_loss -0.7265 
+2025-07-13 18:27:32.588583: val_loss -0.7255 
+2025-07-13 18:27:32.588989: Pseudo dice [np.float32(0.9561), np.float32(0.8334), np.float32(0.8133), np.float32(0.9058), np.float32(0.8205), np.float32(0.6573), np.float32(0.8434), np.float32(0.8703), np.float32(0.8574), np.float32(0.8227), np.float32(0.9021), np.float32(0.8872)] 
+2025-07-13 18:27:32.589288: Epoch time: 166.05 s 
+2025-07-13 18:27:32.589506: Yayy! New best EMA pseudo Dice: 0.8263000249862671 
+2025-07-13 18:27:35.339111:  
+2025-07-13 18:27:35.339324: Epoch 38 
+2025-07-13 18:27:35.339532: Current learning rate: 0.00277 
+2025-07-13 18:30:18.877476: train_loss -0.719 
+2025-07-13 18:30:18.881246: val_loss -0.7248 
+2025-07-13 18:30:18.881529: Pseudo dice [np.float32(0.9577), np.float32(0.8394), np.float32(0.8175), np.float32(0.9077), np.float32(0.8302), np.float32(0.676), np.float32(0.8332), np.float32(0.868), np.float32(0.8547), np.float32(0.8176), np.float32(0.8979), np.float32(0.8854)] 
+2025-07-13 18:30:18.881700: Epoch time: 163.54 s 
+2025-07-13 18:30:18.881801: Yayy! New best EMA pseudo Dice: 0.8285999894142151 
+2025-07-13 18:30:25.908647:  
+2025-07-13 18:30:25.908889: Epoch 39 
+2025-07-13 18:30:25.909061: Current learning rate: 0.00256 
+2025-07-13 18:33:10.742946: train_loss -0.7278 
+2025-07-13 18:33:10.767638: val_loss -0.7193 
+2025-07-13 18:33:10.768126: Pseudo dice [np.float32(0.9549), np.float32(0.8388), np.float32(0.8243), np.float32(0.9054), np.float32(0.8318), np.float32(0.6599), np.float32(0.8438), np.float32(0.8704), np.float32(0.8467), np.float32(0.823), np.float32(0.9013), np.float32(0.8874)] 
+2025-07-13 18:33:10.768368: Epoch time: 164.84 s 
+2025-07-13 18:33:10.768526: Yayy! New best EMA pseudo Dice: 0.8306000232696533 
+2025-07-13 18:33:13.785280:  
+2025-07-13 18:33:13.785582: Epoch 40 
+2025-07-13 18:33:13.785760: Current learning rate: 0.00235 
+2025-07-13 18:35:58.297980: train_loss -0.7202 
+2025-07-13 18:35:58.299714: val_loss -0.7107 
+2025-07-13 18:35:58.300076: Pseudo dice [np.float32(0.9524), np.float32(0.831), np.float32(0.8136), np.float32(0.9032), np.float32(0.8268), np.float32(0.6597), np.float32(0.8363), np.float32(0.8629), np.float32(0.8495), np.float32(0.8166), np.float32(0.8928), np.float32(0.8792)] 
+2025-07-13 18:35:58.300389: Epoch time: 164.51 s 
+2025-07-13 18:35:58.300531: Yayy! New best EMA pseudo Dice: 0.8319000005722046 
+2025-07-13 18:36:01.836529:  
+2025-07-13 18:36:01.836805: Epoch 41 
+2025-07-13 18:36:01.836977: Current learning rate: 0.00214 
+2025-07-13 18:38:46.279847: train_loss -0.7253 
+2025-07-13 18:38:46.286240: val_loss -0.716 
+2025-07-13 18:38:46.286624: Pseudo dice [np.float32(0.9551), np.float32(0.8355), np.float32(0.817), np.float32(0.9049), np.float32(0.8287), np.float32(0.6643), np.float32(0.8348), np.float32(0.8696), np.float32(0.8539), np.float32(0.8181), np.float32(0.8956), np.float32(0.885)] 
+2025-07-13 18:38:46.286972: Epoch time: 164.44 s 
+2025-07-13 18:38:46.287161: Yayy! New best EMA pseudo Dice: 0.8334000110626221 
+2025-07-13 18:38:49.644619:  
+2025-07-13 18:38:49.644860: Epoch 42 
+2025-07-13 18:38:49.645034: Current learning rate: 0.00192 
+2025-07-13 18:41:33.161996: train_loss -0.7332 
+2025-07-13 18:41:33.177063: val_loss -0.7217 
+2025-07-13 18:41:33.177280: Pseudo dice [np.float32(0.9566), np.float32(0.84), np.float32(0.8202), np.float32(0.9057), np.float32(0.8326), np.float32(0.656), np.float32(0.8417), np.float32(0.8742), np.float32(0.8579), np.float32(0.8227), np.float32(0.8972), np.float32(0.8872)] 
+2025-07-13 18:41:33.177495: Epoch time: 163.52 s 
+2025-07-13 18:41:33.177640: Yayy! New best EMA pseudo Dice: 0.8349999785423279 
+2025-07-13 18:41:35.942695:  
+2025-07-13 18:41:35.942921: Epoch 43 
+2025-07-13 18:41:35.943098: Current learning rate: 0.0017 
+2025-07-13 18:44:20.411977: train_loss -0.7312 
+2025-07-13 18:44:20.420161: val_loss -0.7077 
+2025-07-13 18:44:20.420438: Pseudo dice [np.float32(0.9526), np.float32(0.8363), np.float32(0.8142), np.float32(0.9031), np.float32(0.8122), np.float32(0.642), np.float32(0.8387), np.float32(0.8668), np.float32(0.8517), np.float32(0.8212), np.float32(0.8955), np.float32(0.8811)] 
+2025-07-13 18:44:20.420677: Epoch time: 164.47 s 
+2025-07-13 18:44:20.421014: Yayy! New best EMA pseudo Dice: 0.8357999920845032 
+2025-07-13 18:44:24.259330:  
+2025-07-13 18:44:24.261473: Epoch 44 
+2025-07-13 18:44:24.264508: Current learning rate: 0.00148 
+2025-07-13 18:47:11.107749: train_loss -0.7327 
+2025-07-13 18:47:11.116382: val_loss -0.7326 
+2025-07-13 18:47:11.116610: Pseudo dice [np.float32(0.9572), np.float32(0.8404), np.float32(0.8281), np.float32(0.9083), np.float32(0.8424), np.float32(0.6573), np.float32(0.8456), np.float32(0.8717), np.float32(0.8545), np.float32(0.8277), np.float32(0.9035), np.float32(0.8871)] 
+2025-07-13 18:47:11.116859: Epoch time: 166.85 s 
+2025-07-13 18:47:11.116984: Yayy! New best EMA pseudo Dice: 0.8374000191688538 
+2025-07-13 18:47:20.076122:  
+2025-07-13 18:47:20.082422: Epoch 45 
+2025-07-13 18:47:20.082700: Current learning rate: 0.00126 
+2025-07-13 18:50:01.897710: train_loss -0.7241 
+2025-07-13 18:50:01.898720: val_loss -0.7122 
+2025-07-13 18:50:01.899137: Pseudo dice [np.float32(0.9536), np.float32(0.8334), np.float32(0.8107), np.float32(0.9033), np.float32(0.8248), np.float32(0.6683), np.float32(0.8349), np.float32(0.8692), np.float32(0.8529), np.float32(0.8152), np.float32(0.8962), np.float32(0.8846)] 
+2025-07-13 18:50:01.899347: Epoch time: 161.82 s 
+2025-07-13 18:50:01.899509: Yayy! New best EMA pseudo Dice: 0.8381999731063843 
+2025-07-13 18:50:04.651064:  
+2025-07-13 18:50:04.651314: Epoch 46 
+2025-07-13 18:50:04.651522: Current learning rate: 0.00103 
+2025-07-13 18:52:42.550673: train_loss -0.7312 
+2025-07-13 18:52:42.552986: val_loss -0.7219 
+2025-07-13 18:52:42.553327: Pseudo dice [np.float32(0.9546), np.float32(0.8363), np.float32(0.8293), np.float32(0.9067), np.float32(0.8374), np.float32(0.6515), np.float32(0.8453), np.float32(0.8682), np.float32(0.8516), np.float32(0.821), np.float32(0.9005), np.float32(0.8852)] 
+2025-07-13 18:52:42.553525: Epoch time: 157.9 s 
+2025-07-13 18:52:42.553640: Yayy! New best EMA pseudo Dice: 0.8392999768257141 
+2025-07-13 18:52:46.393602:  
+2025-07-13 18:52:46.393904: Epoch 47 
+2025-07-13 18:52:46.394094: Current learning rate: 0.00079 
+2025-07-13 18:55:32.585974: train_loss -0.7295 
+2025-07-13 18:55:32.599434: val_loss -0.7201 
+2025-07-13 18:55:32.599844: Pseudo dice [np.float32(0.9553), np.float32(0.8385), np.float32(0.8263), np.float32(0.904), np.float32(0.8334), np.float32(0.6558), np.float32(0.835), np.float32(0.8717), np.float32(0.8541), np.float32(0.8186), np.float32(0.8979), np.float32(0.8857)] 
+2025-07-13 18:55:32.600090: Epoch time: 166.19 s 
+2025-07-13 18:55:32.600250: Yayy! New best EMA pseudo Dice: 0.8402000069618225 
+2025-07-13 18:55:39.888630:  
+2025-07-13 18:55:39.888915: Epoch 48 
+2025-07-13 18:55:39.889081: Current learning rate: 0.00055 
+2025-07-13 18:58:19.911683: train_loss -0.7368 
+2025-07-13 18:58:19.912088: val_loss -0.7283 
+2025-07-13 18:58:19.912376: Pseudo dice [np.float32(0.9573), np.float32(0.8384), np.float32(0.8267), np.float32(0.9073), np.float32(0.8211), np.float32(0.6534), np.float32(0.8471), np.float32(0.8762), np.float32(0.8593), np.float32(0.8181), np.float32(0.9025), np.float32(0.8899)] 
+2025-07-13 18:58:19.912582: Epoch time: 160.02 s 
+2025-07-13 18:58:19.912720: Yayy! New best EMA pseudo Dice: 0.8410999774932861 
+2025-07-13 18:58:23.368613:  
+2025-07-13 18:58:23.368957: Epoch 49 
+2025-07-13 18:58:23.369202: Current learning rate: 0.0003 
+2025-07-13 19:01:07.808772: train_loss -0.7308 
+2025-07-13 19:01:07.810002: val_loss -0.7336 
+2025-07-13 19:01:07.810637: Pseudo dice [np.float32(0.9567), np.float32(0.8386), np.float32(0.8259), np.float32(0.9066), np.float32(0.8411), np.float32(0.6614), np.float32(0.8458), np.float32(0.8759), np.float32(0.8553), np.float32(0.8292), np.float32(0.9045), np.float32(0.8907)] 
+2025-07-13 19:01:07.811375: Epoch time: 164.44 s 
+2025-07-13 19:01:07.811720: Yayy! New best EMA pseudo Dice: 0.8422999978065491 
+2025-07-13 19:01:13.495549: Training done. 
+2025-07-13 19:01:13.824435: Using splits from existing split file: /content/nnUNet/nnUNet/nnUNet_preprocessed/Dataset001_BoneRegion/splits_final.json 
+2025-07-13 19:01:13.847286: The split file contains 5 splits. 
+2025-07-13 19:01:13.848018: Desired fold for training: 0 
+2025-07-13 19:01:13.848167: This split has 2835 training and 709 validation cases. 
+2025-07-13 19:01:14.025937: predicting 1000_Posterior 
+2025-07-13 19:01:14.144408: 1000_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:39.369746: predicting 1001_Anterior 
+2025-07-13 19:02:39.399257: 1001_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:39.581260: predicting 1003_Posterior 
+2025-07-13 19:02:39.612322: 1003_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:39.830049: predicting 1005_Anterior 
+2025-07-13 19:02:39.849591: 1005_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:40.194440: predicting 1009_Posterior 
+2025-07-13 19:02:40.215347: 1009_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:40.440437: predicting 100_Anterior 
+2025-07-13 19:02:40.466265: 100_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:40.617600: predicting 1013_Posterior 
+2025-07-13 19:02:40.627247: 1013_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:40.994439: predicting 1015_Anterior 
+2025-07-13 19:02:41.012037: 1015_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:41.223440: predicting 1017_Anterior 
+2025-07-13 19:02:41.252603: 1017_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:41.503340: predicting 1019_Anterior 
+2025-07-13 19:02:41.526216: 1019_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:41.626606: predicting 1019_Posterior 
+2025-07-13 19:02:41.646133: 1019_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:41.745260: predicting 1023_Anterior 
+2025-07-13 19:02:41.761549: 1023_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:41.835067: predicting 1025_Posterior 
+2025-07-13 19:02:41.846814: 1025_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:41.916906: predicting 1027_Posterior 
+2025-07-13 19:02:41.922828: 1027_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:41.997178: predicting 1029_Anterior 
+2025-07-13 19:02:42.018454: 1029_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:42.080236: predicting 102_Posterior 
+2025-07-13 19:02:42.097120: 102_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:42.159884: predicting 1034_Posterior 
+2025-07-13 19:02:42.186527: 1034_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:42.262513: predicting 1035_Anterior 
+2025-07-13 19:02:42.268785: 1035_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:42.338089: predicting 1036_Anterior 
+2025-07-13 19:02:42.357998: 1036_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:42.420469: predicting 1036_Posterior 
+2025-07-13 19:02:42.441599: 1036_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:42.503946: predicting 103_Anterior 
+2025-07-13 19:02:42.522338: 103_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:42.583629: predicting 103_Posterior 
+2025-07-13 19:02:42.590043: 103_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:42.659362: predicting 1040_Posterior 
+2025-07-13 19:02:42.678564: 1040_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:42.740875: predicting 1041_Anterior 
+2025-07-13 19:02:42.762924: 1041_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:42.824692: predicting 1044_Posterior 
+2025-07-13 19:02:42.847116: 1044_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:42.910107: predicting 1048_Anterior 
+2025-07-13 19:02:42.932162: 1048_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:42.992388: predicting 1049_Anterior 
+2025-07-13 19:02:43.016212: 1049_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:43.077741: predicting 104_Posterior 
+2025-07-13 19:02:43.083221: 104_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:43.153343: predicting 1050_Anterior 
+2025-07-13 19:02:43.177145: 1050_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:43.251410: predicting 1052_Posterior 
+2025-07-13 19:02:43.273159: 1052_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:43.334445: predicting 1057_Posterior 
+2025-07-13 19:02:43.343077: 1057_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:43.410029: predicting 1064_Posterior 
+2025-07-13 19:02:43.429981: 1064_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:43.494158: predicting 1065_Anterior 
+2025-07-13 19:02:43.524703: 1065_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:43.584395: predicting 1073_Anterior 
+2025-07-13 19:02:43.606647: 1073_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:43.669025: predicting 1074_Posterior 
+2025-07-13 19:02:43.701835: 1074_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:43.762872: predicting 1077_Posterior 
+2025-07-13 19:02:43.788162: 1077_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:43.856609: predicting 1078_Posterior 
+2025-07-13 19:02:43.876423: 1078_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:43.941207: predicting 1081_Anterior 
+2025-07-13 19:02:43.947332: 1081_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:44.017924: predicting 1085_Anterior 
+2025-07-13 19:02:44.038716: 1085_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:44.100112: predicting 1086_Posterior 
+2025-07-13 19:02:44.120325: 1086_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:44.183527: predicting 1087_Anterior 
+2025-07-13 19:02:44.200599: 1087_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:44.272444: predicting 1092_Anterior 
+2025-07-13 19:02:44.309645: 1092_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:44.401152: predicting 1092_Posterior 
+2025-07-13 19:02:44.425320: 1092_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:44.490077: predicting 1098_Anterior 
+2025-07-13 19:02:44.495697: 1098_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:44.564939: predicting 1101_Anterior 
+2025-07-13 19:02:44.589550: 1101_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:44.653489: predicting 110_Posterior 
+2025-07-13 19:02:44.673538: 110_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:44.736547: predicting 1110_Anterior 
+2025-07-13 19:02:44.743681: 1110_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:44.811100: predicting 1113_Anterior 
+2025-07-13 19:02:44.833636: 1113_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:44.896262: predicting 1120_Anterior 
+2025-07-13 19:02:44.916508: 1120_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:44.977601: predicting 1121_Anterior 
+2025-07-13 19:02:44.996653: 1121_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:45.058295: predicting 1124_Anterior 
+2025-07-13 19:02:45.077474: 1124_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:45.140437: predicting 1128_Anterior 
+2025-07-13 19:02:45.158019: 1128_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:45.220094: predicting 1137_Posterior 
+2025-07-13 19:02:45.226748: 1137_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:45.308971: predicting 113_Posterior 
+2025-07-13 19:02:45.333628: 113_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:45.401359: predicting 1141_Anterior 
+2025-07-13 19:02:45.428900: 1141_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:45.491717: predicting 1142_Posterior 
+2025-07-13 19:02:45.510554: 1142_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:45.576201: predicting 1143_Anterior 
+2025-07-13 19:02:45.595208: 1143_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:45.659164: predicting 1143_Posterior 
+2025-07-13 19:02:45.675301: 1143_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:45.739275: predicting 1144_Anterior 
+2025-07-13 19:02:45.758330: 1144_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:45.820339: predicting 1147_Anterior 
+2025-07-13 19:02:45.847010: 1147_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:45.908729: predicting 1148_Posterior 
+2025-07-13 19:02:45.915276: 1148_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:45.985009: predicting 1151_Anterior 
+2025-07-13 19:02:45.990959: 1151_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:46.061013: predicting 1151_Posterior 
+2025-07-13 19:02:46.081593: 1151_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:46.145257: predicting 1154_Posterior 
+2025-07-13 19:02:46.161999: 1154_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:46.224271: predicting 1155_Posterior 
+2025-07-13 19:02:46.243118: 1155_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:46.305183: predicting 1157_Anterior 
+2025-07-13 19:02:46.326233: 1157_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:46.389452: predicting 1157_Posterior 
+2025-07-13 19:02:46.395290: 1157_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:46.466694: predicting 1170_Posterior 
+2025-07-13 19:02:46.491463: 1170_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:46.553467: predicting 1172_Posterior 
+2025-07-13 19:02:46.559364: 1172_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:46.630322: predicting 1177_Anterior 
+2025-07-13 19:02:46.651807: 1177_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:46.713528: predicting 1178_Posterior 
+2025-07-13 19:02:46.719419: 1178_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:46.790194: predicting 1179_Anterior 
+2025-07-13 19:02:46.813458: 1179_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:46.876080: predicting 1180_Anterior 
+2025-07-13 19:02:46.897913: 1180_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:46.960011: predicting 1182_Anterior 
+2025-07-13 19:02:46.966314: 1182_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:47.034664: predicting 1185_Anterior 
+2025-07-13 19:02:47.057799: 1185_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:47.119885: predicting 118_Posterior 
+2025-07-13 19:02:47.140724: 118_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:47.202760: predicting 1192_Anterior 
+2025-07-13 19:02:47.220864: 1192_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:47.283627: predicting 1196_Posterior 
+2025-07-13 19:02:47.306832: 1196_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:47.370064: predicting 1203_Anterior 
+2025-07-13 19:02:47.399431: 1203_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:47.462690: predicting 1203_Posterior 
+2025-07-13 19:02:47.472488: 1203_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:47.539518: predicting 1208_Posterior 
+2025-07-13 19:02:47.546018: 1208_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:47.617088: predicting 1209_Posterior 
+2025-07-13 19:02:47.635802: 1209_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:47.700433: predicting 120_Posterior 
+2025-07-13 19:02:47.705426: 120_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:47.774653: predicting 1214_Posterior 
+2025-07-13 19:02:47.798154: 1214_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:47.859794: predicting 1215_Anterior 
+2025-07-13 19:02:47.880095: 1215_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:47.943024: predicting 1217_Anterior 
+2025-07-13 19:02:47.962971: 1217_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:48.024942: predicting 1218_Posterior 
+2025-07-13 19:02:48.030970: 1218_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:48.101182: predicting 1220_Anterior 
+2025-07-13 19:02:48.126952: 1220_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:48.188101: predicting 1221_Anterior 
+2025-07-13 19:02:48.209218: 1221_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:48.271159: predicting 1221_Posterior 
+2025-07-13 19:02:48.289953: 1221_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:48.353631: predicting 1222_Posterior 
+2025-07-13 19:02:48.360167: 1222_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:48.428417: predicting 1226_Posterior 
+2025-07-13 19:02:48.434059: 1226_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:48.512268: predicting 122_Anterior 
+2025-07-13 19:02:48.529708: 122_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:48.596734: predicting 1236_Anterior 
+2025-07-13 19:02:48.620038: 1236_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:48.703171: predicting 1247_Posterior 
+2025-07-13 19:02:48.733270: 1247_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:48.797447: predicting 1250_Posterior 
+2025-07-13 19:02:48.826531: 1250_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:48.920118: predicting 1252_Posterior 
+2025-07-13 19:02:48.949831: 1252_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:49.038070: predicting 1256_Anterior 
+2025-07-13 19:02:49.060288: 1256_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:49.162803: predicting 1259_Posterior 
+2025-07-13 19:02:49.180245: 1259_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:49.276535: predicting 1265_Posterior 
+2025-07-13 19:02:49.312236: 1265_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:49.404630: predicting 1266_Anterior 
+2025-07-13 19:02:49.434949: 1266_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:49.539188: predicting 1269_Anterior 
+2025-07-13 19:02:49.554589: 1269_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:49.641708: predicting 1269_Posterior 
+2025-07-13 19:02:49.672567: 1269_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:49.765212: predicting 1271_Anterior 
+2025-07-13 19:02:49.778098: 1271_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:49.863266: predicting 1275_Posterior 
+2025-07-13 19:02:49.868810: 1275_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:49.978542: predicting 1281_Anterior 
+2025-07-13 19:02:49.995942: 1281_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:50.089981: predicting 1284_Posterior 
+2025-07-13 19:02:50.119742: 1284_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:50.220483: predicting 1287_Anterior 
+2025-07-13 19:02:50.225733: 1287_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:50.322568: predicting 1287_Posterior 
+2025-07-13 19:02:50.328486: 1287_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:50.437626: predicting 1288_Anterior 
+2025-07-13 19:02:50.463528: 1288_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:50.553849: predicting 1291_Anterior 
+2025-07-13 19:02:50.564811: 1291_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:50.676512: predicting 1299_Anterior 
+2025-07-13 19:02:50.699157: 1299_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:50.798052: predicting 129_Posterior 
+2025-07-13 19:02:50.802658: 129_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:50.907115: predicting 12_Posterior 
+2025-07-13 19:02:50.927913: 12_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:51.022726: predicting 1305_Posterior 
+2025-07-13 19:02:51.047749: 1305_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:51.143315: predicting 1306_Anterior 
+2025-07-13 19:02:51.165996: 1306_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:51.253098: predicting 1309_Anterior 
+2025-07-13 19:02:51.264743: 1309_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:51.354078: predicting 1313_Anterior 
+2025-07-13 19:02:51.386181: 1313_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:51.487402: predicting 1314_Anterior 
+2025-07-13 19:02:51.511079: 1314_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:51.608680: predicting 1314_Posterior 
+2025-07-13 19:02:51.627663: 1314_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:51.734770: predicting 1315_Posterior 
+2025-07-13 19:02:51.748016: 1315_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:51.858009: predicting 1317_Posterior 
+2025-07-13 19:02:51.864450: 1317_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:51.963058: predicting 1319_Posterior 
+2025-07-13 19:02:51.969414: 1319_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:52.064719: predicting 1322_Anterior 
+2025-07-13 19:02:52.081331: 1322_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:52.179724: predicting 1325_Posterior 
+2025-07-13 19:02:52.200713: 1325_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:52.263220: predicting 1327_Anterior 
+2025-07-13 19:02:52.285986: 1327_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:52.351243: predicting 1328_Posterior 
+2025-07-13 19:02:52.374828: 1328_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:52.437730: predicting 1331_Anterior 
+2025-07-13 19:02:52.444205: 1331_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:52.513368: predicting 1331_Posterior 
+2025-07-13 19:02:52.532507: 1331_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:52.595278: predicting 1332_Anterior 
+2025-07-13 19:02:52.601804: 1332_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:52.670727: predicting 1338_Anterior 
+2025-07-13 19:02:52.691196: 1338_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:52.755564: predicting 1339_Posterior 
+2025-07-13 19:02:52.761256: 1339_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:52.831959: predicting 1340_Posterior 
+2025-07-13 19:02:52.837460: 1340_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:52.908908: predicting 1345_Anterior 
+2025-07-13 19:02:52.914497: 1345_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:52.985732: predicting 1345_Posterior 
+2025-07-13 19:02:53.005017: 1345_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:53.067081: predicting 134_Anterior 
+2025-07-13 19:02:53.088693: 134_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:53.151511: predicting 1350_Anterior 
+2025-07-13 19:02:53.166825: 1350_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:53.230401: predicting 1356_Posterior 
+2025-07-13 19:02:53.235860: 1356_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:53.306328: predicting 1363_Anterior 
+2025-07-13 19:02:53.330659: 1363_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:53.393490: predicting 1363_Posterior 
+2025-07-13 19:02:53.399510: 1363_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:53.469856: predicting 1365_Anterior 
+2025-07-13 19:02:53.493890: 1365_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:53.555895: predicting 1369_Posterior 
+2025-07-13 19:02:53.573660: 1369_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:53.636727: predicting 136_Anterior 
+2025-07-13 19:02:53.655853: 136_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:53.716212: predicting 1370_Posterior 
+2025-07-13 19:02:53.722388: 1370_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:53.800914: predicting 1372_Anterior 
+2025-07-13 19:02:53.820660: 1372_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:53.882915: predicting 1372_Posterior 
+2025-07-13 19:02:53.906386: 1372_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:53.967801: predicting 1375_Posterior 
+2025-07-13 19:02:53.974801: 1375_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:54.043423: predicting 1376_Posterior 
+2025-07-13 19:02:54.062766: 1376_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:54.124581: predicting 1380_Posterior 
+2025-07-13 19:02:54.144412: 1380_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:54.212689: predicting 1382_Anterior 
+2025-07-13 19:02:54.235838: 1382_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:54.304116: predicting 138_Anterior 
+2025-07-13 19:02:54.315802: 138_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:54.382827: predicting 1390_Posterior 
+2025-07-13 19:02:54.405408: 1390_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:54.468468: predicting 1393_Anterior 
+2025-07-13 19:02:54.492318: 1393_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:54.553868: predicting 1399_Posterior 
+2025-07-13 19:02:54.560110: 1399_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:54.632786: predicting 1400_Anterior 
+2025-07-13 19:02:54.654072: 1400_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:54.716602: predicting 1400_Posterior 
+2025-07-13 19:02:54.751430: 1400_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:54.810308: predicting 1403_Posterior 
+2025-07-13 19:02:54.844331: 1403_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:54.913630: predicting 1404_Anterior 
+2025-07-13 19:02:54.919038: 1404_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:54.990990: predicting 1405_Anterior 
+2025-07-13 19:02:55.009477: 1405_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:55.072767: predicting 1407_Anterior 
+2025-07-13 19:02:55.078364: 1407_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:55.149583: predicting 1407_Posterior 
+2025-07-13 19:02:55.155681: 1407_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:55.230873: predicting 1409_Anterior 
+2025-07-13 19:02:55.249662: 1409_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:55.314640: predicting 1413_Posterior 
+2025-07-13 19:02:55.340047: 1413_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:55.402797: predicting 1415_Anterior 
+2025-07-13 19:02:55.408617: 1415_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:55.479010: predicting 1419_Anterior 
+2025-07-13 19:02:55.491615: 1419_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:55.556786: predicting 1420_Anterior 
+2025-07-13 19:02:55.563024: 1420_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:55.634967: predicting 1420_Posterior 
+2025-07-13 19:02:55.656584: 1420_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:55.722995: predicting 1421_Posterior 
+2025-07-13 19:02:55.740388: 1421_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:55.803919: predicting 1424_Posterior 
+2025-07-13 19:02:55.824035: 1424_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:55.888861: predicting 1427_Posterior 
+2025-07-13 19:02:55.911715: 1427_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:55.974422: predicting 1430_Anterior 
+2025-07-13 19:02:55.982778: 1430_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:56.052119: predicting 1441_Anterior 
+2025-07-13 19:02:56.070511: 1441_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:56.133941: predicting 1443_Posterior 
+2025-07-13 19:02:56.140523: 1443_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:56.211029: predicting 1444_Anterior 
+2025-07-13 19:02:56.229467: 1444_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:56.292970: predicting 1449_Anterior 
+2025-07-13 19:02:56.330341: 1449_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:56.390148: predicting 1451_Posterior 
+2025-07-13 19:02:56.412596: 1451_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:56.474764: predicting 1452_Posterior 
+2025-07-13 19:02:56.499675: 1452_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:56.561427: predicting 1454_Posterior 
+2025-07-13 19:02:56.568375: 1454_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:56.642148: predicting 1462_Anterior 
+2025-07-13 19:02:56.648149: 1462_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:56.718256: predicting 1468_Anterior 
+2025-07-13 19:02:56.742976: 1468_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:56.804558: predicting 1470_Anterior 
+2025-07-13 19:02:56.836623: 1470_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:56.910323: predicting 1474_Posterior 
+2025-07-13 19:02:56.932152: 1474_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:56.995524: predicting 1478_Posterior 
+2025-07-13 19:02:57.018039: 1478_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:57.082868: predicting 1482_Anterior 
+2025-07-13 19:02:57.103382: 1482_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:57.164829: predicting 1483_Posterior 
+2025-07-13 19:02:57.186647: 1483_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:57.249061: predicting 1484_Anterior 
+2025-07-13 19:02:57.267383: 1484_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:57.331305: predicting 1486_Posterior 
+2025-07-13 19:02:57.353061: 1486_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:57.417153: predicting 1494_Posterior 
+2025-07-13 19:02:57.423299: 1494_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:57.494944: predicting 1495_Anterior 
+2025-07-13 19:02:57.517083: 1495_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:57.580582: predicting 1499_Anterior 
+2025-07-13 19:02:57.607127: 1499_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:57.669414: predicting 14_Anterior 
+2025-07-13 19:02:57.675806: 14_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:57.745610: predicting 1505_Posterior 
+2025-07-13 19:02:57.765324: 1505_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:57.827720: predicting 1508_Anterior 
+2025-07-13 19:02:57.847615: 1508_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:57.913045: predicting 1513_Posterior 
+2025-07-13 19:02:57.919283: 1513_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:58.006217: predicting 1516_Anterior 
+2025-07-13 19:02:58.026709: 1516_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:58.090498: predicting 1519_Posterior 
+2025-07-13 19:02:58.111108: 1519_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:58.174404: predicting 1520_Posterior 
+2025-07-13 19:02:58.198035: 1520_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:58.259816: predicting 1523_Posterior 
+2025-07-13 19:02:58.282585: 1523_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:58.345987: predicting 1524_Posterior 
+2025-07-13 19:02:58.352827: 1524_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:58.424289: predicting 1528_Posterior 
+2025-07-13 19:02:58.441648: 1528_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:58.504322: predicting 1530_Anterior 
+2025-07-13 19:02:58.525440: 1530_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:58.586738: predicting 1536_Anterior 
+2025-07-13 19:02:58.600810: 1536_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:58.668094: predicting 1536_Posterior 
+2025-07-13 19:02:58.674551: 1536_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:58.746014: predicting 1537_Anterior 
+2025-07-13 19:02:58.770478: 1537_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:58.831965: predicting 1539_Posterior 
+2025-07-13 19:02:58.854725: 1539_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:58.918311: predicting 1549_Anterior 
+2025-07-13 19:02:58.941196: 1549_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:59.005141: predicting 1553_Posterior 
+2025-07-13 19:02:59.034859: 1553_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:59.095735: predicting 1555_Posterior 
+2025-07-13 19:02:59.119714: 1555_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:59.182835: predicting 1561_Anterior 
+2025-07-13 19:02:59.203048: 1561_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:59.265821: predicting 1564_Anterior 
+2025-07-13 19:02:59.286742: 1564_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:59.350390: predicting 1570_Posterior 
+2025-07-13 19:02:59.363760: 1570_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:59.431623: predicting 1571_Anterior 
+2025-07-13 19:02:59.448904: 1571_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:59.513065: predicting 1573_Anterior 
+2025-07-13 19:02:59.534484: 1573_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:59.596308: predicting 1576_Anterior 
+2025-07-13 19:02:59.617632: 1576_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:59.679843: predicting 1576_Posterior 
+2025-07-13 19:02:59.702094: 1576_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:59.764838: predicting 1578_Anterior 
+2025-07-13 19:02:59.781048: 1578_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:59.843625: predicting 1578_Posterior 
+2025-07-13 19:02:59.862527: 1578_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:02:59.925295: predicting 158_Posterior 
+2025-07-13 19:02:59.951329: 158_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:00.014071: predicting 1596_Posterior 
+2025-07-13 19:03:00.044639: 1596_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:00.116303: predicting 1604_Anterior 
+2025-07-13 19:03:00.123491: 1604_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:00.194004: predicting 1607_Anterior 
+2025-07-13 19:03:00.200041: 1607_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:00.271297: predicting 1609_Anterior 
+2025-07-13 19:03:00.282825: 1609_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:00.349379: predicting 1612_Anterior 
+2025-07-13 19:03:00.355448: 1612_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:00.426738: predicting 1615_Anterior 
+2025-07-13 19:03:00.445840: 1615_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:00.509338: predicting 1616_Posterior 
+2025-07-13 19:03:00.536493: 1616_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:00.599912: predicting 1618_Anterior 
+2025-07-13 19:03:00.621644: 1618_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:00.685000: predicting 1618_Posterior 
+2025-07-13 19:03:00.691043: 1618_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:00.761302: predicting 1619_Posterior 
+2025-07-13 19:03:00.783630: 1619_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:00.846112: predicting 161_Posterior 
+2025-07-13 19:03:00.859655: 161_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:00.924401: predicting 1624_Anterior 
+2025-07-13 19:03:00.930383: 1624_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:00.997776: predicting 1626_Anterior 
+2025-07-13 19:03:01.023924: 1626_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:01.097363: predicting 1628_Anterior 
+2025-07-13 19:03:01.119076: 1628_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:01.182888: predicting 1629_Anterior 
+2025-07-13 19:03:01.190031: 1629_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:01.259632: predicting 1629_Posterior 
+2025-07-13 19:03:01.285432: 1629_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:01.349855: predicting 162_Anterior 
+2025-07-13 19:03:01.355325: 162_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:01.424747: predicting 1631_Anterior 
+2025-07-13 19:03:01.431542: 1631_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:01.502743: predicting 1631_Posterior 
+2025-07-13 19:03:01.524338: 1631_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:01.586410: predicting 1634_Anterior 
+2025-07-13 19:03:01.606754: 1634_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:01.671201: predicting 1638_Posterior 
+2025-07-13 19:03:01.677224: 1638_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:01.748632: predicting 1642_Posterior 
+2025-07-13 19:03:01.769816: 1642_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:01.832845: predicting 1644_Anterior 
+2025-07-13 19:03:01.838144: 1644_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:01.910977: predicting 1646_Posterior 
+2025-07-13 19:03:01.930509: 1646_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:01.993450: predicting 1653_Posterior 
+2025-07-13 19:03:01.999430: 1653_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:02.069418: predicting 1656_Posterior 
+2025-07-13 19:03:02.076233: 1656_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:02.159852: predicting 1657_Posterior 
+2025-07-13 19:03:02.178547: 1657_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:02.258036: predicting 1658_Anterior 
+2025-07-13 19:03:02.263475: 1658_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:02.341303: predicting 1664_Posterior 
+2025-07-13 19:03:02.360934: 1664_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:02.469883: predicting 1665_Anterior 
+2025-07-13 19:03:02.475761: 1665_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:02.567936: predicting 1667_Posterior 
+2025-07-13 19:03:02.593251: 1667_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:02.695909: predicting 166_Anterior 
+2025-07-13 19:03:02.701288: 166_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:02.805016: predicting 1670_Anterior 
+2025-07-13 19:03:02.828085: 1670_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:02.914814: predicting 1672_Anterior 
+2025-07-13 19:03:02.940136: 1672_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:03.030596: predicting 1677_Anterior 
+2025-07-13 19:03:03.041700: 1677_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:03.140089: predicting 1681_Anterior 
+2025-07-13 19:03:03.167642: 1681_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:03.263303: predicting 1684_Posterior 
+2025-07-13 19:03:03.289711: 1684_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:03.382659: predicting 168_Anterior 
+2025-07-13 19:03:03.389645: 168_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:03.485625: predicting 1690_Anterior 
+2025-07-13 19:03:03.515932: 1690_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:03.605609: predicting 1692_Posterior 
+2025-07-13 19:03:03.625888: 1692_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:03.725936: predicting 1695_Posterior 
+2025-07-13 19:03:03.747586: 1695_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:03.838058: predicting 169_Anterior 
+2025-07-13 19:03:03.869050: 169_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:03.965529: predicting 169_Posterior 
+2025-07-13 19:03:03.983747: 169_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:04.082237: predicting 1701_Posterior 
+2025-07-13 19:03:04.105086: 1701_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:04.187618: predicting 1704_Anterior 
+2025-07-13 19:03:04.220061: 1704_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:04.325198: predicting 170_Anterior 
+2025-07-13 19:03:04.347741: 170_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:04.422235: predicting 1726_Anterior 
+2025-07-13 19:03:04.452328: 1726_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:04.554424: predicting 1727_Anterior 
+2025-07-13 19:03:04.570610: 1727_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:04.668301: predicting 1727_Posterior 
+2025-07-13 19:03:04.691515: 1727_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:04.775925: predicting 1735_Posterior 
+2025-07-13 19:03:04.783122: 1735_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:04.869752: predicting 1738_Anterior 
+2025-07-13 19:03:04.887191: 1738_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:04.968338: predicting 1739_Posterior 
+2025-07-13 19:03:04.975574: 1739_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:05.066146: predicting 173_Posterior 
+2025-07-13 19:03:05.085542: 173_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:05.195405: predicting 1747_Posterior 
+2025-07-13 19:03:05.219869: 1747_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:05.313110: predicting 1752_Posterior 
+2025-07-13 19:03:05.341621: 1752_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:05.454606: predicting 1757_Anterior 
+2025-07-13 19:03:05.460024: 1757_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:05.538317: predicting 1767_Anterior 
+2025-07-13 19:03:05.570022: 1767_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:05.658975: predicting 1770_Posterior 
+2025-07-13 19:03:05.664786: 1770_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:05.747024: predicting 1771_Anterior 
+2025-07-13 19:03:05.780035: 1771_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:05.871064: predicting 1774_Posterior 
+2025-07-13 19:03:05.876901: 1774_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:05.959420: predicting 1775_Anterior 
+2025-07-13 19:03:05.981908: 1775_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:06.070078: predicting 177_Posterior 
+2025-07-13 19:03:06.090837: 177_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:06.155527: predicting 1784_Posterior 
+2025-07-13 19:03:06.162776: 1784_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:06.231221: predicting 1786_Anterior 
+2025-07-13 19:03:06.253249: 1786_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:06.317421: predicting 1786_Posterior 
+2025-07-13 19:03:06.348659: 1786_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:06.421592: predicting 1788_Anterior 
+2025-07-13 19:03:06.443151: 1788_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:06.510170: predicting 1791_Posterior 
+2025-07-13 19:03:06.529560: 1791_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:06.592613: predicting 1793_Posterior 
+2025-07-13 19:03:06.599074: 1793_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:06.670688: predicting 1795_Posterior 
+2025-07-13 19:03:06.676309: 1795_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:06.747796: predicting 1800_Anterior 
+2025-07-13 19:03:06.755638: 1800_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:06.826075: predicting 1801_Posterior 
+2025-07-13 19:03:06.852923: 1801_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:06.915064: predicting 1802_Posterior 
+2025-07-13 19:03:06.922321: 1802_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:07.004374: predicting 1803_Anterior 
+2025-07-13 19:03:07.036429: 1803_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:07.128500: predicting 180_Anterior 
+2025-07-13 19:03:07.138466: 180_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:07.203042: predicting 1812_Anterior 
+2025-07-13 19:03:07.209318: 1812_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:07.281302: predicting 1812_Posterior 
+2025-07-13 19:03:07.305169: 1812_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:07.366153: predicting 1816_Anterior 
+2025-07-13 19:03:07.386667: 1816_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:07.460841: predicting 1818_Anterior 
+2025-07-13 19:03:07.479396: 1818_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:07.541640: predicting 181_Posterior 
+2025-07-13 19:03:07.571505: 181_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:07.633455: predicting 1820_Anterior 
+2025-07-13 19:03:07.639620: 1820_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:07.711416: predicting 1820_Posterior 
+2025-07-13 19:03:07.730830: 1820_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:07.793824: predicting 1825_Anterior 
+2025-07-13 19:03:07.800387: 1825_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:07.873207: predicting 1829_Posterior 
+2025-07-13 19:03:07.895623: 1829_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:07.957956: predicting 1830_Anterior 
+2025-07-13 19:03:07.980869: 1830_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:08.042978: predicting 1835_Posterior 
+2025-07-13 19:03:08.064711: 1835_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:08.134149: predicting 1837_Posterior 
+2025-07-13 19:03:08.166212: 1837_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:08.230503: predicting 1846_Posterior 
+2025-07-13 19:03:08.249994: 1846_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:08.314049: predicting 1849_Anterior 
+2025-07-13 19:03:08.336146: 1849_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:08.398431: predicting 184_Anterior 
+2025-07-13 19:03:08.420132: 184_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:08.492488: predicting 1853_Posterior 
+2025-07-13 19:03:08.509124: 1853_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:08.571469: predicting 1854_Posterior 
+2025-07-13 19:03:08.585413: 1854_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:08.652163: predicting 1856_Posterior 
+2025-07-13 19:03:08.668810: 1856_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:08.733469: predicting 1858_Anterior 
+2025-07-13 19:03:08.740135: 1858_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:08.810730: predicting 1860_Anterior 
+2025-07-13 19:03:08.832534: 1860_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:08.894979: predicting 1865_Anterior 
+2025-07-13 19:03:08.916409: 1865_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:08.980107: predicting 1869_Posterior 
+2025-07-13 19:03:09.002611: 1869_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:09.065133: predicting 186_Anterior 
+2025-07-13 19:03:09.098919: 186_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:09.160942: predicting 1873_Anterior 
+2025-07-13 19:03:09.179872: 1873_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:09.244218: predicting 1874_Posterior 
+2025-07-13 19:03:09.249997: 1874_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:09.326338: predicting 1875_Anterior 
+2025-07-13 19:03:09.348658: 1875_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:09.411603: predicting 188_Anterior 
+2025-07-13 19:03:09.430290: 188_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:09.493058: predicting 188_Posterior 
+2025-07-13 19:03:09.522287: 188_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:09.589553: predicting 1897_Posterior 
+2025-07-13 19:03:09.608765: 1897_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:09.671757: predicting 1901_Anterior 
+2025-07-13 19:03:09.692227: 1901_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:09.755456: predicting 1902_Anterior 
+2025-07-13 19:03:09.776271: 1902_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:09.838413: predicting 1907_Posterior 
+2025-07-13 19:03:09.845181: 1907_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:09.918198: predicting 1911_Anterior 
+2025-07-13 19:03:09.941687: 1911_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:10.003908: predicting 1914_Anterior 
+2025-07-13 19:03:10.024910: 1914_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:10.088337: predicting 1924_Anterior 
+2025-07-13 19:03:10.093993: 1924_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:10.163952: predicting 1924_Posterior 
+2025-07-13 19:03:10.169764: 1924_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:10.239017: predicting 1931_Posterior 
+2025-07-13 19:03:10.266268: 1931_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:10.328889: predicting 1932_Posterior 
+2025-07-13 19:03:10.335863: 1932_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:10.407660: predicting 1934_Posterior 
+2025-07-13 19:03:10.429502: 1934_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:10.493222: predicting 1938_Anterior 
+2025-07-13 19:03:10.499617: 1938_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:10.576751: predicting 1944_Posterior 
+2025-07-13 19:03:10.596961: 1944_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:10.661585: predicting 1945_Anterior 
+2025-07-13 19:03:10.684999: 1945_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:10.749305: predicting 1947_Anterior 
+2025-07-13 19:03:10.771443: 1947_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:10.842276: predicting 1947_Posterior 
+2025-07-13 19:03:10.861479: 1947_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:10.925398: predicting 194_Posterior 
+2025-07-13 19:03:10.942820: 194_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:11.006368: predicting 195_Posterior 
+2025-07-13 19:03:11.026941: 195_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:11.090199: predicting 1963_Anterior 
+2025-07-13 19:03:11.111969: 1963_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:11.173810: predicting 1964_Posterior 
+2025-07-13 19:03:11.196348: 1964_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:11.258819: predicting 1971_Posterior 
+2025-07-13 19:03:11.280353: 1971_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:11.343514: predicting 1985_Posterior 
+2025-07-13 19:03:11.362187: 1985_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:11.425861: predicting 2001_Posterior 
+2025-07-13 19:03:11.445581: 2001_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:11.508164: predicting 2002_Anterior 
+2025-07-13 19:03:11.514808: 2002_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:11.586288: predicting 2003_Anterior 
+2025-07-13 19:03:11.621513: 2003_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:11.683639: predicting 2007_Posterior 
+2025-07-13 19:03:11.692592: 2007_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:11.765767: predicting 2012_Anterior 
+2025-07-13 19:03:11.771794: 2012_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:11.843514: predicting 2013_Posterior 
+2025-07-13 19:03:11.849190: 2013_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:11.919674: predicting 2014_Posterior 
+2025-07-13 19:03:11.926921: 2014_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:11.998172: predicting 2016_Anterior 
+2025-07-13 19:03:12.004745: 2016_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:12.076320: predicting 2022_Posterior 
+2025-07-13 19:03:12.082242: 2022_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:12.153572: predicting 2026_Posterior 
+2025-07-13 19:03:12.177299: 2026_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:12.241600: predicting 2030_Anterior 
+2025-07-13 19:03:12.264683: 2030_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:12.326809: predicting 2031_Posterior 
+2025-07-13 19:03:12.348911: 2031_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:12.410756: predicting 2033_Posterior 
+2025-07-13 19:03:12.429398: 2033_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:12.492942: predicting 2035_Anterior 
+2025-07-13 19:03:12.510919: 2035_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:12.574883: predicting 2039_Anterior 
+2025-07-13 19:03:12.595529: 2039_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:12.659896: predicting 2039_Posterior 
+2025-07-13 19:03:12.685531: 2039_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:12.748509: predicting 2042_Anterior 
+2025-07-13 19:03:12.767239: 2042_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:12.830939: predicting 2042_Posterior 
+2025-07-13 19:03:12.849975: 2042_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:12.912997: predicting 2046_Anterior 
+2025-07-13 19:03:12.919937: 2046_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:12.989649: predicting 2051_Anterior 
+2025-07-13 19:03:12.995236: 2051_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:13.066056: predicting 2057_Posterior 
+2025-07-13 19:03:13.088627: 2057_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:13.152623: predicting 2059_Posterior 
+2025-07-13 19:03:13.159501: 2059_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:13.227134: predicting 205_Anterior 
+2025-07-13 19:03:13.233115: 205_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:13.302203: predicting 205_Posterior 
+2025-07-13 19:03:13.309118: 205_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:13.379709: predicting 2071_Posterior 
+2025-07-13 19:03:13.418079: 2071_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:13.474525: predicting 2084_Posterior 
+2025-07-13 19:03:13.491678: 2084_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:13.557683: predicting 2092_Posterior 
+2025-07-13 19:03:13.577452: 2092_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:13.641310: predicting 209_Anterior 
+2025-07-13 19:03:13.665696: 209_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:13.749225: predicting 209_Posterior 
+2025-07-13 19:03:13.769674: 209_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:13.832985: predicting 2100_Posterior 
+2025-07-13 19:03:13.856059: 2100_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:13.918178: predicting 2103_Posterior 
+2025-07-13 19:03:13.938446: 2103_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:14.002069: predicting 2106_Posterior 
+2025-07-13 19:03:14.010050: 2106_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:14.081954: predicting 2109_Posterior 
+2025-07-13 19:03:14.105834: 2109_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:14.169830: predicting 2116_Posterior 
+2025-07-13 19:03:14.192253: 2116_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:14.255301: predicting 2126_Posterior 
+2025-07-13 19:03:14.277265: 2126_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:14.342042: predicting 2130_Posterior 
+2025-07-13 19:03:14.347834: 2130_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:14.418644: predicting 2144_Posterior 
+2025-07-13 19:03:14.424508: 2144_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:14.496418: predicting 2148_Posterior 
+2025-07-13 19:03:14.528695: 2148_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:14.589940: predicting 2149_Posterior 
+2025-07-13 19:03:14.613309: 2149_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:14.675074: predicting 214_Anterior 
+2025-07-13 19:03:14.694326: 214_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:14.759984: predicting 2153_Posterior 
+2025-07-13 19:03:14.765682: 2153_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:14.836013: predicting 2154_Posterior 
+2025-07-13 19:03:14.845882: 2154_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:14.925076: predicting 2158_Posterior 
+2025-07-13 19:03:14.947993: 2158_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:15.010933: predicting 2176_Posterior 
+2025-07-13 19:03:15.030959: 2176_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:15.093538: predicting 2179_Posterior 
+2025-07-13 19:03:15.121460: 2179_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:15.184227: predicting 2183_Posterior 
+2025-07-13 19:03:15.190467: 2183_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:15.262703: predicting 2185_Posterior 
+2025-07-13 19:03:15.301343: 2185_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:15.358240: predicting 2207_Posterior 
+2025-07-13 19:03:15.363902: 2207_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:15.436402: predicting 2218_Posterior 
+2025-07-13 19:03:15.460508: 2218_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:15.522528: predicting 2221_Posterior 
+2025-07-13 19:03:15.541884: 2221_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:15.604047: predicting 2242_Posterior 
+2025-07-13 19:03:15.609876: 2242_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:15.679407: predicting 224_Anterior 
+2025-07-13 19:03:15.703114: 224_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:15.775892: predicting 2253_Posterior 
+2025-07-13 19:03:15.797096: 2253_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:15.859985: predicting 225_Anterior 
+2025-07-13 19:03:15.879254: 225_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:15.942165: predicting 2279_Posterior 
+2025-07-13 19:03:15.948444: 2279_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:16.019678: predicting 2283_Posterior 
+2025-07-13 19:03:16.025908: 2283_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:16.114132: predicting 2317_Posterior 
+2025-07-13 19:03:16.143574: 2317_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:16.221247: predicting 2324_Posterior 
+2025-07-13 19:03:16.251230: 2324_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:16.340727: predicting 232_Anterior 
+2025-07-13 19:03:16.363149: 232_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:16.430751: predicting 2331_Anterior 
+2025-07-13 19:03:16.463324: 2331_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:16.564291: predicting 2334_Anterior 
+2025-07-13 19:03:16.586977: 2334_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:16.679723: predicting 233_Anterior 
+2025-07-13 19:03:16.702889: 233_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:16.791203: predicting 233_Posterior 
+2025-07-13 19:03:16.820487: 233_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:16.923678: predicting 2348_Posterior 
+2025-07-13 19:03:16.928969: 2348_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:17.028978: predicting 2349_Posterior 
+2025-07-13 19:03:17.049108: 2349_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:17.140884: predicting 234_Posterior 
+2025-07-13 19:03:17.169101: 234_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:17.267633: predicting 2354_Posterior 
+2025-07-13 19:03:17.272424: 2354_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:17.373487: predicting 2355_Posterior 
+2025-07-13 19:03:17.387592: 2355_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:17.478866: predicting 2356_Posterior 
+2025-07-13 19:03:17.500293: 2356_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:17.582645: predicting 2359_Anterior 
+2025-07-13 19:03:17.608278: 2359_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:17.713514: predicting 235_Anterior 
+2025-07-13 19:03:17.730435: 235_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:17.828290: predicting 2360_Anterior 
+2025-07-13 19:03:17.851488: 2360_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:17.960631: predicting 2361_Anterior 
+2025-07-13 19:03:17.990095: 2361_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:18.083265: predicting 2364_Anterior 
+2025-07-13 19:03:18.108330: 2364_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:18.203393: predicting 2366_Anterior 
+2025-07-13 19:03:18.220772: 2366_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:18.317908: predicting 2367_Posterior 
+2025-07-13 19:03:18.337652: 2367_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:18.433712: predicting 2368_Anterior 
+2025-07-13 19:03:18.440240: 2368_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:18.536758: predicting 2369_Anterior 
+2025-07-13 19:03:18.559705: 2369_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:18.654855: predicting 2372_Anterior 
+2025-07-13 19:03:18.677230: 2372_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:18.779496: predicting 2377_Posterior 
+2025-07-13 19:03:18.803658: 2377_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:18.895410: predicting 2379_Anterior 
+2025-07-13 19:03:18.918595: 2379_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:19.038376: predicting 2379_Posterior 
+2025-07-13 19:03:19.059618: 2379_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:19.147410: predicting 2381_Posterior 
+2025-07-13 19:03:19.165817: 2381_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:19.247599: predicting 2389_Anterior 
+2025-07-13 19:03:19.253597: 2389_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:19.359142: predicting 2392_Anterior 
+2025-07-13 19:03:19.387591: 2392_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:19.470103: predicting 2399_Anterior 
+2025-07-13 19:03:19.495280: 2399_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:19.583833: predicting 239_Anterior 
+2025-07-13 19:03:19.609279: 239_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:19.717682: predicting 239_Posterior 
+2025-07-13 19:03:19.724129: 239_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:19.803826: predicting 2400_Anterior 
+2025-07-13 19:03:19.824850: 2400_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:19.890674: predicting 2407_Anterior 
+2025-07-13 19:03:19.910709: 2407_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:19.974134: predicting 2407_Posterior 
+2025-07-13 19:03:19.980118: 2407_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:20.062169: predicting 2411_Anterior 
+2025-07-13 19:03:20.082730: 2411_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:20.146312: predicting 2412_Posterior 
+2025-07-13 19:03:20.174306: 2412_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:20.240987: predicting 2415_Posterior 
+2025-07-13 19:03:20.267984: 2415_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:20.330823: predicting 2417_Anterior 
+2025-07-13 19:03:20.353800: 2417_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:20.415828: predicting 2417_Posterior 
+2025-07-13 19:03:20.454927: 2417_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:20.514893: predicting 2418_Anterior 
+2025-07-13 19:03:20.535570: 2418_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:20.597267: predicting 2419_Posterior 
+2025-07-13 19:03:20.605819: 2419_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:20.676360: predicting 241_Anterior 
+2025-07-13 19:03:20.693467: 241_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:20.765555: predicting 2420_Anterior 
+2025-07-13 19:03:20.782158: 2420_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:20.844282: predicting 2425_Anterior 
+2025-07-13 19:03:20.865746: 2425_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:20.927539: predicting 2435_Anterior 
+2025-07-13 19:03:20.949405: 2435_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:21.011339: predicting 2437_Posterior 
+2025-07-13 19:03:21.018839: 2437_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:21.101084: predicting 2441_Posterior 
+2025-07-13 19:03:21.122587: 2441_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:21.185116: predicting 2442_Anterior 
+2025-07-13 19:03:21.201396: 2442_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:21.265479: predicting 244_Posterior 
+2025-07-13 19:03:21.289967: 244_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:21.352209: predicting 2451_Anterior 
+2025-07-13 19:03:21.359232: 2451_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:21.429336: predicting 2452_Anterior 
+2025-07-13 19:03:21.452477: 2452_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:21.518913: predicting 2457_Posterior 
+2025-07-13 19:03:21.526393: 2457_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:21.598661: predicting 245_Anterior 
+2025-07-13 19:03:21.621820: 245_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:21.685776: predicting 2461_Anterior 
+2025-07-13 19:03:21.692291: 2461_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:21.762821: predicting 2461_Posterior 
+2025-07-13 19:03:21.785477: 2461_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:21.849276: predicting 2464_Anterior 
+2025-07-13 19:03:21.855678: 2464_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:21.927320: predicting 2465_Anterior 
+2025-07-13 19:03:21.933449: 2465_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:22.005095: predicting 2466_Anterior 
+2025-07-13 19:03:22.023923: 2466_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:22.087105: predicting 2467_Anterior 
+2025-07-13 19:03:22.105561: 2467_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:22.185669: predicting 2469_Posterior 
+2025-07-13 19:03:22.212670: 2469_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:22.277442: predicting 246_Posterior 
+2025-07-13 19:03:22.295938: 246_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:22.359148: predicting 2475_Anterior 
+2025-07-13 19:03:22.376823: 2475_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:22.440429: predicting 2483_Posterior 
+2025-07-13 19:03:22.464708: 2483_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:22.527287: predicting 2484_Anterior 
+2025-07-13 19:03:22.548903: 2484_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:22.616038: predicting 2489_Anterior 
+2025-07-13 19:03:22.637840: 2489_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:22.704376: predicting 2490_Posterior 
+2025-07-13 19:03:22.724423: 2490_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:22.788682: predicting 2495_Posterior 
+2025-07-13 19:03:22.808803: 2495_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:22.872577: predicting 249_Anterior 
+2025-07-13 19:03:22.895788: 249_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:22.958551: predicting 2502_Anterior 
+2025-07-13 19:03:22.981109: 2502_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:23.044358: predicting 2504_Anterior 
+2025-07-13 19:03:23.065378: 2504_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:23.128607: predicting 2505_Posterior 
+2025-07-13 19:03:23.150220: 2505_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:23.217394: predicting 2507_Anterior 
+2025-07-13 19:03:23.234257: 2507_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:23.301396: predicting 2507_Posterior 
+2025-07-13 19:03:23.307344: 2507_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:23.377986: predicting 2509_Anterior 
+2025-07-13 19:03:23.401930: 2509_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:23.466290: predicting 2514_Posterior 
+2025-07-13 19:03:23.492210: 2514_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:23.554360: predicting 2526_Posterior 
+2025-07-13 19:03:23.574440: 2526_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:23.636973: predicting 2527_Anterior 
+2025-07-13 19:03:23.660050: 2527_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:23.723627: predicting 2534_Posterior 
+2025-07-13 19:03:23.730230: 2534_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:23.801434: predicting 2535_Posterior 
+2025-07-13 19:03:23.822040: 2535_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:23.884773: predicting 2537_Anterior 
+2025-07-13 19:03:23.892080: 2537_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:23.963519: predicting 2538_Anterior 
+2025-07-13 19:03:23.989570: 2538_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:24.050602: predicting 2541_Posterior 
+2025-07-13 19:03:24.056463: 2541_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:24.129298: predicting 2544_Anterior 
+2025-07-13 19:03:24.149407: 2544_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:24.215436: predicting 2547_Anterior 
+2025-07-13 19:03:24.221796: 2547_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:24.301790: predicting 2552_Posterior 
+2025-07-13 19:03:24.322315: 2552_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:24.387337: predicting 2553_Anterior 
+2025-07-13 19:03:24.411247: 2553_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:24.472873: predicting 2556_Anterior 
+2025-07-13 19:03:24.481301: 2556_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:24.555775: predicting 255_Posterior 
+2025-07-13 19:03:24.575821: 255_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:24.638633: predicting 2568_Anterior 
+2025-07-13 19:03:24.658287: 2568_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:24.721067: predicting 2568_Posterior 
+2025-07-13 19:03:24.744642: 2568_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:24.808262: predicting 2571_Posterior 
+2025-07-13 19:03:24.827405: 2571_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:24.891584: predicting 2572_Posterior 
+2025-07-13 19:03:24.911960: 2572_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:24.974861: predicting 2575_Anterior 
+2025-07-13 19:03:24.999427: 2575_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:25.061774: predicting 2577_Posterior 
+2025-07-13 19:03:25.069018: 2577_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:25.145097: predicting 2579_Posterior 
+2025-07-13 19:03:25.163876: 2579_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:25.227494: predicting 2581_Posterior 
+2025-07-13 19:03:25.256747: 2581_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:25.329797: predicting 2591_Posterior 
+2025-07-13 19:03:25.352094: 2591_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:25.415894: predicting 2592_Anterior 
+2025-07-13 19:03:25.422299: 2592_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:25.493155: predicting 2594_Anterior 
+2025-07-13 19:03:25.499756: 2594_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:25.571906: predicting 2599_Posterior 
+2025-07-13 19:03:25.599076: 2599_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:25.669789: predicting 2603_Posterior 
+2025-07-13 19:03:25.688316: 2603_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:25.751521: predicting 2606_Posterior 
+2025-07-13 19:03:25.767927: 2606_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:25.831679: predicting 2612_Posterior 
+2025-07-13 19:03:25.853027: 2612_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:25.915506: predicting 2617_Anterior 
+2025-07-13 19:03:25.938468: 2617_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:26.000538: predicting 2618_Anterior 
+2025-07-13 19:03:26.006595: 2618_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:26.076609: predicting 2619_Posterior 
+2025-07-13 19:03:26.098329: 2619_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:26.160335: predicting 261_Anterior 
+2025-07-13 19:03:26.184529: 261_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:26.247663: predicting 2622_Anterior 
+2025-07-13 19:03:26.273574: 2622_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:26.347681: predicting 2622_Posterior 
+2025-07-13 19:03:26.364553: 2622_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:26.428718: predicting 2624_Anterior 
+2025-07-13 19:03:26.435706: 2624_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:26.506679: predicting 2626_Anterior 
+2025-07-13 19:03:26.513847: 2626_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:26.584719: predicting 2627_Anterior 
+2025-07-13 19:03:26.598881: 2627_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:26.665814: predicting 2629_Anterior 
+2025-07-13 19:03:26.684521: 2629_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:26.747676: predicting 2629_Posterior 
+2025-07-13 19:03:26.763983: 2629_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:26.827522: predicting 2632_Posterior 
+2025-07-13 19:03:26.848921: 2632_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:26.911607: predicting 2634_Anterior 
+2025-07-13 19:03:26.932508: 2634_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:26.995038: predicting 2636_Posterior 
+2025-07-13 19:03:27.000820: 2636_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:27.073456: predicting 2638_Anterior 
+2025-07-13 19:03:27.080376: 2638_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:27.154801: predicting 2638_Posterior 
+2025-07-13 19:03:27.178998: 2638_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:27.241750: predicting 2644_Anterior 
+2025-07-13 19:03:27.249881: 2644_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:27.320568: predicting 2646_Anterior 
+2025-07-13 19:03:27.337472: 2646_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:27.423138: predicting 2646_Posterior 
+2025-07-13 19:03:27.448901: 2646_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:27.510789: predicting 2651_Anterior 
+2025-07-13 19:03:27.534921: 2651_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:27.597170: predicting 2657_Anterior 
+2025-07-13 19:03:27.621454: 2657_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:27.683028: predicting 265_Posterior 
+2025-07-13 19:03:27.701753: 265_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:27.769157: predicting 2660_Anterior 
+2025-07-13 19:03:27.782456: 2660_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:27.848705: predicting 2665_Anterior 
+2025-07-13 19:03:27.874704: 2665_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:27.937698: predicting 2673_Posterior 
+2025-07-13 19:03:27.965199: 2673_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:28.028142: predicting 2678_Anterior 
+2025-07-13 19:03:28.050134: 2678_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:28.112960: predicting 267_Anterior 
+2025-07-13 19:03:28.134432: 267_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:28.197127: predicting 2682_Posterior 
+2025-07-13 19:03:28.216310: 2682_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:28.279734: predicting 2683_Anterior 
+2025-07-13 19:03:28.301051: 2683_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:28.372584: predicting 2688_Posterior 
+2025-07-13 19:03:28.397636: 2688_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:28.462285: predicting 2690_Anterior 
+2025-07-13 19:03:28.485670: 2690_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:28.548817: predicting 2692_Anterior 
+2025-07-13 19:03:28.576061: 2692_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:28.637522: predicting 2694_Posterior 
+2025-07-13 19:03:28.660648: 2694_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:28.724467: predicting 2697_Posterior 
+2025-07-13 19:03:28.735435: 2697_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:28.802428: predicting 26_Posterior 
+2025-07-13 19:03:28.827096: 26_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:28.888953: predicting 2700_Anterior 
+2025-07-13 19:03:28.895658: 2700_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:28.966392: predicting 2700_Posterior 
+2025-07-13 19:03:28.972417: 2700_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:29.043579: predicting 2701_Anterior 
+2025-07-13 19:03:29.049507: 2701_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:29.121110: predicting 2703_Posterior 
+2025-07-13 19:03:29.150205: 2703_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:29.213113: predicting 2710_Anterior 
+2025-07-13 19:03:29.219234: 2710_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:29.289743: predicting 2714_Anterior 
+2025-07-13 19:03:29.295861: 2714_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:29.364693: predicting 2715_Anterior 
+2025-07-13 19:03:29.369909: 2715_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:29.440664: predicting 2726_Anterior 
+2025-07-13 19:03:29.464015: 2726_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:29.529815: predicting 2726_Posterior 
+2025-07-13 19:03:29.547489: 2726_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:29.609789: predicting 2728_Anterior 
+2025-07-13 19:03:29.627735: 2728_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:29.690576: predicting 2730_Posterior 
+2025-07-13 19:03:29.710541: 2730_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:29.787289: predicting 2732_Anterior 
+2025-07-13 19:03:29.808944: 2732_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:29.877474: predicting 2733_Posterior 
+2025-07-13 19:03:29.892695: 2733_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:30.004325: predicting 2734_Anterior 
+2025-07-13 19:03:30.026090: 2734_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:30.129393: predicting 2735_Anterior 
+2025-07-13 19:03:30.153893: 2735_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:30.250163: predicting 2737_Posterior 
+2025-07-13 19:03:30.271688: 2737_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:30.361444: predicting 2738_Anterior 
+2025-07-13 19:03:30.367550: 2738_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:30.460896: predicting 2742_Anterior 
+2025-07-13 19:03:30.482802: 2742_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:30.584575: predicting 2743_Posterior 
+2025-07-13 19:03:30.590213: 2743_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:30.698324: predicting 2745_Posterior 
+2025-07-13 19:03:30.720780: 2745_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:30.808270: predicting 2750_Anterior 
+2025-07-13 19:03:30.819019: 2750_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:30.913566: predicting 2751_Anterior 
+2025-07-13 19:03:30.943276: 2751_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:31.035246: predicting 276_Anterior 
+2025-07-13 19:03:31.041033: 276_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:31.149396: predicting 2774_Anterior 
+2025-07-13 19:03:31.154511: 2774_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:31.247883: predicting 2777_Anterior 
+2025-07-13 19:03:31.270591: 2777_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:31.369478: predicting 2778_Anterior 
+2025-07-13 19:03:31.390645: 2778_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:31.489885: predicting 277_Posterior 
+2025-07-13 19:03:31.507619: 277_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:31.594281: predicting 2781_Anterior 
+2025-07-13 19:03:31.622706: 2781_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:31.727229: predicting 2790_Anterior 
+2025-07-13 19:03:31.763456: 2790_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:31.842846: predicting 280_Posterior 
+2025-07-13 19:03:31.871486: 280_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:31.971078: predicting 2832_Anterior 
+2025-07-13 19:03:31.995160: 2832_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:32.088523: predicting 2852_Anterior 
+2025-07-13 19:03:32.095134: 2852_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:32.189245: predicting 2862_Anterior 
+2025-07-13 19:03:32.220911: 2862_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:32.314363: predicting 287_Posterior 
+2025-07-13 19:03:32.345608: 287_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:32.451595: predicting 2886_Anterior 
+2025-07-13 19:03:32.457107: 2886_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:32.532999: predicting 2897_Anterior 
+2025-07-13 19:03:32.568216: 2897_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:32.656035: predicting 291_Posterior 
+2025-07-13 19:03:32.673589: 291_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:32.796143: predicting 2929_Anterior 
+2025-07-13 19:03:32.801854: 2929_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:32.902490: predicting 2935_Anterior 
+2025-07-13 19:03:32.925405: 2935_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:33.018855: predicting 2940_Anterior 
+2025-07-13 19:03:33.042696: 2940_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:33.135930: predicting 2944_Anterior 
+2025-07-13 19:03:33.167805: 2944_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:33.254976: predicting 296_Posterior 
+2025-07-13 19:03:33.287631: 296_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:33.372823: predicting 297_Anterior 
+2025-07-13 19:03:33.381284: 297_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:33.450196: predicting 299_Posterior 
+2025-07-13 19:03:33.470324: 299_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:33.544962: predicting 306_Posterior 
+2025-07-13 19:03:33.564167: 306_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:33.628288: predicting 309_Anterior 
+2025-07-13 19:03:33.646865: 309_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:33.709984: predicting 323_Posterior 
+2025-07-13 19:03:33.728983: 323_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:33.802639: predicting 326_Posterior 
+2025-07-13 19:03:33.823381: 326_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:33.884624: predicting 331_Posterior 
+2025-07-13 19:03:33.908174: 331_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:33.971015: predicting 33_Anterior 
+2025-07-13 19:03:33.976912: 33_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:34.045805: predicting 344_Posterior 
+2025-07-13 19:03:34.063920: 344_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:34.130906: predicting 34_Anterior 
+2025-07-13 19:03:34.137344: 34_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:34.206149: predicting 355_Posterior 
+2025-07-13 19:03:34.227064: 355_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:34.289243: predicting 35_Posterior 
+2025-07-13 19:03:34.310414: 35_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:34.374941: predicting 36_Anterior 
+2025-07-13 19:03:34.381221: 36_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:34.452222: predicting 372_Posterior 
+2025-07-13 19:03:34.458929: 372_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:34.533971: predicting 373_Posterior 
+2025-07-13 19:03:34.554631: 373_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:34.617531: predicting 379_Posterior 
+2025-07-13 19:03:34.639193: 379_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:34.702304: predicting 385_Posterior 
+2025-07-13 19:03:34.724981: 385_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:34.788128: predicting 38_Anterior 
+2025-07-13 19:03:34.809763: 38_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:34.876217: predicting 38_Posterior 
+2025-07-13 19:03:34.892969: 38_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:34.955925: predicting 397_Posterior 
+2025-07-13 19:03:34.973764: 397_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:35.043719: predicting 406_Posterior 
+2025-07-13 19:03:35.067605: 406_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:35.131569: predicting 409_Posterior 
+2025-07-13 19:03:35.149833: 409_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:35.211909: predicting 410_Posterior 
+2025-07-13 19:03:35.228706: 410_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:35.297934: predicting 415_Posterior 
+2025-07-13 19:03:35.320901: 415_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:35.384612: predicting 417_Posterior 
+2025-07-13 19:03:35.404959: 417_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:35.469317: predicting 41_Posterior 
+2025-07-13 19:03:35.491316: 41_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:35.565038: predicting 432_Anterior 
+2025-07-13 19:03:35.587104: 432_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:35.651916: predicting 433_Anterior 
+2025-07-13 19:03:35.671220: 433_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:35.734962: predicting 447_Anterior 
+2025-07-13 19:03:35.740721: 447_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:35.812243: predicting 45_Anterior 
+2025-07-13 19:03:35.817385: 45_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:35.889685: predicting 466_Posterior 
+2025-07-13 19:03:35.917915: 466_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:35.979420: predicting 467_Anterior 
+2025-07-13 19:03:36.005508: 467_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:36.068603: predicting 471_Anterior 
+2025-07-13 19:03:36.088936: 471_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:36.153196: predicting 474_Anterior 
+2025-07-13 19:03:36.159806: 474_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:36.227603: predicting 475_Anterior 
+2025-07-13 19:03:36.249945: 475_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:36.311252: predicting 480_Anterior 
+2025-07-13 19:03:36.317087: 480_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:36.391142: predicting 481_Posterior 
+2025-07-13 19:03:36.418515: 481_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:36.480777: predicting 48_Anterior 
+2025-07-13 19:03:36.513342: 48_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:36.586826: predicting 48_Posterior 
+2025-07-13 19:03:36.612476: 48_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:36.675873: predicting 491_Anterior 
+2025-07-13 19:03:36.682445: 491_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:36.753800: predicting 493_Anterior 
+2025-07-13 19:03:36.772451: 493_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:36.833397: predicting 493_Posterior 
+2025-07-13 19:03:36.840341: 493_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:36.914112: predicting 494_Posterior 
+2025-07-13 19:03:36.958675: 494_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:37.022557: predicting 497_Anterior 
+2025-07-13 19:03:37.045293: 497_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:37.107045: predicting 498_Anterior 
+2025-07-13 19:03:37.130761: 498_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:37.199425: predicting 502_Anterior 
+2025-07-13 19:03:37.208023: 502_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:37.275444: predicting 503_Posterior 
+2025-07-13 19:03:37.281134: 503_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:37.386604: predicting 518_Anterior 
+2025-07-13 19:03:37.415797: 518_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:37.478910: predicting 519_Anterior 
+2025-07-13 19:03:37.484939: 519_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:37.556170: predicting 51_Anterior 
+2025-07-13 19:03:37.581696: 51_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:37.643886: predicting 522_Anterior 
+2025-07-13 19:03:37.649547: 522_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:37.720601: predicting 527_Anterior 
+2025-07-13 19:03:37.726363: 527_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:37.798229: predicting 533_Anterior 
+2025-07-13 19:03:37.821387: 533_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:37.884170: predicting 537_Anterior 
+2025-07-13 19:03:37.890014: 537_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:37.968964: predicting 538_Anterior 
+2025-07-13 19:03:37.974746: 538_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:38.042489: predicting 53_Anterior 
+2025-07-13 19:03:38.067833: 53_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:38.129459: predicting 549_Anterior 
+2025-07-13 19:03:38.146472: 549_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:38.209154: predicting 554_Anterior 
+2025-07-13 19:03:38.215042: 554_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:38.287972: predicting 561_Anterior 
+2025-07-13 19:03:38.310372: 561_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:38.372819: predicting 562_Anterior 
+2025-07-13 19:03:38.396039: 562_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:38.456065: predicting 575_Anterior 
+2025-07-13 19:03:38.461755: 575_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:38.535836: predicting 576_Anterior 
+2025-07-13 19:03:38.553847: 576_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:38.616732: predicting 57_Anterior 
+2025-07-13 19:03:38.623477: 57_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:38.694918: predicting 64_Anterior 
+2025-07-13 19:03:38.700289: 64_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:38.771475: predicting 67_Anterior 
+2025-07-13 19:03:38.793311: 67_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:38.855975: predicting 6_Anterior 
+2025-07-13 19:03:38.862118: 6_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:38.930910: predicting 706_Posterior 
+2025-07-13 19:03:38.936123: 706_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:39.007500: predicting 707_Posterior 
+2025-07-13 19:03:39.050116: 707_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:39.108040: predicting 708_Posterior 
+2025-07-13 19:03:39.114166: 708_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:39.185115: predicting 729_Anterior 
+2025-07-13 19:03:39.204514: 729_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:39.266396: predicting 730_Anterior 
+2025-07-13 19:03:39.285742: 730_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:39.347987: predicting 730_Posterior 
+2025-07-13 19:03:39.367417: 730_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:39.431256: predicting 731_Anterior 
+2025-07-13 19:03:39.436981: 731_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:39.508538: predicting 745_Posterior 
+2025-07-13 19:03:39.514100: 745_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:39.584833: predicting 752_Posterior 
+2025-07-13 19:03:39.604802: 752_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:39.667414: predicting 754_Posterior 
+2025-07-13 19:03:39.674075: 754_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:39.744683: predicting 758_Posterior 
+2025-07-13 19:03:39.766769: 758_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:39.829478: predicting 759_Posterior 
+2025-07-13 19:03:39.837008: 759_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:39.914884: predicting 769_Anterior 
+2025-07-13 19:03:39.935447: 769_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:39.997104: predicting 781_Posterior 
+2025-07-13 19:03:40.017059: 781_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:40.085328: predicting 783_Anterior 
+2025-07-13 19:03:40.101812: 783_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:40.164565: predicting 785_Anterior 
+2025-07-13 19:03:40.170367: 785_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:40.240119: predicting 785_Posterior 
+2025-07-13 19:03:40.246284: 785_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:40.318601: predicting 793_Anterior 
+2025-07-13 19:03:40.326849: 793_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:40.397879: predicting 829_Posterior 
+2025-07-13 19:03:40.420178: 829_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:40.482095: predicting 830_Posterior 
+2025-07-13 19:03:40.504957: 830_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:40.567167: predicting 831_Posterior 
+2025-07-13 19:03:40.583859: 831_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:40.646968: predicting 839_Posterior 
+2025-07-13 19:03:40.668527: 839_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:40.738577: predicting 83_Anterior 
+2025-07-13 19:03:40.759429: 83_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:40.822071: predicting 841_Posterior 
+2025-07-13 19:03:40.842518: 841_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:40.905906: predicting 853_Posterior 
+2025-07-13 19:03:40.911929: 853_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:40.982994: predicting 85_Anterior 
+2025-07-13 19:03:40.988709: 85_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:41.057369: predicting 865_Anterior 
+2025-07-13 19:03:41.082742: 865_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:41.145221: predicting 865_Posterior 
+2025-07-13 19:03:41.165000: 865_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:41.227582: predicting 867_Posterior 
+2025-07-13 19:03:41.246615: 867_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:41.308775: predicting 869_Posterior 
+2025-07-13 19:03:41.328135: 869_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:41.392710: predicting 871_Anterior 
+2025-07-13 19:03:41.398608: 871_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:41.470831: predicting 871_Posterior 
+2025-07-13 19:03:41.476335: 871_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:41.546118: predicting 873_Anterior 
+2025-07-13 19:03:41.571676: 873_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:41.634372: predicting 873_Posterior 
+2025-07-13 19:03:41.655863: 873_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:41.718236: predicting 875_Posterior 
+2025-07-13 19:03:41.742029: 875_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:41.804698: predicting 876_Anterior 
+2025-07-13 19:03:41.825292: 876_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:41.887866: predicting 877_Posterior 
+2025-07-13 19:03:41.908630: 877_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:41.971048: predicting 879_Anterior 
+2025-07-13 19:03:41.978584: 879_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:42.048014: predicting 882_Anterior 
+2025-07-13 19:03:42.070976: 882_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:42.135252: predicting 883_Anterior 
+2025-07-13 19:03:42.146706: 883_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:42.218714: predicting 889_Anterior 
+2025-07-13 19:03:42.224605: 889_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:42.294183: predicting 88_Anterior 
+2025-07-13 19:03:42.302284: 88_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:42.374025: predicting 890_Anterior 
+2025-07-13 19:03:42.392285: 890_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:42.457258: predicting 895_Posterior 
+2025-07-13 19:03:42.463933: 895_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:42.538694: predicting 897_Posterior 
+2025-07-13 19:03:42.557500: 897_Posterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:42.619573: predicting 900_Anterior 
+2025-07-13 19:03:42.643682: 900_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:42.705692: predicting 904_Anterior 
+2025-07-13 19:03:42.712476: 904_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:42.788903: predicting 906_Anterior 
+2025-07-13 19:03:42.798816: 906_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:42.861939: predicting 909_Anterior 
+2025-07-13 19:03:42.882193: 909_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:42.945263: predicting 910_Anterior 
+2025-07-13 19:03:42.961307: 910_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:43.024804: predicting 927_Anterior 
+2025-07-13 19:03:43.030422: 927_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:43.100060: predicting 93_Anterior 
+2025-07-13 19:03:43.123064: 93_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:43.187657: predicting 945_Anterior 
+2025-07-13 19:03:43.199296: 945_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:43.272765: predicting 956_Anterior 
+2025-07-13 19:03:43.295076: 956_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:43.357282: predicting 961_Anterior 
+2025-07-13 19:03:43.375054: 961_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:43.437910: predicting 968_Anterior 
+2025-07-13 19:03:43.457651: 968_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:43.531265: predicting 969_Anterior 
+2025-07-13 19:03:43.552177: 969_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:43.623713: predicting 972_Anterior 
+2025-07-13 19:03:43.654769: 972_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:43.743760: predicting 974_Anterior 
+2025-07-13 19:03:43.750703: 974_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:43.827142: predicting 976_Anterior 
+2025-07-13 19:03:43.845651: 976_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:43.948365: predicting 986_Anterior 
+2025-07-13 19:03:43.954640: 986_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:44.062238: predicting 989_Anterior 
+2025-07-13 19:03:44.080537: 989_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:44.176642: predicting 990_Anterior 
+2025-07-13 19:03:44.201724: 990_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:03:44.315357: predicting 995_Anterior 
+2025-07-13 19:03:44.322883: 995_Anterior, shape torch.Size([1, 1, 1024, 256]), rank 0 
+2025-07-13 19:04:36.553720: Validation complete 
+2025-07-13 19:04:36.554004: Mean Validation Dice:  0.8348100960660269 

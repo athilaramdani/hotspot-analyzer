@@ -23,7 +23,7 @@ DICOM_DATA_PATH = DATA_ROOT / "DICOM"
 
 # Model paths
 HOTSPOT_MODEL_PATH = MODELS_ROOT / "hotspot_detection"
-SEGMENTATION_MODEL_PATH = MODELS_ROOT / "segmentation"
+SEGMENTATION_MODEL_PATH = MODELS_ROOT / "segmentation_2"
 CLASSIFICATION_MODEL_PATH = MODELS_ROOT / "classification"
 
 # Specific model files
