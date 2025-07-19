@@ -540,7 +540,8 @@ class ScanTimelineWidget(QWidget):
         if self.current_view in frame_map:
             original_arr = frame_map[self.current_view]
             # Convert to PIL Image
-            original_normalized = ((original_arr - original_arr.min()) / max(1, original_arr.ptp()) * 255).astype(np.uint8)
+            # Kode Baru
+            original_normalized = ((original_arr - original_arr.min()) / max(1, np.ptp(original_arr)) * 255).astype(np.uint8)
             layers["Original"] = Image.fromarray(original_normalized).convert("RGB")
         
         # Layer 2: Segmentation - with transparency processing
