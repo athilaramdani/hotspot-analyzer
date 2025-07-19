@@ -3,19 +3,19 @@
 # ---------------------------------------------------------------------
 """
 Alur:
-1.  Salin file asli → ./data/<PatientID>/1.dcm
+1.  Salin file asli → ./data/SPECT/[session_code]/[patient_id]/[patient_id].dcm
 2.  Segmentasi setiap frame (Anterior/Posterior)
 3.  Simpan:
       • Overlay biner ke DICOM NM asli  (group 0x6000,0x3000)
       • PNG   : *_mask.png, *_colored.png
       • SC-DICOM (OT) : *_mask.dcm, *_colored.dcm   ← agar viewer lain bisa buka
+4.  Upload ke cloud storage
 """
 
 from __future__ import annotations
 from pathlib import Path
 from shutil  import copy2
 from typing  import Callable, Sequence, List
-from core.config.paths import SPECT_DATA_PATH
 import traceback
 
 import numpy as np
@@ -32,9 +32,24 @@ from .dicom_loader import load_frames_and_metadata
 from features.spect_viewer.logic.segmenter import segment_image
 from core.logger import _log
 
+# Use new directory structure from paths.py
+from core.config.paths import (
+    get_patient_spect_path, 
+    get_session_spect_path,
+    SPECT_DATA_PATH,
+    is_cloud_enabled
+)
+
+# Import cloud storage
+try:
+    from core.config.cloud_storage import upload_patient_file
+    CLOUD_AVAILABLE = True
+except ImportError:
+    CLOUD_AVAILABLE = False
+    def upload_patient_file(*args, **kwargs):
+        return False
 
 # ---------------------------------------------------------------- config
-_DATA_DIR  = SPECT_DATA_PATH  # Gunakan dari config
 _VERBOSE   = True
 _LOG_FILE  = None            # bisa diisi Path("debug.log")
 
@@ -104,22 +119,41 @@ def _save_secondary_capture(ref: Dataset, img: np.ndarray, out_path: Path, descr
 def _ensure_2d(mask: np.ndarray) -> np.ndarray:
     return mask if mask.ndim == 2 else mask[0] if mask.shape[0] == 1 else mask[:, :, 0]
 
+def _upload_to_cloud(file_path: Path, session_code: str, patient_id: str, is_edited: bool = False) -> bool:
+    """Upload file to cloud storage if enabled"""
+    if not CLOUD_AVAILABLE or not is_cloud_enabled():
+        return False
+    
+    try:
+        return upload_patient_file(file_path, session_code, patient_id, is_edited)
+    except Exception as e:
+        _log(f"     [WARN] Cloud upload failed: {e}")
+        return False
+
 # ---------------------------------------------------------------- core
-def _process_one(src: Path, dest_root: Path, session_code: str | None = None) -> Path:
+def _process_one(src: Path, session_code: str) -> Path:
     _log(f"\n=== Processing {src} ===")
 
+    # Extract patient ID from DICOM
     pid = str(pydicom.dcmread(src, stop_before_pixels=True).PatientID)
-    folder_name = f"{pid}_{session_code}" if session_code else pid
-    dest_dir = dest_root / folder_name
-
+    
+    # Use new directory structure: data/SPECT/[session_code]/[patient_id]/
+    dest_dir = get_patient_spect_path(pid, session_code)
     dest_dir.mkdir(parents=True, exist_ok=True)
+    
     dest_path = dest_dir / src.name
     if src.resolve() != dest_path.resolve():
         copy2(src, dest_path)
     _log(f"  Copied → {dest_path}")
 
+    # Upload original DICOM to cloud
+    _upload_to_cloud(dest_path, session_code, pid)
+
     ds = pydicom.dcmread(dest_path)
-    if session_code:
+    
+    # Update Patient ID to include session code if needed
+    original_pid = ds.PatientID
+    if session_code not in str(ds.PatientID):
         ds.PatientID = f"{pid}_{session_code}"
 
     frames, _ = load_frames_and_metadata(dest_path)
@@ -141,26 +175,53 @@ def _process_one(src: Path, dest_root: Path, session_code: str | None = None) ->
         overlay_group += 0x2
 
         base = f"{dest_path.stem}_{view.lower()}"
-        # --- PNG
-        Image.fromarray((mask > 0).astype(np.uint8) * 255, mode="L").save(dest_dir / f"{base}_mask.png")
-        Image.fromarray(rgb.astype(np.uint8), mode="RGB").save(dest_dir / f"{base}_colored.png")
+        
+        # --- PNG files
+        mask_png_path = dest_dir / f"{base}_mask.png"
+        colored_png_path = dest_dir / f"{base}_colored.png"
+        
+        Image.fromarray((mask > 0).astype(np.uint8) * 255, mode="L").save(mask_png_path)
+        Image.fromarray(rgb.astype(np.uint8), mode="RGB").save(colored_png_path)
+        
         saved += [f"{base}_mask.png", f"{base}_colored.png"]
+        
+        # Upload PNG files to cloud
+        _upload_to_cloud(mask_png_path, session_code, pid)
+        _upload_to_cloud(colored_png_path, session_code, pid)
 
-        # --- SC-DICOM
+        # --- SC-DICOM files
         try:
+            mask_dcm_path = dest_dir / f"{base}_mask.dcm"
+            colored_dcm_path = dest_dir / f"{base}_colored.dcm"
+            
             _save_secondary_capture(ds, (mask > 0).astype(np.uint8) * 255,
-                                    dest_dir / f"{base}_mask.dcm", descr=f"{view} Mask")
-            _save_secondary_capture(ds, rgb, dest_dir / f"{base}_colored.dcm", descr=f"{view} RGB")
+                                    mask_dcm_path, descr=f"{view} Mask")
+            _save_secondary_capture(ds, rgb, colored_dcm_path, descr=f"{view} RGB")
+            
             saved += [f"{base}_mask.dcm", f"{base}_colored.dcm"]
+            
+            # Upload DICOM files to cloud
+            _upload_to_cloud(mask_dcm_path, session_code, pid)
+            _upload_to_cloud(colored_dcm_path, session_code, pid)
+            
         except Exception as e:
             _log(f"     [WARN] SC-DICOM save failed: {e}")
 
-    # tulis balik NM-DICOM
+    # Save updated DICOM with overlays
     ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
     ds.is_little_endian = True
     ds.is_implicit_VR   = False
     ds.save_as(dest_path, write_like_original=False)
-    _log(f"  DICOM updated – files saved: {', '.join(saved)}\n")
+    
+    # Upload updated DICOM to cloud
+    _upload_to_cloud(dest_path, session_code, pid)
+    
+    _log(f"  DICOM updated – files saved: {', '.join(saved)}")
+    
+    # Log cloud sync status
+    if is_cloud_enabled():
+        _log(f"  Cloud sync: {'✅ Enabled' if CLOUD_AVAILABLE else '❌ Not available'}")
+    
     return dest_path
 
 
@@ -173,12 +234,31 @@ def process_files(
     log_cb: Callable[[str], None] | None = None,
     session_code: str | None = None 
 ) -> List[Path]:
-
+    """
+    Process multiple DICOM files with new directory structure
+    
+    Args:
+        paths: List of DICOM file paths to process
+        data_root: Root data directory (optional, uses SPECT_DATA_PATH if None)
+        progress_cb: Progress callback function
+        log_cb: Log callback function  
+        session_code: Session/doctor code (NSY, ATL, NBL, etc.)
+        
+    Returns:
+        List of processed file paths
+    """
+    
+    if not session_code:
+        raise ValueError("session_code is required for new directory structure")
+    
+    # Ensure session directory exists
     if data_root:
-        dest_root = Path(data_root) / "SPECT"
+        session_root = Path(data_root) / "SPECT" / session_code
     else:
-        dest_root = SPECT_DATA_PATH
-    dest_root.mkdir(parents=True, exist_ok=True)
+        session_root = get_session_spect_path(session_code)
+    
+    session_root.mkdir(parents=True, exist_ok=True)
+    
     # ---------- proxy _log agar bisa dikirim ke frontend ----------
     orig_log = _log
     def _proxy(msg: str) -> None:
@@ -191,16 +271,39 @@ def process_files(
     out: List[Path] = []
     total = len(paths)
     _log(f"## Starting batch: {total} file(s)")
+    _log(f"## Session code: {session_code}")
+    _log(f"## New directory structure: data/SPECT/{session_code}/[patient_id]/")
 
     for i, p in enumerate(paths, 1):
         try:
-            out.append(_process_one(Path(p), dest_root, session_code))
+            result = _process_one(Path(p), session_code)
+            out.append(result)
         except Exception as e:
             _log(f"[ERROR] {p} failed: {e}\n{traceback.format_exc()}")
         finally:
             if progress_cb:
                 progress_cb(i, total, str(p))
 
-    _log("## Batch finished\n")
+    _log("## Batch finished")
+    
+    # Final cloud sync summary
+    if is_cloud_enabled() and CLOUD_AVAILABLE:
+        try:
+            from core.config.cloud_storage import sync_spect_data
+            uploaded, downloaded = sync_spect_data(session_code)
+            _log(f"## Cloud sync completed: {uploaded} uploaded, {downloaded} downloaded")
+        except Exception as e:
+            _log(f"## Cloud sync failed: {e}")
+    
     globals()["_log"] = orig_log      # kembalikan logger asli
     return out
+
+# ---------------------------------------------------------------- migration helper
+def migrate_old_structure():
+    """
+    Migrate from old structure to new structure
+    OLD: data/SPECT/[patient_id]_[session_code]/
+    NEW: data/SPECT/[session_code]/[patient_id]/
+    """
+    from core.config.paths import migrate_old_to_new_structure
+    migrate_old_to_new_structure()

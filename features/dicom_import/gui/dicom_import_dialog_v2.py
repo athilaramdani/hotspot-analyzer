@@ -6,16 +6,21 @@ from PySide6.QtCore import Signal, QCoreApplication, QTimer, QThread
 from PySide6.QtWidgets import (
     QDialog, QFileDialog, QVBoxLayout, QHBoxLayout, QProgressBar, 
     QLabel, QListWidget, QListWidgetItem, QPushButton, QTextEdit,
-    QSplitter, QWidget, QFrame, QSizePolicy, QMessageBox   # <-- ditambah
+    QSplitter, QWidget, QFrame, QSizePolicy, QMessageBox
 )
-
 from PySide6.QtCore import Qt, QSize
 
 from features.dicom_import.logic.input_data import process_files
 
+# Import for cloud storage
+try:
+    from core.config.cloud_storage import sync_spect_data
+    CLOUD_AVAILABLE = True
+except ImportError:
+    CLOUD_AVAILABLE = False
 
 class ProcessingThread(QThread):
-    """Thread untuk menjalankan proses import DICOM di background"""
+    """Thread untuk menjalankan proses import DICOM di background dengan new structure"""
     progress_updated = Signal(int, int, str)
     log_updated = Signal(str)
     finished_processing = Signal()
@@ -28,13 +33,24 @@ class ProcessingThread(QThread):
         
     def run(self):
         try:
+            # Process files with new directory structure
             process_files(
                 paths=self.file_paths,
                 data_root=self.data_root,
                 session_code=self.session_code,
                 progress_cb=self._progress_callback,
-                log_cb=self._log_callback        # kirim log via callback
+                log_cb=self._log_callback
             )
+            
+            # Sync to cloud if available
+            if CLOUD_AVAILABLE:
+                self.log_updated.emit("## Syncing to cloud storage...")
+                try:
+                    uploaded, downloaded = sync_spect_data(self.session_code)
+                    self.log_updated.emit(f"## Cloud sync: {uploaded} uploaded, {downloaded} downloaded")
+                except Exception as e:
+                    self.log_updated.emit(f"## Cloud sync failed: {e}")
+            
         except Exception as e:
             self.log_updated.emit(f"[ERROR] Processing failed: {e}")
         finally:
@@ -44,7 +60,6 @@ class ProcessingThread(QThread):
         """Callback untuk update progress"""
         self.progress_updated.emit(current, total, filename)
     
-            
     def _log_callback(self, msg: str):
         self.log_updated.emit(msg)
 
@@ -70,12 +85,23 @@ class DicomImportDialog(QDialog):
         """Setup UI components"""
         main_layout = QVBoxLayout(self)
         
-        # Title
-        title_label = QLabel("Import DICOM Files")
+        # Title with session info
+        title_text = "Import DICOM Files"
+        if self.session_code:
+            title_text += f" - Session: {self.session_code}"
+        
+        title_label = QLabel(title_text)
         title_label.setStyleSheet("font-size: 16px; font-weight: bold; margin: 10px;")
-        title_label.setAlignment(Qt.AlignCenter)                               # baru
-        title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)    # baru
+        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         main_layout.addWidget(title_label)
+        
+        # Directory structure info
+        if self.session_code:
+            structure_info = QLabel(f"Files will be saved to: data/SPECT/{self.session_code}/[patient_id]/")
+            structure_info.setStyleSheet("font-size: 12px; color: #666; margin: 5px;")
+            structure_info.setAlignment(Qt.AlignCenter)
+            main_layout.addWidget(structure_info)
         
         # Main content area dengan splitter
         content_splitter = QSplitter(Qt.Horizontal)
@@ -153,7 +179,18 @@ class DicomImportDialog(QDialog):
                 font-size: 12px;
             }
         """)
-        self.process_log.setPlainText("Ready to import DICOM files...\n")
+        
+        # Initial log message with new structure info
+        initial_msg = "Ready to import DICOM files...\n"
+        if self.session_code:
+            initial_msg += f"Session: {self.session_code}\n"
+            initial_msg += f"Directory structure: data/SPECT/{self.session_code}/[patient_id]/\n"
+        if CLOUD_AVAILABLE:
+            initial_msg += "Cloud storage: ✅ Available\n"
+        else:
+            initial_msg += "Cloud storage: ❌ Not available\n"
+        
+        self.process_log.setPlainText(initial_msg)
         layout.addWidget(self.process_log)
         
         return panel
@@ -316,14 +353,11 @@ class DicomImportDialog(QDialog):
                 background-color: #d32f2f;
             }
         """)
-        # Remove button
         remove_btn.clicked.connect(lambda: self._remove_file(item))
         layout.addWidget(remove_btn)
 
-        # ---- tambahkan perbaikan tinggi baris ----
-        widget.setMinimumHeight(36)   # atur tinggi minimal (boleh 36 kalau mau lebih besar)
-        widget.adjustSize()           # pastikan sizeHint akurat
-        # -----------------------------------------
+        widget.setMinimumHeight(36)
+        widget.adjustSize()
 
         item.setSizeHint(widget.sizeHint())
         self.file_list.addItem(item)
@@ -344,15 +378,23 @@ class DicomImportDialog(QDialog):
     def _update_ui_state(self):
         """Update UI state based on selected files"""
         has_files = len(self.selected_files) > 0
-        self.start_import_btn.setEnabled(has_files)
+        self.start_import_btn.setEnabled(has_files and self.session_code is not None)
+        
+        if has_files and self.session_code is None:
+            self.start_import_btn.setToolTip("Session code is required for import")
+        else:
+            self.start_import_btn.setToolTip("")
         
     def _start_import(self):
         """Start the import process"""
-        if not self.selected_files:
+        if not self.selected_files or not self.session_code:
+            QMessageBox.warning(self, "Warning", "Session code is required for import!")
             return
             
         self._log_message("## Starting batch import process...")
         self._log_message(f"## Processing {len(self.selected_files)} file(s)")
+        self._log_message(f"## Session: {self.session_code}")
+        self._log_message(f"## Directory structure: data/SPECT/{self.session_code}/[patient_id]/")
         
         # Update UI untuk mode processing
         self.add_dicom_btn.setEnabled(False)
@@ -398,13 +440,18 @@ class DicomImportDialog(QDialog):
         self.progress_label.setVisible(False)
         self.add_dicom_btn.setEnabled(True)
 
-        # --- popup sukses ---
+        # Success popup with new structure info
+        success_msg = "All selected DICOM files have been imported successfully!"
+        if self.session_code:
+            success_msg += f"\n\nFiles saved to: data/SPECT/{self.session_code}/[patient_id]/"
+        if CLOUD_AVAILABLE:
+            success_msg += "\n\nFiles have been synced to cloud storage."
+        
         QMessageBox.information(
             self,
             "Import Successful",
-            "All selected DICOM files have been imported successfully."
+            success_msg
         )
-        # Tutup dialog utama setelah user menekan OK
         self.accept()
         
     def _cancel_import(self):
@@ -422,16 +469,16 @@ class DicomImportDialog(QDialog):
         QCoreApplication.processEvents()
 
 
-# Untuk testing
+# For testing
 if __name__ == "__main__":
     from PySide6.QtWidgets import QApplication
     import sys
     
     app = QApplication(sys.argv)
     
-    # Test data
+    # Test data with new structure
     data_root = Path("./test_data")
-    session_code = "TEST"
+    session_code = "NSY"  # Test with NSY session
     
     dialog = DicomImportDialog(data_root, session_code=session_code)
     dialog.show()

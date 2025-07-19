@@ -1,8 +1,8 @@
-# features/spect_viewer/gui/segmentation_editor_dialog.py  – v2.1-precision-fixed
+# features/spect_viewer/gui/segmentation_editor_dialog.py  – v2.2-new-structure
 # ---------------------------------------------------------------------
 """
 Full-screen dialog untuk manual edit segmentasi.
-Updated to use config paths for better path management.
+Updated for new directory structure, edited files support, and cloud sync.
 """
 from __future__ import annotations
 from pathlib import Path
@@ -25,8 +25,16 @@ from PySide6.QtWidgets import (
 import pydicom
 from pydicom.uid import ExplicitVRLittleEndian, SecondaryCaptureImageStorage, generate_uid
 
-# Import config paths
-from core.config.paths import get_segmentation_files
+# Import NEW config paths and cloud storage
+from core.config.paths import (
+    get_segmentation_files_with_edited,
+    get_patient_spect_path
+)
+from core.config.cloud_storage import upload_patient_file
+from core.config.sessions import get_current_session
+
+# Import for extract session and patient info
+from features.dicom_import.logic.dicom_loader import extract_patient_info_from_path
 
 from features.spect_viewer.logic.colorizer import label_mask_to_rgb, _PALETTE
 
@@ -596,18 +604,31 @@ class SegmentationEditorDialog(QDialog):
         geom = QGuiApplication.primaryScreen().availableGeometry()
         self.resize(int(geom.width()*0.9), int(geom.height()*0.9))
 
-        # Use config paths for file management
+        # Extract patient and session info from DICOM path
         dicom_path = scan["path"]
         filename_stem = dicom_path.stem
         
-        # Get all segmentation file paths using config
-        self.seg_files = get_segmentation_files(dicom_path.parent, filename_stem, view)
+        # NEW: Extract patient_id and session_code from path
+        self.patient_id, self.session_code = extract_patient_info_from_path(dicom_path)
+        print(f"[DEBUG] Extracted - Patient ID: {self.patient_id}, Session: {self.session_code}")
         
-        # Store individual paths for compatibility
-        self._png_mask = self.seg_files['png_mask']
-        self._png_color = self.seg_files['png_colored']
-        self._dcm_mask = self.seg_files['dcm_mask']
-        self._dcm_color = self.seg_files['dcm_colored']
+        # Validate session info
+        self._validate_session_info()
+        
+        # Use NEW function for edited files support
+        self.seg_files = get_segmentation_files_with_edited(dicom_path.parent, filename_stem, view)
+        
+        # Store paths - prioritize edited versions if they exist
+        self._png_mask = self.seg_files['png_mask_edited'] if self.seg_files['png_mask_edited'].exists() else self.seg_files['png_mask']
+        self._png_color = self.seg_files['png_colored_edited'] if self.seg_files['png_colored_edited'].exists() else self.seg_files['png_colored']
+        self._dcm_mask = self.seg_files['dcm_mask_edited'] if self.seg_files['dcm_mask_edited'].exists() else self.seg_files['dcm_mask']
+        self._dcm_color = self.seg_files['dcm_colored_edited'] if self.seg_files['dcm_colored_edited'].exists() else self.seg_files['dcm_colored']
+        
+        # Store edited paths for saving
+        self._png_mask_edited = self.seg_files['png_mask_edited']
+        self._png_color_edited = self.seg_files['png_colored_edited']
+        self._dcm_mask_edited = self.seg_files['dcm_mask_edited']
+        self._dcm_color_edited = self.seg_files['dcm_colored_edited']
         
         # ===== DEBUG: cek isi frame & view =====
         print("\n======================")
@@ -615,6 +636,8 @@ class SegmentationEditorDialog(QDialog):
         print(f"View diminta        : '{view}'")
         print(f"Keys di scan[frames]: {list(scan['frames'].keys())}")
         print(f"Segmentation files  : {self.seg_files}")
+        print(f"Patient ID          : {self.patient_id}")
+        print(f"Session Code        : {self.session_code}")
         print("======================\n")
 
         # Load original array dari DICOM frames
@@ -761,7 +784,17 @@ class SegmentationEditorDialog(QDialog):
 
         # Instructions dengan info yang lebih jelas
         data_source = "Original PNG loaded" if self._has_orig_png else "DICOM frames used"
-        mask_status = "Existing mask loaded" if self._png_color.exists() else "New mask created"
+        
+        # Check if we're loading edited or original mask
+        if self.seg_files['png_colored_edited'].exists():
+            mask_status = "Edited mask loaded"
+        elif self.seg_files['png_colored'].exists():
+            mask_status = "Original mask loaded"
+        else:
+            mask_status = "New mask created"
+        
+        # Check cloud availability
+        cloud_available = "✅" if upload_patient_file else "❌"
         
         instructions = QLabel(
             "<b>Controls:</b><br>"
@@ -774,8 +807,11 @@ class SegmentationEditorDialog(QDialog):
             f"<b>Data Info:</b><br>"
             f"• Image: {data_source}<br>"
             f"• Mask: {mask_status}<br>"
+            f"• Session: {self.session_code}<br>"
+            f"• Patient: {self.patient_id}<br>"
             f"• Size: {orig_png_arr.shape[1]}×{orig_png_arr.shape[0]}<br>"
-            f"• Files: {len([f for f in self.seg_files.values() if f.exists()])} exist"
+            f"• Cloud: {cloud_available} Available<br>"
+            "<b>Save mode:</b> Edited files only"
         )
         instructions.setWordWrap(True)
         instructions.setStyleSheet("QLabel { background: #f0f0f0; padding: 8px; border-radius: 4px; }")
@@ -846,6 +882,28 @@ class SegmentationEditorDialog(QDialog):
         # Background opacity buttons
         self.btn_bg_minus.clicked.connect(lambda: self._adjust_slider(self.slider_bg, -5))
         self.btn_bg_plus.clicked.connect(lambda: self._adjust_slider(self.slider_bg, 5))
+
+    def _validate_session_info(self):
+        """Validate that we have proper session and patient info"""
+        if not self.session_code or self.session_code == "UNKNOWN":
+            QMessageBox.warning(
+                self, 
+                "Session Info Missing",
+                "Could not determine session code from file path.\n"
+                "Files will be saved locally but may not sync to cloud properly."
+            )
+            return False
+        
+        if not self.patient_id or self.patient_id == "UNKNOWN":
+            QMessageBox.warning(
+                self,
+                "Patient Info Missing", 
+                "Could not determine patient ID from file path.\n"
+                "Files will be saved locally but may not sync to cloud properly."
+            )
+            return False
+            
+        return True
 
     def _adjust_slider(self, slider, step):
         """Helper method untuk mengubah nilai slider dengan step tertentu"""
@@ -973,20 +1031,29 @@ class SegmentationEditorDialog(QDialog):
         self.btn_brush.setChecked(True); self.btn_eraser.setChecked(False)
         self.canvas.set_label(idx)
 
-    # ---------- FIXED: I/O helpers dengan error handling yang lebih baik
+    # ---------- UPDATED: I/O helpers dengan edited files support
     def _load_mask_from_png(self) -> np.ndarray:
-        """Load mask dari PNG colored dengan error handling."""
+        """Load mask dari PNG colored dengan prioritas edited version."""
+        # Coba load edited version dulu
+        if self.seg_files['png_colored_edited'].exists():
+            png_path = self.seg_files['png_colored_edited']
+            print(f"✓ Loading edited mask from: {png_path}")
+        elif self.seg_files['png_colored'].exists():
+            png_path = self.seg_files['png_colored']
+            print(f"✓ Loading original mask from: {png_path}")
+        else:
+            print(f"✗ No mask files found, creating empty mask")
+            return np.zeros((1024, 256), np.uint8)
+        
         try:
-            rgb = np.array(Image.open(self._png_color).convert("RGB"))
+            rgb = np.array(Image.open(png_path).convert("RGB"))
             mask = np.zeros(rgb.shape[:2], np.uint8)
             for lbl, col in enumerate(_PALETTE):
                 mask[(rgb == col).all(-1)] = lbl
-            print(f"✓ Loaded existing mask from: {self._png_color}")
             return mask
         except Exception as e:
-            print(f"✗ Failed to load mask from {self._png_color}: {e}")
-            # Return empty mask instead of crashing
-            return np.zeros((1024, 256), np.uint8)  # Default DICOM size
+            print(f"✗ Failed to load mask from {png_path}: {e}")
+            return np.zeros((1024, 256), np.uint8)
 
     def _save_sc_dicom(self, img: np.ndarray, path: Path, desc: str):
         """Simple 8-bit Secondary-Capture DICOM."""
@@ -1011,36 +1078,90 @@ class SegmentationEditorDialog(QDialog):
         ds.PixelData = img.astype(np.uint8).tobytes()
         ds.save_as(path, write_like_original=False)
 
+    def _upload_edited_files_to_cloud(self) -> bool:
+        """Upload edited files to cloud storage"""
+        try:
+            upload_success = True
+            
+            # Upload each edited file
+            files_to_upload = [
+                self._png_mask_edited,
+                self._png_color_edited,
+                self._dcm_mask_edited,
+                self._dcm_color_edited
+            ]
+            
+            for file_path in files_to_upload:
+                if file_path.exists():
+                    success = upload_patient_file(
+                        file_path, 
+                        self.session_code, 
+                        self.patient_id, 
+                        is_edited=True
+                    )
+                    if success:
+                        print(f"✅ Uploaded to cloud: {file_path.name}")
+                    else:
+                        print(f"❌ Failed to upload: {file_path.name}")
+                        upload_success = False
+                else:
+                    print(f"⚠️ File not found for upload: {file_path}")
+                    upload_success = False
+                    
+            return upload_success
+            
+        except Exception as e:
+            print(f"❌ Cloud upload failed: {e}")
+            return False
+
     def _save_all(self):
+        """Save edited segmentation with cloud sync support"""
         mask = self.canvas.current_mask()
         try:
-            # --- PNG (mask & colored)
+            # Save to EDITED files (never overwrite originals)
             bin_img = (mask > 0).astype(np.uint8) * 255
-            Image.fromarray(bin_img, mode="L").save(self._png_mask)
-            print(f"✓ Saved mask PNG: {self._png_mask}")
-
             rgb_img = label_mask_to_rgb(mask)
-            Image.fromarray(rgb_img).save(self._png_color)
-            print(f"✓ Saved colored PNG: {self._png_color}")
-
-            # --- DICOM SC
-            self._save_sc_dicom(bin_img, self._dcm_mask , desc="Mask")
-            print(f"✓ Saved mask DICOM: {self._dcm_mask}")
             
-            self._save_sc_dicom(rgb_img, self._dcm_color, desc="Colored")
-            print(f"✓ Saved colored DICOM: {self._dcm_color}")
+            # Create parent directories if needed
+            self._png_mask_edited.parent.mkdir(parents=True, exist_ok=True)
+            
+            # --- Save PNG files with _edited suffix
+            Image.fromarray(bin_img, mode="L").save(self._png_mask_edited)
+            print(f"✓ Saved edited mask PNG: {self._png_mask_edited}")
 
-            QMessageBox.information(self, "Success", 
-                f"Segmentation saved successfully!\n\n"
+            Image.fromarray(rgb_img).save(self._png_color_edited)
+            print(f"✓ Saved edited colored PNG: {self._png_color_edited}")
+
+            # --- Save DICOM SC files with _edited suffix
+            self._save_sc_dicom(bin_img, self._dcm_mask_edited, desc="Edited Mask")
+            print(f"✓ Saved edited mask DICOM: {self._dcm_mask_edited}")
+            
+            self._save_sc_dicom(rgb_img, self._dcm_color_edited, desc="Edited Colored")
+            print(f"✓ Saved edited colored DICOM: {self._dcm_color_edited}")
+
+            # --- Upload to cloud storage
+            cloud_success = self._upload_edited_files_to_cloud()
+            
+            # Success message
+            success_msg = (
+                f"Edited segmentation saved successfully!\n\n"
                 f"Files saved:\n"
-                f"• {self._png_mask.name}\n"
-                f"• {self._png_color.name}\n"
-                f"• {self._dcm_mask.name}\n"
-                f"• {self._dcm_color.name}")
+                f"• {self._png_mask_edited.name}\n"
+                f"• {self._png_color_edited.name}\n"
+                f"• {self._dcm_mask_edited.name}\n"
+                f"• {self._dcm_color_edited.name}"
+            )
             
+            if cloud_success:
+                success_msg += "\n\n✅ Files synced to cloud storage"
+            else:
+                success_msg += "\n\n⚠️ Cloud sync failed (files saved locally)"
+            
+            QMessageBox.information(self, "Success", success_msg)
             self.accept()
+            
         except Exception as e:
             print(f"✗ Save failed: {e}")
             QMessageBox.critical(self, "Save failed", 
-                f"Failed to save segmentation:\n{str(e)}\n\n"
+                f"Failed to save edited segmentation:\n{str(e)}\n\n"
                 f"Please check file permissions and disk space.")

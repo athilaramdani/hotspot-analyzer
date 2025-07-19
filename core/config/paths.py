@@ -4,6 +4,10 @@ Configuration file untuk semua path constants dalam Hotspot Analyzer
 """
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Base paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent  # hotspot-analyzer/
@@ -57,6 +61,24 @@ ASSETS_ROOT = PROJECT_ROOT / "assets"
 ICONS_PATH = ASSETS_ROOT / "icons"
 IMAGES_PATH = ASSETS_ROOT / "images"
 
+# ===== CLOUD STORAGE CONFIGURATION =====
+# BackBlaze B2 Configuration
+B2_KEY_ID = os.getenv("B2_KEY_ID")
+B2_APPLICATION_KEY = os.getenv("B2_APPLICATION_KEY") 
+B2_BUCKET_NAME = os.getenv("B2_BUCKET_NAME", "hotspot-analyzer-data")
+B2_ENDPOINT = os.getenv("B2_ENDPOINT", "https://s3.us-west-004.backblazeb2.com")
+
+# Cloud sync settings
+CLOUD_SYNC_ENABLED = os.getenv("CLOUD_SYNC_ENABLED", "false").lower() == "true"
+AUTO_BACKUP = os.getenv("AUTO_BACKUP", "false").lower() == "true"
+BACKUP_INTERVAL_HOURS = int(os.getenv("BACKUP_INTERVAL_HOURS", "24"))
+
+# Cloud paths mapping
+CLOUD_DATA_PREFIX = "data/"
+CLOUD_MODELS_PREFIX = "models/"
+CLOUD_LOGS_PREFIX = "logs/"
+CLOUD_BACKUP_PREFIX = "backups/"
+
 # Default file extensions
 NIFTI_EXTENSIONS = [".nii", ".nii.gz"]
 DICOM_EXTENSIONS = [".dcm", ".dicom"]
@@ -85,14 +107,23 @@ def ensure_directories():
     for directory in directories:
         directory.mkdir(parents=True, exist_ok=True)
 
-def get_patient_spect_path(patient_id: str, session_code: str = None) -> Path:
-    """Get path to patient's SPECT data folder"""
-    if session_code:
-        return SPECT_DATA_PATH / f"{patient_id}_{session_code}"
-    return SPECT_DATA_PATH / patient_id
+# ===== NEW DIRECTORY STRUCTURE FUNCTIONS =====
+def get_patient_spect_path(patient_id: str, session_code: str) -> Path:
+    """
+    Get path to patient's SPECT data folder with NEW structure
+    NEW: data/SPECT/[session_code]/[patient_id]/
+    OLD: data/SPECT/[patient_id]_[session_code]/
+    """
+    return SPECT_DATA_PATH / session_code / patient_id
 
-def get_patient_pet_path(patient_id: str) -> Path:
+def get_session_spect_path(session_code: str) -> Path:
+    """Get path to session's SPECT data folder"""
+    return SPECT_DATA_PATH / session_code
+
+def get_patient_pet_path(patient_id: str, session_code: str = None) -> Path:
     """Get path to patient's PET data folder"""
+    if session_code:
+        return PET_DATA_PATH / session_code / patient_id
     return PET_DATA_PATH / patient_id
 
 def get_segmentation_files(patient_folder: Path, filename_stem: str, view: str):
@@ -107,6 +138,25 @@ def get_segmentation_files(patient_folder: Path, filename_stem: str, view: str):
         'dcm_colored': base.with_name(f"{filename_stem}_{vtag}_colored.dcm")
     }
 
+def get_segmentation_files_with_edited(patient_folder: Path, filename_stem: str, view: str):
+    """Get segmentation file paths including edited versions"""
+    base = patient_folder / filename_stem
+    vtag = view.lower()
+    
+    return {
+        # Original files
+        'png_mask': base.with_name(f"{filename_stem}_{vtag}_mask.png"),
+        'png_colored': base.with_name(f"{filename_stem}_{vtag}_colored.png"),
+        'dcm_mask': base.with_name(f"{filename_stem}_{vtag}_mask.dcm"),
+        'dcm_colored': base.with_name(f"{filename_stem}_{vtag}_colored.dcm"),
+        
+        # Edited files
+        'png_mask_edited': base.with_name(f"{filename_stem}_{vtag}_edited_mask.png"),
+        'png_colored_edited': base.with_name(f"{filename_stem}_{vtag}_edited_colored.png"),
+        'dcm_mask_edited': base.with_name(f"{filename_stem}_{vtag}_edited_mask.dcm"),
+        'dcm_colored_edited': base.with_name(f"{filename_stem}_{vtag}_edited_colored.dcm"),
+    }
+
 def get_hotspot_files(patient_id: str, session_code: str, view: str):
     """Get hotspot file paths for a specific patient and view"""
     patient_folder = get_patient_spect_path(patient_id, session_code)
@@ -115,12 +165,17 @@ def get_hotspot_files(patient_id: str, session_code: str, view: str):
     return {
         'colored_png': patient_folder / f"{patient_id}_{view_suffix}_hotspot_colored.png",
         'xml_file': patient_folder / f"{patient_id}_{view_suffix}.xml",
-        'mask_file': patient_folder / f"{patient_id}_{view_suffix}_hotspot_mask.png"
+        'mask_file': patient_folder / f"{patient_id}_{view_suffix}_hotspot_mask.png",
+        
+        # Edited versions
+        'colored_png_edited': patient_folder / f"{patient_id}_{view_suffix}_hotspot_edited_colored.png",
+        'xml_file_edited': patient_folder / f"{patient_id}_{view_suffix}_edited.xml",
+        'mask_file_edited': patient_folder / f"{patient_id}_{view_suffix}_hotspot_edited_mask.png",
     }
 
-def get_output_path(patient_id: str, analysis_type: str = "hotspot") -> Path:
+def get_output_path(patient_id: str, session_code: str, analysis_type: str = "hotspot") -> Path:
     """Get output path for patient analysis results"""
-    return RESULTS_PATH / analysis_type / patient_id
+    return RESULTS_PATH / analysis_type / session_code / patient_id
 
 def get_temp_path(session_id: str = None) -> Path:
     """Get temporary processing path"""
@@ -136,6 +191,97 @@ def get_model_path(model_name: str) -> Path:
         "cnn": CNN_MODEL_PATH
     }
     return model_paths.get(model_name.lower(), MODELS_ROOT / f"{model_name}.pt")
+
+# ===== CLOUD PATH HELPERS =====
+def get_cloud_path(local_path: Path) -> str:
+    """Convert local path to cloud storage path"""
+    try:
+        # Get relative path from project root
+        rel_path = local_path.relative_to(PROJECT_ROOT)
+        
+        # Convert to cloud path format (use forward slashes)
+        cloud_path = str(rel_path).replace("\\", "/")
+        
+        return cloud_path
+    except ValueError:
+        # Path is not relative to project root
+        return str(local_path).replace("\\", "/")
+
+def get_local_path_from_cloud(cloud_path: str) -> Path:
+    """Convert cloud storage path to local path"""
+    return PROJECT_ROOT / cloud_path.replace("/", os.sep)
+
+def get_cloud_spect_path(session_code: str, patient_id: str = None) -> str:
+    """Get cloud path for SPECT data"""
+    if patient_id:
+        return f"data/SPECT/{session_code}/{patient_id}"
+    return f"data/SPECT/{session_code}"
+
+def get_cloud_pet_path(patient_id: str, session_code: str = None) -> str:
+    """Get cloud path for PET data"""
+    if session_code:
+        return f"data/PET/{session_code}/{patient_id}"
+    return f"data/PET/{patient_id}"
+
+def is_cloud_enabled() -> bool:
+    """Check if cloud storage is properly configured and enabled"""
+    return (CLOUD_SYNC_ENABLED and 
+            B2_KEY_ID and 
+            B2_APPLICATION_KEY and 
+            B2_BUCKET_NAME and 
+            B2_ENDPOINT)
+
+# ===== MIGRATION HELPERS =====
+def get_old_patient_spect_path(patient_id: str, session_code: str) -> Path:
+    """Get OLD path structure for migration purposes"""
+    return SPECT_DATA_PATH / f"{patient_id}_{session_code}"
+
+def migrate_old_to_new_structure():
+    """
+    Migrate old directory structure to new structure
+    OLD: data/SPECT/[patient_id]_[session_code]/
+    NEW: data/SPECT/[session_code]/[patient_id]/
+    """
+    if not SPECT_DATA_PATH.exists():
+        return
+    
+    print("🔄 Migrating SPECT directory structure...")
+    
+    # Find all old-style directories
+    old_directories = []
+    for item in SPECT_DATA_PATH.iterdir():
+        if item.is_dir() and "_" in item.name:
+            # Check if it's old format (patient_id_session_code)
+            parts = item.name.split("_")
+            if len(parts) >= 2:
+                old_directories.append(item)
+    
+    migrated_count = 0
+    for old_dir in old_directories:
+        try:
+            # Parse old directory name
+            parts = old_dir.name.split("_")
+            patient_id = parts[0]
+            session_code = "_".join(parts[1:])  # Handle multi-part session codes
+            
+            # Create new path
+            new_path = get_patient_spect_path(patient_id, session_code)
+            
+            if not new_path.exists():
+                # Create parent directory
+                new_path.parent.mkdir(parents=True, exist_ok=True)
+                
+                # Move directory
+                old_dir.rename(new_path)
+                print(f"✅ Migrated: {old_dir} → {new_path}")
+                migrated_count += 1
+            else:
+                print(f"⚠️  Target already exists: {new_path}")
+                
+        except Exception as e:
+            print(f"❌ Failed to migrate {old_dir}: {e}")
+    
+    print(f"📁 Migration completed: {migrated_count} directories migrated")
 
 # Environment-specific overrides
 if os.getenv("DEVELOPMENT"):
@@ -161,3 +307,20 @@ def validate_paths():
             raise PermissionError(f"No read access to critical path: {path}")
     
     return True
+
+def validate_cloud_config():
+    """Validate cloud storage configuration"""
+    if not is_cloud_enabled():
+        missing = []
+        if not B2_KEY_ID:
+            missing.append("B2_KEY_ID")
+        if not B2_APPLICATION_KEY:
+            missing.append("B2_APPLICATION_KEY")
+        if not B2_BUCKET_NAME:
+            missing.append("B2_BUCKET_NAME")
+        if not B2_ENDPOINT:
+            missing.append("B2_ENDPOINT")
+        
+        return False, f"Missing cloud configuration: {', '.join(missing)}"
+    
+    return True, "Cloud configuration is valid"
