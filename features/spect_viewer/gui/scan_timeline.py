@@ -1,4 +1,4 @@
-# features/spect_viewer/gui/scan_timeline.py – v7 (Improved UX + Separate Edit Buttons)
+# features/spect_viewer/gui/scan_timeline.py – v8 (Fixed Opacity + Select Button)
 # ---------------------------------------------------------------------
 from __future__ import annotations
 from pathlib import Path
@@ -7,7 +7,7 @@ from datetime import datetime
 
 import numpy as np
 from PIL import Image
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QPixmap, QImage
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QLabel, QScrollArea,
@@ -25,7 +25,8 @@ from core.utils.image_converter import (
     make_black_transparent,
     load_image_with_transparency,
     create_composite_image,
-    get_layer_preview
+    get_layer_preview,
+    apply_opacity_to_image  # NEW: Import this function
 )
 
 # Import for patient/session extraction from path
@@ -93,6 +94,9 @@ class ScanTimelineWidget(QWidget):
     - Separate edit buttons for Segmentation and Hotspot
     - Better visual separation and user control
     """
+    # NEW: Add signal for scan selection
+    scan_selected = Signal(int)  # Emit scan index when selected
+    
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
 
@@ -481,7 +485,7 @@ class ScanTimelineWidget(QWidget):
         hbox.addWidget(header_label)
         hbox.addStretch()
         
-        # Select button (replaces old edit button)
+        # FIXED: Select button now emits signal properly
         select_btn = QPushButton("Select")
         select_btn.setFixedSize(60, 24)
         select_btn.setStyleSheet("""
@@ -500,17 +504,28 @@ class ScanTimelineWidget(QWidget):
                 background-color: #495057;
             }
         """)
-        select_btn.clicked.connect(lambda *_: self._select_scan(idx))
+        # FIXED: Connect to new method that emits signal
+        select_btn.clicked.connect(lambda *_: self._on_scan_selected(idx))
         hbox.addWidget(select_btn)
         
         return hbox
     
-    def _select_scan(self, idx: int):
-        """Select a specific scan and update active index"""
+    def _on_scan_selected(self, idx: int):
+        """FIXED: Handle scan selection and emit signal to parent"""
+        print(f"[DEBUG] Timeline scan selected: {idx}")
         self.active_scan_index = idx
         self._update_scan_info_display()
         self._update_edit_button_states()
-        print(f"[DEBUG] Selected scan {idx + 1}")
+        
+        # Emit signal to parent (MainWindow) to sync with scan buttons
+        self.scan_selected.emit(idx)
+        
+        # Rebuild to update visual selection
+        self._rebuild()
+    
+    def _select_scan(self, idx: int):
+        """DEPRECATED: Use _on_scan_selected instead"""
+        self._on_scan_selected(idx)
     
     def _get_patient_session_from_scan(self, scan: Dict) -> tuple[str, str]:
         """Extract patient ID and session code from scan path using NEW structure"""
@@ -536,13 +551,13 @@ class ScanTimelineWidget(QWidget):
         
         layers = {}
         
-        # Layer 1: Original (base) - no transparency processing
+        # FIXED: Layer 1: Original (base) - convert to RGBA for opacity support
         if self.current_view in frame_map:
             original_arr = frame_map[self.current_view]
-            # Convert to PIL Image
-            # Kode Baru
+            # Convert to PIL Image with RGBA mode for opacity support
             original_normalized = ((original_arr - original_arr.min()) / max(1, np.ptp(original_arr)) * 255).astype(np.uint8)
-            layers["Original"] = Image.fromarray(original_normalized).convert("RGB")
+            original_image = Image.fromarray(original_normalized).convert("RGBA")
+            layers["Original"] = original_image
         
         # Layer 2: Segmentation - with transparency processing
         seg_files = get_segmentation_files_with_edited(dicom_path.parent, filename, self.current_view)
@@ -619,22 +634,32 @@ class ScanTimelineWidget(QWidget):
         # Get all available layer images
         all_layers = self._get_layer_images(scan)
         
-        # Filter to only active layers
+        # FIXED: Apply opacity to individual layers before compositing
         active_layer_images = {}
         for layer_name in self._active_layers:
             if layer_name in all_layers:
-                active_layer_images[layer_name] = all_layers[layer_name]
+                layer_image = all_layers[layer_name]
+                layer_opacity = self._layer_opacities.get(layer_name, 1.0)
+                
+                # Apply opacity to the layer
+                if layer_opacity < 1.0:
+                    layer_image = apply_opacity_to_image(layer_image, layer_opacity)
+                
+                active_layer_images[layer_name] = layer_image
         
         if not active_layer_images:
             lbl.setText("No layer data available")
             lbl.setStyleSheet("color:#888; font-size: 12px; padding: 20px;")
         else:
-            # Create composite image from active layers
+            # Create composite image from active layers (don't apply opacity again)
             try:
+                # Use opacity 1.0 for all layers since we already applied opacity above
+                uniform_opacities = {layer: 1.0 for layer in active_layer_images.keys()}
+                
                 composite_image = create_composite_image(
                     layers=active_layer_images,
                     layer_order=self._active_layers,
-                    layer_opacities=self._layer_opacities
+                    layer_opacities=uniform_opacities  # Don't double-apply opacity
                 )
                 
                 # Convert composite to displayable format
