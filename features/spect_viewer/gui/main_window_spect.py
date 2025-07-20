@@ -1,4 +1,4 @@
-# features/spect_viewer/gui/main_window_spect.py
+# features/spect_viewer/gui/main_window_spect.py - FIXED: Scan button sync
 from __future__ import annotations
 
 from pathlib import Path
@@ -169,6 +169,10 @@ class MainWindowSpect(QMainWindow):
         # MIDDLE PANEL: Timeline untuk menampilkan gambar
         self.timeline_widget = ScanTimelineWidget()
         self.timeline_widget.set_session_code(self.session_code)
+        
+        # FIXED: Connect timeline scan selection signal to sync with scan buttons
+        self.timeline_widget.scan_selected.connect(self._on_timeline_scan_selected)
+        
         main_splitter.addWidget(self.timeline_widget)
 
         # RIGHT PANEL: Grafik dan ringkasan
@@ -206,6 +210,39 @@ class MainWindowSpect(QMainWindow):
         main_layout.addWidget(main_splitter, stretch=1)
         self.setCentralWidget(main_widget)
 
+    # FIXED: NEW method to handle timeline scan selection
+    def _on_timeline_scan_selected(self, scan_index: int):
+        """Handle scan selection from timeline widget"""
+        print(f"[DEBUG] Timeline scan selected signal received: {scan_index}")
+        
+        # Update scan buttons to reflect selection
+        for i, btn in enumerate(self.scan_buttons):
+            btn.setChecked(i == scan_index)
+        
+        # Update side panel with selected scan data
+        try:
+            id_text = self.patient_bar.id_combo.currentText()
+            if not id_text.startswith("ID: "):
+                print(f"[DEBUG] Invalid format: {id_text}")
+                return
+                
+            remainder = id_text[4:]  # Remove "ID: "
+            patient_id = remainder.split(" (")[0]  # "12"
+            session_part = remainder.split(" (")[1]  # "NSY)"
+            session = session_part.rstrip(")")  # "NSY"
+            
+            cache_key = f"{patient_id}_{session}"
+            scans = self._loaded.get(cache_key, [])
+            
+            if scans and scan_index < len(scans):
+                selected_scan = scans[scan_index]
+                self.side_panel.set_chart_data(scans)
+                self.side_panel.set_summary(selected_scan["meta"])
+                print(f"[DEBUG] Updated side panel for scan {scan_index + 1}")
+                
+        except (IndexError, AttributeError) as e:
+            print(f"[DEBUG] Failed to update side panel: {e}")
+
     # NEW: Handle checkbox-based layer changes
     def _on_layers_changed(self, active_layers: list) -> None:
         """Handle layer selection changes from checkbox mode selector"""
@@ -225,6 +262,8 @@ class MainWindowSpect(QMainWindow):
     # UPDATED: Enhanced scan button click handler for checkbox system
     def _on_scan_button_clicked(self, index: int) -> None:
         """Handle scan button click with checkbox mode support"""
+        print(f"[DEBUG] Scan button {index + 1} clicked")
+        
         # Get current active layers and sync timeline settings
         active_layers = self.mode_selector.get_active_layers()
         self.timeline_widget.set_active_layers(active_layers)

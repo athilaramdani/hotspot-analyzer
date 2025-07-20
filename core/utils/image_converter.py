@@ -1,4 +1,4 @@
-# core/utils/image_converter.py
+# core/utils/image_converter.py - Cleaned and optimized version
 import pydicom
 import numpy as np
 from PIL import Image
@@ -30,7 +30,7 @@ def load_frames_and_metadata_matrix(path: str):
     return frames, meta
 
 
-# ===== NEW: Transparency and Layer Processing Functions =====
+# ===== TRANSPARENCY AND LAYER PROCESSING FUNCTIONS =====
 
 def make_black_transparent(image: Union[Image.Image, np.ndarray], 
                           tolerance: int = 5) -> Image.Image:
@@ -48,7 +48,7 @@ def make_black_transparent(image: Union[Image.Image, np.ndarray],
     if isinstance(image, np.ndarray):
         if image.dtype != np.uint8:
             # Normalize to 0-255 if needed
-            image = ((image - image.min()) / (image.max() - image.min()) * 255).astype(np.uint8)
+            image = ((image - image.min()) / max(1, image.max() - image.min()) * 255).astype(np.uint8)
         
         if len(image.shape) == 2:
             # Grayscale to RGB
@@ -107,6 +107,30 @@ def load_image_with_transparency(image_path: Path,
             image = image.convert('RGBA')
     
     return image
+
+
+def apply_opacity_to_image(image: Image.Image, opacity: float) -> Image.Image:
+    """
+    Apply global opacity to an image.
+    
+    Args:
+        image: PIL Image to modify
+        opacity: Opacity value (0.0-1.0)
+        
+    Returns:
+        PIL Image with applied opacity
+    """
+    if image.mode != 'RGBA':
+        image = image.convert('RGBA')
+    
+    # Create a copy to avoid modifying the original
+    image_copy = image.copy()
+    data = np.array(image_copy)
+    
+    # Apply opacity to alpha channel
+    data[:, :, 3] = (data[:, :, 3] * opacity).astype(np.uint8)
+    
+    return Image.fromarray(data, 'RGBA')
 
 
 def blend_layers_with_transparency(base_layer: Image.Image, 
@@ -195,24 +219,17 @@ def create_composite_image(layers: dict,
             base_layer = layers[layer_name].copy()
             if base_layer.mode != 'RGBA':
                 base_layer = base_layer.convert('RGBA')
-            
-            # Apply base layer opacity if not Original
-            if layer_name != "Original":
-                opacity = layer_opacities.get(layer_name, 1.0)
-                base_layer = apply_opacity_to_image(base_layer, opacity)
             break
     
     if base_layer is None:
         # No layers available, return a blank image
         return Image.new('RGBA', (512, 512), (0, 0, 0, 0))
     
-    # Get reference size from base layer
-    reference_size = base_layer.size
-    
-    # Composite remaining layers on top
+    # Start with the base layer
     result = base_layer
     base_layer_processed = False
     
+    # Composite remaining layers on top
     for layer_name in layer_order:
         if layer_name not in layers or layers[layer_name] is None:
             continue
@@ -222,7 +239,7 @@ def create_composite_image(layers: dict,
             base_layer_processed = True
             continue
         
-        overlay = layers[layer_name]
+        overlay = layers[layer_name].copy()
         opacity = layer_opacities.get(layer_name, 1.0)
         
         # Apply transparency to non-Original layers
@@ -233,26 +250,6 @@ def create_composite_image(layers: dict,
         result = blend_layers_with_transparency(result, overlay, opacity)
     
     return result
-
-
-def apply_opacity_to_image(image: Image.Image, opacity: float) -> Image.Image:
-    """
-    Apply global opacity to an image.
-    
-    Args:
-        image: PIL Image to modify
-        opacity: Opacity value (0.0-1.0)
-        
-    Returns:
-        PIL Image with applied opacity
-    """
-    if image.mode != 'RGBA':
-        image = image.convert('RGBA')
-    
-    data = np.array(image)
-    data[:, :, 3] = (data[:, :, 3] * opacity).astype(np.uint8)
-    
-    return Image.fromarray(data, 'RGBA')
 
 
 def get_layer_preview(layer_name: str, 
@@ -270,9 +267,9 @@ def get_layer_preview(layer_name: str,
         Processed PIL Image ready for display
     """
     if layer_name == "Original":
-        # Original layer - no transparency processing
-        if image.mode != 'RGB':
-            return image.convert('RGB')
+        # Original layer - ensure RGBA mode for opacity support
+        if image.mode != 'RGBA':
+            return image.convert('RGBA')
         return image
     
     elif layer_name in ["Segmentation", "Hotspot"]:
@@ -291,7 +288,8 @@ def get_layer_preview(layer_name: str,
         return image
 
 
-# Utility functions for common operations
+# ===== UTILITY FUNCTIONS =====
+
 def is_black_pixel(rgb_tuple: Tuple[int, int, int], tolerance: int = 5) -> bool:
     """Check if a pixel is considered black within tolerance."""
     r, g, b = rgb_tuple
@@ -330,7 +328,7 @@ def normalize_image_for_display(image: Union[Image.Image, np.ndarray]) -> Image.
     if isinstance(image, np.ndarray):
         # Normalize numpy array to 0-255
         if image.dtype != np.uint8:
-            image_norm = ((image - image.min()) / (image.max() - image.min()) * 255).astype(np.uint8)
+            image_norm = ((image - image.min()) / max(1, image.max() - image.min()) * 255).astype(np.uint8)
         else:
             image_norm = image
             
