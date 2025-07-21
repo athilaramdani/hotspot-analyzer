@@ -1,14 +1,4 @@
-# =====================================================================
-# backend/segmenter.py  –  MODERN VERSION
-# ---------------------------------------------------------------------
-"""
-Segmentasi single-frame ndarray (Bone Scan).
-
-API
----
-mask            = predict_bone_mask(image)
-mask, rgb_image = predict_bone_mask(image, to_rgb=True)
-"""
+# backend/segmenter.py - Enhanced with better progress messages
 from __future__ import annotations
 
 import inspect
@@ -22,12 +12,12 @@ import numpy as np
 import torch
 from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 from core.logger import _log
+from core.gui.ui_constants import truncate_text
 
 # ===== Import path configuration from core =====
 from core.config.paths import SEGMENTATION_MODEL_PATH
 
 # ------------------------------------------------------------------ try import colorizer
-# (Bagian ini tidak diubah, tetap diperlukan untuk fallback)
 try:
     from .colorizer import label_mask_to_rgb      # 13-kelas palette
     COLORIZER_OK = True
@@ -47,7 +37,7 @@ os.environ.setdefault("nnUNet_preprocessed", str(PROJECT_ROOT / "_nn_pre"))
 os.environ["nnUNet_results"] = str(SEG_DIR)
 
 
-# ------------------------------------------------------------------ HELPERS (ADAPTED FROM NEW LOGIC)
+# ------------------------------------------------------------------ HELPERS
 def create_predictor() -> nnUNetPredictor:
     """Creates the nnUNet predictor with standardized settings."""
     use_cuda = torch.cuda.is_available()
@@ -69,7 +59,6 @@ def create_predictor() -> nnUNetPredictor:
 
 def load_bone_model() -> nnUNetPredictor:
     """Lazy-load + cache the bone segmentation model."""
-    # <-- RENAMED & SIMPLIFIED: from _load_model(view) to load_bone_model()
     if not hasattr(load_bone_model, "_cache"):
         load_bone_model._cache = {}
     cache = load_bone_model._cache
@@ -77,67 +66,93 @@ def load_bone_model() -> nnUNetPredictor:
     if "bone" not in cache:
         dataset = "Dataset001_BoneRegion"
         model_path = SEG_DIR / dataset / "nnUNetTrainer_50epochs__nnUNetPlans__2d"
-        _log(f"[INFO]  Loading bone segmentation model from {model_path}")
+        _log(f"[INFO]  Loading bone segmentation model...")
+        _log(f"[INFO]  Model path: {truncate_text(str(model_path), 60)}")
 
         if not model_path.exists():
             raise FileNotFoundError(f"Model directory not found: {model_path}")
 
         predictor = create_predictor()
+        _log(f"[INFO]  Initializing model from trained weights...")
         predictor.initialize_from_trained_model_folder(
             str(model_path), use_folds=(0,), checkpoint_name="checkpoint_best.pth"
         )
         cache["bone"] = predictor
+        _log(f"[INFO]  Bone segmentation model loaded successfully")
     return cache["bone"]
 
 
 def run_prediction(image: np.ndarray, model: nnUNetPredictor) -> np.ndarray:
     """Runs sliding window inference on a pre-processed image."""
-    # <-- RENAMED: from _run_inference to run_prediction
+    _log(f"[INFO]  Running sliding window inference...")
+    _log(f"[INFO]  Input image shape: {image.shape}")
+    
     tensor = torch.from_numpy(image.astype(np.float32)[None, None]).to(model.device)
+    
     with torch.no_grad():
         logits = model.predict_sliding_window_return_logits(tensor)
+        
     if logits.ndim == 4:
         logits = logits[:, 0]
-    return torch.argmax(logits, dim=0).cpu().numpy().astype(np.uint8)
+        
+    prediction = torch.argmax(logits, dim=0).cpu().numpy().astype(np.uint8)
+    _log(f"[INFO]  Prediction completed, output shape: {prediction.shape}")
+    
+    return prediction
 
 
-# ------------------------------------------------------------------ PUBLIC API (COMPLETELY REPLACED)
+# ------------------------------------------------------------------ PUBLIC API
 def predict_bone_mask(
     image: np.ndarray, *, to_rgb: bool = False
-) -> np.ndarray: # Sekarang selalu mengembalikan satu nilai: np.ndarray
+) -> np.ndarray:
     """
     Performs bone segmentation on an input image using simple resize preprocessing.
-    ... (docstring tidak berubah) ...
-    Returns
-    -------
-    np.ndarray
-        - `mask` (1024, 256) jika `to_rgb=False`.
-        - `rgb_image` (1024, 256, 3) jika `to_rgb=True`.
+    
+    Args:
+        image: Input image (2D or 3D numpy array)
+        to_rgb: If True, return colored RGB image; if False, return raw mask
+        
+    Returns:
+        np.ndarray:
+            - mask (1024, 256) if to_rgb=False
+            - rgb_image (1024, 256, 3) if to_rgb=True
     """
-    _log(f"[INFO]  Segmenting bone mask (simple preprocessing)...")
+    _log(f"[INFO]  Starting bone mask segmentation...")
+    _log(f"[INFO]  Input image shape: {image.shape}, dtype: {image.dtype}")
     t_start = time.time()
 
     # --- Ensure 2-D input ---
     if image.ndim == 3:
+        _log(f"[INFO]  Converting 3D to 2D (using first channel)")
         image = image[..., 0] # Use first channel if RGB
     if image.ndim != 2:
         raise ValueError("image must be 2-D or 3-D")
 
     # --- Preprocessing: Simple resize to model's input size ---
+    _log(f"[INFO]  Preprocessing: resizing to (256, 1024)...")
     resized = cv2.resize(image, (256, 1024), interpolation=cv2.INTER_AREA)
+    _log(f"[INFO]  Preprocessing completed")
 
     # --- Inference ---
+    _log(f"[INFO]  Loading segmentation model...")
     model = load_bone_model()
+    
+    _log(f"[INFO]  Performing bone segmentation inference...")
     mask = run_prediction(resized, model) # Output shape is (1024, 256)
 
-    # --- Return results ---
+    # --- Post-processing ---
     elapsed = time.time() - t_start
-    _log(f"[INFO]  Prediction finished in {elapsed:.2f}s. Mask shape: {mask.shape}")
+    unique_labels = np.unique(mask)
+    _log(f"[INFO]  Segmentation completed in {elapsed:.2f}s")
+    _log(f"[INFO]  Output mask shape: {mask.shape}")
+    _log(f"[INFO]  Unique labels found: {list(unique_labels)}")
 
-    # ✅ PERBAIKAN LOGIKA RETURN
+    # ✅ Return logic
     if to_rgb:
-        # Jika to_rgb=True, buat gambar berwarna dan kembalikan HANYA itu.
-        return label_mask_to_rgb(mask)
+        _log(f"[INFO]  Converting mask to colored RGB image...")
+        rgb_result = label_mask_to_rgb(mask)
+        _log(f"[INFO]  RGB conversion completed, shape: {rgb_result.shape}")
+        return rgb_result
     else:
-        # Jika to_rgb=False, kembalikan mask mentah seperti biasa.
+        _log(f"[INFO]  Returning raw segmentation mask")
         return mask

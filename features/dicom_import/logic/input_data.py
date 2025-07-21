@@ -1,17 +1,4 @@
-# =====================================================================
-# backend/input_data.py   --  SEGMENT → PNG → OVERLAY → SECONDARY DICOM
-# ---------------------------------------------------------------------
-"""
-Alur:
-1.  Salin file asli → ./data/SPECT/[session_code]/[patient_id]/[patient_id].dcm
-2.  Segmentasi setiap frame (Anterior/Posterior)
-3.  Simpan:
-      • Overlay biner ke DICOM NM asli  (group 0x6000,0x3000)
-      • PNG   : *_mask.png, *_colored.png
-      • SC-DICOM (OT) : *_mask.dcm, *_colored.dcm   ← agar viewer lain bisa buka
-4.  Upload ke cloud storage
-"""
-
+# features/dicom_import/logic/input_data.py - Enhanced with better progress messages
 from __future__ import annotations
 from pathlib import Path
 from shutil  import copy2
@@ -31,6 +18,7 @@ from pydicom.uid     import (
 from .dicom_loader import load_frames_and_metadata
 from features.spect_viewer.logic.segmenter import predict_bone_mask
 from core.logger import _log
+from core.gui.ui_constants import truncate_text
 
 # Use new directory structure from paths.py
 from core.config.paths import (
@@ -132,19 +120,25 @@ def _upload_to_cloud(file_path: Path, session_code: str, patient_id: str, is_edi
 
 # ---------------------------------------------------------------- core
 def _process_one(src: Path, session_code: str) -> Path:
-    _log(f"\n=== Processing {src} ===")
+    _log(f"\n=== Processing {truncate_text(src.name, 40)} ===")
 
+    # Read patient info
+    _log("  >> Reading DICOM metadata...")
     pid = str(pydicom.dcmread(src, stop_before_pixels=True).PatientID)
     dest_dir = get_patient_spect_path(pid, session_code)
     dest_dir.mkdir(parents=True, exist_ok=True)
     
+    # Copy file to destination
     dest_path = dest_dir / src.name
     if src.resolve() != dest_path.resolve():
+        _log(f"  >> Copying to patient directory...")
         copy2(src, dest_path)
-    _log(f"  Copied → {dest_path}")
+    _log(f"  Copied → {truncate_text(str(dest_path), 60)}")
 
     _upload_to_cloud(dest_path, session_code, pid)
 
+    # Load DICOM for processing
+    _log("  >> Loading DICOM frames...")
     ds = pydicom.dcmread(dest_path)
     
     if session_code not in str(ds.PatientID):
@@ -156,24 +150,34 @@ def _process_one(src: Path, session_code: str) -> Path:
     overlay_group = 0x6000
     saved: List[str] = []
 
-    # ✅ PERBAIKAN: Unpack 'view' dan 'img' dari frames.items()
-    for view, img in frames.items():
-        _log(f"  >> Segmenting {view}")
+    # Process each frame/view
+    for view_idx, (view, img) in enumerate(frames.items(), 1):
+        view_name = truncate_text(view, 20)
+        _log(f"  >> [{view_idx}/{len(frames)}] Processing {view_name}")
+        
         try:
-            # ✅ PERBAIKAN: Gunakan parameter 'to_rgb=True'
+            # Enhanced segmentation progress messages
+            _log(f"     Segmenting bone mask (simple preprocessing)...")
             mask = predict_bone_mask(img, to_rgb=False) # Get raw mask for overlay & binary files
+            
+            _log(f"     Generating colored overlay...")
             rgb = predict_bone_mask(img, to_rgb=True)   # Get colored image for saving
+            
+            _log(f"     Segmentation completed for {view_name}")
 
         except Exception as e:
-            _log(f"    [ERROR] Segmentation failed: {e}")
+            _log(f"    [ERROR] Segmentation failed for {view_name}: {e}")
             continue
 
+        # Insert overlay into DICOM
+        _log(f"     Inserting overlay into DICOM...")
         _insert_overlay(ds, mask, group=overlay_group, desc=f"Seg {view}")
         overlay_group += 0x2
 
         base = f"{dest_path.stem}_{view.lower()}"
         
         # --- PNG files
+        _log(f"     Saving PNG files...")
         mask_png_path = dest_dir / f"{base}_mask.png"
         colored_png_path = dest_dir / f"{base}_colored.png"
         
@@ -187,6 +191,7 @@ def _process_one(src: Path, session_code: str) -> Path:
 
         # --- SC-DICOM files
         try:
+            _log(f"     Creating secondary capture DICOM...")
             mask_dcm_path = dest_dir / f"{base}_mask.dcm"
             colored_dcm_path = dest_dir / f"{base}_colored.dcm"
             
@@ -200,9 +205,10 @@ def _process_one(src: Path, session_code: str) -> Path:
             _upload_to_cloud(colored_dcm_path, session_code, pid)
             
         except Exception as e:
-            _log(f"    [WARN] SC-DICOM save failed: {e}")
+            _log(f"    [WARN] SC-DICOM save failed for {view_name}: {e}")
 
     # Save updated DICOM with overlays
+    _log("  >> Finalizing DICOM with overlays...")
     ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
     ds.is_little_endian = True
     ds.is_implicit_VR = False
@@ -210,10 +216,12 @@ def _process_one(src: Path, session_code: str) -> Path:
     
     _upload_to_cloud(dest_path, session_code, pid)
     
-    _log(f"  DICOM updated – files saved: {', '.join(saved)}")
+    _log(f"  DICOM processing completed")
+    _log(f"  Files saved: {len(saved)} items")
     
     if is_cloud_enabled():
-        _log(f"  Cloud sync: {'✅ Enabled' if CLOUD_AVAILABLE else '❌ Not available'}")
+        cloud_status = "✅ Enabled" if CLOUD_AVAILABLE else "❌ Not available"
+        _log(f"  Cloud sync: {cloud_status}")
     
     return dest_path
 
@@ -257,36 +265,43 @@ def process_files(
     def _proxy(msg: str) -> None:
         orig_log(msg)          # tetap tulis ke console/file
         if log_cb:
-            log_cb(msg)        # kirim ke frontend jika callback ada
+            # Truncate very long messages for UI display
+            display_msg = truncate_text(msg, 100) if len(msg) > 100 else msg
+            log_cb(display_msg)        # kirim ke frontend jika callback ada
     globals()["_log"] = _proxy
     # --------------------------------------------------------------
 
     out: List[Path] = []
     total = len(paths)
-    _log(f"## Starting batch: {total} file(s)")
+    _log(f"## Starting batch import: {total} file(s)")
     _log(f"## Session code: {session_code}")
-    _log(f"## New directory structure: data/SPECT/{session_code}/[patient_id]/")
+    _log(f"## Target directory: data/SPECT/{session_code}/[patient_id]/")
 
     for i, p in enumerate(paths, 1):
         try:
+            _log(f"\n## Processing file {i}/{total}: {truncate_text(p.name, 30)}")
             result = _process_one(Path(p), session_code)
             out.append(result)
+            _log(f"## File {i}/{total} completed successfully")
         except Exception as e:
-            _log(f"[ERROR] {p} failed: {e}\n{traceback.format_exc()}")
+            error_msg = f"File {i}/{total} failed: {str(e)[:100]}..."
+            _log(f"[ERROR] {error_msg}")
+            print(f"[FULL ERROR] {p} failed: {e}\n{traceback.format_exc()}")
         finally:
             if progress_cb:
                 progress_cb(i, total, str(p))
 
-    _log("## Batch finished")
+    _log("## Batch import process completed")
     
     # Final cloud sync summary
     if is_cloud_enabled() and CLOUD_AVAILABLE:
         try:
             from core.config.cloud_storage import sync_spect_data
+            _log("## Performing final cloud synchronization...")
             uploaded, downloaded = sync_spect_data(session_code)
-            _log(f"## Cloud sync completed: {uploaded} uploaded, {downloaded} downloaded")
+            _log(f"## Cloud sync completed: {uploaded} up, {downloaded} down")
         except Exception as e:
-            _log(f"## Cloud sync failed: {e}")
+            _log(f"## Cloud sync failed: {truncate_text(str(e), 50)}")
     
     globals()["_log"] = orig_log      # kembalikan logger asli
     return out
