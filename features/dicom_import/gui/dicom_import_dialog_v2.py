@@ -1,3 +1,4 @@
+# features/dicom_import/gui/dicom_import_dialog_v2.py - FIXED Version
 from __future__ import annotations
 from pathlib import Path
 from typing import List, Optional
@@ -11,6 +12,23 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QSize
 
 from features.dicom_import.logic.input_data import process_files
+from core.gui.ui_constants import (
+    DIALOG_IMPORT_BUTTON_STYLE,
+    DIALOG_START_BUTTON_STYLE,
+    DIALOG_CANCEL_BUTTON_STYLE,
+    DIALOG_REMOVE_BUTTON_STYLE,
+    DIALOG_TITLE_STYLE,
+    DIALOG_SUBTITLE_STYLE,
+    DIALOG_PANEL_HEADER_STYLE,
+    DIALOG_FILE_LIST_STYLE,
+    DIALOG_LOG_STYLE,
+    DIALOG_PROGRESS_BAR_STYLE,
+    DIALOG_FRAME_STYLE,
+    FILE_ITEM_NAME_STYLE,
+    FILE_ITEM_PATH_STYLE,
+    truncate_text,
+    Colors
+)
 
 # Import for cloud storage
 try:
@@ -84,6 +102,8 @@ class DicomImportDialog(QDialog):
     def _setup_ui(self):
         """Setup UI components"""
         main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(15, 15, 15, 15)
+        main_layout.setSpacing(8)  # Reduced spacing
         
         # Title with session info
         title_text = "Import DICOM Files"
@@ -91,34 +111,36 @@ class DicomImportDialog(QDialog):
             title_text += f" - Session: {self.session_code}"
         
         title_label = QLabel(title_text)
-        title_label.setStyleSheet("font-size: 16px; font-weight: bold; margin: 10px;")
+        title_label.setStyleSheet(DIALOG_TITLE_STYLE)
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         main_layout.addWidget(title_label)
         
-        # Directory structure info
+        # FIXED: Reduced margin for directory structure info
         if self.session_code:
             structure_info = QLabel(f"Files will be saved to: data/SPECT/{self.session_code}/[patient_id]/")
-            structure_info.setStyleSheet("font-size: 12px; color: #666; margin: 5px;")
+            structure_info.setStyleSheet(DIALOG_SUBTITLE_STYLE)
             structure_info.setAlignment(Qt.AlignCenter)
             main_layout.addWidget(structure_info)
         
-        # Main content area dengan splitter
+        # FIXED: Main content area with increased splitter spacing
         content_splitter = QSplitter(Qt.Horizontal)
+        content_splitter.setHandleWidth(6)
         
         # Left panel - File List
         left_panel = self._create_file_list_panel()
         content_splitter.addWidget(left_panel)
         
-        # Right panel - Process Log
+        # Right panel - Process Log  
         right_panel = self._create_process_log_panel()
         content_splitter.addWidget(right_panel)
         
-        # Set splitter proportions
-        content_splitter.setStretchFactor(0, 1)  # File list
-        content_splitter.setStretchFactor(1, 2)  # Process log (lebih besar)
+        # FIXED: Better splitter proportions to increase vertical space
+        content_splitter.setStretchFactor(0, 2)  # File list - increased
+        content_splitter.setStretchFactor(1, 3)  # Process log - increased
+        content_splitter.setSizes([300, 450])    # Better initial sizes
         
-        main_layout.addWidget(content_splitter)
+        main_layout.addWidget(content_splitter, 1)  # Stretch factor 1 for main content
         
         # Bottom controls
         bottom_layout = self._create_bottom_controls()
@@ -127,30 +149,19 @@ class DicomImportDialog(QDialog):
     def _create_file_list_panel(self) -> QWidget:
         """Create left panel with file list"""
         panel = QFrame()
-        panel.setFrameStyle(QFrame.Box)
+        panel.setStyleSheet(DIALOG_FRAME_STYLE)
         layout = QVBoxLayout(panel)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         
         # Header
         header_label = QLabel("Files to Import")
-        header_label.setStyleSheet("font-weight: bold; padding: 5px;")
+        header_label.setStyleSheet(DIALOG_PANEL_HEADER_STYLE)
         layout.addWidget(header_label)
         
         # File list widget
         self.file_list = QListWidget()
-        self.file_list.setStyleSheet("""
-            QListWidget {
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                background-color: #f9f9f9;
-            }
-            QListWidget::item {
-                padding: 8px;
-                border-bottom: 1px solid #eee;
-            }
-            QListWidget::item:selected {
-                background-color: #e3f2fd;
-            }
-        """)
+        self.file_list.setStyleSheet(DIALOG_FILE_LIST_STYLE)
         layout.addWidget(self.file_list)
         
         return panel
@@ -158,37 +169,29 @@ class DicomImportDialog(QDialog):
     def _create_process_log_panel(self) -> QWidget:
         """Create right panel with process log"""
         panel = QFrame()
-        panel.setFrameStyle(QFrame.Box)
+        panel.setStyleSheet(DIALOG_FRAME_STYLE)
         layout = QVBoxLayout(panel)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         
         # Header
         header_label = QLabel("Process Log")
-        header_label.setStyleSheet("font-weight: bold; padding: 5px;")
+        header_label.setStyleSheet(DIALOG_PANEL_HEADER_STYLE)
         layout.addWidget(header_label)
         
         # Process log text area
         self.process_log = QTextEdit()
         self.process_log.setReadOnly(True)
-        self.process_log.setStyleSheet("""
-            QTextEdit {
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                background-color: #1e1e1e;
-                color: #ffffff;
-                font-family: 'Courier New', monospace;
-                font-size: 12px;
-            }
-        """)
+        self.process_log.setStyleSheet(DIALOG_LOG_STYLE)
         
         # Initial log message with new structure info
         initial_msg = "Ready to import DICOM files...\n"
         if self.session_code:
             initial_msg += f"Session: {self.session_code}\n"
-            initial_msg += f"Directory structure: data/SPECT/{self.session_code}/[patient_id]/\n"
-        if CLOUD_AVAILABLE:
-            initial_msg += "Cloud storage: ✅ Available\n"
-        else:
-            initial_msg += "Cloud storage: ❌ Not available\n"
+            initial_msg += f"Target directory: data/SPECT/{self.session_code}/[patient_id]/\n"
+        
+        cloud_status = "✅ Available" if CLOUD_AVAILABLE else "❌ Not available"
+        initial_msg += f"Cloud storage: {cloud_status}\n"
         
         self.process_log.setPlainText(initial_msg)
         layout.addWidget(self.process_log)
@@ -198,47 +201,23 @@ class DicomImportDialog(QDialog):
     def _create_bottom_controls(self) -> QHBoxLayout:
         """Create bottom control buttons and progress bar"""
         layout = QHBoxLayout()
+        layout.setSpacing(10)
         
         # Add DICOM button
         self.add_dicom_btn = QPushButton("Add DICOM Files")
-        self.add_dicom_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #2196F3;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 4px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #1976D2;
-            }
-            QPushButton:pressed {
-                background-color: #0D47A1;
-            }
-        """)
+        self.add_dicom_btn.setStyleSheet(DIALOG_IMPORT_BUTTON_STYLE)
         layout.addWidget(self.add_dicom_btn)
         
         # Progress bar
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
-        self.progress_bar.setStyleSheet("""
-            QProgressBar {
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                text-align: center;
-                height: 20px;
-            }
-            QProgressBar::chunk {
-                background-color: #4CAF50;
-                border-radius: 3px;
-            }
-        """)
+        self.progress_bar.setStyleSheet(DIALOG_PROGRESS_BAR_STYLE)
         layout.addWidget(self.progress_bar)
         
         # Progress label
         self.progress_label = QLabel("")
         self.progress_label.setVisible(False)
+        self.progress_label.setStyleSheet(f"color: {Colors.DIALOG_TEXT}; font-size: 12px;")
         layout.addWidget(self.progress_label)
         
         layout.addStretch()
@@ -246,46 +225,12 @@ class DicomImportDialog(QDialog):
         # Start Import button
         self.start_import_btn = QPushButton("Start Import")
         self.start_import_btn.setEnabled(False)
-        self.start_import_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 4px;
-                font-weight: bold;
-            }
-            QPushButton:hover:enabled {
-                background-color: #45a049;
-            }
-            QPushButton:pressed:enabled {
-                background-color: #3d8b40;
-            }
-            QPushButton:disabled {
-                background-color: #cccccc;
-                color: #666666;
-            }
-        """)
+        self.start_import_btn.setStyleSheet(DIALOG_START_BUTTON_STYLE)
         layout.addWidget(self.start_import_btn)
         
         # Cancel button
         self.cancel_btn = QPushButton("Cancel")
-        self.cancel_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #f44336;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 4px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #da190b;
-            }
-            QPushButton:pressed {
-                background-color: #b71c1c;
-            }
-        """)
+        self.cancel_btn.setStyleSheet(DIALOG_CANCEL_BUTTON_STYLE)
         layout.addWidget(self.cancel_btn)
         
         return layout
@@ -323,16 +268,19 @@ class DicomImportDialog(QDialog):
         # Create widget untuk item
         widget = QWidget()
         layout = QHBoxLayout(widget)
-        layout.setContentsMargins(5, 2, 5, 2)
+        layout.setContentsMargins(8, 4, 8, 4)
+        layout.setSpacing(8)
         
-        # File name label
-        file_label = QLabel(file_path.name)
-        file_label.setStyleSheet("color: #333; font-weight: bold;")
+        # File name label (truncated if too long)
+        file_name = truncate_text(file_path.name, 35)
+        file_label = QLabel(file_name)
+        file_label.setStyleSheet(FILE_ITEM_NAME_STYLE)
         layout.addWidget(file_label)
         
-        # File path label
-        path_label = QLabel(str(file_path.parent))
-        path_label.setStyleSheet("color: #666; font-size: 10px;")
+        # File path label (truncated)
+        path_text = truncate_text(str(file_path.parent), 45)
+        path_label = QLabel(path_text)
+        path_label.setStyleSheet(FILE_ITEM_PATH_STYLE)
         layout.addWidget(path_label)
         
         layout.addStretch()
@@ -340,23 +288,11 @@ class DicomImportDialog(QDialog):
         # Remove button
         remove_btn = QPushButton("✕")
         remove_btn.setFixedSize(20, 20)
-        remove_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #f44336;
-                color: white;
-                border: none;
-                border-radius: 10px;
-                font-weight: bold;
-                font-size: 12px;
-            }
-            QPushButton:hover {
-                background-color: #d32f2f;
-            }
-        """)
+        remove_btn.setStyleSheet(DIALOG_REMOVE_BUTTON_STYLE)
         remove_btn.clicked.connect(lambda: self._remove_file(item))
         layout.addWidget(remove_btn)
 
-        widget.setMinimumHeight(36)
+        widget.setMinimumHeight(40)
         widget.adjustSize()
 
         item.setSizeHint(widget.sizeHint())
@@ -373,7 +309,8 @@ class DicomImportDialog(QDialog):
         self.file_list.takeItem(row)
         
         self._update_ui_state()
-        self._log_message(f"Removed {file_path.name} from import list")
+        file_name = truncate_text(file_path.name, 40)
+        self._log_message(f"Removed {file_name} from import list")
         
     def _update_ui_state(self):
         """Update UI state based on selected files"""
@@ -394,7 +331,7 @@ class DicomImportDialog(QDialog):
         self._log_message("## Starting batch import process...")
         self._log_message(f"## Processing {len(self.selected_files)} file(s)")
         self._log_message(f"## Session: {self.session_code}")
-        self._log_message(f"## Directory structure: data/SPECT/{self.session_code}/[patient_id]/")
+        self._log_message(f"## Target directory: data/SPECT/{self.session_code}/[patient_id]/")
         
         # Update UI untuk mode processing
         self.add_dicom_btn.setEnabled(False)
@@ -418,12 +355,20 @@ class DicomImportDialog(QDialog):
     def _on_progress_updated(self, current: int, total: int, filename: str):
         """Handle progress update"""
         self.progress_bar.setValue(current)
-        self.progress_label.setText(f"Processing: {Path(filename).name} ({current}/{total})")
+        
+        # FIXED: Truncate progress label text and add detailed processing info
+        file_name = truncate_text(Path(filename).name, 30)
+        self.progress_label.setText(f"Processing: {file_name} ({current}/{total})")
         QCoreApplication.processEvents()
         
     def _on_log_updated(self, message: str):
-        """Handle log update"""
-        self.process_log.append(message)
+        """Handle log update with enhanced formatting"""
+        # FIXED: Truncate long messages for better display
+        display_message = message
+        if len(message) > 100 and not message.startswith("##"):
+            display_message = truncate_text(message, 100)
+            
+        self.process_log.append(display_message)
         self.process_log.ensureCursorVisible()
         QCoreApplication.processEvents()
         
@@ -440,16 +385,12 @@ class DicomImportDialog(QDialog):
         self.progress_label.setVisible(False)
         self.add_dicom_btn.setEnabled(True)
 
-        # Success popup with new structure info
+        # FIXED: Simplified success message
         success_msg = "All selected DICOM files have been imported successfully!"
-        if self.session_code:
-            success_msg += f"\n\nFiles saved to: data/SPECT/{self.session_code}/[patient_id]/"
-        if CLOUD_AVAILABLE:
-            success_msg += "\n\nFiles have been synced to cloud storage."
         
         QMessageBox.information(
             self,
-            "Import Successful",
+            "Import Successful", 
             success_msg
         )
         self.accept()
@@ -464,7 +405,9 @@ class DicomImportDialog(QDialog):
         
     def _log_message(self, message: str):
         """Add message to process log"""
-        self.process_log.append(message)
+        # FIXED: Truncate very long messages
+        display_message = truncate_text(message, 120) if len(message) > 120 else message
+        self.process_log.append(display_message)
         self.process_log.ensureCursorVisible()
         QCoreApplication.processEvents()
 

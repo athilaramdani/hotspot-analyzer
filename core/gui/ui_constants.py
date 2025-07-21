@@ -113,6 +113,215 @@ SCAN_BUTTON_STYLE = (
     """
 )
 
+# ---------- NEW: Dialog-specific button styles ----------
+DIALOG_IMPORT_BUTTON_STYLE = (
+    """
+    QPushButton {
+        background-color: #2196F3;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 13px;
+    }
+    QPushButton:hover {
+        background-color: #1976D2;
+    }
+    QPushButton:pressed {
+        background-color: #0D47A1;
+    }
+    """
+)
+
+DIALOG_START_BUTTON_STYLE = (
+    """
+    QPushButton {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 13px;
+    }
+    QPushButton:hover:enabled {
+        background-color: #45a049;
+    }
+    QPushButton:pressed:enabled {
+        background-color: #3d8b40;
+    }
+    QPushButton:disabled {
+        background-color: #cccccc;
+        color: #666666;
+    }
+    """
+)
+
+DIALOG_CANCEL_BUTTON_STYLE = (
+    """
+    QPushButton {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 13px;
+    }
+    QPushButton:hover {
+        background-color: #da190b;
+    }
+    QPushButton:pressed {
+        background-color: #b71c1c;
+    }
+    """
+)
+
+DIALOG_REMOVE_BUTTON_STYLE = (
+    """
+    QPushButton {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: bold;
+        font-size: 12px;
+    }
+    QPushButton:hover {
+        background-color: #d32f2f;
+    }
+    """
+)
+
+# ---------- NEW: Dialog layout styles ----------
+DIALOG_TITLE_STYLE = (
+    """
+    QLabel {
+        font-size: 16px; 
+        font-weight: bold; 
+        margin: 10px 0px 5px 0px;
+        color: #2c3e50;
+        padding: 5px;
+    }
+    """
+)
+
+DIALOG_SUBTITLE_STYLE = (
+    """
+    QLabel {
+        font-size: 12px; 
+        color: #7f8c8d; 
+        margin: 0px 0px 10px 0px;
+        padding: 2px 5px;
+        font-style: italic;
+    }
+    """
+)
+
+DIALOG_PANEL_HEADER_STYLE = (
+    """
+    QLabel {
+        font-weight: bold; 
+        padding: 8px;
+        background-color: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 4px 4px 0px 0px;
+        color: #2c3e50;
+        font-size: 13px;
+    }
+    """
+)
+
+DIALOG_FILE_LIST_STYLE = (
+    """
+    QListWidget {
+        border: 1px solid #bdc3c7;
+        border-radius: 0px 0px 4px 4px;
+        background-color: #f8f9fa;
+        alternate-background-color: #ffffff;
+        selection-background-color: #e3f2fd;
+        font-size: 12px;
+    }
+    QListWidget::item {
+        padding: 4px;
+        border-bottom: 1px solid #ecf0f1;
+        min-height: 32px;
+    }
+    QListWidget::item:selected {
+        background-color: #e3f2fd;
+    }
+    QListWidget::item:hover {
+        background-color: #f5f5f5;
+    }
+    """
+)
+
+DIALOG_LOG_STYLE = (
+    """
+    QTextEdit {
+        border: 1px solid #bdc3c7;
+        border-radius: 0px 0px 4px 4px;
+        background-color: #2c3e50;
+        color: #ecf0f1;
+        font-family: 'Courier New', 'Consolas', monospace;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+    """
+)
+
+DIALOG_PROGRESS_BAR_STYLE = (
+    """
+    QProgressBar {
+        border: 1px solid #bdc3c7;
+        border-radius: 4px;
+        text-align: center;
+        height: 22px;
+        font-size: 12px;
+        color: #2c3e50;
+        font-weight: bold;
+    }
+    QProgressBar::chunk {
+        background-color: #27ae60;
+        border-radius: 3px;
+        margin: 1px;
+    }
+    """
+)
+
+DIALOG_FRAME_STYLE = (
+    """
+    QFrame {
+        border: 1px solid #bdc3c7;
+        border-radius: 6px;
+        background-color: #ffffff;
+        margin: 2px;
+    }
+    """
+)
+
+# ---------- NEW: File item widget styles ----------
+FILE_ITEM_NAME_STYLE = (
+    """
+    QLabel {
+        color: #2c3e50; 
+        font-weight: bold;
+        font-size: 12px;
+    }
+    """
+)
+
+FILE_ITEM_PATH_STYLE = (
+    """
+    QLabel {
+        color: #7f8c8d; 
+        font-size: 10px;
+        font-style: italic;
+    }
+    """
+)
+
 # ---------- NEW: Radio button styles ----------
 RADIO_BUTTON_STYLE = (
     """
@@ -336,6 +545,19 @@ class Colors:
     ORIGINAL_COLOR = "#6c757d"
     SEGMENTATION_COLOR = "#4CAF50"
     HOTSPOT_COLOR = "#FF9800"
+    
+    # Dialog-specific colors
+    DIALOG_BG = "#ffffff"
+    DIALOG_BORDER = "#bdc3c7"
+    DIALOG_TEXT = "#2c3e50"
+    DIALOG_SUBTITLE = "#7f8c8d"
+
+# ---------- Text truncation utility ----------
+def truncate_text(text: str, max_length: int = 50) -> str:
+    """Truncate text with ellipsis if too long"""
+    if len(text) <= max_length:
+        return text
+    return text[:max_length - 3] + "..."
 
 # ---------- Utility functions ----------
 def get_layer_color(layer_name: str) -> str:
@@ -375,7 +597,23 @@ __all__ = [
     "OPACITY_VALUE_LABEL_STYLE",
     "LAYER_INDICATOR_STYLES",
     "DISABLED_CONTROL_STYLE",
+    # Dialog-specific styles
+    "DIALOG_IMPORT_BUTTON_STYLE",
+    "DIALOG_START_BUTTON_STYLE", 
+    "DIALOG_CANCEL_BUTTON_STYLE",
+    "DIALOG_REMOVE_BUTTON_STYLE",
+    "DIALOG_TITLE_STYLE",
+    "DIALOG_SUBTITLE_STYLE",
+    "DIALOG_PANEL_HEADER_STYLE",
+    "DIALOG_FILE_LIST_STYLE",
+    "DIALOG_LOG_STYLE",
+    "DIALOG_PROGRESS_BAR_STYLE",
+    "DIALOG_FRAME_STYLE",
+    "FILE_ITEM_NAME_STYLE",
+    "FILE_ITEM_PATH_STYLE",
+    # Utilities
     "Colors",
     "get_layer_color",
-    "create_layer_indicator_style"
+    "create_layer_indicator_style",
+    "truncate_text"
 ]
