@@ -21,7 +21,7 @@ class DoctorSelectionDialog(QDialog):
     """
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Pilih Pasien & Modalitas")
+        self.setWindowTitle("Pilih Kode & Modalitas")
         self.setModal(True)
 
         # Hilangkan tombol close (✕)
@@ -35,7 +35,7 @@ class DoctorSelectionDialog(QDialog):
         layout = QVBoxLayout(self)
 
         # Pilih kode pasien
-        layout.addWidget(QLabel("Pilih kode pasien:"))
+        layout.addWidget(QLabel("Pilih kode dokter:"))
         self.doctor_combo = QComboBox()
         
         # Load dari config sessions.py
