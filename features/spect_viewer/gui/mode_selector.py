@@ -45,7 +45,7 @@ class ModeSelector(QWidget):
         
         # Create checkboxes
         self._checkboxes = {}
-        layer_options = ["Original", "Segmentation", "Hotspot", "Both"]
+        layer_options = ["Original", "Segmentation", "Hotspot", "All"]
         
         for layer in layer_options:
             checkbox = QCheckBox(layer)
@@ -100,7 +100,7 @@ class ModeSelector(QWidget):
         self._sliders = {}
         self._opacity_labels = {}
         
-        # Create sliders for each layer (excluding Both)
+        # Create sliders for each layer (excluding )
         slider_layers = ["Original", "Segmentation", "Hotspot"]
         
         for layer in slider_layers:
@@ -175,8 +175,8 @@ class ModeSelector(QWidget):
         """Handle checkbox toggle"""
         print(f"[DEBUG] Checkbox {layer} toggled: {checked}")
         
-        if layer == "Both":
-            self._handle_both_checkbox(checked)
+        if layer == "All":
+            self._handle__checkbox(checked)
         else:
             self._handle_individual_checkbox(layer, checked)
         
@@ -184,8 +184,8 @@ class ModeSelector(QWidget):
         self._update_active_layers()
         self._update_slider_states()
     
-    def _handle_both_checkbox(self, checked: bool):
-        """Handle 'Both' checkbox logic"""
+    def _handle__checkbox(self, checked: bool):
+        """Handle '' checkbox logic"""
         if checked:
             # When Both is checked, disable and uncheck all individual checkboxes
             for layer_name in ["Original", "Segmentation", "Hotspot"]:
@@ -204,11 +204,11 @@ class ModeSelector(QWidget):
         """Handle individual checkbox logic"""
         # If any individual checkbox is checked, uncheck "Both"
         if checked:
-            both_checkbox = self._checkboxes["Both"]
-            if both_checkbox.isChecked():
-                both_checkbox.blockSignals(True)
-                both_checkbox.setChecked(False)
-                both_checkbox.blockSignals(False)
+            all_checkbox = self._checkboxes["All"]
+            if all_checkbox.isChecked():
+                all_checkbox.blockSignals(True)
+                all_checkbox.setChecked(False)
+                all_checkbox.blockSignals(False)
                 # Re-enable all individual checkboxes
                 for layer_name in ["Original", "Segmentation", "Hotspot"]:
                     self._checkboxes[layer_name].setEnabled(True)
@@ -217,7 +217,7 @@ class ModeSelector(QWidget):
         """Update the list of active layers"""
         self._active_layers = []
         
-        if self._checkboxes["Both"].isChecked():
+        if self._checkboxes["All"].isChecked():
             # Both mode - show all three layers
             self._active_layers = ["Original", "Segmentation", "Hotspot"]
         else:
@@ -311,7 +311,7 @@ class ModeSelector(QWidget):
     
     def is_both_mode(self) -> bool:
         """Check if in 'Both' mode"""
-        return self._checkboxes["Both"].isChecked()
+        return self._checkboxes["All"].isChecked()
     
     def has_any_active_layers(self) -> bool:
         """Check if any layers are active"""
