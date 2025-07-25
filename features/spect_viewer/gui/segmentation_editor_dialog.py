@@ -28,8 +28,11 @@ from pydicom.uid import ExplicitVRLittleEndian, SecondaryCaptureImageStorage, ge
 # Import NEW config paths and cloud storage
 from core.config.paths import (
     get_segmentation_files_with_edited,
-    get_patient_spect_path
+    get_patient_spect_path,
+    generate_filename_stem,          # ← BARU
+    extract_study_date_from_dicom    # ← BARU
 )
+
 from core.config.cloud_storage import upload_patient_file
 from core.config.sessions import get_current_session
 
@@ -612,11 +615,21 @@ class SegmentationEditorDialog(QDialog):
         self.patient_id, self.session_code = extract_patient_info_from_path(dicom_path)
         print(f"[DEBUG] Extracted - Patient ID: {self.patient_id}, Session: {self.session_code}")
         
+        # NEW: Extract study date for XML hotspot detection
+        try:
+            self.study_date = extract_study_date_from_dicom(dicom_path)
+            print(f"[DEBUG] Extracted study date: {self.study_date}")
+        except Exception as e:
+            print(f"[WARN] Could not extract study date: {e}")
+            from datetime import datetime
+            self.study_date = datetime.now().strftime("%Y%m%d")
+        
         # Validate session info
         self._validate_session_info()
         
-        # Use NEW function for edited files support
-        self.seg_files = get_segmentation_files_with_edited(dicom_path.parent, filename_stem, view)
+        # Use NEW function for edited files support with study date
+        filename_stem_with_date = generate_filename_stem(self.patient_id, self.study_date)
+        self.seg_files = get_segmentation_files_with_edited(dicom_path.parent, filename_stem_with_date, view)
         
         # Store paths - prioritize edited versions if they exist
         self._png_mask = self.seg_files['png_mask_edited'] if self.seg_files['png_mask_edited'].exists() else self.seg_files['png_mask']
@@ -630,6 +643,9 @@ class SegmentationEditorDialog(QDialog):
         self._dcm_mask_edited = self.seg_files['dcm_mask_edited']
         self._dcm_color_edited = self.seg_files['dcm_colored_edited']
         
+        # NEW: Check for hotspot XML files with study date naming
+        self._check_hotspot_xml_files()
+        
         # ===== DEBUG: cek isi frame & view =====
         print("\n======================")
         print(">>> DEBUG: SegmentationEditorDialog")
@@ -638,6 +654,8 @@ class SegmentationEditorDialog(QDialog):
         print(f"Segmentation files  : {self.seg_files}")
         print(f"Patient ID          : {self.patient_id}")
         print(f"Session Code        : {self.session_code}")
+        print(f"Study Date          : {self.study_date}")           # ← BARU
+        print(f"XML files found     : {self._xml_files_info}")      # ← BARU
         print("======================\n")
 
         # Load original array dari DICOM frames
@@ -650,7 +668,7 @@ class SegmentationEditorDialog(QDialog):
             mask_arr = np.zeros_like(orig_arr, np.uint8)
 
         # FIXED: Cek PNG original yang sudah ada untuk reference yang lebih akurat
-        orig_png_path = dicom_path.parent / f"{filename_stem}_{view.lower()}.png"
+        orig_png_path = dicom_path.parent / f"{filename_stem_with_date}_{view.lower()}.png"
         self._has_orig_png = orig_png_path.exists()
         
         if self._has_orig_png:
@@ -809,8 +827,10 @@ class SegmentationEditorDialog(QDialog):
             f"• Mask: {mask_status}<br>"
             f"• Session: {self.session_code}<br>"
             f"• Patient: {self.patient_id}<br>"
+            f"• Study Date: {self.study_date}<br>"           # ← BARU
             f"• Size: {orig_png_arr.shape[1]}×{orig_png_arr.shape[0]}<br>"
             f"• Cloud: {cloud_available} Available<br>"
+            f"• XML Files: {self._xml_files_info}<br>"       # ← BARU
             "<b>Save mode:</b> Edited files only"
         )
         instructions.setWordWrap(True)
@@ -1085,10 +1105,7 @@ class SegmentationEditorDialog(QDialog):
             
             # Upload each edited file
             files_to_upload = [
-                self._png_mask_edited,
-                self._png_color_edited,
-                self._dcm_mask_edited,
-                self._dcm_color_edited
+                self._png_color_edited
             ]
             
             for file_path in files_to_upload:
@@ -1113,9 +1130,30 @@ class SegmentationEditorDialog(QDialog):
         except Exception as e:
             print(f"❌ Cloud upload failed: {e}")
             return False
-
+        
+    def _check_hotspot_xml_files(self):
+        """Check for hotspot XML files with study date naming convention"""
+        patient_folder = Path(self._png_mask).parent
+        filename_stem_with_date = generate_filename_stem(self.patient_id, self.study_date)
+        
+        # Check for XML files with new naming convention
+        xml_files = {
+            'ant_new': patient_folder / f"{filename_stem_with_date}_ant.xml",
+            'post_new': patient_folder / f"{filename_stem_with_date}_post.xml",
+            'ant_old': patient_folder / f"{self.patient_id}_ant.xml",
+            'post_old': patient_folder / f"{self.patient_id}_post.xml"
+        }
+        
+        found_files = []
+        for name, path in xml_files.items():
+            if path.exists():
+                found_files.append(f"{name}({path.name})")
+        
+        self._xml_files_info = ", ".join(found_files) if found_files else "None"
+        print(f"[DEBUG] XML hotspot files: {self._xml_files_info}")
+        
     def _save_all(self):
-        """Save edited segmentation with cloud sync support"""
+        """Save edited segmentation with cloud sync support and study date naming"""
         mask = self.canvas.current_mask()
         try:
             # Save to EDITED files (never overwrite originals)
@@ -1145,11 +1183,14 @@ class SegmentationEditorDialog(QDialog):
             # Success message
             success_msg = (
                 f"Edited segmentation saved successfully!\n\n"
-                f"Files saved:\n"
+                f"Files saved with study date naming:\n"
                 f"• {self._png_mask_edited.name}\n"
                 f"• {self._png_color_edited.name}\n"
                 f"• {self._dcm_mask_edited.name}\n"
-                f"• {self._dcm_color_edited.name}"
+                f"• {self._dcm_color_edited.name}\n\n"
+                f"Study Date: {self.study_date}\n"           # ← BARU
+                f"Patient ID: {self.patient_id}\n"           # ← BARU
+                f"Session: {self.session_code}"              # ← BARU
             )
             
             if cloud_success:

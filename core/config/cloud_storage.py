@@ -324,6 +324,74 @@ class CloudStorageManager:
             logger.error(f"Failed to sync patient data: {e}")
             return (0, 0)
     
+    def sync_input_files_only(self, session_code: str, patient_id: str = None, 
+                             modality: str = "SPECT") -> Tuple[int, int]:
+        """
+        Sync only input DICOM files, skip processed files
+        
+        Args:
+            session_code: Session/doctor code
+            patient_id: Patient ID (optional)
+            modality: SPECT or PET
+            
+        Returns:
+            Tuple of (uploaded_count, downloaded_count)
+        """
+        uploaded = 0
+        downloaded = 0
+        
+        try:
+            if not self.is_connected:
+                if not self.connect():
+                    return (0, 0)
+            
+            if modality.upper() == "SPECT":
+                if patient_id:
+                    from .paths import get_patient_spect_path
+                    local_folder = get_patient_spect_path(patient_id, session_code)
+                else:
+                    from .paths import get_session_spect_path
+                    local_folder = get_session_spect_path(session_code)
+            else:
+                return (0, 0)  # PET not implemented yet
+            
+            if not local_folder.exists():
+                logger.warning(f"Local folder doesn't exist: {local_folder}")
+                return (0, 0)
+            
+            # ✅ ONLY UPLOAD INPUT DICOM FILES
+            for patient_folder in local_folder.iterdir() if not patient_id else [local_folder]:
+                if patient_folder.is_dir():
+                    patient_id_current = patient_folder.name if not patient_id else patient_id
+                    
+                    for file_path in patient_folder.iterdir():
+                        if file_path.is_file():
+                            # ✅ ONLY UPLOAD ORIGINAL INPUT DICOM FILES
+                            should_upload = (
+                                file_path.suffix.lower() in {'.dcm', '.dicom'} and
+                                not any(pattern in file_path.name.lower() for pattern in 
+                                       ['mask', 'colored', '_ant_', '_post_', 'secondary'])
+                            )
+                            
+                            if should_upload:
+                                cloud_path = f"data/{modality}/{session_code}/{patient_id_current}/{file_path.name}"
+                                
+                                if not self.file_exists(cloud_path):
+                                    if self.upload_file(file_path, cloud_path):
+                                        uploaded += 1
+                                        logger.info(f"✅ Uploaded input file: {file_path.name}")
+                                    else:
+                                        logger.error(f"❌ Failed to upload: {file_path.name}")
+                                else:
+                                    logger.info(f"⏭️  File already exists: {file_path.name}")
+            
+            logger.info(f"Input files sync completed: {uploaded} uploaded, {downloaded} downloaded")
+            return (uploaded, downloaded)
+            
+        except Exception as e:
+            logger.error(f"Input files sync failed: {e}")
+            return (uploaded, downloaded)
+    
     def upload_patient_file(self, local_file: Path, session_code: str, 
                           patient_id: str, is_edited: bool = False) -> bool:
         """
@@ -377,22 +445,28 @@ def download_file(cloud_path: str, local_path: Path = None) -> bool:
     """Download file from cloud storage"""
     return cloud_storage.download_file(cloud_path, local_path)
 
-def sync_spect_data(session_code: str = None, patient_id: str = None) -> Tuple[int, int]:
+def sync_spect_data_selective(session_code: str = None, patient_id: str = None, 
+                            input_files_only: bool = True) -> Tuple[int, int]:
     """
-    Sync SPECT data folder with cloud - Updated for new structure
+    Sync SPECT data with selective upload option
     
     Args:
-        session_code: Sync specific session (NSY, ATL, NBL)
-        patient_id: Sync specific patient within session
+        session_code: Session code
+        patient_id: Patient ID
+        input_files_only: If True, only upload input DICOM files
         
     Returns:
         Tuple of (uploaded_count, downloaded_count)
     """
-    if session_code:
-        return cloud_storage.sync_patient_data(session_code, patient_id, "SPECT")
+    if input_files_only:
+        return cloud_storage.sync_input_files_only(session_code, patient_id, "SPECT")
     else:
-        # Sync all SPECT data
-        return cloud_storage.sync_folder(SPECT_DATA_PATH, "data/SPECT")
+        return cloud_storage.sync_patient_data(session_code, patient_id, "SPECT")
+
+# Keep old function for backward compatibility but make it selective by default
+def sync_spect_data(session_code: str = None, patient_id: str = None) -> Tuple[int, int]:
+    """Sync SPECT data - INPUT FILES ONLY by default"""
+    return sync_spect_data_selective(session_code, patient_id, input_files_only=True)
 
 def sync_pet_data(session_code: str = None, patient_id: str = None) -> Tuple[int, int]:
     """

@@ -1,4 +1,4 @@
-# features/dicom_import/logic/input_data.py - Enhanced with better progress messages
+# features/dicom_import/logic/input_data.py - Enhanced with study date in filenames
 from __future__ import annotations
 from pathlib import Path
 from shutil  import copy2
@@ -20,12 +20,15 @@ from features.spect_viewer.logic.segmenter import predict_bone_mask
 from core.logger import _log
 from core.gui.ui_constants import truncate_text
 
-# Use new directory structure from paths.py
+# Use new directory structure from paths.py with study date support
 from core.config.paths import (
     get_patient_spect_path, 
     get_session_spect_path,
     SPECT_DATA_PATH,
-    is_cloud_enabled
+    is_cloud_enabled,
+    extract_study_date_from_dicom,
+    generate_filename_stem,
+    get_dicom_output_path
 )
 
 # Import cloud storage
@@ -108,12 +111,28 @@ def _ensure_2d(mask: np.ndarray) -> np.ndarray:
     return mask if mask.ndim == 2 else mask[0] if mask.shape[0] == 1 else mask[:, :, 0]
 
 def _upload_to_cloud(file_path: Path, session_code: str, patient_id: str, is_edited: bool = False) -> bool:
-    """Upload file to cloud storage if enabled"""
+    """Upload file to cloud storage if enabled - ONLY for input DICOM files"""
     if not CLOUD_AVAILABLE or not is_cloud_enabled():
         return False
     
+    # ✅ ONLY UPLOAD ORIGINAL INPUT DICOM FILES
+    # Skip processed files (mask, colored, etc.)
+    if any(pattern in file_path.name.lower() for pattern in ['mask', 'colored', '_ant_', '_post_']):
+        _log(f"     Skipping processed file upload: {file_path.name}")
+        return False
+    
+    # ✅ ONLY UPLOAD .dcm files that are input files
+    if file_path.suffix.lower() not in {'.dcm', '.dicom'}:
+        _log(f"     Skipping non-DICOM file upload: {file_path.name}")
+        return False
+    
     try:
-        return upload_patient_file(file_path, session_code, patient_id, is_edited)
+        success = upload_patient_file(file_path, session_code, patient_id, is_edited)
+        if success:
+            _log(f"     ✅ Uploaded input DICOM: {file_path.name}")
+        else:
+            _log(f"     ❌ Failed to upload: {file_path.name}")
+        return success
     except Exception as e:
         _log(f"     [WARN] Cloud upload failed: {e}")
         return False
@@ -122,19 +141,32 @@ def _upload_to_cloud(file_path: Path, session_code: str, patient_id: str, is_edi
 def _process_one(src: Path, session_code: str) -> Path:
     _log(f"\n=== Processing {truncate_text(src.name, 40)} ===")
 
-    # Read patient info
+    # Read patient info and study date
     _log("  >> Reading DICOM metadata...")
-    pid = str(pydicom.dcmread(src, stop_before_pixels=True).PatientID)
+    ds_temp = pydicom.dcmread(src, stop_before_pixels=True)
+    pid = str(ds_temp.PatientID)
+    study_date = extract_study_date_from_dicom(src)
+    
+    _log(f"  Patient ID: {pid}")
+    _log(f"  Study Date: {study_date}")
+    
+    # Generate filename stem with study date
+    filename_stem = generate_filename_stem(pid, study_date)
+    _log(f"  Filename stem: {filename_stem}")
+    
     dest_dir = get_patient_spect_path(pid, session_code)
     dest_dir.mkdir(parents=True, exist_ok=True)
     
-    # Copy file to destination
-    dest_path = dest_dir / src.name
+    # Create destination path with new naming convention
+    dest_path = get_dicom_output_path(pid, session_code, study_date)
+    
+    # Copy file to destination with new name
     if src.resolve() != dest_path.resolve():
-        _log(f"  >> Copying to patient directory...")
+        _log(f"  >> Copying to patient directory with new name...")
         copy2(src, dest_path)
     _log(f"  Copied → {truncate_text(str(dest_path), 60)}")
 
+    # ✅ UPLOAD HANYA INPUT DICOM SAJA
     _upload_to_cloud(dest_path, session_code, pid)
 
     # Load DICOM for processing
@@ -158,10 +190,10 @@ def _process_one(src: Path, session_code: str) -> Path:
         try:
             # Enhanced segmentation progress messages
             _log(f"     Segmenting bone mask (simple preprocessing)...")
-            mask = predict_bone_mask(img, to_rgb=False) # Get raw mask for overlay & binary files
+            mask = predict_bone_mask(img, to_rgb=False)
             
             _log(f"     Generating colored overlay...")
-            rgb = predict_bone_mask(img, to_rgb=True)   # Get colored image for saving
+            rgb = predict_bone_mask(img, to_rgb=True)
             
             _log(f"     Segmentation completed for {view_name}")
 
@@ -174,57 +206,58 @@ def _process_one(src: Path, session_code: str) -> Path:
         _insert_overlay(ds, mask, group=overlay_group, desc=f"Seg {view}")
         overlay_group += 0x2
 
-        base = f"{dest_path.stem}_{view.lower()}"
+        # Use new filename stem for all generated files
+        view_tag = view.lower()
         
-        # --- PNG files
-        _log(f"     Saving PNG files...")
-        mask_png_path = dest_dir / f"{base}_mask.png"
-        colored_png_path = dest_dir / f"{base}_colored.png"
+        # --- PNG files (SAVE LOCALLY ONLY) with new naming
+        _log(f"     Saving PNG files locally with study date...")
+        mask_png_path = dest_dir / f"{filename_stem}_{view_tag}_mask.png"
+        colored_png_path = dest_dir / f"{filename_stem}_{view_tag}_colored.png"
         
         Image.fromarray((mask > 0).astype(np.uint8) * 255, mode="L").save(mask_png_path)
         Image.fromarray(rgb.astype(np.uint8), mode="RGB").save(colored_png_path)
         
-        saved += [f"{base}_mask.png", f"{base}_colored.png"]
+        saved += [f"{filename_stem}_{view_tag}_mask.png", f"{filename_stem}_{view_tag}_colored.png"]
         
-        _upload_to_cloud(mask_png_path, session_code, pid)
-        _upload_to_cloud(colored_png_path, session_code, pid)
+        # ❌ REMOVE THESE UPLOADS
+        # _upload_to_cloud(mask_png_path, session_code, pid)
+        # _upload_to_cloud(colored_png_path, session_code, pid)
 
-        # --- SC-DICOM files
+        # --- SC-DICOM files (SAVE LOCALLY ONLY) with new naming
         try:
-            _log(f"     Creating secondary capture DICOM...")
-            mask_dcm_path = dest_dir / f"{base}_mask.dcm"
-            colored_dcm_path = dest_dir / f"{base}_colored.dcm"
+            _log(f"     Creating secondary capture DICOM with study date...")
+            mask_dcm_path = dest_dir / f"{filename_stem}_{view_tag}_mask.dcm"
+            colored_dcm_path = dest_dir / f"{filename_stem}_{view_tag}_colored.dcm"
             
             _save_secondary_capture(ds, (mask > 0).astype(np.uint8) * 255,
                                     mask_dcm_path, descr=f"{view} Mask")
             _save_secondary_capture(ds, rgb, colored_dcm_path, descr=f"{view} RGB")
             
-            saved += [f"{base}_mask.dcm", f"{base}_colored.dcm"]
+            saved += [f"{filename_stem}_{view_tag}_mask.dcm", f"{filename_stem}_{view_tag}_colored.dcm"]
             
-            _upload_to_cloud(mask_dcm_path, session_code, pid)
-            _upload_to_cloud(colored_dcm_path, session_code, pid)
+            # ❌ REMOVE THESE UPLOADS
+            # _upload_to_cloud(mask_dcm_path, session_code, pid)
+            # _upload_to_cloud(colored_dcm_path, session_code, pid)
             
         except Exception as e:
             _log(f"    [WARN] SC-DICOM save failed for {view_name}: {e}")
 
-    # Save updated DICOM with overlays
+    # Save updated DICOM with overlays (LOCAL ONLY)
     _log("  >> Finalizing DICOM with overlays...")
     ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
     ds.is_little_endian = True
     ds.is_implicit_VR = False
     ds.save_as(dest_path, write_like_original=False)
     
-    _upload_to_cloud(dest_path, session_code, pid)
+    # ❌ REMOVE THIS DUPLICATE UPLOAD
+    # _upload_to_cloud(dest_path, session_code, pid)
     
     _log(f"  DICOM processing completed")
-    _log(f"  Files saved: {len(saved)} items")
-    
-    if is_cloud_enabled():
-        cloud_status = "✅ Enabled" if CLOUD_AVAILABLE else "❌ Not available"
-        _log(f"  Cloud sync: {cloud_status}")
+    _log(f"  Files saved locally: {len(saved)} items")
+    _log(f"  Cloud upload: Input DICOM only")
+    _log(f"  New filename pattern: {filename_stem}_[view]_[type]")
     
     return dest_path
-
 
 # ---------------------------------------------------------------- batch
 def process_files(
@@ -236,7 +269,7 @@ def process_files(
     session_code: str | None = None 
 ) -> List[Path]:
     """
-    Process multiple DICOM files with new directory structure
+    Process multiple DICOM files with new directory structure and study date in filenames
     
     Args:
         paths: List of DICOM file paths to process
@@ -276,6 +309,7 @@ def process_files(
     _log(f"## Starting batch import: {total} file(s)")
     _log(f"## Session code: {session_code}")
     _log(f"## Target directory: data/SPECT/{session_code}/[patient_id]/")
+    _log(f"## New naming: [patient_id]_[study_date]_[view]_[type]")
 
     for i, p in enumerate(paths, 1):
         try:
@@ -293,15 +327,20 @@ def process_files(
 
     _log("## Batch import process completed")
     
+    # ❌ REMOVE FINAL CLOUD SYNC COMPLETELY
     # Final cloud sync summary
-    if is_cloud_enabled() and CLOUD_AVAILABLE:
-        try:
-            from core.config.cloud_storage import sync_spect_data
-            _log("## Performing final cloud synchronization...")
-            uploaded, downloaded = sync_spect_data(session_code)
-            _log(f"## Cloud sync completed: {uploaded} up, {downloaded} down")
-        except Exception as e:
-            _log(f"## Cloud sync failed: {truncate_text(str(e), 50)}")
+    # if is_cloud_enabled() and CLOUD_AVAILABLE:
+    #     try:
+    #         from core.config.cloud_storage import sync_spect_data
+    #         _log("## Performing final cloud synchronization...")
+    #         uploaded, downloaded = sync_spect_data(session_code)
+    #         _log(f"## Cloud sync completed: {uploaded} up, {downloaded} down")
+    #     except Exception as e:
+    #         _log(f"## Cloud sync failed: {truncate_text(str(e), 50)}")
+    
+    # ✅ REPLACE WITH THIS MESSAGE
+    _log("## Local processing completed. Only input DICOM files uploaded to cloud.")
+    _log("## All files now use study date naming convention.")
     
     globals()["_log"] = orig_log      # kembalikan logger asli
     return out
@@ -313,5 +352,6 @@ def migrate_old_structure():
     OLD: data/SPECT/[patient_id]_[session_code]/
     NEW: data/SPECT/[session_code]/[patient_id]/
     """
-    from core.config.paths import migrate_old_to_new_structure
+    from core.config.paths import migrate_old_to_new_structure, migrate_filenames_to_study_date
     migrate_old_to_new_structure()
+    migrate_filenames_to_study_date()

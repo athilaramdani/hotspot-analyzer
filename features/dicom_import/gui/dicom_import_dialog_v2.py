@@ -60,20 +60,24 @@ class ProcessingThread(QThread):
                 log_cb=self._log_callback
             )
             
+            # ❌ REMOVE FINAL SYNC COMPLETELY
             # Sync to cloud if available
-            if CLOUD_AVAILABLE:
-                self.log_updated.emit("## Syncing to cloud storage...")
-                try:
-                    uploaded, downloaded = sync_spect_data(self.session_code)
-                    self.log_updated.emit(f"## Cloud sync: {uploaded} uploaded, {downloaded} downloaded")
-                except Exception as e:
-                    self.log_updated.emit(f"## Cloud sync failed: {e}")
+            # if CLOUD_AVAILABLE:
+            #     self.log_updated.emit("## Syncing to cloud storage...")
+            #     try:
+            #         uploaded, downloaded = sync_spect_data(self.session_code)
+            #         self.log_updated.emit(f"## Cloud sync: {uploaded} uploaded, {downloaded} downloaded")
+            #     except Exception as e:
+            #         self.log_updated.emit(f"## Cloud sync failed: {e}")
+            
+            # ✅ REPLACE WITH THIS
+            self.log_updated.emit("## Processing completed. Input DICOM files uploaded to cloud.")
             
         except Exception as e:
             self.log_updated.emit(f"[ERROR] Processing failed: {e}")
         finally:
             self.finished_processing.emit()
-    
+            
     def _progress_callback(self, current: int, total: int, filename: str):
         """Callback untuk update progress"""
         self.progress_updated.emit(current, total, filename)

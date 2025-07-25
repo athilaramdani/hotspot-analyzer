@@ -1,10 +1,13 @@
 # core/config/paths.py
 """
 Configuration file untuk semua path constants dalam Hotspot Analyzer
+Updated to support study date in filenames
 """
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from typing import Optional
+import pydicom
 
 # Load environment variables
 load_dotenv()
@@ -107,7 +110,56 @@ def ensure_directories():
     for directory in directories:
         directory.mkdir(parents=True, exist_ok=True)
 
-# ===== NEW DIRECTORY STRUCTURE FUNCTIONS =====
+# ===== NEW DIRECTORY STRUCTURE FUNCTIONS WITH STUDY DATE =====
+def extract_study_date_from_dicom(dicom_path: Path) -> str:
+    """
+    Extract study date from DICOM file
+    
+    Args:
+        dicom_path: Path to DICOM file
+        
+    Returns:
+        Study date in YYYYMMDD format, or current date if not found
+    """
+    try:
+        ds = pydicom.dcmread(dicom_path, stop_before_pixels=True)
+        study_date = getattr(ds, 'StudyDate', None)
+        
+        if study_date:
+            # Ensure it's in YYYYMMDD format
+            study_date = str(study_date).replace('-', '').replace('/', '')
+            if len(study_date) == 8 and study_date.isdigit():
+                return study_date
+        
+        # Fallback: use SeriesDate
+        series_date = getattr(ds, 'SeriesDate', None)
+        if series_date:
+            series_date = str(series_date).replace('-', '').replace('/', '')
+            if len(series_date) == 8 and series_date.isdigit():
+                return series_date
+        
+        # Final fallback: current date
+        from datetime import datetime
+        return datetime.now().strftime("%Y%m%d")
+        
+    except Exception as e:
+        print(f"Warning: Could not extract study date from {dicom_path}: {e}")
+        from datetime import datetime
+        return datetime.now().strftime("%Y%m%d")
+
+def generate_filename_stem(patient_id: str, study_date: str) -> str:
+    """
+    Generate filename stem with patient ID and study date
+    
+    Args:
+        patient_id: Patient ID
+        study_date: Study date in YYYYMMDD format
+        
+    Returns:
+        Filename stem: [patient_id]_[study_date]
+    """
+    return f"{patient_id}_{study_date}"
+
 def get_patient_spect_path(patient_id: str, session_code: str) -> Path:
     """
     Get path to patient's SPECT data folder with NEW structure
@@ -127,51 +179,97 @@ def get_patient_pet_path(patient_id: str, session_code: str = None) -> Path:
     return PET_DATA_PATH / patient_id
 
 def get_segmentation_files(patient_folder: Path, filename_stem: str, view: str):
-    """Get segmentation file paths for a specific view"""
-    base = patient_folder / filename_stem
+    """
+    Get segmentation file paths for a specific view with study date support
+    
+    Args:
+        patient_folder: Patient directory path
+        filename_stem: Filename stem ([patient_id]_[study_date])
+        view: View name (anterior/posterior)
+        
+    Returns:
+        Dictionary with file paths
+    """
     vtag = view.lower()
     
     return {
-        'png_mask': base.with_name(f"{filename_stem}_{vtag}_mask.png"),
-        'png_colored': base.with_name(f"{filename_stem}_{vtag}_colored.png"),
-        'dcm_mask': base.with_name(f"{filename_stem}_{vtag}_mask.dcm"),
-        'dcm_colored': base.with_name(f"{filename_stem}_{vtag}_colored.dcm")
+        'png_mask': patient_folder / f"{filename_stem}_{vtag}_mask.png",
+        'png_colored': patient_folder / f"{filename_stem}_{vtag}_colored.png",
+        'dcm_mask': patient_folder / f"{filename_stem}_{vtag}_mask.dcm",
+        'dcm_colored': patient_folder / f"{filename_stem}_{vtag}_colored.dcm"
     }
 
 def get_segmentation_files_with_edited(patient_folder: Path, filename_stem: str, view: str):
-    """Get segmentation file paths including edited versions"""
-    base = patient_folder / filename_stem
+    """
+    Get segmentation file paths including edited versions with study date support
+    
+    Args:
+        patient_folder: Patient directory path
+        filename_stem: Filename stem ([patient_id]_[study_date])
+        view: View name (anterior/posterior)
+        
+    Returns:
+        Dictionary with original and edited file paths
+    """
     vtag = view.lower()
     
     return {
         # Original files
-        'png_mask': base.with_name(f"{filename_stem}_{vtag}_mask.png"),
-        'png_colored': base.with_name(f"{filename_stem}_{vtag}_colored.png"),
-        'dcm_mask': base.with_name(f"{filename_stem}_{vtag}_mask.dcm"),
-        'dcm_colored': base.with_name(f"{filename_stem}_{vtag}_colored.dcm"),
+        'png_mask': patient_folder / f"{filename_stem}_{vtag}_mask.png",
+        'png_colored': patient_folder / f"{filename_stem}_{vtag}_colored.png",
+        'dcm_mask': patient_folder / f"{filename_stem}_{vtag}_mask.dcm",
+        'dcm_colored': patient_folder / f"{filename_stem}_{vtag}_colored.dcm",
         
         # Edited files
-        'png_mask_edited': base.with_name(f"{filename_stem}_{vtag}_edited_mask.png"),
-        'png_colored_edited': base.with_name(f"{filename_stem}_{vtag}_edited_colored.png"),
-        'dcm_mask_edited': base.with_name(f"{filename_stem}_{vtag}_edited_mask.dcm"),
-        'dcm_colored_edited': base.with_name(f"{filename_stem}_{vtag}_edited_colored.dcm"),
+        'png_mask_edited': patient_folder / f"{filename_stem}_{vtag}_edited_mask.png",
+        'png_colored_edited': patient_folder / f"{filename_stem}_{vtag}_edited_colored.png",
+        'dcm_mask_edited': patient_folder / f"{filename_stem}_{vtag}_edited_mask.dcm",
+        'dcm_colored_edited': patient_folder / f"{filename_stem}_{vtag}_edited_colored.dcm",
     }
 
-def get_hotspot_files(patient_id: str, session_code: str, view: str):
-    """Get hotspot file paths for a specific patient and view"""
+def get_hotspot_files(patient_id: str, session_code: str, view: str, study_date: str):
+    """
+    Get hotspot file paths for a specific patient and view with study date
+    
+    Args:
+        patient_id: Patient ID
+        session_code: Session code
+        view: View name
+        study_date: Study date in YYYYMMDD format
+        
+    Returns:
+        Dictionary with hotspot file paths
+    """
     patient_folder = get_patient_spect_path(patient_id, session_code)
+    filename_stem = generate_filename_stem(patient_id, study_date)
     view_suffix = "ant" if "ant" in view.lower() else "post"
     
     return {
-        'colored_png': patient_folder / f"{patient_id}_{view_suffix}_hotspot_colored.png",
-        'xml_file': patient_folder / f"{patient_id}_{view_suffix}.xml",
-        'mask_file': patient_folder / f"{patient_id}_{view_suffix}_hotspot_mask.png",
+        'colored_png': patient_folder / f"{filename_stem}_{view_suffix}_hotspot_colored.png",
+        'xml_file': patient_folder / f"{filename_stem}_{view_suffix}.xml",
+        'mask_file': patient_folder / f"{filename_stem}_{view_suffix}_hotspot_mask.png",
         
         # Edited versions
-        'colored_png_edited': patient_folder / f"{patient_id}_{view_suffix}_hotspot_edited_colored.png",
-        'xml_file_edited': patient_folder / f"{patient_id}_{view_suffix}_edited.xml",
-        'mask_file_edited': patient_folder / f"{patient_id}_{view_suffix}_hotspot_edited_mask.png",
+        'colored_png_edited': patient_folder / f"{filename_stem}_{view_suffix}_hotspot_edited_colored.png",
+        'xml_file_edited': patient_folder / f"{filename_stem}_{view_suffix}_edited.xml",
+        'mask_file_edited': patient_folder / f"{filename_stem}_{view_suffix}_hotspot_edited_mask.png",
     }
+
+def get_dicom_output_path(patient_id: str, session_code: str, study_date: str) -> Path:
+    """
+    Get output path for processed DICOM file with study date
+    
+    Args:
+        patient_id: Patient ID
+        session_code: Session code
+        study_date: Study date in YYYYMMDD format
+        
+    Returns:
+        Path for output DICOM file
+    """
+    patient_folder = get_patient_spect_path(patient_id, session_code)
+    filename_stem = generate_filename_stem(patient_id, study_date)
+    return patient_folder / f"{filename_stem}.dcm"
 
 def get_output_path(patient_id: str, session_code: str, analysis_type: str = "hotspot") -> Path:
     """Get output path for patient analysis results"""
@@ -191,6 +289,77 @@ def get_model_path(model_name: str) -> Path:
         "cnn": CNN_MODEL_PATH
     }
     return model_paths.get(model_name.lower(), MODELS_ROOT / f"{model_name}.pt")
+
+def find_files_by_pattern(patient_folder: Path, patient_id: str, pattern: str = "*") -> list[Path]:
+    """
+    Find files matching pattern with any study date
+    
+    Args:
+        patient_folder: Patient directory
+        patient_id: Patient ID
+        pattern: File pattern (e.g., "*_anterior_*.png")
+        
+    Returns:
+        List of matching files
+    """
+    search_pattern = f"{patient_id}_*{pattern}"
+    return list(patient_folder.glob(search_pattern))
+
+def parse_filename_components(filename: str) -> dict:
+    """
+    Parse filename to extract components
+    
+    Args:
+        filename: Filename to parse
+        
+    Returns:
+        Dictionary with parsed components
+    """
+    try:
+        parts = filename.split('_')
+        if len(parts) >= 2:
+            patient_id = parts[0]
+            study_date = parts[1]
+            
+            # Extract other components
+            remaining = '_'.join(parts[2:])
+            
+            result = {
+                'patient_id': patient_id,
+                'study_date': study_date,
+                'remaining': remaining,
+                'is_edited': 'edited' in remaining,
+                'view': None,
+                'file_type': None
+            }
+            
+            # Detect view
+            if 'anterior' in remaining:
+                result['view'] = 'anterior'
+            elif 'posterior' in remaining:
+                result['view'] = 'posterior'
+            
+            # Detect file type
+            if 'mask' in remaining:
+                result['file_type'] = 'mask'
+            elif 'colored' in remaining:
+                result['file_type'] = 'colored'
+            elif 'hotspot' in remaining:
+                result['file_type'] = 'hotspot'
+            
+            return result
+            
+    except Exception as e:
+        print(f"Error parsing filename {filename}: {e}")
+    
+    return {
+        'patient_id': None,
+        'study_date': None,
+        'remaining': filename,
+        'is_edited': False,
+        'view': None,
+        'file_type': None
+    }
 
 # ===== CLOUD PATH HELPERS =====
 def get_cloud_path(local_path: Path) -> str:
@@ -282,6 +451,75 @@ def migrate_old_to_new_structure():
             print(f"❌ Failed to migrate {old_dir}: {e}")
     
     print(f"📁 Migration completed: {migrated_count} directories migrated")
+
+def migrate_filenames_to_study_date():
+    """
+    Migrate existing files to include study date in filenames
+    This will scan all patient folders and rename files to include study date
+    """
+    if not SPECT_DATA_PATH.exists():
+        return
+    
+    print("🔄 Migrating filenames to include study date...")
+    
+    migrated_count = 0
+    for session_dir in SPECT_DATA_PATH.iterdir():
+        if not session_dir.is_dir():
+            continue
+            
+        for patient_dir in session_dir.iterdir():
+            if not patient_dir.is_dir():
+                continue
+                
+            patient_id = patient_dir.name
+            session_code = session_dir.name
+            
+            # Find primary DICOM file to extract study date
+            dicom_files = list(patient_dir.glob("*.dcm"))
+            primary_dicom = None
+            
+            for dcm_file in dicom_files:
+                # Skip secondary capture files
+                if any(skip in dcm_file.name.lower() for skip in ['mask', 'colored', 'edited']):
+                    continue
+                primary_dicom = dcm_file
+                break
+            
+            if not primary_dicom:
+                print(f"⚠️  No primary DICOM found in {patient_dir}")
+                continue
+            
+            try:
+                # Extract study date
+                study_date = extract_study_date_from_dicom(primary_dicom)
+                new_filename_stem = generate_filename_stem(patient_id, study_date)
+                
+                # Rename all files in the directory
+                for file_path in patient_dir.iterdir():
+                    if not file_path.is_file():
+                        continue
+                    
+                    old_name = file_path.name
+                    
+                    # Skip if already has study date pattern
+                    if len(old_name.split('_')) >= 2 and old_name.split('_')[1].isdigit() and len(old_name.split('_')[1]) == 8:
+                        continue
+                    
+                    # Generate new name
+                    if old_name.startswith(patient_id):
+                        # Replace patient_id with patient_id_studydate
+                        new_name = old_name.replace(patient_id, new_filename_stem, 1)
+                        new_path = patient_dir / new_name
+                        
+                        if new_path != file_path:
+                            file_path.rename(new_path)
+                            print(f"✅ Renamed: {old_name} → {new_name}")
+                            migrated_count += 1
+                    
+            except Exception as e:
+                print(f"❌ Failed to migrate files in {patient_dir}: {e}")
+    
+    print(f"📁 Filename migration completed: {migrated_count} files renamed")
 
 # Environment-specific overrides
 if os.getenv("DEVELOPMENT"):
