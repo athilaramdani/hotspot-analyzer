@@ -17,7 +17,9 @@ from PySide6.QtWidgets import (
 # Import NEW config paths for edited files support
 from core.config.paths import (
     get_hotspot_files, 
-    get_segmentation_files_with_edited
+    get_segmentation_files_with_edited,
+    extract_study_date_from_dicom,     # ← BARU
+    generate_filename_stem             # ← BARU
 )
 
 # Import NEW transparency utilities
@@ -560,13 +562,30 @@ class ScanTimelineWidget(QWidget):
             layers["Original"] = original_image
         
         # Layer 2: Segmentation - with transparency processing
-        seg_files = get_segmentation_files_with_edited(dicom_path.parent, filename, self.current_view)
+        # FIXED: Extract patient info properly
+        try:
+            study_date = extract_study_date_from_dicom(dicom_path)
+            
+            # FIXED: Get clean patient_id from path, not from metadata
+            patient_id, session_code = self._get_patient_session_from_scan(scan)
+            
+            filename_with_date = generate_filename_stem(patient_id, study_date)
+            print(f"[DEBUG] Using filename stem with study date: {filename_with_date}")
+            print(f"[DEBUG] Patient ID: {patient_id}, Study Date: {study_date}")
+        except Exception as e:
+            print(f"[WARN] Could not extract study date, using original filename: {e}")
+            study_date = None
+            filename_with_date = filename
+        
+        seg_files = get_segmentation_files_with_edited(dicom_path.parent, filename_with_date, self.current_view)
         
         # Prioritize edited files
         if seg_files['png_colored_edited'].exists():
             seg_png = seg_files['png_colored_edited']
+            print(f"[DEBUG] Found edited segmentation: {seg_png}")
         else:
             seg_png = seg_files['png_colored']
+            print(f"[DEBUG] Found original segmentation: {seg_png}")
         
         if seg_png.exists():
             try:
@@ -576,16 +595,28 @@ class ScanTimelineWidget(QWidget):
                 print(f"[DEBUG] Loaded segmentation with transparency: {seg_png}")
             except Exception as e:
                 print(f"[WARN] Failed to load segmentation image: {e}")
+        else:
+            print(f"[WARN] Segmentation file not found: {seg_png}")
         
-        # Layer 3: Hotspot - with transparency processing
-        patient_id, session_code = self._get_patient_session_from_scan(scan)
-        hotspot_files = get_hotspot_files(patient_id, session_code, self.current_view)
+        # Layer 3: Hotspot - with transparency processing  
+        # FIXED: Include study_date parameter
+        if study_date:
+            hotspot_files = get_hotspot_files(patient_id, session_code, self.current_view, study_date)
+        else:
+            # Fallback: try to get study date from meta or use current date
+            fallback_date = scan["meta"].get("study_date")
+            if not fallback_date:
+                from datetime import datetime
+                fallback_date = datetime.now().strftime("%Y%m%d")
+            hotspot_files = get_hotspot_files(patient_id, session_code, self.current_view, fallback_date)
         
         # Prioritize edited files
         if hotspot_files['colored_png_edited'].exists():
             hotspot_png = hotspot_files['colored_png_edited']
+            print(f"[DEBUG] Found edited hotspot: {hotspot_png}")
         else:
             hotspot_png = hotspot_files['colored_png']
+            print(f"[DEBUG] Found original hotspot: {hotspot_png}")
         
         if hotspot_png.exists():
             try:
@@ -595,6 +626,8 @@ class ScanTimelineWidget(QWidget):
                 print(f"[DEBUG] Loaded hotspot with transparency: {hotspot_png}")
             except Exception as e:
                 print(f"[WARN] Failed to load hotspot image: {e}")
+        else:
+            print(f"[WARN] Hotspot file not found: {hotspot_png}")
         
         return layers
     

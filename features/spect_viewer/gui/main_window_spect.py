@@ -1,4 +1,4 @@
-# features/spect_viewer/gui/main_window_spect.py - FIXED: Scan button sync
+# features/spect_viewer/gui/main_window_spect.py - FIXED: XML detection with study date
 from __future__ import annotations
 
 from pathlib import Path
@@ -18,7 +18,8 @@ import multiprocessing
 from core.config.paths import (
     get_session_spect_path,
     get_patient_spect_path,
-    SPECT_DATA_PATH
+    SPECT_DATA_PATH,
+    generate_filename_stem
 )
 from core.config.sessions import get_current_session
 
@@ -33,7 +34,7 @@ from features.dicom_import.logic.directory_scanner import (
 from core.gui.loading_dialog import SPECTLoadingDialog
 # ===========================================
 
-from features.dicom_import.logic.dicom_loader import load_frames_and_metadata
+from features.dicom_import.logic.dicom_loader import load_frames_and_metadata, extract_study_date_from_dicom
 from features.spect_viewer.logic.hotspot_processor import HotspotProcessor
 from core.utils.image_converter import load_frames_and_metadata_matrix
 
@@ -493,7 +494,7 @@ class MainWindowSpect(QMainWindow):
             return
     
     def _load_patient(self, patient_id: str, session_code: str) -> None:
-        """Load patient data using new directory structure"""
+        """Load patient data using new directory structure with enhanced XML detection"""
         print(f"[DEBUG] Loading patient: {patient_id} from session: {session_code}")
         
         # Create cache key
@@ -537,7 +538,7 @@ class MainWindowSpect(QMainWindow):
                     loading_dialog.update_loading_step(f"Processing scan {len(initial_scans)}...", 40)
                     QApplication.processEvents()
                     
-                    # Process hotspot detection
+                    # Process hotspot detection with enhanced XML detection
                     result = self.pool.apply_async(
                         run_hotspot_processing_in_process, 
                         args=(dicom_file, patient_id)
@@ -561,15 +562,42 @@ class MainWindowSpect(QMainWindow):
                     )
                     QApplication.processEvents()
                     
+                    # Get study date for XML file detection logging
+                    try:
+                        study_date = extract_study_date_from_dicom(scan_data["path"])
+                        filename_stem = generate_filename_stem(patient_id, study_date)
+                        print(f"[DEBUG] Processing scan with filename stem: {filename_stem}")
+                        
+                        # Check for XML files with study date naming
+                        xml_ant_new = scan_data["path"].parent / f"{filename_stem}_ant.xml"
+                        xml_post_new = scan_data["path"].parent / f"{filename_stem}_post.xml"
+                        xml_ant_old = scan_data["path"].parent / f"{patient_id}_ant.xml"
+                        xml_post_old = scan_data["path"].parent / f"{patient_id}_post.xml"
+                        
+                        xml_files_found = []
+                        for xml_file in [xml_ant_new, xml_post_new, xml_ant_old, xml_post_old]:
+                            if xml_file.exists():
+                                xml_files_found.append(xml_file.name)
+                        
+                        if xml_files_found:
+                            print(f"[DEBUG] XML files found for {filename_stem}: {xml_files_found}")
+                        else:
+                            print(f"[DEBUG] No XML files found for {filename_stem}")
+                            
+                    except Exception as e:
+                        print(f"[WARN] Could not check XML files: {e}")
+                    
                     hotspot_data = async_results[i].get(timeout=120)
                     if hotspot_data:
                         scan_data["hotspot_frames"] = hotspot_data.get("frames")
                         scan_data["hotspot_frames_ant"] = hotspot_data.get("ant_frames")
                         scan_data["hotspot_frames_post"] = hotspot_data.get("post_frames")
+                        print(f"[DEBUG] Hotspot processing completed for scan {i + 1}")
                     else:
                         scan_data["hotspot_frames"] = scan_data["frames"]
                         scan_data["hotspot_frames_ant"] = scan_data["frames"]
                         scan_data["hotspot_frames_post"] = scan_data["frames"]
+                        print(f"[DEBUG] No hotspot data, using original frames for scan {i + 1}")
                     processed_scans.append(scan_data)
                 except Exception as e:
                     print(f"[ERROR] Failed to get backend result for {scan_data['path']}: {e}")

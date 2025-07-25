@@ -8,6 +8,19 @@ import matplotlib.colors as mcolors
 from skimage.filters import threshold_otsu
 from skimage.morphology import binary_dilation, disk
 
+# Import untuk extract study date
+try:
+    from features.dicom_import.logic.dicom_loader import extract_study_date_from_dicom
+    from core.config.paths import generate_filename_stem
+    STUDY_DATE_SUPPORT = True
+except ImportError:
+    STUDY_DATE_SUPPORT = False
+    def extract_study_date_from_dicom(path):
+        from datetime import datetime
+        return datetime.now().strftime("%Y%m%d")
+    def generate_filename_stem(patient_id, study_date):
+        return f"{patient_id}_{study_date}"
+
 
 def extract_grayscale_matrix(image_file: str, bbox: Tuple[int, int, int, int]) -> np.ndarray:
     """
@@ -126,7 +139,7 @@ def parse_xml_annotations(xml_file: str) -> List[Tuple[int, int, int, int, str]]
 
 
 def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, int, int, str]], 
-                       patient_id: str, view: str, output_dir: str = None) -> Tuple[np.ndarray, Image.Image]:
+                       patient_id: str, view: str, study_date: str = None, output_dir: str = None) -> Tuple[np.ndarray, Image.Image]:
     """
     Create hotspot mask and overlayed image based on Otsu threshold and morphological operations.
     
@@ -135,6 +148,7 @@ def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, in
         bounding_boxes: List of bounding boxes with labels
         patient_id: Patient ID for naming output files
         view: View type (ant/post) for naming output files
+        study_date: Study date in YYYYMMDD format (will be extracted if None)
         output_dir: Directory to save mask files
     
     Returns:
@@ -219,11 +233,18 @@ def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, in
                     if matching_neighbors >= 3:
                         mask[y, x] = mask_value
         
-        # Save mask as PNG
+        # Save mask as PNG with study date
         if output_dir:
             output_path = Path(output_dir)
             output_path.mkdir(exist_ok=True)
-            mask_filename = f"{patient_id}_{view}_hotspot_mask.png"
+            
+            # NEW: Include study date in filename
+            if study_date:
+                filename_stem = generate_filename_stem(patient_id, study_date)
+                mask_filename = f"{filename_stem}_{view}_hotspot_mask.png"
+            else:
+                mask_filename = f"{patient_id}_{view}_hotspot_mask.png"
+                
             mask_path = output_path / mask_filename
             Image.fromarray(mask).save(mask_path)
             print(f"Hotspot mask saved: {mask_path}")
@@ -372,11 +393,65 @@ def color_pixels_within_bounding_boxes(image_file: str, bounding_boxes: List[Tup
 class HotspotProcessor:
     """
     Main class for processing hotspot images with XML annotations.
+    Enhanced with study date support for file naming.
     """
     
     def __init__(self, temp_dir: str = "data/tmp/hotspot_temp"):
         self.temp_dir = Path(temp_dir)
         self.temp_dir.mkdir(exist_ok=True)
+    
+    def _extract_patient_and_study_info(self, image_path: str, patient_id: str = None) -> Tuple[str, str]:
+        """
+        Extract patient ID and study date from image path or DICOM metadata.
+        
+        Args:
+            image_path: Path to image or DICOM file
+            patient_id: Override patient ID if provided
+            
+        Returns:
+            Tuple of (patient_id, study_date)
+        """
+        try:
+            image_path = Path(image_path)
+            
+            # If patient_id not provided, try to extract from path
+            if patient_id is None:
+                if "_" in image_path.parent.name:
+                    # Old structure: patient_session
+                    patient_id = image_path.parent.name.split("_")[0]
+                else:
+                    # New structure: session/patient_id/
+                    patient_id = image_path.parent.name
+            
+            # Try to extract study date from DICOM file if it exists
+            study_date = None
+            dicom_files = list(image_path.parent.glob("*.dcm"))
+            
+            for dicom_file in dicom_files:
+                # Skip processed files
+                if any(skip in dicom_file.name.lower() for skip in ['mask', 'colored', '_ant_', '_post_']):
+                    continue
+                    
+                try:
+                    if STUDY_DATE_SUPPORT:
+                        study_date = extract_study_date_from_dicom(dicom_file)
+                        break
+                except Exception as e:
+                    print(f"[WARN] Could not extract study date from {dicom_file}: {e}")
+                    continue
+            
+            # Fallback to current date
+            if not study_date:
+                from datetime import datetime
+                study_date = datetime.now().strftime("%Y%m%d")
+                print(f"[WARN] Using current date as study date: {study_date}")
+            
+            return patient_id, study_date
+            
+        except Exception as e:
+            print(f"[ERROR] Failed to extract patient/study info: {e}")
+            from datetime import datetime
+            return patient_id or "UNKNOWN", datetime.now().strftime("%Y%m%d")
     
     def process_image_with_xml(self, image_path: str, xml_path: str, patient_id: str = None, view: str = None) -> Optional[Image.Image]:
         """
@@ -408,9 +483,9 @@ class HotspotProcessor:
         
         print("hotspot processing started")
         
-        # Extract patient_id and view from paths if not provided
-        if patient_id is None:
-            patient_id = Path(image_path).parent.name
+        # Extract patient_id, study_date, and view from paths if not provided
+        final_patient_id, study_date = self._extract_patient_and_study_info(image_path, patient_id)
+        
         if view is None:
             filename_lower = Path(image_path).stem.lower()
             view = "post" if "post" in filename_lower else "ant"
@@ -420,8 +495,9 @@ class HotspotProcessor:
             mask, overlayed_image = create_hotspot_mask(
                 image_path, 
                 bounding_boxes,
-                patient_id,
+                final_patient_id,
                 view,
+                study_date,
                 output_dir=str(Path(image_path).parent)  # Save mask in same directory as image
             )
             print("Image mask saved at:", Path(image_path).parent)
@@ -431,13 +507,71 @@ class HotspotProcessor:
             print(f"Error processing image {image_path}: {e}")
             return None
     
-    def find_xml_for_image(self, image_path: str, xml_dir: str = None) -> Optional[str]:
+    def process_frame_with_xml(self, frame: np.ndarray, xml_path: str, patient_id: str, view: str) -> Optional[np.ndarray]:
         """
-        Find corresponding XML file for an image.
+        Process a numpy frame with XML annotations (for multiprocessing).
+        
+        Args:
+            frame: Input frame as numpy array
+            xml_path: Path to XML annotation file
+            patient_id: Patient ID
+            view: View type (ant/post)
+            
+        Returns:
+            np.ndarray or None: Processed frame with hotspots
+        """
+        try:
+            if not Path(xml_path).exists():
+                return None
+            
+            # Parse XML annotations
+            bounding_boxes = parse_xml_annotations(xml_path)
+            if not bounding_boxes:
+                return None
+            
+            # Convert frame to PIL Image temporarily
+            if frame.dtype != np.uint8:
+                # Normalize to 0-255 range
+                frame_norm = ((frame - frame.min()) / (frame.max() - frame.min()) * 255).astype(np.uint8)
+            else:
+                frame_norm = frame
+            
+            temp_image = Image.fromarray(frame_norm)
+            temp_path = self.temp_dir / f"temp_{patient_id}_{view}.png"
+            temp_image.save(temp_path)
+            
+            # Extract study date
+            _, study_date = self._extract_patient_and_study_info(str(temp_path), patient_id)
+            
+            # Process with create_hotspot_mask
+            mask, overlayed_image = create_hotspot_mask(
+                str(temp_path),
+                bounding_boxes,
+                patient_id,
+                view,
+                study_date,
+                output_dir=None  # Don't save intermediate files
+            )
+            
+            # Clean up temp file
+            temp_path.unlink(missing_ok=True)
+            
+            # Convert back to numpy array
+            return np.array(overlayed_image)
+            
+        except Exception as e:
+            print(f"Error processing frame with XML {xml_path}: {e}")
+            return None
+    
+    def find_xml_for_image(self, image_path: str, xml_dir: str = None, patient_id: str = None, study_date: str = None) -> Optional[str]:
+        """
+        Find corresponding XML file for an image with study date support.
         
         Args:
             image_path: Path to the image file
             xml_dir: Directory to search for XML files (defaults to same dir as image)
+            patient_id: Patient ID for naming patterns
+            study_date: Study date for naming patterns
         
         Returns:
             str or None: Path to XML file if found
@@ -449,8 +583,33 @@ class HotspotProcessor:
         else:
             xml_dir = Path(xml_dir)
         
-        # Try different naming conventions
+        # Extract patient info if not provided
+        if patient_id is None or study_date is None:
+            extracted_patient_id, extracted_study_date = self._extract_patient_and_study_info(str(image_path), patient_id)
+            patient_id = patient_id or extracted_patient_id
+            study_date = study_date or extracted_study_date
+        
+        # Generate filename stem
+        if STUDY_DATE_SUPPORT and patient_id and study_date:
+            filename_stem = generate_filename_stem(patient_id, study_date)
+        else:
+            filename_stem = patient_id or image_path.stem
+        
+        # Try different naming conventions with study date
         possible_names = [
+            # New naming convention with study date
+            f"{filename_stem}_ant.xml",
+            f"{filename_stem}_post.xml",
+            f"{filename_stem}_anterior.xml", 
+            f"{filename_stem}_posterior.xml",
+            
+            # Old naming convention (fallback)
+            f"{patient_id}_ant.xml",
+            f"{patient_id}_post.xml",
+            f"{patient_id}_anterior.xml",
+            f"{patient_id}_posterior.xml",
+            
+            # Generic patterns
             image_path.stem + ".xml",
             image_path.stem + "_annotations.xml",
             image_path.stem + "_bbox.xml",
@@ -460,8 +619,10 @@ class HotspotProcessor:
         for name in possible_names:
             xml_path = xml_dir / name
             if xml_path.exists():
+                print(f"Found XML file: {xml_path}")
                 return str(xml_path)
         
+        print(f"No XML file found for {image_path} with patient_id={patient_id}, study_date={study_date}")
         return None
     
     def process_image_auto_xml(self, image_path: str, xml_dir: str = None) -> Optional[Image.Image]:
@@ -483,5 +644,10 @@ class HotspotProcessor:
         
         return self.process_image_with_xml(image_path, xml_path)
     
-    
-    
+    def cleanup(self):
+        """Clean up temporary files."""
+        try:
+            for temp_file in self.temp_dir.glob("temp_*.png"):
+                temp_file.unlink(missing_ok=True)
+        except Exception as e:
+            print(f"[WARN] Failed to cleanup temp files: {e}")
