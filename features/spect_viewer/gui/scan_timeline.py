@@ -1,4 +1,4 @@
-# features/spect_viewer/gui/scan_timeline.py – v8 (Fixed Opacity + Select Button)
+# features/spect_viewer/gui/scan_timeline.py – v8 (Fixed Opacity + Select Button + Missing Methods)
 # ---------------------------------------------------------------------
 from __future__ import annotations
 from pathlib import Path
@@ -419,6 +419,37 @@ class ScanTimelineWidget(QWidget):
         """Get opacity for a specific layer"""
         return self._layer_opacities.get(layer, 1.0)
 
+    # ===== NEW METHODS TO FIX THE ERROR =====
+    def is_layer_active(self, layer: str) -> bool:
+        """Check if a specific layer is currently active"""
+        return layer in self._active_layers
+
+    def refresh_current_view(self):
+        """Refresh current view - rebuild the timeline display"""
+        print("[DEBUG] Refreshing current timeline view...")
+        self._rebuild()
+
+    def get_active_layers(self) -> list:
+        """Get list of currently active layers"""
+        return self._active_layers.copy()
+
+    def has_layer_data(self, layer: str) -> bool:
+        """Check if layer data is available for current scans"""
+        if not self._scans_cache:
+            return False
+        
+        try:
+            # Check if any scan has data for this layer
+            for scan in self._scans_cache:
+                layer_images = self._get_layer_images(scan)
+                if layer in layer_images:
+                    return True
+            return False
+        except Exception as e:
+            print(f"[WARN] Error checking layer data: {e}")
+            return False
+    # ========================================
+
     # ------------------------------------------------------ rebuild
     def _clear(self):
         while self.timeline_layout.count():
@@ -545,8 +576,10 @@ class ScanTimelineWidget(QWidget):
             print(f"[WARN] Failed to extract patient/session from scan: {e}")
             return "UNKNOWN", self.session_code or "UNKNOWN"
     
+    # UPDATE _get_layer_images method in scan_timeline.py
+
     def _get_layer_images(self, scan: Dict) -> Dict[str, Image.Image]:
-        """Get all layer images for a scan with transparency processing"""
+        """Get all layer images for a scan with transparency processing - UPDATED to use PURE hotspot"""
         frame_map = scan["frames"]
         dicom_path = scan["path"]
         filename = dicom_path.stem
@@ -598,7 +631,7 @@ class ScanTimelineWidget(QWidget):
         else:
             print(f"[WARN] Segmentation file not found: {seg_png}")
         
-        # Layer 3: Hotspot - with transparency processing  
+        # ✅ Layer 3: Hotspot - UPDATED to use PURE version with transparency processing  
         # FIXED: Include study_date parameter
         if study_date:
             hotspot_files = get_hotspot_files(patient_id, session_code, self.current_view, study_date)
@@ -610,15 +643,23 @@ class ScanTimelineWidget(QWidget):
                 fallback_date = datetime.now().strftime("%Y%m%d")
             hotspot_files = get_hotspot_files(patient_id, session_code, self.current_view, fallback_date)
         
-        # Prioritize edited files
-        if hotspot_files['colored_png_edited'].exists():
+        # ✅ PRIORITIZE PURE VERSION (edited first, then original)
+        hotspot_png = None
+        if hotspot_files['pure_colored_png_edited'].exists():
+            hotspot_png = hotspot_files['pure_colored_png_edited']
+            print(f"[DEBUG] Found edited PURE hotspot: {hotspot_png}")
+        elif hotspot_files['pure_colored_png'].exists():
+            hotspot_png = hotspot_files['pure_colored_png']
+            print(f"[DEBUG] Found original PURE hotspot: {hotspot_png}")
+        # ✅ FALLBACK to blended version if pure not available
+        elif hotspot_files['colored_png_edited'].exists():
             hotspot_png = hotspot_files['colored_png_edited']
-            print(f"[DEBUG] Found edited hotspot: {hotspot_png}")
-        else:
+            print(f"[DEBUG] Fallback to edited BLENDED hotspot: {hotspot_png}")
+        elif hotspot_files['colored_png'].exists():
             hotspot_png = hotspot_files['colored_png']
-            print(f"[DEBUG] Found original hotspot: {hotspot_png}")
+            print(f"[DEBUG] Fallback to original BLENDED hotspot: {hotspot_png}")
         
-        if hotspot_png.exists():
+        if hotspot_png and hotspot_png.exists():
             try:
                 # Load with transparency (make black pixels transparent)
                 hotspot_image = load_image_with_transparency(hotspot_png, make_transparent=True)
@@ -627,7 +668,7 @@ class ScanTimelineWidget(QWidget):
             except Exception as e:
                 print(f"[WARN] Failed to load hotspot image: {e}")
         else:
-            print(f"[WARN] Hotspot file not found: {hotspot_png}")
+            print(f"[WARN] No hotspot files found for {filename_with_date}")
         
         return layers
     

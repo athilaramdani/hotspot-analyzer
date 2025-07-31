@@ -1,4 +1,4 @@
-# features/spect_viewer/gui/main_window_spect.py - FIXED: XML detection with study date
+# features/spect_viewer/gui/main_window_spect.py - SIMPLIFIED: No AI processing during patient load
 from __future__ import annotations
 
 from pathlib import Path
@@ -24,7 +24,6 @@ from core.config.paths import (
 from core.config.sessions import get_current_session
 
 # Import NEW directory scanner for new structure
-# Langkah 1: Hapus baris yang salah
 from features.dicom_import.logic.directory_scanner import (
     scan_spect_directory_new_structure,
     get_session_patients,
@@ -248,11 +247,18 @@ class MainWindowSpect(QMainWindow):
     # NEW: Handle checkbox-based layer changes
     def _on_layers_changed(self, active_layers: list) -> None:
         """Handle layer selection changes from checkbox mode selector"""
-        # Cek apakah "Hotspot" baru saja diaktifkan
-        if "Hotspot" in active_layers and not self.timeline_widget.is_layer_active("Hotspot"):
-            # Jalankan proses pembuatan gambar hotspot di background
-            self._run_hotspot_processing_on_demand()
+        print(f"[DEBUG] Layers changed to: {active_layers}")
         
+        # Check if "Hotspot" was just activated and needs processing
+        if "Hotspot" in active_layers and not self.timeline_widget.is_layer_active("Hotspot"):
+            # Check if hotspot data is available
+            if not self.timeline_widget.has_layer_data("Hotspot"):
+                print("[DEBUG] Hotspot layer activated but no data found, triggering processing...")
+                self._run_hotspot_processing_on_demand()
+            else:
+                print("[DEBUG] Hotspot layer activated and data is available")
+        
+        # Update timeline with new layer selection
         self.timeline_widget.set_active_layers(active_layers)
 
     def _set_layer_opacity(self, layer: str, opacity: float) -> None:
@@ -390,9 +396,12 @@ class MainWindowSpect(QMainWindow):
         if hasattr(self, 'side_panel') and hasattr(self.side_panel, 'cleanup'):
             self.side_panel.cleanup()
         super().closeEvent(event)
+
     def _run_hotspot_processing_on_demand(self):
         """
-        Memicu proses hotspot (Otsu) untuk pasien yang sedang aktif.
+        Check if hotspot files exist, if not, create them (fallback only)
+        Most of the time this shouldn't be needed since hotspot processing 
+        is done during import.
         """
         try:
             id_text = self.patient_bar.id_combo.currentText()
@@ -406,34 +415,58 @@ class MainWindowSpect(QMainWindow):
             scans = self._loaded.get(cache_key, [])
             if not scans: return
 
-            print("[DEBUG] Memicu proses hotspot on-demand...")
+            print("[DEBUG] Checking hotspot files availability...")
             
-            # Tampilkan dialog loading
-            loading_dialog = SPECTLoadingDialog("Processing Hotspots...", parent=self)
+            # Check if hotspot files already exist
+            missing_hotspot_files = []
+            for scan_data in scans:
+                try:
+                    dicom_path = scan_data["path"]
+                    study_date = extract_study_date_from_dicom(dicom_path)
+                    filename_stem = generate_filename_stem(patient_id, study_date)
+                    
+                    hotspot_ant = dicom_path.parent / f"{filename_stem}_ant_hotspot_colored.png"
+                    hotspot_post = dicom_path.parent / f"{filename_stem}_post_hotspot_colored.png"
+                    
+                    if not hotspot_ant.exists() or not hotspot_post.exists():
+                        missing_hotspot_files.append(dicom_path)
+                        print(f"[DEBUG] Missing hotspot files for: {filename_stem}")
+                    
+                except Exception as e:
+                    print(f"[WARN] Could not check hotspot files: {e}")
+            
+            if not missing_hotspot_files:
+                print("[DEBUG] All hotspot files already exist! Refreshing timeline...")
+                self.timeline_widget.refresh_current_view()
+                return
+            
+            print(f"[DEBUG] Creating {len(missing_hotspot_files)} missing hotspot files...")
+            
+            # Show loading dialog only if we need to process
+            loading_dialog = SPECTLoadingDialog("Creating missing hotspot files...", parent=self)
             loading_dialog.show()
             QApplication.processEvents()
 
             hotspot_jobs = []
-            for scan_data in scans:
-                dicom_file = scan_data["path"]
+            for dicom_file in missing_hotspot_files:
                 job = self.pool.apply_async(
                     run_hotspot_processing_in_process, 
                     args=(dicom_file, patient_id)
                 )
                 hotspot_jobs.append(job)
             
-            # Tunggu semua proses selesai
+            # Wait for processing to complete
             for job in hotspot_jobs:
                 job.get(timeout=180)
 
             loading_dialog.close()
-            print("[DEBUG] Proses hotspot on-demand selesai. Merefresh timeline...")
+            print("[DEBUG] Missing hotspot files created. Refreshing timeline...")
             
-            # [PENTING] Refresh timeline untuk memuat file yang baru dibuat
+            # Refresh timeline to load the newly created files
             self.timeline_widget.refresh_current_view()
 
         except Exception as e:
-            print(f"[ERROR] Gagal menjalankan proses hotspot on-demand: {e}")
+            print(f"[ERROR] Failed to run on-demand hotspot processing: {e}")
             if 'loading_dialog' in locals() and loading_dialog:
                 loading_dialog.close()
 
@@ -545,7 +578,7 @@ class MainWindowSpect(QMainWindow):
             return
     
     def _load_patient(self, patient_id: str, session_code: str) -> None:
-        """Load patient data using new directory structure with enhanced XML detection"""
+        """Load patient data using new directory structure - SIMPLIFIED without AI processing"""
         print(f"[DEBUG] Loading patient: {patient_id} from session: {session_code}")
         
         # Create cache key
@@ -567,110 +600,68 @@ class MainWindowSpect(QMainWindow):
             QApplication.processEvents()
             
             initial_scans = []
-            async_results = []
 
-            loading_dialog.update_loading_step("Scanning patient directory...", 10)
+            loading_dialog.update_loading_step("Scanning patient directory...", 20)
             QApplication.processEvents()
 
             # Get patient DICOM files using new structure
             dicom_files = get_patient_dicom_files(session_code, patient_id, primary_only=True)
             print(f"[DEBUG] Found {len(dicom_files)} DICOM files for patient {patient_id}")
             
-            loading_dialog.update_loading_step("Running YOLO detection (creating XML)...", 20)
-            QApplication.processEvents()
+            # ❌ NO MORE YOLO DETECTION - IT'S ALREADY DONE DURING IMPORT
             
-            yolo_jobs = []
-            for dicom_file in dicom_files:
-                # Panggil proses deteksi YOLO di latar belakang
-                job = self.pool.apply_async(run_yolo_detection_for_patient, args=(dicom_file, patient_id))
-                yolo_jobs.append(job)
-            
-            # Tunggu semua proses YOLO selesai
-            print(f"[DEBUG] Waiting for {len(yolo_jobs)} YOLO jobs to complete...")
-            for job in yolo_jobs:
-                job.get(timeout=180) # Tunggu maksimal 3 menit
-            
-            print("[DEBUG] All YOLO detection jobs completed. XML files are now ready.")
-            
-            loading_dialog.update_loading_step("Loading DICOM files...", 25)
+            loading_dialog.update_loading_step("Loading DICOM files...", 40)
             QApplication.processEvents()
 
             for dicom_file in dicom_files:
                 try:
                     frames, meta = load_frames_and_metadata(dicom_file)
                     scan_data = {"meta": meta, "frames": frames, "path": dicom_file}
+                    
+                    # ✅ ALL PROCESSING ALREADY DONE DURING IMPORT
+                    # Just add placeholders for hotspot data - will be loaded when needed
+                    scan_data["hotspot_frames"] = scan_data["frames"]  # Placeholder
+                    scan_data["hotspot_frames_ant"] = scan_data["frames"]  # Placeholder  
+                    scan_data["hotspot_frames_post"] = scan_data["frames"]  # Placeholder
+                    
                     initial_scans.append(scan_data)
                     print(f"[DEBUG] Processed DICOM: {dicom_file.name}")
                     
-                    loading_dialog.update_loading_step(f"Processing scan {len(initial_scans)}...", 40)
+                    loading_dialog.update_loading_step(f"Loading scan {len(initial_scans)}...", 50 + (len(initial_scans) * 30 // len(dicom_files)))
                     QApplication.processEvents()
-                    
-                    # Process hotspot detection with enhanced XML detection
-                    result = self.pool.apply_async(
-                        run_hotspot_processing_in_process, 
-                        args=(dicom_file, patient_id)
-                    )
-                    async_results.append(result)
 
                 except Exception as e:
                     print(f"[WARN] Failed to read DICOM {dicom_file}: {e}")
             
-            loading_dialog.update_loading_step("Processing hotspot detection...", 60)
+            loading_dialog.update_loading_step("Finalizing data...", 90)
             QApplication.processEvents()
             
-            print(f"[DEBUG] Waiting for {len(async_results)} backend jobs to complete...")
-            processed_scans = []
-            for i, scan_data in enumerate(initial_scans):
+            # ❌ NO MORE ASYNC PROCESSING - EVERYTHING IS ALREADY DONE
+            processed_scans = initial_scans
+            
+            # Get study date for file checking (for debug info)
+            for scan_data in processed_scans:
                 try:
-                    progress = 60 + (i + 1) / len(initial_scans) * 30  # 60-90%
-                    loading_dialog.update_loading_step(
-                        f"Processing hotspot for scan {i + 1}/{len(initial_scans)}...", 
-                        int(progress)
-                    )
-                    QApplication.processEvents()
+                    study_date = extract_study_date_from_dicom(scan_data["path"])
+                    filename_stem = generate_filename_stem(patient_id, study_date)
+                    print(f"[DEBUG] Scan files for {filename_stem}:")
                     
-                    # Get study date for XML file detection logging
-                    try:
-                        study_date = extract_study_date_from_dicom(scan_data["path"])
-                        filename_stem = generate_filename_stem(patient_id, study_date)
-                        print(f"[DEBUG] Processing scan with filename stem: {filename_stem}")
-                        
-                        # Check for XML files with study date naming
-                        xml_ant_new = scan_data["path"].parent / f"{filename_stem}_ant.xml"
-                        xml_post_new = scan_data["path"].parent / f"{filename_stem}_post.xml"
-                        xml_ant_old = scan_data["path"].parent / f"{patient_id}_ant.xml"
-                        xml_post_old = scan_data["path"].parent / f"{patient_id}_post.xml"
-                        
-                        xml_files_found = []
-                        for xml_file in [xml_ant_new, xml_post_new, xml_ant_old, xml_post_old]:
-                            if xml_file.exists():
-                                xml_files_found.append(xml_file.name)
-                        
-                        if xml_files_found:
-                            print(f"[DEBUG] XML files found for {filename_stem}: {xml_files_found}")
-                        else:
-                            print(f"[DEBUG] No XML files found for {filename_stem}")
-                            
-                    except Exception as e:
-                        print(f"[WARN] Could not check XML files: {e}")
+                    # Check what files exist (all should be created during import)
+                    xml_ant = scan_data["path"].parent / f"{filename_stem}_ant.xml"
+                    xml_post = scan_data["path"].parent / f"{filename_stem}_post.xml"
+                    hotspot_ant = scan_data["path"].parent / f"{filename_stem}_ant_hotspot_colored.png"
+                    hotspot_post = scan_data["path"].parent / f"{filename_stem}_post_hotspot_colored.png"
                     
-                    hotspot_data = async_results[i].get(timeout=120)
-                    if hotspot_data:
-                        scan_data["hotspot_frames"] = hotspot_data.get("frames")
-                        scan_data["hotspot_frames_ant"] = hotspot_data.get("ant_frames")
-                        scan_data["hotspot_frames_post"] = hotspot_data.get("post_frames")
-                        print(f"[DEBUG] Hotspot processing completed for scan {i + 1}")
-                    else:
-                        scan_data["hotspot_frames"] = scan_data["frames"]
-                        scan_data["hotspot_frames_ant"] = scan_data["frames"]
-                        scan_data["hotspot_frames_post"] = scan_data["frames"]
-                        print(f"[DEBUG] No hotspot data, using original frames for scan {i + 1}")
-                    processed_scans.append(scan_data)
+                    files_status = []
+                    if xml_ant.exists(): files_status.append("XML-ant")
+                    if xml_post.exists(): files_status.append("XML-post")  
+                    if hotspot_ant.exists(): files_status.append("Hotspot-ant")
+                    if hotspot_post.exists(): files_status.append("Hotspot-post")
+                    
+                    print(f"[DEBUG] Available files: {', '.join(files_status) if files_status else 'None'}")
+                    
                 except Exception as e:
-                    print(f"[ERROR] Failed to get backend result for {scan_data['path']}: {e}")
-            
-            loading_dialog.update_loading_step("Finalizing data...", 95)
-            QApplication.processEvents()
+                    print(f"[WARN] Could not check files for scan: {e}")
             
             scans = sorted(processed_scans, key=lambda s: s["meta"].get("study_date", ""))
             

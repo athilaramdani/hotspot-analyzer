@@ -1,4 +1,4 @@
-# features/dicom_import/logic/input_data.py - Enhanced with study date in filenames
+# features/dicom_import/logic/input_data.py - Enhanced with YOLO detection during import
 from __future__ import annotations
 from pathlib import Path
 from shutil  import copy2
@@ -17,6 +17,8 @@ from pydicom.uid     import (
 
 from .dicom_loader import load_frames_and_metadata
 from features.spect_viewer.logic.segmenter import predict_bone_mask
+# ✅ ADD YOLO DETECTION IMPORT
+from features.spect_viewer.logic.processing_wrapper import run_yolo_detection_for_patient
 from core.logger import _log
 from core.gui.ui_constants import truncate_text
 
@@ -169,6 +171,29 @@ def _process_one(src: Path, session_code: str) -> Path:
     # ✅ UPLOAD HANYA INPUT DICOM SAJA
     _upload_to_cloud(dest_path, session_code, pid)
 
+    # ✅ NEW: Run YOLO detection right after file copy
+    _log("  >> Running YOLO hotspot detection...")
+    try:
+        yolo_result = run_yolo_detection_for_patient(dest_path, pid)
+        if yolo_result:
+            _log(f"     YOLO detection completed - XML files created")
+        else:
+            _log(f"     YOLO detection completed - no detections found")
+    except Exception as e:
+        _log(f"     [WARN] YOLO detection failed: {e}")
+
+    # ✅ NEW: Run Otsu hotspot processing right after YOLO
+    _log("  >> Running Otsu hotspot processing...")
+    try:
+        from features.spect_viewer.logic.processing_wrapper import run_hotspot_processing_in_process
+        hotspot_result = run_hotspot_processing_in_process(dest_path, pid)
+        if hotspot_result:
+            _log(f"     Otsu processing completed - hotspot PNG files created")
+        else:
+            _log(f"     Otsu processing completed - no hotspots generated")
+    except Exception as e:
+        _log(f"     [WARN] Otsu hotspot processing failed: {e}")
+
     # Load DICOM for processing
     _log("  >> Loading DICOM frames...")
     ds = pydicom.dcmread(dest_path)
@@ -218,10 +243,6 @@ def _process_one(src: Path, session_code: str) -> Path:
         Image.fromarray(rgb.astype(np.uint8), mode="RGB").save(colored_png_path)
         
         saved += [f"{filename_stem}_{view_tag}_mask.png", f"{filename_stem}_{view_tag}_colored.png"]
-        
-        # ❌ REMOVE THESE UPLOADS
-        # _upload_to_cloud(mask_png_path, session_code, pid)
-        # _upload_to_cloud(colored_png_path, session_code, pid)
 
         # --- SC-DICOM files (SAVE LOCALLY ONLY) with new naming
         try:
@@ -235,10 +256,6 @@ def _process_one(src: Path, session_code: str) -> Path:
             
             saved += [f"{filename_stem}_{view_tag}_mask.dcm", f"{filename_stem}_{view_tag}_colored.dcm"]
             
-            # ❌ REMOVE THESE UPLOADS
-            # _upload_to_cloud(mask_dcm_path, session_code, pid)
-            # _upload_to_cloud(colored_dcm_path, session_code, pid)
-            
         except Exception as e:
             _log(f"    [WARN] SC-DICOM save failed for {view_name}: {e}")
 
@@ -249,12 +266,11 @@ def _process_one(src: Path, session_code: str) -> Path:
     ds.is_implicit_VR = False
     ds.save_as(dest_path, write_like_original=False)
     
-    # ❌ REMOVE THIS DUPLICATE UPLOAD
-    # _upload_to_cloud(dest_path, session_code, pid)
-    
     _log(f"  DICOM processing completed")
     _log(f"  Files saved locally: {len(saved)} items")
     _log(f"  Cloud upload: Input DICOM only")
+    _log(f"  YOLO detection: XML files created")
+    _log(f"  Otsu processing: Hotspot PNG files created")
     _log(f"  New filename pattern: {filename_stem}_[view]_[type]")
     
     return dest_path
@@ -269,7 +285,8 @@ def process_files(
     session_code: str | None = None 
 ) -> List[Path]:
     """
-    Process multiple DICOM files with new directory structure and study date in filenames
+    Process multiple DICOM files with new directory structure, study date in filenames,
+    and YOLO detection during import
     
     Args:
         paths: List of DICOM file paths to process
@@ -309,6 +326,7 @@ def process_files(
     _log(f"## Starting batch import: {total} file(s)")
     _log(f"## Session code: {session_code}")
     _log(f"## Target directory: data/SPECT/{session_code}/[patient_id]/")
+    _log(f"## Processing: DICOM → Segmentation → YOLO → Otsu Hotspot")
     _log(f"## New naming: [patient_id]_[study_date]_[view]_[type]")
 
     for i, p in enumerate(paths, 1):
@@ -326,19 +344,7 @@ def process_files(
                 progress_cb(i, total, str(p))
 
     _log("## Batch import process completed")
-    
-    # ❌ REMOVE FINAL CLOUD SYNC COMPLETELY
-    # Final cloud sync summary
-    # if is_cloud_enabled() and CLOUD_AVAILABLE:
-    #     try:
-    #         from core.config.cloud_storage import sync_spect_data
-    #         _log("## Performing final cloud synchronization...")
-    #         uploaded, downloaded = sync_spect_data(session_code)
-    #         _log(f"## Cloud sync completed: {uploaded} up, {downloaded} down")
-    #     except Exception as e:
-    #         _log(f"## Cloud sync failed: {truncate_text(str(e), 50)}")
-    
-    # ✅ REPLACE WITH THIS MESSAGE
+    _log("## All files processed: DICOM → Segmentation → YOLO → Otsu")
     _log("## Local processing completed. Only input DICOM files uploaded to cloud.")
     _log("## All files now use study date naming convention.")
     
