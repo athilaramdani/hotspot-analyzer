@@ -8,6 +8,9 @@ import os
 from dotenv import load_dotenv
 from typing import Optional
 import pydicom
+from ultralytics import YOLO
+import cv2
+import matplotlib.pyplot as plt
 
 # Load environment variables
 load_dotenv()
@@ -63,6 +66,10 @@ DEBUG_LOG_PATH = LOGS_ROOT / "debug.log"
 ASSETS_ROOT = PROJECT_ROOT / "assets"
 ICONS_PATH = ASSETS_ROOT / "icons"
 IMAGES_PATH = ASSETS_ROOT / "images"
+
+# Detection Model Path
+YOLO_MODEL_PATH = Path(__file__).resolve().parent.parent.parent / "models" / "hotspot_detection" / "models" / "model_detection_hs_yolov8.pt"
+
 
 # ===== CLOUD STORAGE CONFIGURATION =====
 # BackBlaze B2 Configuration
