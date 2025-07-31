@@ -1,145 +1,280 @@
-# Di file backend, misal: backend/processing_wrapper.py
+# process_wrapper.py
+"""
+Processing wrapper for SPECT viewer with DICOM integration
+Handles YOLO detection and hotspot processing
+"""
 
-from pathlib import Path
-from typing import List, Dict
+import sys
+import traceback
 import numpy as np
+from pathlib import Path
+from typing import Dict, List, Optional
+from PIL import Image
+from .segmenter import predict_bone_mask
+from PIL import Image
+# Add project root to path
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
 
-# Import yang diperlukan oleh HotspotProcessor di sini
-from .hotspot_processor import HotspotProcessor
+# Import configurations and utilities
+from core.config.paths import (
+    YOLO_MODEL_PATH, 
+    get_hotspot_files, 
+    extract_study_date_from_dicom, 
+    generate_filename_stem,
+    get_patient_spect_path
+)
+
+# Import DICOM loader
+from features.dicom_import.logic.dicom_loader import (
+    load_frames_and_metadata,
+    extract_patient_info_from_path
+)
+
+# Import box detection
+from .box_detection import run_yolo_detection_for_patient
+
+# Import hotspot processor with fallback
+try:
+    from .hotspot_processor import HotspotProcessor
+except ImportError as e:
+    print(f"Warning: Could not import HotspotProcessor: {e}")
+    
+    class HotspotProcessor:
+        """Fallback HotspotProcessor for when the real one isn't available"""
+        def process_frame_with_xml(self, frame, xml_path, patient_id, view,study_date=None):
+            print(f"[FALLBACK] HotspotProcessor not available, returning original frame")
+            return frame
+        
+        def cleanup(self):
+            pass
+
+
+def run_yolo_detection_wrapper(scan_path: Path, patient_id: str) -> Dict[str, bool]:
+    """
+    Wrapper function to run YOLO detection for a patient scan
+    
+    Args:
+        scan_path: Path to DICOM file
+        patient_id: Patient ID
+        
+    Returns:
+        Dictionary indicating success for each view
+    """
+    try:
+        print(f"[YOLO WRAPPER] Starting YOLO detection for {patient_id}")
+        print(f"[YOLO WRAPPER] Model path: {YOLO_MODEL_PATH}")
+        print(f"[YOLO WRAPPER] DICOM path: {scan_path}")
+        
+        if not YOLO_MODEL_PATH.exists():
+            print(f"[YOLO ERROR] Model file not found: {YOLO_MODEL_PATH}")
+            return {"anterior": False, "posterior": False}
+        
+        if not scan_path.exists():
+            print(f"[YOLO ERROR] DICOM file not found: {scan_path}")
+            return {"anterior": False, "posterior": False}
+        
+        # Run detection
+        results = run_yolo_detection_for_patient(scan_path, patient_id)
+        
+        print(f"[YOLO WRAPPER] Detection completed with results: {results}")
+        return results
+        
+    except Exception as e:
+        print(f"[YOLO WRAPPER ERROR] Exception in YOLO detection: {e}")
+        traceback.print_exc()
+        return {"anterior": False, "posterior": False}
+
+
+# GANTIKAN FUNGSI LAMA ANDA DENGAN YANG INI SECARA KESELURUHAN
+
+# Di dalam file features/spect_viewer/logic/processing_wrapper.py
+
+# Pastikan import ini ada di bagian atas file
+from PIL import Image
+# ... import lainnya ...
 
 def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
     """
-    Fungsi ini akan dijalankan dalam proses terpisah.
-    Enhanced version with study date support for XML file detection.
+    Menjalankan proses hotspot dan MENYIMPAN hasilnya ke file gambar.
     """
+    print("--- MENJALANKAN FUNGSI HOTSPOT DENGAN LOGIKA PENYIMPANAN FILE ---")
     try:
-        print(f"[DEBUG] Starting hotspot processing for {scan_path}")
-        
-        # Import here to avoid issues with multiprocessing
         from .hotspot_processor import HotspotProcessor
-        
-        # Inisialisasi prosesor HANYA di dalam proses ini
-        processor = HotspotProcessor()
-        
-        # Load frames first
         from features.dicom_import.logic.dicom_loader import load_frames_and_metadata, extract_study_date_from_dicom
-        frames, meta = load_frames_and_metadata(scan_path)
-        
+        from core.config.paths import get_hotspot_files, generate_filename_stem
+
+        processor = HotspotProcessor()
+        frames, meta = load_frames_and_metadata(str(scan_path))
+
         if not frames:
-            print(f"[WARN] No frames loaded for {scan_path}")
             return {"frames": [], "ant_frames": [], "post_frames": []}
-        
-        # Extract study date from DICOM for XML file naming
+
         try:
             study_date = extract_study_date_from_dicom(scan_path)
-            print(f"[DEBUG] Extracted study date: {study_date}")
-        except Exception as e:
-            print(f"[WARN] Could not extract study date: {e}")
+            session_code = scan_path.parent.parent.name
+            filename_stem = generate_filename_stem(patient_id, study_date)
+        except Exception:
             from datetime import datetime
             study_date = datetime.now().strftime("%Y%m%d")
+            session_code = "unknown"
+            filename_stem = f"{patient_id}_{study_date}"
         
-        # Process frames for both views
-        result = {
-            "frames": [],
-            "ant_frames": [],
-            "post_frames": []
-        }
-        
-        # Generate filename stem with study date for XML detection
-        from core.config.paths import generate_filename_stem
-        filename_stem = generate_filename_stem(patient_id, study_date)
-        
-        # Check for XML files with NEW naming convention (includes study date)
-        ant_xml_path = scan_path.parent / f"{filename_stem}_ant.xml"
-        post_xml_path = scan_path.parent / f"{filename_stem}_post.xml"
-        
-        # Fallback to OLD naming convention if new files don't exist
-        if not ant_xml_path.exists():
-            ant_xml_path_old = scan_path.parent / f"{patient_id}_ant.xml"
-            if ant_xml_path_old.exists():
-                ant_xml_path = ant_xml_path_old
-                print(f"[DEBUG] Using old XML naming: {ant_xml_path}")
-        
-        if not post_xml_path.exists():
-            post_xml_path_old = scan_path.parent / f"{patient_id}_post.xml"
-            if post_xml_path_old.exists():
-                post_xml_path = post_xml_path_old
-                print(f"[DEBUG] Using old XML naming: {post_xml_path}")
-        
-        print(f"[DEBUG] Looking for XML files:")
-        print(f"  Anterior: {ant_xml_path} (exists: {ant_xml_path.exists()})")
-        print(f"  Posterior: {post_xml_path} (exists: {post_xml_path.exists()})")
-        
-        # Process each frame
+        ant_hotspot_files = get_hotspot_files(patient_id, session_code, "ant", study_date)
+        post_hotspot_files = get_hotspot_files(patient_id, session_code, "post", study_date)
+        ant_xml_path = Path(ant_hotspot_files['xml_file'])
+        post_xml_path = Path(post_hotspot_files['xml_file'])
+
+        result = {"frames": [], "ant_frames": [], "post_frames": []}
+
         for view_name, frame in frames.items():
-            try:
-                if not isinstance(frame, np.ndarray):
-                    print(f"[WARN] Skipping non-array frame: {view_name}")
-                    result["frames"].append(frame)
-                    result["ant_frames"].append(frame)
-                    result["post_frames"].append(frame)
-                    continue
-                
-                # Process anterior view
-                if ant_xml_path.exists():
-                    ant_processed = processor.process_frame_with_xml(frame, str(ant_xml_path), patient_id, "ant")
-                    result["ant_frames"].append(ant_processed or frame)
-                    print(f"[DEBUG] Processed anterior frame with XML")
-                else:
-                    result["ant_frames"].append(frame)
-                    print(f"[DEBUG] No anterior XML found, using original frame")
-                
-                # Process posterior view
-                if post_xml_path.exists():
-                    post_processed = processor.process_frame_with_xml(frame, str(post_xml_path), patient_id, "post")
-                    result["post_frames"].append(post_processed or frame)
-                    print(f"[DEBUG] Processed posterior frame with XML")
-                else:
-                    result["post_frames"].append(frame)
-                    print(f"[DEBUG] No posterior XML found, using original frame")
-                
-                # For main frames, use the appropriate view based on filename or view_name
-                view_lower = view_name.lower()
-                filename_lower = scan_path.stem.lower()
-                
-                if ("post" in view_lower or "post" in filename_lower) and post_xml_path.exists():
-                    processed = processor.process_frame_with_xml(frame, str(post_xml_path), patient_id, "post")
-                    result["frames"].append(processed or frame)
-                    print(f"[DEBUG] Used posterior processing for main frames")
-                elif ("ant" in view_lower or "ant" in filename_lower) and ant_xml_path.exists():
-                    processed = processor.process_frame_with_xml(frame, str(ant_xml_path), patient_id, "ant")
-                    result["frames"].append(processed or frame)
-                    print(f"[DEBUG] Used anterior processing for main frames")
-                else:
-                    # Default: try anterior first, then posterior, then original
-                    if ant_xml_path.exists():
-                        processed = processor.process_frame_with_xml(frame, str(ant_xml_path), patient_id, "ant")
-                        result["frames"].append(processed or frame)
-                        print(f"[DEBUG] Used anterior processing as default for main frames")
-                    elif post_xml_path.exists():
-                        processed = processor.process_frame_with_xml(frame, str(post_xml_path), patient_id, "post")
-                        result["frames"].append(processed or frame)
-                        print(f"[DEBUG] Used posterior processing as fallback for main frames")
-                    else:
-                        result["frames"].append(frame)
-                        print(f"[DEBUG] No XML files found, using original frame for main frames")
-                    
-            except Exception as e:
-                print(f"[ERROR] Error processing frame {view_name}: {e}")
-                result["frames"].append(frame)
-                result["ant_frames"].append(frame)
-                result["post_frames"].append(frame)
-        
-        # Cleanup
-        if hasattr(processor, 'cleanup'):
-            processor.cleanup()
+            if not isinstance(frame, np.ndarray):
+                continue
             
-        print(f"[DEBUG] Hotspot processing completed for {scan_path}")
-        print(f"[DEBUG] Processed {len(result['frames'])} main frames, {len(result['ant_frames'])} ant frames, {len(result['post_frames'])} post frames")
-        return result
+            processing_frame = np.sum(frame, axis=0) if frame.ndim == 3 else frame
+
+            # Proses Anterior
+            if ant_xml_path.exists() and "ant" in view_name.lower():
+                ant_processed = processor.process_frame_with_xml(
+                    processing_frame, str(ant_xml_path), patient_id, "ant", study_date=study_date
+                )
+                if ant_processed is not None:
+                    # SIMPAN FILE hasil proses anterior
+                    output_path = scan_path.parent / f"{filename_stem}_ant_hotspot_colored.png"
+                    Image.fromarray(ant_processed).save(output_path)
+                    print(f"[PROCESS] Saved Anterior Hotspot to: {output_path}")
+                    result["ant_frames"].append(ant_processed)
+                else:
+                    result["ant_frames"].append(processing_frame)
+            elif "ant" in view_name.lower(): # Tambahkan ini jika tidak ada XML
+                 result["ant_frames"].append(processing_frame)
+
+            # Proses Posterior
+            if post_xml_path.exists() and "post" in view_name.lower():
+                post_processed = processor.process_frame_with_xml(
+                    processing_frame, str(post_xml_path), patient_id, "post", study_date=study_date
+                )
+                if post_processed is not None:
+                    # SIMPAN FILE hasil proses posterior
+                    output_path = scan_path.parent / f"{filename_stem}_post_hotspot_colored.png"
+                    Image.fromarray(post_processed).save(output_path)
+                    print(f"[PROCESS] Saved Posterior Hotspot to: {output_path}")
+                    result["post_frames"].append(post_processed)
+                else:
+                    result["post_frames"].append(processing_frame)
+            elif "post" in view_name.lower(): # Tambahkan ini jika tidak ada XML
+                 result["post_frames"].append(processing_frame)
         
+        result["frames"] = result["ant_frames"] + result["post_frames"]
+
+        print(f"[PROCESS] Hotspot processing and file saving completed for {scan_path.name}")
+        return result
+
     except Exception as e:
-        print(f"[ERROR] Exception in hotspot processing: {e}")
         import traceback
+        print(f"[PROCESS FATAL ERROR] Exception in hotspot processing: {e}")
         traceback.print_exc()
         return {"frames": [], "ant_frames": [], "post_frames": []}
+    
+def validate_processing_environment() -> bool:
+    """
+    Validate that the processing environment is properly set up
+    
+    Returns:
+        True if environment is valid, False otherwise
+    """
+    try:
+        print("[VALIDATION] Checking processing environment...")
+        
+        # Check YOLO model
+        if not YOLO_MODEL_PATH.exists():
+            print(f"[VALIDATION ERROR] YOLO model not found: {YOLO_MODEL_PATH}")
+            return False
+        
+        print(f"[VALIDATION] YOLO model found: {YOLO_MODEL_PATH}")
+        
+        # Try to import required modules
+        try:
+            from ultralytics import YOLO
+            print("[VALIDATION] YOLO import successful")
+        except ImportError as e:
+            print(f"[VALIDATION ERROR] Cannot import YOLO: {e}")
+            return False
+        
+        try:
+            from features.dicom_import.logic.dicom_loader import load_frames_and_metadata
+            print("[VALIDATION] DICOM loader import successful")
+        except ImportError as e:
+            print(f"[VALIDATION ERROR] Cannot import DICOM loader: {e}")
+            return False
+        
+        print("[VALIDATION] Processing environment is valid")
+        return True
+        
+    except Exception as e:
+        print(f"[VALIDATION ERROR] Environment validation failed: {e}")
+        return False
+
+
+# Test function
+if __name__ == "__main__":
+    if len(sys.argv) > 2:
+        dicom_path = Path(sys.argv[1])
+        patient_id = sys.argv[2]
+        
+        if not validate_processing_environment():
+            print("Environment validation failed")
+            sys.exit(1)
+        
+        if dicom_path.exists():
+            print(f"Testing processing for: {dicom_path}")
+            results = run_hotspot_processing_in_process(dicom_path, patient_id)
+            print(f"Processing completed. Results: {len(results.get('frames', []))} frames")
+        else:
+            print(f"DICOM file not found: {dicom_path}")
+    else:
+        print("Usage: python process_wrapper.py <dicom_path> <patient_id>")
+        print("Running environment validation...")
+        validate_processing_environment()
+
+def run_segmentation_in_process(dicom_path: Path, patient_id: str) -> Dict[str, str]:
+    """
+    Menjalankan proses segmentasi tulang dalam proses terpisah.
+    Menyimpan hasilnya sebagai file PNG.
+    """
+    try:
+        print(f"[SEGMENTER-PROC] Starting segmentation for {dicom_path.name}")
+
+        # 1. Load frame original dari DICOM (misal, hanya view Anterior)
+        frames, meta = load_frames_and_metadata(str(dicom_path))
+        anterior_frame = frames.get("Anterior")
+
+        if anterior_frame is None:
+            print(f"[SEGMENTER-ERROR] No 'Anterior' view found in {dicom_path.name}")
+            return {"status": "error", "message": "Anterior frame not found."}
+        
+        # Jika frame multi-slice, buat sum projection
+        if anterior_frame.ndim == 3:
+            anterior_frame = np.sum(anterior_frame, axis=0)
+
+        # 2. Jalankan prediksi segmentasi
+        # predict_bone_mask akan mengembalikan gambar RGB berwarna
+        segmented_rgb = predict_bone_mask(anterior_frame, to_rgb=True)
+
+        # 3. Simpan hasilnya ke file PNG
+        study_date = meta.get("study_date", "unknown_date")
+        filename_stem = generate_filename_stem(patient_id, study_date)
+        
+        # Tentukan nama file output yang konsisten
+        output_path = dicom_path.parent / f"{filename_stem}_segmentation_colored.png"
+        
+        # Simpan gambar menggunakan PIL
+        Image.fromarray(segmented_rgb).save(output_path)
+        
+        print(f"[SEGMENTER-PROC] Segmentation saved to: {output_path}")
+        return {"status": "success", "output_path": str(output_path)}
+
+    except Exception as e:
+        import traceback
+        print(f"[SEGMENTER-FATAL-ERROR] Failed to process segmentation for {dicom_path.name}: {e}")
+        traceback.print_exc()
+        return {"status": "error", "message": str(e)}

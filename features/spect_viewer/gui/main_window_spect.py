@@ -24,6 +24,7 @@ from core.config.paths import (
 from core.config.sessions import get_current_session
 
 # Import NEW directory scanner for new structure
+# Langkah 1: Hapus baris yang salah
 from features.dicom_import.logic.directory_scanner import (
     scan_spect_directory_new_structure,
     get_session_patients,
@@ -33,7 +34,7 @@ from features.dicom_import.logic.directory_scanner import (
 # ===== TAMBAHKAN IMPORT LOADING DIALOG =====
 from core.gui.loading_dialog import SPECTLoadingDialog
 # ===========================================
-
+from features.spect_viewer.logic.processing_wrapper import run_yolo_detection_for_patient, run_hotspot_processing_in_process
 from features.dicom_import.logic.dicom_loader import load_frames_and_metadata, extract_study_date_from_dicom
 from features.spect_viewer.logic.hotspot_processor import HotspotProcessor
 from core.utils.image_converter import load_frames_and_metadata_matrix
@@ -54,7 +55,7 @@ from .scan_timeline import ScanTimelineWidget
 from .side_panel import SidePanel
 from .mode_selector import ModeSelector
 from .view_selector import ViewSelector
-from features.spect_viewer.logic.processing_wrapper import run_hotspot_processing_in_process
+from features.spect_viewer.logic.processing_wrapper import run_yolo_detection_for_patient, run_hotspot_processing_in_process,run_segmentation_in_process
 
 class MainWindowSpect(QMainWindow):
     logout_requested = Signal()
@@ -247,7 +248,11 @@ class MainWindowSpect(QMainWindow):
     # NEW: Handle checkbox-based layer changes
     def _on_layers_changed(self, active_layers: list) -> None:
         """Handle layer selection changes from checkbox mode selector"""
-        print(f"[DEBUG] Active layers changed to: {active_layers}")
+        # Cek apakah "Hotspot" baru saja diaktifkan
+        if "Hotspot" in active_layers and not self.timeline_widget.is_layer_active("Hotspot"):
+            # Jalankan proses pembuatan gambar hotspot di background
+            self._run_hotspot_processing_on_demand()
+        
         self.timeline_widget.set_active_layers(active_layers)
 
     def _set_layer_opacity(self, layer: str, opacity: float) -> None:
@@ -385,6 +390,52 @@ class MainWindowSpect(QMainWindow):
         if hasattr(self, 'side_panel') and hasattr(self.side_panel, 'cleanup'):
             self.side_panel.cleanup()
         super().closeEvent(event)
+    def _run_hotspot_processing_on_demand(self):
+        """
+        Memicu proses hotspot (Otsu) untuk pasien yang sedang aktif.
+        """
+        try:
+            id_text = self.patient_bar.id_combo.currentText()
+            if not id_text.startswith("ID: "): return
+            
+            remainder = id_text[4:]
+            patient_id = remainder.split(" (")[0]
+            session = remainder.split(" (")[1].rstrip(")")
+            
+            cache_key = f"{patient_id}_{session}"
+            scans = self._loaded.get(cache_key, [])
+            if not scans: return
+
+            print("[DEBUG] Memicu proses hotspot on-demand...")
+            
+            # Tampilkan dialog loading
+            loading_dialog = SPECTLoadingDialog("Processing Hotspots...", parent=self)
+            loading_dialog.show()
+            QApplication.processEvents()
+
+            hotspot_jobs = []
+            for scan_data in scans:
+                dicom_file = scan_data["path"]
+                job = self.pool.apply_async(
+                    run_hotspot_processing_in_process, 
+                    args=(dicom_file, patient_id)
+                )
+                hotspot_jobs.append(job)
+            
+            # Tunggu semua proses selesai
+            for job in hotspot_jobs:
+                job.get(timeout=180)
+
+            loading_dialog.close()
+            print("[DEBUG] Proses hotspot on-demand selesai. Merefresh timeline...")
+            
+            # [PENTING] Refresh timeline untuk memuat file yang baru dibuat
+            self.timeline_widget.refresh_current_view()
+
+        except Exception as e:
+            print(f"[ERROR] Gagal menjalankan proses hotspot on-demand: {e}")
+            if 'loading_dialog' in locals() and loading_dialog:
+                loading_dialog.close()
 
     def _show_import_dialog(self) -> None:
         """Show the updated import dialog"""
@@ -524,7 +575,23 @@ class MainWindowSpect(QMainWindow):
             # Get patient DICOM files using new structure
             dicom_files = get_patient_dicom_files(session_code, patient_id, primary_only=True)
             print(f"[DEBUG] Found {len(dicom_files)} DICOM files for patient {patient_id}")
-
+            
+            loading_dialog.update_loading_step("Running YOLO detection (creating XML)...", 20)
+            QApplication.processEvents()
+            
+            yolo_jobs = []
+            for dicom_file in dicom_files:
+                # Panggil proses deteksi YOLO di latar belakang
+                job = self.pool.apply_async(run_yolo_detection_for_patient, args=(dicom_file, patient_id))
+                yolo_jobs.append(job)
+            
+            # Tunggu semua proses YOLO selesai
+            print(f"[DEBUG] Waiting for {len(yolo_jobs)} YOLO jobs to complete...")
+            for job in yolo_jobs:
+                job.get(timeout=180) # Tunggu maksimal 3 menit
+            
+            print("[DEBUG] All YOLO detection jobs completed. XML files are now ready.")
+            
             loading_dialog.update_loading_step("Loading DICOM files...", 25)
             QApplication.processEvents()
 

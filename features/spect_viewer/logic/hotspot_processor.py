@@ -507,7 +507,7 @@ class HotspotProcessor:
             print(f"Error processing image {image_path}: {e}")
             return None
     
-    def process_frame_with_xml(self, frame: np.ndarray, xml_path: str, patient_id: str, view: str) -> Optional[np.ndarray]:
+    def process_frame_with_xml(self, frame: np.ndarray, xml_path: str, patient_id: str, view: str, study_date=None) -> Optional[np.ndarray]:
         """
         Process a numpy frame with XML annotations (for multiprocessing).
         

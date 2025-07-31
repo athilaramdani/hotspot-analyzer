@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<annotation>
+  <folder>hotspot_detection</folder>
+  <filename>15_20250628_ant.png</filename>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <object>
+    <name>Normal</name>
+    <confidence>0.3689</confidence>
+    <bndbox>
+      <xmin>109</xmin>
+      <ymin>494</ymin>
+      <xmax>142</xmax>
+      <ymax>510</ymax>
+    </bndbox>
+  </object>
+</annotation>
