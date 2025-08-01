@@ -138,10 +138,12 @@ def parse_xml_annotations(xml_file: str) -> List[Tuple[int, int, int, int, str]]
         return []
 
 
+# UPDATE create_hotspot_mask function in hotspot_processor.py
+
 def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, int, int, str]], 
-                       patient_id: str, view: str, study_date: str = None, output_dir: str = None) -> Tuple[np.ndarray, Image.Image]:
+                       patient_id: str, view: str, study_date: str = None, output_dir: str = None) -> Tuple[np.ndarray, Image.Image, Image.Image]:
     """
-    Create hotspot mask and overlayed image based on Otsu threshold and morphological operations.
+    Create hotspot mask, overlayed image, and PURE colored image based on Otsu threshold.
     
     Args:
         image_file: Path to input image
@@ -152,7 +154,10 @@ def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, in
         output_dir: Directory to save mask files
     
     Returns:
-        Tuple of (mask_array, overlayed_image): Hotspot mask and overlayed image
+        Tuple of (mask_array, overlayed_image, pure_colored_image): 
+        - Hotspot mask
+        - Overlayed image (blended with original)
+        - Pure colored image (palette colors only)
     """
     with Image.open(image_file) as img:
         # Convert to grayscale for mask creation
@@ -233,23 +238,18 @@ def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, in
                     if matching_neighbors >= 3:
                         mask[y, x] = mask_value
         
-        # Save mask as PNG with study date
-        if output_dir:
-            output_path = Path(output_dir)
-            output_path.mkdir(exist_ok=True)
-            
-            # NEW: Include study date in filename
-            if study_date:
-                filename_stem = generate_filename_stem(patient_id, study_date)
-                mask_filename = f"{filename_stem}_{view}_hotspot_mask.png"
-            else:
-                mask_filename = f"{patient_id}_{view}_hotspot_mask.png"
-                
-            mask_path = output_path / mask_filename
-            Image.fromarray(mask).save(mask_path)
-            print(f"Hotspot mask saved: {mask_path}")
+        # ✅ NEW: Create PURE colored image (palette colors only)
+        pure_colored_array = np.zeros((height, width, 3), dtype=np.uint8)
         
-        # Create overlayed image
+        # Apply pure palette colors
+        pure_colored_array[mask == 0] = [0, 0, 0]          # Black background
+        pure_colored_array[mask == 64] = [255, 241, 188]   # Cream for unknown
+        pure_colored_array[mask == 128] = [255, 241, 188]  # Cream for normal
+        pure_colored_array[mask == 255] = [255, 0, 0]      # Red for hotspot
+        
+        pure_colored_image = Image.fromarray(pure_colored_array)
+        
+        # ✅ Create BLENDED overlayed image (original logic)
         overlayed_array = rgb_array.copy()
         
         # Apply color overlay where mask is non-black
@@ -283,8 +283,38 @@ def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, in
         
         overlayed_image = Image.fromarray(overlayed_array)
         
-        return mask, overlayed_image
-
+        # Save both versions if output_dir specified
+        if output_dir:
+            output_path = Path(output_dir)
+            output_path.mkdir(exist_ok=True)
+            
+            # Generate filename stems
+            if study_date:
+                filename_stem = generate_filename_stem(patient_id, study_date)
+            else:
+                filename_stem = patient_id
+            
+            # ✅ SAVE BLENDED VERSION (original naming)
+            view_suffix = "ant" if "ant" in view.lower() else "post"
+            blended_filename = f"{filename_stem}_{view_suffix}_hotspot_colored.png"
+            blended_path = output_path / blended_filename
+            overlayed_image.save(blended_path)
+            print(f"Blended hotspot image saved: {blended_path}")
+            
+            # ✅ SAVE PURE VERSION (new naming with full view name)
+            view_full = "anterior" if "ant" in view.lower() else "posterior"
+            pure_filename = f"{filename_stem}_{view_full}_hotspot_colored.png"
+            pure_path = output_path / pure_filename
+            pure_colored_image.save(pure_path)
+            print(f"Pure hotspot image saved: {pure_path}")
+            
+            # Save mask as well
+            mask_filename = f"{filename_stem}_{view_suffix}_hotspot_mask.png"
+            mask_path = output_path / mask_filename
+            Image.fromarray(mask).save(mask_path)
+            print(f"Hotspot mask saved: {mask_path}")
+        
+        return mask, overlayed_image, pure_colored_image
 
 def color_pixels_within_bounding_boxes(image_file: str, bounding_boxes: List[Tuple[int, int, int, int, str]], 
                                      output_file: str = None, colormap: str = 'jet') -> Image.Image:
@@ -507,18 +537,22 @@ class HotspotProcessor:
             print(f"Error processing image {image_path}: {e}")
             return None
     
+    # UPDATE process_frame_with_xml method in hotspot_processor.py
+
     def process_frame_with_xml(self, frame: np.ndarray, xml_path: str, patient_id: str, view: str, study_date=None) -> Optional[np.ndarray]:
         """
         Process a numpy frame with XML annotations (for multiprocessing).
+        FIXED: Handle dual output and save both versions
         
         Args:
             frame: Input frame as numpy array
             xml_path: Path to XML annotation file
             patient_id: Patient ID
             view: View type (ant/post)
+            study_date: Study date in YYYYMMDD format
             
         Returns:
-            np.ndarray or None: Processed frame with hotspots
+            np.ndarray or None: Processed frame with hotspots (blended version for compatibility)
         """
         try:
             if not Path(xml_path).exists():
@@ -540,27 +574,32 @@ class HotspotProcessor:
             temp_path = self.temp_dir / f"temp_{patient_id}_{view}.png"
             temp_image.save(temp_path)
             
-            # Extract study date
-            _, study_date = self._extract_patient_and_study_info(str(temp_path), patient_id)
+            # ✅ FIX: Use provided study_date instead of extracting
+            if study_date is None:
+                _, study_date = self._extract_patient_and_study_info(str(temp_path), patient_id)
             
-            # Process with create_hotspot_mask
-            mask, overlayed_image = create_hotspot_mask(
+            print(f"[DEBUG] Processing frame with study_date: {study_date}")
+            
+            # ✅ FIX: Process with create_hotspot_mask - now returns 3 values
+            mask, overlayed_image, pure_colored_image = create_hotspot_mask(
                 str(temp_path),
                 bounding_boxes,
                 patient_id,
                 view,
                 study_date,
-                output_dir=None  # Don't save intermediate files
+                output_dir=str(Path(xml_path).parent)  # Save to same directory as XML
             )
             
             # Clean up temp file
             temp_path.unlink(missing_ok=True)
             
-            # Convert back to numpy array
+            # ✅ Return blended version for compatibility (overlayed_image)
             return np.array(overlayed_image)
             
         except Exception as e:
             print(f"Error processing frame with XML {xml_path}: {e}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def find_xml_for_image(self, image_path: str, xml_dir: str = None, patient_id: str = None, study_date: str = None) -> Optional[str]:

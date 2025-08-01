@@ -93,9 +93,12 @@ def run_yolo_detection_wrapper(scan_path: Path, patient_id: str) -> Dict[str, bo
 from PIL import Image
 # ... import lainnya ...
 
+# UPDATE run_hotspot_processing_in_process function in processing_wrapper.py
+
 def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
     """
     Menjalankan proses hotspot dan MENYIMPAN hasilnya ke file gambar.
+    FIXED: Proper study date extraction and passing
     """
     print("--- MENJALANKAN FUNGSI HOTSPOT DENGAN LOGIKA PENYIMPANAN FILE ---")
     try:
@@ -109,15 +112,22 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
         if not frames:
             return {"frames": [], "ant_frames": [], "post_frames": []}
 
+        # ✅ FIX: Extract study date from DICOM path properly
         try:
             study_date = extract_study_date_from_dicom(scan_path)
             session_code = scan_path.parent.parent.name
             filename_stem = generate_filename_stem(patient_id, study_date)
-        except Exception:
-            from datetime import datetime
-            study_date = datetime.now().strftime("%Y%m%d")
+            print(f"[DEBUG] Extracted study_date: {study_date}, session: {session_code}")
+        except Exception as e:
+            print(f"[WARN] Could not extract study date from DICOM: {e}")
+            # ✅ FIX: Use study_date from meta if available
+            study_date = meta.get("study_date")
+            if not study_date:
+                from datetime import datetime
+                study_date = datetime.now().strftime("%Y%m%d")
             session_code = "unknown"
             filename_stem = f"{patient_id}_{study_date}"
+            print(f"[DEBUG] Using fallback study_date: {study_date}")
         
         ant_hotspot_files = get_hotspot_files(patient_id, session_code, "ant", study_date)
         post_hotspot_files = get_hotspot_files(patient_id, session_code, "post", study_date)
@@ -134,39 +144,43 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
 
             # Proses Anterior
             if ant_xml_path.exists() and "ant" in view_name.lower():
+                print(f"[DEBUG] Processing anterior with XML: {ant_xml_path}")
                 ant_processed = processor.process_frame_with_xml(
-                    processing_frame, str(ant_xml_path), patient_id, "ant", study_date=study_date
+                    processing_frame, str(ant_xml_path), patient_id, "ant", study_date=study_date  # ✅ Pass study_date
                 )
                 if ant_processed is not None:
-                    # SIMPAN FILE hasil proses anterior
-                    output_path = scan_path.parent / f"{filename_stem}_ant_hotspot_colored.png"
-                    Image.fromarray(ant_processed).save(output_path)
-                    print(f"[PROCESS] Saved Anterior Hotspot to: {output_path}")
+                    print(f"[PROCESS] Anterior hotspot processing completed (both versions saved)")
                     result["ant_frames"].append(ant_processed)
                 else:
+                    print(f"[PROCESS] Anterior processing failed, using original frame")
                     result["ant_frames"].append(processing_frame)
-            elif "ant" in view_name.lower(): # Tambahkan ini jika tidak ada XML
-                 result["ant_frames"].append(processing_frame)
+            elif "ant" in view_name.lower():
+                result["ant_frames"].append(processing_frame)
 
             # Proses Posterior
             if post_xml_path.exists() and "post" in view_name.lower():
+                print(f"[DEBUG] Processing posterior with XML: {post_xml_path}")
                 post_processed = processor.process_frame_with_xml(
-                    processing_frame, str(post_xml_path), patient_id, "post", study_date=study_date
+                    processing_frame, str(post_xml_path), patient_id, "post", study_date=study_date  # ✅ Pass study_date
                 )
                 if post_processed is not None:
-                    # SIMPAN FILE hasil proses posterior
-                    output_path = scan_path.parent / f"{filename_stem}_post_hotspot_colored.png"
-                    Image.fromarray(post_processed).save(output_path)
-                    print(f"[PROCESS] Saved Posterior Hotspot to: {output_path}")
+                    print(f"[PROCESS] Posterior hotspot processing completed (both versions saved)")
                     result["post_frames"].append(post_processed)
                 else:
+                    print(f"[PROCESS] Posterior processing failed, using original frame")
                     result["post_frames"].append(processing_frame)
-            elif "post" in view_name.lower(): # Tambahkan ini jika tidak ada XML
-                 result["post_frames"].append(processing_frame)
+            elif "post" in view_name.lower():
+                result["post_frames"].append(processing_frame)
         
         result["frames"] = result["ant_frames"] + result["post_frames"]
 
         print(f"[PROCESS] Hotspot processing and file saving completed for {scan_path.name}")
+        print(f"[PROCESS] Expected files:")
+        print(f"  - Blended: {filename_stem}_ant_hotspot_colored.png")
+        print(f"  - Pure: {filename_stem}_anterior_hotspot_colored.png")
+        print(f"  - Blended: {filename_stem}_post_hotspot_colored.png")
+        print(f"  - Pure: {filename_stem}_posterior_hotspot_colored.png")
+        
         return result
 
     except Exception as e:
@@ -174,7 +188,7 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
         print(f"[PROCESS FATAL ERROR] Exception in hotspot processing: {e}")
         traceback.print_exc()
         return {"frames": [], "ant_frames": [], "post_frames": []}
-    
+
 def validate_processing_environment() -> bool:
     """
     Validate that the processing environment is properly set up

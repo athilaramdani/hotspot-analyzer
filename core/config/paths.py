@@ -234,9 +234,12 @@ def get_segmentation_files_with_edited(patient_folder: Path, filename_stem: str,
         'dcm_colored_edited': patient_folder / f"{filename_stem}_{vtag}_edited_colored.dcm",
     }
 
+# UPDATE get_hotspot_files function in paths.py
+
 def get_hotspot_files(patient_id: str, session_code: str, view: str, study_date: str):
     """
     Get hotspot file paths for a specific patient and view with study date
+    Updated to include PURE colored versions
     
     Args:
         patient_id: Patient ID
@@ -245,21 +248,29 @@ def get_hotspot_files(patient_id: str, session_code: str, view: str, study_date:
         study_date: Study date in YYYYMMDD format
         
     Returns:
-        Dictionary with hotspot file paths
+        Dictionary with hotspot file paths including pure versions
     """
     patient_folder = get_patient_spect_path(patient_id, session_code)
     filename_stem = generate_filename_stem(patient_id, study_date)
     view_suffix = "ant" if "ant" in view.lower() else "post"
+    view_full = "anterior" if "ant" in view.lower() else "posterior"
     
     return {
+        # ✅ BLENDED VERSIONS (with original DICOM background)
         'colored_png': patient_folder / f"{filename_stem}_{view_suffix}_hotspot_colored.png",
         'xml_file': patient_folder / f"{filename_stem}_{view_suffix}.xml",
         'mask_file': patient_folder / f"{filename_stem}_{view_suffix}_hotspot_mask.png",
         
-        # Edited versions
+        # ✅ PURE VERSIONS (palette colors only, no background)
+        'pure_colored_png': patient_folder / f"{filename_stem}_{view_full}_hotspot_colored.png",
+        
+        # Edited versions (blended)
         'colored_png_edited': patient_folder / f"{filename_stem}_{view_suffix}_hotspot_edited_colored.png",
         'xml_file_edited': patient_folder / f"{filename_stem}_{view_suffix}_edited.xml",
         'mask_file_edited': patient_folder / f"{filename_stem}_{view_suffix}_hotspot_edited_mask.png",
+        
+        # ✅ Edited versions (pure)
+        'pure_colored_png_edited': patient_folder / f"{filename_stem}_{view_full}_hotspot_edited_colored.png",
     }
 
 def get_dicom_output_path(patient_id: str, session_code: str, study_date: str) -> Path:
