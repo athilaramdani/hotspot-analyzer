@@ -576,10 +576,10 @@ class ScanTimelineWidget(QWidget):
             print(f"[WARN] Failed to extract patient/session from scan: {e}")
             return "UNKNOWN", self.session_code or "UNKNOWN"
     
-    # UPDATE _get_layer_images method in scan_timeline.py
+    # FIXED: _get_layer_images method to use consistent hotspot file paths
 
     def _get_layer_images(self, scan: Dict) -> Dict[str, Image.Image]:
-        """Get all layer images for a scan with transparency processing - UPDATED to use PURE hotspot"""
+        """FIXED: Get all layer images for a scan with consistent hotspot file naming"""
         frame_map = scan["frames"]
         dicom_path = scan["path"]
         filename = dicom_path.stem
@@ -631,8 +631,7 @@ class ScanTimelineWidget(QWidget):
         else:
             print(f"[WARN] Segmentation file not found: {seg_png}")
         
-        # ✅ Layer 3: Hotspot - UPDATED to use PURE version with transparency processing  
-        # FIXED: Include study_date parameter
+        # ✅ FIXED: Layer 3: Hotspot - Prioritize EDITED versions
         if study_date:
             hotspot_files = get_hotspot_files(patient_id, session_code, self.current_view, study_date)
         else:
@@ -643,21 +642,21 @@ class ScanTimelineWidget(QWidget):
                 fallback_date = datetime.now().strftime("%Y%m%d")
             hotspot_files = get_hotspot_files(patient_id, session_code, self.current_view, fallback_date)
         
-        # ✅ PRIORITIZE PURE VERSION (edited first, then original)
+        # ✅ FIXED: Priority system for loading hotspot files
         hotspot_png = None
-        if hotspot_files['pure_colored_png_edited'].exists():
-            hotspot_png = hotspot_files['pure_colored_png_edited']
-            print(f"[DEBUG] Found edited PURE hotspot: {hotspot_png}")
-        elif hotspot_files['pure_colored_png'].exists():
-            hotspot_png = hotspot_files['pure_colored_png']
-            print(f"[DEBUG] Found original PURE hotspot: {hotspot_png}")
-        # ✅ FALLBACK to blended version if pure not available
-        elif hotspot_files['colored_png_edited'].exists():
+        
+        # Priority 1: Try EDITED version first (user's latest changes)
+        if hotspot_files['colored_png_edited'].exists():
             hotspot_png = hotspot_files['colored_png_edited']
-            print(f"[DEBUG] Fallback to edited BLENDED hotspot: {hotspot_png}")
+            print(f"[DEBUG] Found EDITED hotspot: {hotspot_png}")
+        # Priority 2: Try original version 
         elif hotspot_files['colored_png'].exists():
             hotspot_png = hotspot_files['colored_png']
-            print(f"[DEBUG] Fallback to original BLENDED hotspot: {hotspot_png}")
+            print(f"[DEBUG] Found original hotspot: {hotspot_png}")
+        # Priority 3: Fallback to legacy naming for backward compatibility
+        elif hotspot_files.get('colored_png_legacy') and hotspot_files['colored_png_legacy'].exists():
+            hotspot_png = hotspot_files['colored_png_legacy']
+            print(f"[DEBUG] Found hotspot (legacy naming): {hotspot_png}")
         
         if hotspot_png and hotspot_png.exists():
             try:
