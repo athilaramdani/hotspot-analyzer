@@ -277,6 +277,37 @@ def get_hotspot_files(patient_id: str, session_code: str, view: str, study_date:
         'mask_file_legacy': patient_folder / f"{filename_stem}_{view_short}_hotspot_mask.png",
     }
 
+def get_hotspot_xml_files(patient_id: str, session_code: str, view: str, study_date: str):
+    """
+    Get hotspot XML file paths with proper edited file prioritization
+    
+    Args:
+        patient_id: Patient ID
+        session_code: Session code
+        view: View name (anterior/posterior/ant/post) - will be normalized
+        study_date: Study date in YYYYMMDD format
+        
+    Returns:
+        Dictionary with XML file paths with edited prioritization
+    """
+    patient_folder = get_patient_spect_path(patient_id, session_code)
+    filename_stem = generate_filename_stem(patient_id, study_date)
+    
+    # FIXED: Normalize view names to short format for XML files
+    view_normalized = view.lower()
+    if "ant" in view_normalized:
+        view_short = "ant"
+    else:
+        view_short = "post"
+    
+    return {
+        # ✅ EDITED XML (highest priority for loading)
+        'xml_file_edited': patient_folder / f"{filename_stem}_{view_short}_edited.xml",
+        
+        # ✅ ORIGINAL XML (fallback for loading)
+        'xml_file': patient_folder / f"{filename_stem}_{view_short}.xml",
+    }
+
 def get_dicom_output_path(patient_id: str, session_code: str, study_date: str) -> Path:
     """
     Get output path for processed DICOM file with study date
