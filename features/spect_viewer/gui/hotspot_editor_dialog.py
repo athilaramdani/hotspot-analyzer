@@ -15,6 +15,12 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 import math
 
+from core.config.paths import (
+    extract_study_date_from_dicom,
+    generate_filename_stem,
+)
+
+
 import numpy as np
 from PIL import Image
 
@@ -586,53 +592,82 @@ class HotspotEditorDialog(QDialog):
     def __init__(self, scan: Dict, view: str, parent=None):
         super().__init__(parent, Qt.Window)
         from PySide6.QtGui import QGuiApplication
-        self.setWindowTitle(f"Manual Edit – {view}")
+        self.setWindowTitle(f"Hotspot Editor – {view}")
         geom = QGuiApplication.primaryScreen().availableGeometry()
         self.resize(int(geom.width()*0.9), int(geom.height()*0.9))
 
-        # ----- FIXED: file paths dengan handling DICOM yang benar
+        # ----- FIXED: Use consistent naming convention
         base = Path(scan["path"]).with_suffix("")
-        vtag = view.lower()
         patient_id = base.parent.name
-        #Kondisikan agar nanti view-nya selalu lowercase yaitu ant atau post
-        v = "ant" if "ant" in vtag else "post"
-        # Paths untuk file XML dan PNG 
-        # Path XML untuk anotasi bounding box
-        xml_path = Path(f"data/{patient_id}/{patient_id}_{v}.xml")
-        # Path PNG untuk original image
+        
+        # FIXED: Always use full view names (anterior/posterior) consistently
+        view_full = "anterior" if "ant" in view.lower() else "posterior"
+        vtag = view.lower()  # FIXED: Define vtag for backward compatibility
+        
+        # Extract study date from DICOM
+        try:
+            study_date = extract_study_date_from_dicom(scan["path"])
+            filename_stem = generate_filename_stem(patient_id, study_date)
+        except Exception as e:
+            print(f"[WARN] Could not extract study date: {e}")
+            filename_stem = base.stem
+        
+        # FIXED: Define all possible file paths
+        # EDITED versions (for saving)
+        self._png_color = base.parent / f"{filename_stem}_{view_full}_hotspot_edited_colored.png"
+        self._png_mask = base.parent / f"{filename_stem}_{view_full}_hotspot_edited_mask.png"
+        
+        # ORIGINAL versions (for loading fallback)
+        self._png_color_original = base.parent / f"{filename_stem}_{view_full}_hotspot_colored.png"
+        self._png_mask_original = base.parent / f"{filename_stem}_{view_full}_hotspot_mask.png"
+        
+        # LEGACY versions (for loading fallback)
+        view_short = "ant" if "ant" in view.lower() else "post"
+        self._png_color_legacy = base.parent / f"{filename_stem}_{view_short}_hotspot_colored.png"
+        self._png_mask_legacy = base.parent / f"{filename_stem}_{view_short}_hotspot_mask.png"
+        
+        # XML paths
+        xml_path = base.parent / f"{filename_stem}_{view_short}.xml"
+        
+        # Original PNG path
         orig_png_path = base.with_name(f"{base.stem}_{vtag}.png")
-        #Path PNG untuk colored mask
-        self._png_color = base.with_name(f"{base.stem}_{v}_hotspot_colored.png")
-        # Path PNG untuk mask hotspot (grayscale)
-        self._png_mask  = base.with_name(f"{base.stem}_{v}_hotspot_mask.png")
+        
+        print(f"[DEBUG] Hotspot editor paths:")
+        print(f"  Save to (edited): {self._png_color}")
+        print(f"  Original hotspot: {self._png_color_original}")
+        print(f"  Legacy hotspot: {self._png_color_legacy}")
+        print(f"  XML: {xml_path}")
+        print(f"  Original PNG: {orig_png_path}")
 
         orig_png_arr = None
         mask_arr = None
 
-        
         # ===== DEBUG: cek isi frame & view =====
         print("\n======================")
-        print(">>> DEBUG: SegmentationEditorDialog")
+        print(">>> DEBUG: HotspotEditorDialog")
         print(f"View diminta        : '{view}'")
+        print(f"View full           : '{view_full}'")
         print(f"Keys di scan[frames]: {list(scan['frames'].keys())}")
         print("======================\n")
 
         # Load original array dari DICOM frames
         orig_arr = scan["frames"][view]
         
-        # FIXED: Load mask dari PNG jika ada, atau buat mask kosong
-        # if self._png_color.exists():
-        #     mask_arr = self._load_mask_from_png()
-        # else:
-        #     mask_arr = np.zeros_like(orig_arr, np.uint8)
-
-        # FIXED: Load mask dari PNG jika ada, atau buat dari XML jika tersedia
+        # FIXED: Check for existing hotspot data with proper priority
         if self._png_color.exists():
-            # Existing colored mask PNG exists
-            print(f"✓ Found existing mask PNG: {self._png_color}")
-            orig_png_arr = np.array(Image.open(orig_png_path).convert('L')) if orig_png_path.exists() else orig_arr
+            # Priority 1: Edited version exists
+            print(f"✓ Found existing EDITED hotspot: {self._png_color}")
+            mask_arr = self._load_mask_from_png()
+        elif self._png_color_original.exists():
+            # Priority 2: Original version exists
+            print(f"✓ Found existing ORIGINAL hotspot: {self._png_color_original}")
+            mask_arr = self._load_mask_from_png()
+        elif self._png_color_legacy.exists():
+            # Priority 3: Legacy version exists
+            print(f"✓ Found existing LEGACY hotspot: {self._png_color_legacy}")
             mask_arr = self._load_mask_from_png()
         elif xml_path.exists():
+            # Priority 4: Generate from XML
             print(f"✓ Found XML annotations: {xml_path}")
             try:
                 # Determine image to use for processing
@@ -641,8 +676,9 @@ class HotspotEditorDialog(QDialog):
                     print(f"✓ Using original PNG for processing: {orig_png_path}")
                 else:
                     # Save DICOM frame to temp PNG so hotspot_processor can read it
-                    input_image_path = str(self._png_mask)
-                    Image.fromarray(orig_arr).save(input_image_path)
+                    temp_png_path = base.parent / f"{filename_stem}_temp.png"
+                    Image.fromarray(orig_arr).save(temp_png_path)
+                    input_image_path = str(temp_png_path)
                     print(f"✓ Saved DICOM frame to temp PNG for processing: {input_image_path}")
 
                 # Parse and process
@@ -652,7 +688,7 @@ class HotspotEditorDialog(QDialog):
                         input_image_path,
                         boxes,
                         patient_id,
-                        v, f"data/{patient_id}"
+                        view_short, str(base.parent)
                     )
                     print(mask_arr.shape, mask_arr.dtype)
                     recolor = np.zeros_like(mask_arr, dtype=np.uint8)
@@ -663,20 +699,15 @@ class HotspotEditorDialog(QDialog):
                     print(f"✓ Generated mask and overlayed image from XML.")
                 else:
                     print(f"✗ No bounding boxes in XML, using empty mask.")
-                    orig_png_arr = orig_arr
                     mask_arr = np.zeros_like(orig_arr, np.uint8)
             except Exception as e:
                 print(f"✗ Error processing XML: {e}")
-                orig_png_arr = orig_arr
                 mask_arr = np.zeros_like(orig_arr, np.uint8)
         else:
-            print(f"✗ No existing PNG mask or XML found. Using DICOM frame only.")
-            orig_png_arr = orig_arr
+            print(f"✗ No existing hotspot data found. Creating empty mask.")
             mask_arr = np.zeros_like(orig_arr, np.uint8)
 
-
-        # FIXED: Cek PNG original yang sudah ada untuk reference yang lebih akurat
-        orig_png_path = base.with_name(f"{base.stem}_{vtag}.png")
+        # Load original PNG if exists
         self._has_orig_png = orig_png_path.exists()
         
         if self._has_orig_png:
@@ -686,12 +717,12 @@ class HotspotEditorDialog(QDialog):
             except Exception as e:
                 print(f"✗ Failed to load PNG {orig_png_path}: {e}")
                 orig_png_arr = orig_arr
-                print(f"✓ DEBUG Original image range: min={orig_png_arr.min()}, max={orig_png_arr.max()}, shape={orig_png_arr.shape}")
         else:
-            # Gunakan data dari DICOM frame langsung
+            # Use DICOM frame data directly
             orig_png_arr = orig_arr
             print(f"✓ Using DICOM frame data for {view}")
-            print(f"✓ DEBUG Original DICOM image range: min={orig_png_arr.min()}, max={orig_png_arr.max()}, shape={orig_png_arr.shape}")
+
+        print(f"✓ DEBUG Original image range: min={orig_png_arr.min()}, max={orig_png_arr.max()}, shape={orig_png_arr.shape}")
 
         # ================= UI =================
         root = QHBoxLayout(self)
@@ -1023,19 +1054,36 @@ class HotspotEditorDialog(QDialog):
 
     # ---------- FIXED: I/O helpers dengan error handling yang lebih baik
     def _load_mask_from_png(self) -> np.ndarray:
-        """Load mask dari PNG colored dengan error handling."""
+        """FIXED: Load from highest priority available file"""
         try:
-            rgb = np.array(Image.open(self._png_color).convert("RGB"))
+            # Priority 1: Try edited version first
+            if self._png_color.exists():
+                load_path = self._png_color
+                print(f"✓ Loading EDITED hotspot from: {load_path}")
+            # Priority 2: Try original version
+            elif self._png_color_original.exists():
+                load_path = self._png_color_original
+                print(f"✓ Loading ORIGINAL hotspot from: {load_path}")
+            # Priority 3: Try legacy version
+            elif self._png_color_legacy.exists():
+                load_path = self._png_color_legacy
+                print(f"✓ Loading LEGACY hotspot from: {load_path}")
+            else:
+                print(f"✗ No hotspot file found in any location")
+                return np.zeros((256, 256), np.uint8)
+            
+            # Load the mask
+            rgb = np.array(Image.open(load_path).convert("RGB"))
             mask = np.zeros(rgb.shape[:2], np.uint8)
             for lbl, col in enumerate(_HOTSPOT_PALLETTE):
                 mask[(rgb == col).all(-1)] = lbl
-            print(f"✓ Loaded existing mask from: {self._png_color}")
+            print(f"✓ Successfully loaded hotspot mask from: {load_path}")
             return mask
+            
         except Exception as e:
-            print(f"✗ Failed to load mask from {self._png_color}: {e}")
-            # Return empty mask instead of crashing
-            return np.zeros((1024, 256), np.uint8)  # Default DICOM size
-
+            print(f"✗ Failed to load hotspot mask: {e}")
+            return np.zeros((256, 256), np.uint8)
+    
     def _save_sc_dicom(self, img: np.ndarray, path: Path, desc: str):
         """Simple 8-bit Secondary-Capture DICOM."""
         rgb = img.ndim == 3
@@ -1060,35 +1108,51 @@ class HotspotEditorDialog(QDialog):
         ds.save_as(path, write_like_original=False)
 
     def _save_all(self):
+        """FIXED: Always save to EDITED versions"""
         mask = self.canvas.current_mask()
         try:
-            # --- PNG (mask & colored)
+            # Save to EDITED file paths (never overwrite originals)
             bin_img = (mask > 0).astype(np.uint8) * 255
             Image.fromarray(bin_img, mode="L").save(self._png_mask)
-            print(f"✓ Saved mask PNG: {self._png_mask}")
+            print(f"✓ Saved edited mask PNG: {self._png_mask}")
 
             rgb_img = label_mask_to_hotspot_rgb(mask)
             Image.fromarray(rgb_img).save(self._png_color)
-            print(f"✓ Saved colored PNG: {self._png_color}")
-
-            # --- DICOM SC
-            # self._save_sc_dicom(bin_img, self._dcm_mask , desc="Mask")
-            # print(f"✓ Saved mask DICOM: {self._dcm_mask}")
-            
-            # self._save_sc_dicom(rgb_img, self._dcm_color, desc="Colored")
-            # print(f"✓ Saved colored DICOM: {self._dcm_color}")
+            print(f"✓ Saved edited colored PNG: {self._png_color}")
 
             QMessageBox.information(self, "Success", 
-                f"Segmentation saved successfully!\n\n"
-                f"Files saved:\n"
+                f"Hotspot edits saved successfully!\n\n"
+                f"Edited files saved:\n"
                 f"• {self._png_mask.name}\n"
-                f"• {self._png_color.name}\n")
-                # f"• {self._dcm_mask.name}\n"
-                # f"• {self._dcm_color.name}")
+                f"• {self._png_color.name}\n\n"
+                f"Original files preserved.")
             
             self.accept()
         except Exception as e:
             print(f"✗ Save failed: {e}")
             QMessageBox.critical(self, "Save failed", 
-                f"Failed to save segmentation:\n{str(e)}\n\n"
-                f"Please check file permissions and disk space.")
+                f"Failed to save hotspot edits:\n{str(e)}")
+            """FIXED: Save dengan nama file yang konsisten"""
+            mask = self.canvas.current_mask()
+            try:
+                # FIXED: Save with consistent naming
+                bin_img = (mask > 0).astype(np.uint8) * 255
+                Image.fromarray(bin_img, mode="L").save(self._png_mask)
+                print(f"✓ Saved mask PNG: {self._png_mask}")
+
+                rgb_img = label_mask_to_hotspot_rgb(mask)
+                Image.fromarray(rgb_img).save(self._png_color)
+                print(f"✓ Saved colored PNG: {self._png_color}")
+
+                QMessageBox.information(self, "Success", 
+                    f"Hotspot saved successfully!\n\n"
+                    f"Files saved:\n"
+                    f"• {self._png_mask.name}\n"
+                    f"• {self._png_color.name}")
+                
+                self.accept()
+            except Exception as e:
+                print(f"✗ Save failed: {e}")
+                QMessageBox.critical(self, "Save failed", 
+                    f"Failed to save hotspot:\n{str(e)}\n\n"
+                    f"Please check file permissions and disk space.")

@@ -234,43 +234,47 @@ def get_segmentation_files_with_edited(patient_folder: Path, filename_stem: str,
         'dcm_colored_edited': patient_folder / f"{filename_stem}_{vtag}_edited_colored.dcm",
     }
 
-# UPDATE get_hotspot_files function in paths.py
-
 def get_hotspot_files(patient_id: str, session_code: str, view: str, study_date: str):
     """
-    Get hotspot file paths for a specific patient and view with study date
-    Updated to include PURE colored versions
+    FIXED: Get hotspot file paths with proper edited file prioritization
     
     Args:
         patient_id: Patient ID
         session_code: Session code
-        view: View name
+        view: View name (anterior/posterior/ant/post) - will be normalized
         study_date: Study date in YYYYMMDD format
         
     Returns:
-        Dictionary with hotspot file paths including pure versions
+        Dictionary with hotspot file paths with edited prioritization
     """
     patient_folder = get_patient_spect_path(patient_id, session_code)
     filename_stem = generate_filename_stem(patient_id, study_date)
-    view_suffix = "ant" if "ant" in view.lower() else "post"
-    view_full = "anterior" if "ant" in view.lower() else "posterior"
+    
+    # FIXED: Normalize view names to full format consistently
+    view_normalized = view.lower()
+    if "ant" in view_normalized:
+        view_full = "anterior"
+        view_short = "ant"
+    else:
+        view_full = "posterior" 
+        view_short = "post"
     
     return {
-        # ✅ BLENDED VERSIONS (with original DICOM background)
-        'colored_png': patient_folder / f"{filename_stem}_{view_suffix}_hotspot_colored.png",
-        'xml_file': patient_folder / f"{filename_stem}_{view_suffix}.xml",
-        'mask_file': patient_folder / f"{filename_stem}_{view_suffix}_hotspot_mask.png",
+        # ✅ EDITED VERSIONS (highest priority for loading)
+        'colored_png_edited': patient_folder / f"{filename_stem}_{view_full}_hotspot_edited_colored.png",
+        'mask_file_edited': patient_folder / f"{filename_stem}_{view_full}_hotspot_edited_mask.png",
         
-        # ✅ PURE VERSIONS (palette colors only, no background)
-        'pure_colored_png': patient_folder / f"{filename_stem}_{view_full}_hotspot_colored.png",
+        # ✅ ORIGINAL VERSIONS (fallback for loading)
+        'colored_png': patient_folder / f"{filename_stem}_{view_full}_hotspot_colored.png",
+        'mask_file': patient_folder / f"{filename_stem}_{view_full}_hotspot_mask.png",
         
-        # Edited versions (blended)
-        'colored_png_edited': patient_folder / f"{filename_stem}_{view_suffix}_hotspot_edited_colored.png",
-        'xml_file_edited': patient_folder / f"{filename_stem}_{view_suffix}_edited.xml",
-        'mask_file_edited': patient_folder / f"{filename_stem}_{view_suffix}_hotspot_edited_mask.png",
+        # ✅ XML FILES: Use short names for compatibility (ant.xml, post.xml)
+        'xml_file': patient_folder / f"{filename_stem}_{view_short}.xml",
+        'xml_file_edited': patient_folder / f"{filename_stem}_{view_short}_edited.xml",
         
-        # ✅ Edited versions (pure)
-        'pure_colored_png_edited': patient_folder / f"{filename_stem}_{view_full}_hotspot_edited_colored.png",
+        # ✅ LEGACY PATHS: For backward compatibility (short names)
+        'colored_png_legacy': patient_folder / f"{filename_stem}_{view_short}_hotspot_colored.png",
+        'mask_file_legacy': patient_folder / f"{filename_stem}_{view_short}_hotspot_mask.png",
     }
 
 def get_dicom_output_path(patient_id: str, session_code: str, study_date: str) -> Path:
