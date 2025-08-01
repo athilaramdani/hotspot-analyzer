@@ -50,7 +50,7 @@ from core.gui.ui_constants import (
 
 from core.gui.searchable_combobox import SearchableComboBox
 from core.gui.patient_info_bar import PatientInfoBar
-from .scan_timeline import ScanTimelineWidget
+from .scan_timeline_widget import ScanTimelineWidget  # UPDATED: Use modular timeline widget
 from .side_panel import SidePanel
 from .mode_selector import ModeSelector
 from .view_selector import ViewSelector
@@ -331,11 +331,12 @@ class MainWindowSpect(QMainWindow):
         self.mode_selector.reset_to_defaults()
         self.timeline_widget.set_active_layers([])
         
-        # Reset all opacity values in timeline
+        # Reset all opacity values in timeline - UPDATED with new layer
         default_opacities = {
             "Original": 1.0,
             "Segmentation": 0.7,
-            "Hotspot": 0.8
+            "Hotspot": 0.8,
+            "HotspotBBox": 1.0
         }
         for layer, opacity in default_opacities.items():
             self.timeline_widget.set_layer_opacity(layer, opacity)
@@ -371,7 +372,7 @@ class MainWindowSpect(QMainWindow):
             self.mode_selector.set_layer_active("Original", True)
             self.mode_selector.set_layer_active("Hotspot", True)
         elif mode == "Both":
-            self.mode_selector.set_layer_active("Both", True)
+            self.mode_selector.set_layer_active("All", True)
         
         # Refresh current scan if any is selected
         if hasattr(self, 'scan_buttons'):
