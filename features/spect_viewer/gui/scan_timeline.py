@@ -988,7 +988,7 @@ class ScanTimelineWidget(QWidget):
         lay.addWidget(lbl)
         
         # ✅ FIXED: Create status label showing current view and classification status
-        status_label = QLabel(f"{self.current_view} (Classification)")
+        status_label = QLabel(f"{self.current_view}")
         status_label.setAlignment(Qt.AlignCenter)
         status_label.setStyleSheet("""
             QLabel {
