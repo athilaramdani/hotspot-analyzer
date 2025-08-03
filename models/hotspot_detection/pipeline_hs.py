@@ -1,3 +1,4 @@
+# F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\pipeline_hs.py
 # Import libraries
 import cv2
 import numpy as np
@@ -5,7 +6,7 @@ import numpy as np
 # Import locally
 from inference_detection_hs import inference_detection
 from algorithm_otsu_filling import color_pixels_within_bounding_boxes
-from inference_classification_hs import inference_classification
+from features.spect_viewer.logic.inference_classification_hs import inference_classification
 
 def show_image(mask):
     color_image = np.zeros((mask.shape[0], mask.shape[1], 3), dtype=np.uint8)

@@ -1,4 +1,4 @@
-# backend/segmenter.py - Enhanced with better progress messages
+# features\spect_viewer\logic\segmenter.py - Enhanced with better progress messages
 from __future__ import annotations
 
 import inspect

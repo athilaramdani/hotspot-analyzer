@@ -1,25 +1,26 @@
-# features/spect_viewer/gui/scan_timeline.py – v8 (Fixed Opacity + Select Button + Missing Methods)
+# features/spect_viewer/gui/scan_timeline.py – FIXED TO SHOW CLASSIFICATION ONLY
 # ---------------------------------------------------------------------
 from __future__ import annotations
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Optional
 from datetime import datetime
+import json
 
 import numpy as np
 from PIL import Image
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QPixmap, QImage
+from PySide6.QtCore import Qt, Signal, QEvent
+from PySide6.QtGui import QPixmap, QImage, QKeySequence, QShortcut, QWheelEvent
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QLabel, QScrollArea,
-    QFrame, QPushButton, QSplitter
+    QFrame, QPushButton, QSplitter, QSlider
 )
 
 # Import NEW config paths for edited files support
 from core.config.paths import (
     get_hotspot_files, 
     get_segmentation_files_with_edited,
-    extract_study_date_from_dicom,     # ← BARU
-    generate_filename_stem             # ← BARU
+    extract_study_date_from_dicom,
+    generate_filename_stem
 )
 
 # Import NEW transparency utilities
@@ -28,7 +29,7 @@ from core.utils.image_converter import (
     load_image_with_transparency,
     create_composite_image,
     get_layer_preview,
-    apply_opacity_to_image  # NEW: Import this function
+    apply_opacity_to_image
 )
 
 # Import for patient/session extraction from path
@@ -40,10 +41,13 @@ from pydicom import dcmread
 
 # Import UI constants for edit buttons
 from core.gui.ui_constants import (
-    SUCCESS_BUTTON_STYLE,  # Green for segmentation edit
-    ZOOM_BUTTON_STYLE,     # Orange for hotspot edit  
-    GRAY_BUTTON_STYLE      # Gray for disabled
+    SUCCESS_BUTTON_STYLE,
+    ZOOM_BUTTON_STYLE, 
+    GRAY_BUTTON_STYLE
 )
+
+# Import BSI integration
+from features.spect_viewer.logic.bsi_timeline_integration import get_bsi_integration
 
 
 # --------------------------- helpers -----------------------------------------
@@ -91,19 +95,21 @@ def _pil_to_pixmap(pil_image: Image.Image, width: int) -> QPixmap:
 # --------------------------- main widget -------------------------------------
 class ScanTimelineWidget(QWidget):
     """
-    Enhanced timeline widget with resizable layout and improved edit buttons:
-    - Resizable splitter between timeline and layer controls
-    - Separate edit buttons for Segmentation and Hotspot
-    - Better visual separation and user control
+    ✅ FIXED: Enhanced timeline widget - CLASSIFICATION ONLY:
+    - ✅ Only shows classification results (no YOLO/Otsu)
+    - ✅ Hotspot layer = classification_mask.png only
+    - ✅ HotspotBBox layer = classification.xml only  
+    - ✅ Editor sends classification files to hotspot editor
+    - ✅ Clean separation from detection/segmentation pipeline
     """
-    # NEW: Add signal for scan selection
+    # Signals
     scan_selected = Signal(int)  # Emit scan index when selected
     
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
 
         # State variables
-        self.current_view = "Anterior"
+        self.current_view = "Anterior"  # ✅ FIXED: Track current view properly
         self._active_layers = []
         self._scans_cache: List[Dict] = []
         self.active_scan_index = 0
@@ -114,32 +120,29 @@ class ScanTimelineWidget(QWidget):
         self._layer_opacities = {
             "Original": 1.0,
             "Segmentation": 0.7,
-            "Hotspot": 0.8
+            "Hotspot": 0.8,           # ✅ Classification mask only
+            "HotspotBBox": 1.0        # ✅ Classification XML only
         }
         
         # Session code for path resolution
         self.session_code = None
         
+        # ✅ NEW: BSI integration
+        self.bsi_integration = get_bsi_integration()
+        
         self._build_ui()
+        self._setup_keyboard_shortcuts()
 
     def _build_ui(self):
-        """Build the resizable UI layout"""
+        """Build the resizable UI layout with FIXED scrolling"""
         main_layout = QHBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         
         # Create main splitter for resizable layout
         self.main_splitter = QSplitter(Qt.Horizontal)
         
-        # LEFT SIDE: Scrollable timeline area
-        self.scroll_area = QScrollArea()
-        self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        
-        self.container = QWidget()
-        self.timeline_layout = QHBoxLayout(self.container)
-        self.timeline_layout.setAlignment(Qt.AlignLeft)
-        self.scroll_area.setWidget(self.container)
+        # ✅ FIXED: LEFT SIDE - Scrollable timeline area with BOTH axes
+        self._setup_timeline_scroll_area()
         
         # RIGHT SIDE: Layer control panel (resizable)
         self.control_panel = self._create_control_panel()
@@ -167,6 +170,56 @@ class ScanTimelineWidget(QWidget):
         """)
         
         main_layout.addWidget(self.main_splitter)
+
+    def _setup_timeline_scroll_area(self):
+        """✅ FIXED: Setup scrollable timeline area with BOTH horizontal and vertical scrolling"""
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        
+        # ✅ FIXED: Enable BOTH horizontal AND vertical scrollbars
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)  # ✅ FIXED: Added vertical scroll
+        
+        # ✅ NEW: Enable mouse wheel support
+        self.scroll_area.setFocusPolicy(Qt.WheelFocus)
+        
+        self.container = QWidget()
+        self.timeline_layout = QHBoxLayout(self.container)
+        self.timeline_layout.setAlignment(Qt.AlignLeft)
+        self.scroll_area.setWidget(self.container)
+
+    def _setup_keyboard_shortcuts(self):
+        """✅ NEW: Setup keyboard shortcuts for zoom control"""
+        # Zoom in: Ctrl + Plus
+        self.zoom_in_shortcut = QShortcut(QKeySequence("Ctrl++"), self)
+        self.zoom_in_shortcut.activated.connect(self.zoom_in)
+        
+        # Alternative: Ctrl + Equal (for keyboards without numpad)
+        self.zoom_in_alt_shortcut = QShortcut(QKeySequence("Ctrl+="), self)
+        self.zoom_in_alt_shortcut.activated.connect(self.zoom_in)
+        
+        # Zoom out: Ctrl + Minus
+        self.zoom_out_shortcut = QShortcut(QKeySequence("Ctrl+-"), self)
+        self.zoom_out_shortcut.activated.connect(self.zoom_out)
+        
+        # Reset zoom: Ctrl + 0
+        self.zoom_reset_shortcut = QShortcut(QKeySequence("Ctrl+0"), self)
+        self.zoom_reset_shortcut.activated.connect(self.zoom_reset)
+        
+        print("[DEBUG] Timeline keyboard shortcuts enabled: Ctrl+/- for zoom, Ctrl+0 for reset")
+
+    def wheelEvent(self, event: QWheelEvent):
+        """✅ NEW: Handle mouse wheel events for zoom when Ctrl is pressed"""
+        if event.modifiers() == Qt.ControlModifier:
+            # Zoom with Ctrl + wheel
+            if event.angleDelta().y() > 0:
+                self.zoom_in()
+            else:
+                self.zoom_out()
+            event.accept()
+        else:
+            # Normal scrolling
+            super().wheelEvent(event)
 
     def _create_control_panel(self) -> QWidget:
         """Create the resizable control panel"""
@@ -228,7 +281,7 @@ class ScanTimelineWidget(QWidget):
         self.seg_edit_btn.clicked.connect(self._open_segmentation_editor)
         edit_layout.addWidget(self.seg_edit_btn)
         
-        # Hotspot edit button  
+        # ✅ UPDATED: Hotspot edit button (classification only)
         self.hotspot_edit_btn = QPushButton("Edit Hotspot")
         self.hotspot_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
             QPushButton {
@@ -257,6 +310,28 @@ class ScanTimelineWidget(QWidget):
         """)
         layout.addWidget(self.scan_info_label)
         
+        # ✅ NEW: Zoom controls and shortcuts info
+        zoom_group = QWidget()
+        zoom_layout = QVBoxLayout(zoom_group)
+        zoom_layout.setContentsMargins(0, 0, 0, 0)
+        
+        zoom_title = QLabel("<b>Zoom Controls</b>")
+        zoom_title.setStyleSheet("font-size: 12px; color: #495057; margin-bottom: 5px;")
+        zoom_layout.addWidget(zoom_title)
+        
+        shortcuts_label = QLabel("Ctrl + / - : Zoom\nCtrl + 0 : Reset")
+        shortcuts_label.setStyleSheet("""
+            QLabel {
+                font-size: 10px;
+                color: #6c757d;
+                padding: 4px;
+                background: #f8f9fa;
+                border-radius: 3px;
+            }
+        """)
+        zoom_layout.addWidget(shortcuts_label)
+        
+        layout.addWidget(zoom_group)
         layout.addStretch()
         
         # Update button states initially
@@ -321,7 +396,7 @@ class ScanTimelineWidget(QWidget):
                 }
             """)
         
-        # Hotspot edit button
+        # ✅ UPDATED: Classification edit button
         if has_hotspot and has_scan:
             self.hotspot_edit_btn.setEnabled(True)
             self.hotspot_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
@@ -343,7 +418,7 @@ class ScanTimelineWidget(QWidget):
             """)
 
     def _update_scan_info_display(self):
-        """Update scan information in control panel"""
+        """✅ FIXED: Update scan information with BSI data"""
         if not self._scans_cache or self.active_scan_index < 0:
             self.scan_info_label.setText("No scan selected")
             return
@@ -356,35 +431,57 @@ class ScanTimelineWidget(QWidget):
             scan_num = self.active_scan_index + 1
             total_scans = len(self._scans_cache)
             date = meta.get("study_date", "Unknown")
-            bsi = meta.get("bsi_value", "N/A")
             
             try:
                 formatted_date = datetime.strptime(date, "%Y%m%d").strftime("%b %d, %Y")
             except ValueError:
                 formatted_date = date
             
+            # ✅ NEW: Get BSI information
+            bsi_info = ""
+            if meta.get("has_bsi", False):
+                bsi_score = meta.get("bsi_score", 0.0)
+                bsi_info = f"<br>BSI: {bsi_score:.1f}%"
+            
             info_text = f"""
             <b>Scan {scan_num}/{total_scans}</b><br>
             Date: {formatted_date}<br>
-            BSI: {bsi}<br>
-            View: {self.current_view}
+            View: {self.current_view}{bsi_info}
             """
             
             self.scan_info_label.setText(info_text)
 
     # ------------------------------------------------------ zoom
     def zoom_in(self):  
-        self._zoom_factor *= 1.2
+        """✅ FIXED: Zoom in with better increment"""
+        self._zoom_factor *= 1.15  # Smaller increment for smoother zoom
+        print(f"[DEBUG] Timeline zoom in: {self._zoom_factor:.2f}")
         self._rebuild()
         
     def zoom_out(self): 
-        self._zoom_factor *= 0.8
+        """✅ FIXED: Zoom out with better increment"""
+        self._zoom_factor *= 0.87  # Smaller decrement for smoother zoom
+        print(f"[DEBUG] Timeline zoom out: {self._zoom_factor:.2f}")
+        self._rebuild()
+
+    def zoom_reset(self):
+        """✅ NEW: Reset zoom to default"""
+        self._zoom_factor = 1.0
+        print(f"[DEBUG] Timeline zoom reset: {self._zoom_factor:.2f}")
         self._rebuild()
 
     # ------------------------------------------------------ public API
     def display_timeline(self, scans: List[Dict], active_index: int = -1):
+        """✅ FIXED: Display timeline with BSI integration"""
         print(f"[DEBUG] display_timeline called with {len(scans)} scan(s), active_index = {active_index}")
-        self._scans_cache = scans
+        
+        # ✅ NEW: Update scans with BSI information
+        updated_scans = []
+        for scan in scans:
+            updated_scan = self.bsi_integration.update_scan_meta_with_bsi(scan, self.session_code)
+            updated_scans.append(updated_scan)
+        
+        self._scans_cache = updated_scans
         self.active_scan_index = active_index
         self._zoom_factor = 1.0
         self._rebuild()
@@ -392,9 +489,16 @@ class ScanTimelineWidget(QWidget):
         self._update_edit_button_states()
 
     def set_active_view(self, v: str): 
+        """✅ FIXED: Properly set view and force rebuild"""
+        old_view = self.current_view
         self.current_view = v
-        self._rebuild()
-        self._update_scan_info_display()
+        print(f"[DEBUG] Setting view to: {self.current_view} (was: {old_view})")
+        
+        # ✅ CRITICAL: Force rebuild to show different view
+        if old_view != self.current_view:
+            print(f"[DEBUG] View changed from {old_view} to {self.current_view}, forcing rebuild...")
+            self._rebuild()
+            self._update_scan_info_display()
         
     def set_active_layers(self, layers: list): 
         """Set active layers from checkbox mode selector"""
@@ -419,7 +523,7 @@ class ScanTimelineWidget(QWidget):
         """Get opacity for a specific layer"""
         return self._layer_opacities.get(layer, 1.0)
 
-    # ===== NEW METHODS TO FIX THE ERROR =====
+    # ===== Required methods =====
     def is_layer_active(self, layer: str) -> bool:
         """Check if a specific layer is currently active"""
         return layer in self._active_layers
@@ -448,7 +552,6 @@ class ScanTimelineWidget(QWidget):
         except Exception as e:
             print(f"[WARN] Error checking layer data: {e}")
             return False
-    # ========================================
 
     # ------------------------------------------------------ rebuild
     def _clear(self):
@@ -458,7 +561,10 @@ class ScanTimelineWidget(QWidget):
                 w.deleteLater()
 
     def _rebuild(self):
+        """✅ FIXED: Rebuild with proper view handling"""
+        print(f"[DEBUG] Rebuilding timeline for view: {self.current_view}")
         self._clear()
+        
         if not self._scans_cache:
             placeholder = QLabel("No scans available")
             placeholder.setAlignment(Qt.AlignCenter)
@@ -496,29 +602,37 @@ class ScanTimelineWidget(QWidget):
         else:
             # Show scans with active layers
             for i, scan in enumerate(self._scans_cache):
-                self.timeline_layout.addWidget(self._make_layered_card(scan, w, i))
+                card = self._make_layered_card(scan, w, i)
+                self.timeline_layout.addWidget(card)
+                print(f"[DEBUG] Created card {i} for view {self.current_view}")
 
         self.timeline_layout.addStretch()
 
     # ------------------------------------------------------ card builders
     def _make_header(self, scan: Dict, idx: int) -> QHBoxLayout:
+        """✅ FIXED: Header with BSI information"""
         meta = scan["meta"]
         date_raw = meta.get("study_date", "")
         try:   
             hdr = datetime.strptime(date_raw, "%Y%m%d").strftime("%b %d, %Y")
         except ValueError: 
             hdr = "Unknown"
-        bsi = meta.get("bsi_value", "N/A")
+        
+        # ✅ NEW: Include BSI in header
+        bsi_text = ""
+        if meta.get("has_bsi", False):
+            bsi_score = meta.get("bsi_score", 0.0)
+            bsi_text = f"<br><small>BSI: {bsi_score:.1f}%</small>"
 
         hbox = QHBoxLayout()
         
-        # Header info
-        header_label = QLabel(f"<b>{hdr}</b><br>BSI: {bsi}")
+        # Header info with BSI
+        header_label = QLabel(f"<b>{hdr}</b>{bsi_text}")
         header_label.setStyleSheet("font-size: 11px;")
         hbox.addWidget(header_label)
         hbox.addStretch()
         
-        # FIXED: Select button now emits signal properly
+        # Select button
         select_btn = QPushButton("Select")
         select_btn.setFixedSize(60, 24)
         select_btn.setStyleSheet("""
@@ -537,14 +651,13 @@ class ScanTimelineWidget(QWidget):
                 background-color: #495057;
             }
         """)
-        # FIXED: Connect to new method that emits signal
         select_btn.clicked.connect(lambda *_: self._on_scan_selected(idx))
         hbox.addWidget(select_btn)
         
         return hbox
     
     def _on_scan_selected(self, idx: int):
-        """FIXED: Handle scan selection and emit signal to parent"""
+        """Handle scan selection and emit signal to parent"""
         print(f"[DEBUG] Timeline scan selected: {idx}")
         self.active_scan_index = idx
         self._update_scan_info_display()
@@ -555,10 +668,6 @@ class ScanTimelineWidget(QWidget):
         
         # Rebuild to update visual selection
         self._rebuild()
-    
-    def _select_scan(self, idx: int):
-        """DEPRECATED: Use _on_scan_selected instead"""
-        self._on_scan_selected(idx)
     
     def _get_patient_session_from_scan(self, scan: Dict) -> tuple[str, str]:
         """Extract patient ID and session code from scan path using NEW structure"""
@@ -576,35 +685,139 @@ class ScanTimelineWidget(QWidget):
             print(f"[WARN] Failed to extract patient/session from scan: {e}")
             return "UNKNOWN", self.session_code or "UNKNOWN"
     
-    # FIXED: _get_layer_images method to use consistent hotspot file paths
-
+    def _create_bbox_visualization_from_classification(self, xml_path: Path, original_frame: np.ndarray) -> Optional[Image.Image]:
+        """✅ FIXED: Create bounding box visualization from CLASSIFICATION XML only"""
+        try:
+            import xml.etree.ElementTree as ET
+            from PIL import ImageDraw, ImageFont
+            
+            print(f"[DEBUG] Loading CLASSIFICATION XML for bbox: {xml_path}")
+            
+            # Parse XML file
+            tree = ET.parse(xml_path)
+            root = tree.getroot()
+            
+            # Get image dimensions
+            height, width = original_frame.shape[:2]
+            
+            # Create transparent image for bounding boxes
+            bbox_image = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(bbox_image)
+            
+            # ✅ CLASSIFICATION COLOR MAPPING (from classification results)
+            color_map = {
+                "Abnormal": (255, 0, 0, 255),      # Red for abnormal classification
+                "Normal": (255, 241, 188, 255)     # Light yellow for normal classification
+            }
+            
+            # Try to load a font for labels (fallback to default if not available)
+            try:
+                # Try to use a small system font
+                font = ImageFont.truetype("arial.ttf", 10)
+            except (OSError, IOError):
+                try:
+                    # Fallback to default PIL font
+                    font = ImageFont.load_default()
+                except:
+                    font = None
+            
+            # Extract bounding boxes from CLASSIFICATION XML
+            boxes_found = 0
+            for obj in root.findall('.//object'):
+                try:
+                    # Get class name (should be "Abnormal" or "Normal" from classification)
+                    name_elem = obj.find('name')
+                    if name_elem is None:
+                        continue
+                    class_name = name_elem.text.strip()
+                    
+                    # Get bounding box coordinates
+                    bbox = obj.find('bndbox')
+                    if bbox is not None:
+                        xmin = int(float(bbox.find('xmin').text))
+                        ymin = int(float(bbox.find('ymin').text))
+                        xmax = int(float(bbox.find('xmax').text))
+                        ymax = int(float(bbox.find('ymax').text))
+                        
+                        # Get color for this classification result
+                        box_color = color_map.get(class_name, (255, 255, 255, 255))  # White fallback
+                        
+                        # ✅ Draw thin rectangle for classification result
+                        draw.rectangle([xmin, ymin, xmax, ymax], 
+                                    outline=box_color,
+                                    fill=None,
+                                    width=1)
+                        
+                        # ✅ Draw classification label
+                        if font:
+                            # Calculate label position (above the box)
+                            label_x = xmin
+                            label_y = max(0, ymin - 12)  # 12 pixels above, but not negative
+                            
+                            # Draw label background
+                            try:
+                                # Get text size
+                                bbox_text = draw.textbbox((0, 0), class_name, font=font)
+                                text_width = bbox_text[2] - bbox_text[0]
+                                text_height = bbox_text[3] - bbox_text[1]
+                            except:
+                                # Fallback if textbbox is not available (older PIL)
+                                text_width, text_height = font.getsize(class_name)
+                            
+                            # Draw background rectangle for text
+                            bg_color = (*box_color[:3], 180)  # Semi-transparent background
+                            draw.rectangle([label_x, label_y, 
+                                        label_x + text_width + 4, 
+                                        label_y + text_height + 2], 
+                                        fill=bg_color, 
+                                        outline=None)
+                            
+                            # Draw text
+                            text_color = (0, 0, 0, 255) if class_name == "Normal" else (255, 255, 255, 255)
+                            draw.text((label_x + 2, label_y + 1), class_name, 
+                                    fill=text_color, font=font)
+                        
+                        boxes_found += 1
+                        print(f"[DEBUG] Drew CLASSIFICATION {class_name} bbox: ({xmin},{ymin}) -> ({xmax},{ymax})")
+                        
+                except (ValueError, AttributeError) as e:
+                    print(f"[WARN] Error parsing classification bbox in XML: {e}")
+                    continue
+            
+            if boxes_found > 0:
+                print(f"[DEBUG] ✅ Created CLASSIFICATION bbox visualization with {boxes_found} boxes")
+                return bbox_image
+            else:
+                print(f"[DEBUG] ❌ No valid classification boxes found in XML")
+                return None
+                
+        except Exception as e:
+            print(f"[ERROR] Failed to create classification bbox visualization: {e}")
+            return None
+    
     def _get_layer_images(self, scan: Dict) -> Dict[str, Image.Image]:
-        """FIXED: Get all layer images for a scan with consistent hotspot file naming"""
+        """✅ FIXED: Get layer images - CLASSIFICATION ONLY"""
         frame_map = scan["frames"]
-        dicom_path = scan["path"]
+        dicom_path = Path(scan["path"])
         filename = dicom_path.stem
         
         layers = {}
         
-        # FIXED: Layer 1: Original (base) - convert to RGBA for opacity support
+        # ✅ Layer 1: Original (base) - convert to RGBA for opacity support
         if self.current_view in frame_map:
             original_arr = frame_map[self.current_view]
             # Convert to PIL Image with RGBA mode for opacity support
             original_normalized = ((original_arr - original_arr.min()) / max(1, np.ptp(original_arr)) * 255).astype(np.uint8)
             original_image = Image.fromarray(original_normalized).convert("RGBA")
             layers["Original"] = original_image
+            print(f"[DEBUG] Loaded Original layer for {self.current_view}")
         
         # Layer 2: Segmentation - with transparency processing
-        # FIXED: Extract patient info properly
         try:
             study_date = extract_study_date_from_dicom(dicom_path)
-            
-            # FIXED: Get clean patient_id from path, not from metadata
             patient_id, session_code = self._get_patient_session_from_scan(scan)
-            
             filename_with_date = generate_filename_stem(patient_id, study_date)
             print(f"[DEBUG] Using filename stem with study date: {filename_with_date}")
-            print(f"[DEBUG] Patient ID: {patient_id}, Study Date: {study_date}")
         except Exception as e:
             print(f"[WARN] Could not extract study date, using original filename: {e}")
             study_date = None
@@ -631,48 +844,51 @@ class ScanTimelineWidget(QWidget):
         else:
             print(f"[WARN] Segmentation file not found: {seg_png}")
         
-        # ✅ FIXED: Layer 3: Hotspot - Prioritize EDITED versions
-        if study_date:
-            hotspot_files = get_hotspot_files(patient_id, session_code, self.current_view, study_date)
-        else:
-            # Fallback: try to get study date from meta or use current date
-            fallback_date = scan["meta"].get("study_date")
-            if not fallback_date:
-                from datetime import datetime
-                fallback_date = datetime.now().strftime("%Y%m%d")
-            hotspot_files = get_hotspot_files(patient_id, session_code, self.current_view, fallback_date)
+        # ✅ Layer 3: Hotspot - CLASSIFICATION MASKS ONLY
+        view_normalized = self.current_view.lower()
+        classification_mask_path = dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png"
         
-        # ✅ FIXED: Priority system for loading hotspot files
-        hotspot_png = None
+        print(f"[DEBUG] Looking for CLASSIFICATION mask ONLY: {classification_mask_path}")
         
-        # Priority 1: Try EDITED version first (user's latest changes)
-        if hotspot_files['colored_png_edited'].exists():
-            hotspot_png = hotspot_files['colored_png_edited']
-            print(f"[DEBUG] Found EDITED hotspot: {hotspot_png}")
-        # Priority 2: Try original version 
-        elif hotspot_files['colored_png'].exists():
-            hotspot_png = hotspot_files['colored_png']
-            print(f"[DEBUG] Found original hotspot: {hotspot_png}")
-        # Priority 3: Fallback to legacy naming for backward compatibility
-        elif hotspot_files.get('colored_png_legacy') and hotspot_files['colored_png_legacy'].exists():
-            hotspot_png = hotspot_files['colored_png_legacy']
-            print(f"[DEBUG] Found hotspot (legacy naming): {hotspot_png}")
-        
-        if hotspot_png and hotspot_png.exists():
+        if classification_mask_path.exists():
             try:
-                # Load with transparency (make black pixels transparent)
-                hotspot_image = load_image_with_transparency(hotspot_png, make_transparent=True)
-                layers["Hotspot"] = hotspot_image
-                print(f"[DEBUG] Loaded hotspot with transparency: {hotspot_png}")
+                # Load classification mask with transparency
+                classification_image = load_image_with_transparency(classification_mask_path, make_transparent=True)
+                layers["Hotspot"] = classification_image
+                print(f"[DEBUG] ✅ Loaded CLASSIFICATION MASK as Hotspot layer: {classification_mask_path}")
             except Exception as e:
-                print(f"[WARN] Failed to load hotspot image: {e}")
+                print(f"[WARN] Failed to load classification mask: {e}")
         else:
-            print(f"[WARN] No hotspot files found for {filename_with_date}")
+            print(f"[DEBUG] ❌ CLASSIFICATION mask not found: {classification_mask_path}")
+            print(f"[DEBUG] ❌ NO FALLBACK - Classification results only!")
         
+        # ✅ Layer 4: HotspotBBox - CLASSIFICATION XML ONLY
+        try:
+            # Determine view for XML files (use short names: ant/post)
+            view_short = "ant" if "ant" in self.current_view.lower() else "post"
+            classification_xml_path = dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml"
+            
+            print(f"[DEBUG] Looking for CLASSIFICATION XML ONLY: {classification_xml_path}")
+            
+            if classification_xml_path.exists():
+                # Create bounding box visualization from CLASSIFICATION XML
+                bbox_image = self._create_bbox_visualization_from_classification(classification_xml_path, original_arr)
+                if bbox_image:
+                    layers["HotspotBBox"] = bbox_image
+                    print(f"[DEBUG] ✅ Created HotspotBBox from CLASSIFICATION XML: {classification_xml_path}")
+                else:
+                    print(f"[DEBUG] ❌ Failed to create bbox visualization from CLASSIFICATION XML: {classification_xml_path}")
+            else:
+                print(f"[DEBUG] ❌ CLASSIFICATION XML not found: {classification_xml_path}")
+                print(f"[DEBUG] ❌ NO FALLBACK - Classification results only!")
+        except Exception as e:
+            print(f"[WARN] Error loading CLASSIFICATION HotspotBBox: {e}")
+        
+        print(f"[DEBUG] Total CLASSIFICATION layers loaded for {self.current_view}: {list(layers.keys())}")
         return layers
     
     def _make_layered_card(self, scan: Dict, w: int, idx: int) -> QFrame:
-        """Create card with layered display based on active layers"""
+        """✅ FIXED: Create card with proper view-specific layered display"""
         card = QFrame()
         card.setFrameStyle(QFrame.Box | QFrame.Raised)
         card.setLineWidth(1)
@@ -704,10 +920,14 @@ class ScanTimelineWidget(QWidget):
         
         lbl = QLabel(alignment=Qt.AlignCenter)
         
-        # Get all available layer images
-        all_layers = self._get_layer_images(scan)
+        # ✅ FIXED: Better debug messages
+        print(f"[DEBUG] Creating CLASSIFICATION card {idx} for view: {self.current_view}")
+        print(f"[DEBUG] Active layers selected: {self._active_layers}")
         
-        # FIXED: Apply opacity to individual layers before compositing
+        all_layers = self._get_layer_images(scan)
+        print(f"[DEBUG] Available CLASSIFICATION layers in files: {list(all_layers.keys())}")
+        
+        # Apply opacity to individual layers before compositing
         active_layer_images = {}
         for layer_name in self._active_layers:
             if layer_name in all_layers:
@@ -719,12 +939,15 @@ class ScanTimelineWidget(QWidget):
                     layer_image = apply_opacity_to_image(layer_image, layer_opacity)
                 
                 active_layer_images[layer_name] = layer_image
+                print(f"[DEBUG] ✅ Added CLASSIFICATION {layer_name} to card {idx} (opacity: {layer_opacity:.2f})")
+            else:
+                print(f"[DEBUG] ❌ Layer {layer_name} not found in CLASSIFICATION files for card {idx}")
         
         if not active_layer_images:
-            lbl.setText("No layer data available")
+            lbl.setText(f"No classification data available\nfor {self.current_view}")
             lbl.setStyleSheet("color:#888; font-size: 12px; padding: 20px;")
         else:
-            # Create composite image from active layers (don't apply opacity again)
+            # Create composite image from active layers
             try:
                 # Use opacity 1.0 for all layers since we already applied opacity above
                 uniform_opacities = {layer: 1.0 for layer in active_layer_images.keys()}
@@ -732,7 +955,7 @@ class ScanTimelineWidget(QWidget):
                 composite_image = create_composite_image(
                     layers=active_layer_images,
                     layer_order=self._active_layers,
-                    layer_opacities=uniform_opacities  # Don't double-apply opacity
+                    layer_opacities=uniform_opacities
                 )
                 
                 # Convert composite to displayable format
@@ -753,19 +976,19 @@ class ScanTimelineWidget(QWidget):
                         opacity_pct = int(self._layer_opacities.get(layer_name, 1.0) * 100)
                         tooltip_parts.append(f"{layer_name}: {opacity_pct}%")
                 
-                lbl.setToolTip("Active layers: " + " | ".join(tooltip_parts))
+                lbl.setToolTip("Classification layers: " + " | ".join(tooltip_parts))
+                print(f"[DEBUG] ✅ CLASSIFICATION card {idx} composite created with layers: {list(active_layer_images.keys())}")
                 
             except Exception as e:
-                print(f"[ERROR] Failed to create composite image: {e}")
-                lbl.setText("Error creating composite")
+                print(f"[ERROR] Failed to create CLASSIFICATION composite image for card {idx}: {e}")
+                lbl.setText(f"Error creating classification composite\nfor {self.current_view}")
                 lbl.setStyleSheet("color:#dc3545; font-size: 12px; padding: 20px;")
                 lbl.setToolTip(str(e))
         
         lay.addWidget(lbl)
         
-        # Create status label showing active layers
-        layer_status = ", ".join(self._active_layers) if self._active_layers else "None"
-        status_label = QLabel(f"{self.current_view}")
+        # ✅ FIXED: Create status label showing current view and classification status
+        status_label = QLabel(f"{self.current_view} (Classification)")
         status_label.setAlignment(Qt.AlignCenter)
         status_label.setStyleSheet("""
             QLabel {
@@ -780,7 +1003,7 @@ class ScanTimelineWidget(QWidget):
         lay.addWidget(status_label)
         
         return card
-
+    
     # ------------------------------------------------------ editor dialogs
     def _open_segmentation_editor(self):
         """Open segmentation editor for current scan"""
@@ -797,18 +1020,54 @@ class ScanTimelineWidget(QWidget):
             self._rebuild()
 
     def _open_hotspot_editor(self):
-        """Open hotspot editor for current scan"""
+        """✅ UPDATED: Open hotspot editor for current scan - CLASSIFICATION FILES ONLY"""
         if not self._scans_cache or self.active_scan_index < 0 or self.active_scan_index >= len(self._scans_cache):
-            print("[DEBUG] No valid scan selected for hotspot editing")
+            print("[DEBUG] No valid scan selected for classification editing")
             return
             
         scan = self._scans_cache[self.active_scan_index]
-        print(f"[DEBUG] Opening hotspot editor for scan {self.active_scan_index + 1}")
+        print(f"[DEBUG] Opening CLASSIFICATION editor for scan {self.active_scan_index + 1}")
         
-        dlg = HotspotEditorDialog(scan, self.current_view, parent=self)
-        if dlg.exec():
-            print("[DEBUG] Hotspot editor completed, refreshing timeline")
-            self._rebuild()
+        # ✅ PREPARE CLASSIFICATION-SPECIFIC DATA FOR EDITOR
+        try:
+            dicom_path = Path(scan["path"])
+            study_date = extract_study_date_from_dicom(dicom_path)
+            patient_id, session_code = self._get_patient_session_from_scan(scan)
+            filename_with_date = generate_filename_stem(patient_id, study_date)
+            
+            # Get classification files
+            view_normalized = self.current_view.lower()
+            view_short = "ant" if "ant" in self.current_view.lower() else "post"
+            
+            classification_files = {
+                'mask_path': dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png",
+                'xml_path': dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml",
+                'json_path': dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification.json"
+            }
+            
+            print(f"[DEBUG] CLASSIFICATION files for editor:")
+            for key, path in classification_files.items():
+                exists = "✅" if path.exists() else "❌"
+                print(f"[DEBUG]   {key}: {exists} {path}")
+            
+            # Check if classification files exist
+            if not classification_files['mask_path'].exists():
+                print(f"[ERROR] No classification mask found: {classification_files['mask_path']}")
+                return
+            
+            # Create enhanced scan data with classification paths
+            enhanced_scan = scan.copy()
+            enhanced_scan['classification_files'] = classification_files
+            enhanced_scan['is_classification_mode'] = True  # Flag for editor
+            
+            # Open hotspot editor with classification data
+            dlg = HotspotEditorDialog(enhanced_scan, self.current_view, parent=self)
+            if dlg.exec():
+                print("[DEBUG] CLASSIFICATION editor completed, refreshing timeline")
+                self._rebuild()
+                
+        except Exception as e:
+            print(f"[ERROR] Failed to prepare classification data for editor: {e}")
     
     # ------------------------------------------------------ backward compatibility
     def set_image_mode(self, mode: str):
@@ -820,9 +1079,9 @@ class ScanTimelineWidget(QWidget):
         elif mode == "Segmentation":
             self.set_active_layers(["Original", "Segmentation"])
         elif mode == "Hotspot":
-            self.set_active_layers(["Original", "Hotspot"])
+            self.set_active_layers(["Original", "Hotspot"])  # ✅ Classification mask only
         elif mode == "Both":
-            self.set_active_layers(["Original", "Segmentation", "Hotspot"])
+            self.set_active_layers(["Original", "Segmentation", "Hotspot"])  # ✅ Classification mask only
         else:
             self.set_active_layers([])
             

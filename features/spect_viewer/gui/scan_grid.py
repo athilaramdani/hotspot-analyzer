@@ -1,3 +1,4 @@
+# features\spect_viewer\gui\scan_grid.py
 from pathlib import Path
 from typing import List
 from PySide6.QtCore   import Qt

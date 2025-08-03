@@ -1,4 +1,4 @@
-# features/dicom_import/gui/dicom_import_dialog_v2.py - FIXED Version
+# features/dicom_import/gui/dicom_import_dialog_v2.py - FIXED for PNG uploads only
 from __future__ import annotations
 from pathlib import Path
 from typing import List, Optional
@@ -38,7 +38,7 @@ except ImportError:
     CLOUD_AVAILABLE = False
 
 class ProcessingThread(QThread):
-    """Thread untuk menjalankan proses import DICOM di background dengan new structure"""
+    """Thread untuk menjalankan proses import DICOM di background dengan PNG upload"""
     progress_updated = Signal(int, int, str)
     log_updated = Signal(str)
     finished_processing = Signal()
@@ -60,18 +60,9 @@ class ProcessingThread(QThread):
                 log_cb=self._log_callback
             )
             
-            # ❌ REMOVE FINAL SYNC COMPLETELY
-            # Sync to cloud if available
-            # if CLOUD_AVAILABLE:
-            #     self.log_updated.emit("## Syncing to cloud storage...")
-            #     try:
-            #         uploaded, downloaded = sync_spect_data(self.session_code)
-            #         self.log_updated.emit(f"## Cloud sync: {uploaded} uploaded, {downloaded} downloaded")
-            #     except Exception as e:
-            #         self.log_updated.emit(f"## Cloud sync failed: {e}")
-            
-            # ✅ REPLACE WITH THIS
-            self.log_updated.emit("## Processing completed. Input DICOM files uploaded to cloud.")
+            # ✅ FIXED: No additional sync needed - PNG files uploaded during processing
+            self.log_updated.emit("## Processing completed. Original PNG files uploaded to cloud.")
+            self.log_updated.emit("## Cloud storage: *_original.png files only (DICOM files kept local).")
             
         except Exception as e:
             self.log_updated.emit(f"[ERROR] Processing failed: {e}")
@@ -120,14 +111,14 @@ class DicomImportDialog(QDialog):
         title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         main_layout.addWidget(title_label)
         
-        # FIXED: Reduced margin for directory structure info
+        # ✅ FIXED: Updated directory structure info with PNG upload info
         if self.session_code:
             structure_info = QLabel(f"Files will be saved to: data/SPECT/{self.session_code}/[patient_id]/")
             structure_info.setStyleSheet(DIALOG_SUBTITLE_STYLE)
             structure_info.setAlignment(Qt.AlignCenter)
             main_layout.addWidget(structure_info)
         
-        # FIXED: Main content area with increased splitter spacing
+        # Main content area with increased splitter spacing
         content_splitter = QSplitter(Qt.Horizontal)
         content_splitter.setHandleWidth(6)
         
@@ -139,7 +130,7 @@ class DicomImportDialog(QDialog):
         right_panel = self._create_process_log_panel()
         content_splitter.addWidget(right_panel)
         
-        # FIXED: Better splitter proportions to increase vertical space
+        # Better splitter proportions to increase vertical space
         content_splitter.setStretchFactor(0, 2)  # File list - increased
         content_splitter.setStretchFactor(1, 3)  # Process log - increased
         content_splitter.setSizes([300, 450])    # Better initial sizes
@@ -188,7 +179,7 @@ class DicomImportDialog(QDialog):
         self.process_log.setReadOnly(True)
         self.process_log.setStyleSheet(DIALOG_LOG_STYLE)
         
-        # Initial log message with new structure info
+        # ✅ FIXED: Updated initial log message with PNG upload info
         initial_msg = "Ready to import DICOM files...\n"
         if self.session_code:
             initial_msg += f"Session: {self.session_code}\n"
@@ -196,6 +187,10 @@ class DicomImportDialog(QDialog):
         
         cloud_status = "✅ Available" if CLOUD_AVAILABLE else "❌ Not available"
         initial_msg += f"Cloud storage: {cloud_status}\n"
+        
+        if CLOUD_AVAILABLE:
+            initial_msg += "Upload strategy: Original PNG files only (*_original.png)\n"
+            initial_msg += "DICOM files will be kept local for processing\n"
         
         self.process_log.setPlainText(initial_msg)
         layout.addWidget(self.process_log)
@@ -336,6 +331,7 @@ class DicomImportDialog(QDialog):
         self._log_message(f"## Processing {len(self.selected_files)} file(s)")
         self._log_message(f"## Session: {self.session_code}")
         self._log_message(f"## Target directory: data/SPECT/{self.session_code}/[patient_id]/")
+        self._log_message(f"## Cloud upload: Original PNG files only (*_original.png)")
         
         # Update UI untuk mode processing
         self.add_dicom_btn.setEnabled(False)
@@ -360,14 +356,14 @@ class DicomImportDialog(QDialog):
         """Handle progress update"""
         self.progress_bar.setValue(current)
         
-        # FIXED: Truncate progress label text and add detailed processing info
+        # Truncate progress label text and add detailed processing info
         file_name = truncate_text(Path(filename).name, 30)
         self.progress_label.setText(f"Processing: {file_name} ({current}/{total})")
         QCoreApplication.processEvents()
         
     def _on_log_updated(self, message: str):
         """Handle log update with enhanced formatting"""
-        # FIXED: Truncate long messages for better display
+        # Truncate long messages for better display
         display_message = message
         if len(message) > 100 and not message.startswith("##"):
             display_message = truncate_text(message, 100)
@@ -389,13 +385,9 @@ class DicomImportDialog(QDialog):
         self.progress_label.setVisible(False)
         self.add_dicom_btn.setEnabled(True)
 
-        # FIXED: Simplified success message
-        success_msg = "All selected DICOM files have been imported successfully!"
-        
         QMessageBox.information(
             self,
-            "Import Successful", 
-            success_msg
+            "Import Successful"
         )
         self.accept()
         
@@ -409,7 +401,7 @@ class DicomImportDialog(QDialog):
         
     def _log_message(self, message: str):
         """Add message to process log"""
-        # FIXED: Truncate very long messages
+        # Truncate very long messages
         display_message = truncate_text(message, 120) if len(message) > 120 else message
         self.process_log.append(display_message)
         self.process_log.ensureCursorVisible()

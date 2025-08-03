@@ -1,6 +1,6 @@
-# core/config/cloud_storage.py
+# core/config/cloud_storage.py - FIXED to support PNG uploads
 """
-Cloud Storage Manager untuk BackBlaze B2 - Updated untuk New Directory Structure
+Cloud Storage Manager untuk BackBlaze B2 - Updated untuk PNG Original Files
 """
 import boto3
 import logging
@@ -324,10 +324,10 @@ class CloudStorageManager:
             logger.error(f"Failed to sync patient data: {e}")
             return (0, 0)
     
-    def sync_input_files_only(self, session_code: str, patient_id: str = None, 
-                             modality: str = "SPECT") -> Tuple[int, int]:
+    def sync_original_png_files_only(self, session_code: str, patient_id: str = None, 
+                                   modality: str = "SPECT") -> Tuple[int, int]:
         """
-        Sync only input DICOM files, skip processed files
+        ✅ FIXED: Sync only original PNG files (*_original.png)
         
         Args:
             session_code: Session/doctor code
@@ -359,18 +359,17 @@ class CloudStorageManager:
                 logger.warning(f"Local folder doesn't exist: {local_folder}")
                 return (0, 0)
             
-            # ✅ ONLY UPLOAD INPUT DICOM FILES
+            # ✅ ONLY UPLOAD ORIGINAL PNG FILES
             for patient_folder in local_folder.iterdir() if not patient_id else [local_folder]:
                 if patient_folder.is_dir():
                     patient_id_current = patient_folder.name if not patient_id else patient_id
                     
                     for file_path in patient_folder.iterdir():
                         if file_path.is_file():
-                            # ✅ ONLY UPLOAD ORIGINAL INPUT DICOM FILES
+                            # ✅ ONLY UPLOAD ORIGINAL PNG FILES
                             should_upload = (
-                                file_path.suffix.lower() in {'.dcm', '.dicom'} and
-                                not any(pattern in file_path.name.lower() for pattern in 
-                                       ['mask', 'colored', '_ant_', '_post_', 'secondary'])
+                                file_path.suffix.lower() == '.png' and
+                                file_path.name.endswith('_original.png')
                             )
                             
                             if should_upload:
@@ -379,23 +378,23 @@ class CloudStorageManager:
                                 if not self.file_exists(cloud_path):
                                     if self.upload_file(file_path, cloud_path):
                                         uploaded += 1
-                                        logger.info(f"✅ Uploaded input file: {file_path.name}")
+                                        logger.info(f"✅ Uploaded original PNG: {file_path.name}")
                                     else:
                                         logger.error(f"❌ Failed to upload: {file_path.name}")
                                 else:
-                                    logger.info(f"⏭️  File already exists: {file_path.name}")
+                                    logger.info(f"⏭️  PNG already exists: {file_path.name}")
             
-            logger.info(f"Input files sync completed: {uploaded} uploaded, {downloaded} downloaded")
+            logger.info(f"Original PNG sync completed: {uploaded} uploaded, {downloaded} downloaded")
             return (uploaded, downloaded)
             
         except Exception as e:
-            logger.error(f"Input files sync failed: {e}")
+            logger.error(f"Original PNG sync failed: {e}")
             return (uploaded, downloaded)
     
     def upload_patient_file(self, local_file: Path, session_code: str, 
                           patient_id: str, is_edited: bool = False) -> bool:
         """
-        Upload patient file with proper cloud path structure
+        ✅ FIXED: Upload patient file with proper cloud path structure
         
         Args:
             local_file: Local file path
@@ -407,6 +406,12 @@ class CloudStorageManager:
             True if successful
         """
         try:
+            # ✅ ONLY UPLOAD ORIGINAL PNG FILES
+            if not (local_file.suffix.lower() == '.png' and 
+                    local_file.name.endswith('_original.png')):
+                logger.info(f"⏭️  Skipping non-original PNG file: {local_file.name}")
+                return False
+            
             # Determine file type and create appropriate cloud path
             filename = local_file.name
             
@@ -436,7 +441,7 @@ class CloudStorageManager:
 # Global instance
 cloud_storage = CloudStorageManager()
 
-# Convenience functions - Updated for new structure
+# Convenience functions - Updated for PNG uploads
 def upload_file(local_path: Path, cloud_path: str = None) -> bool:
     """Upload file to cloud storage"""
     return cloud_storage.upload_file(local_path, cloud_path)
@@ -446,27 +451,27 @@ def download_file(cloud_path: str, local_path: Path = None) -> bool:
     return cloud_storage.download_file(cloud_path, local_path)
 
 def sync_spect_data_selective(session_code: str = None, patient_id: str = None, 
-                            input_files_only: bool = True) -> Tuple[int, int]:
+                            original_png_only: bool = True) -> Tuple[int, int]:
     """
-    Sync SPECT data with selective upload option
+    ✅ FIXED: Sync SPECT data with selective upload option
     
     Args:
         session_code: Session code
         patient_id: Patient ID
-        input_files_only: If True, only upload input DICOM files
+        original_png_only: If True, only upload original PNG files
         
     Returns:
         Tuple of (uploaded_count, downloaded_count)
     """
-    if input_files_only:
-        return cloud_storage.sync_input_files_only(session_code, patient_id, "SPECT")
+    if original_png_only:
+        return cloud_storage.sync_original_png_files_only(session_code, patient_id, "SPECT")
     else:
         return cloud_storage.sync_patient_data(session_code, patient_id, "SPECT")
 
-# Keep old function for backward compatibility but make it selective by default
+# ✅ FIXED: Default to PNG-only uploads
 def sync_spect_data(session_code: str = None, patient_id: str = None) -> Tuple[int, int]:
-    """Sync SPECT data - INPUT FILES ONLY by default"""
-    return sync_spect_data_selective(session_code, patient_id, input_files_only=True)
+    """Sync SPECT data - ORIGINAL PNG FILES ONLY by default"""
+    return sync_spect_data_selective(session_code, patient_id, original_png_only=True)
 
 def sync_pet_data(session_code: str = None, patient_id: str = None) -> Tuple[int, int]:
     """
@@ -487,7 +492,7 @@ def sync_pet_data(session_code: str = None, patient_id: str = None) -> Tuple[int
 
 def upload_patient_file(local_file: Path, session_code: str, patient_id: str, 
                        is_edited: bool = False) -> bool:
-    """Upload patient file with proper cloud path structure"""
+    """✅ FIXED: Upload original PNG files only"""
     return cloud_storage.upload_patient_file(local_file, session_code, patient_id, is_edited)
 
 def test_cloud_connection() -> bool:

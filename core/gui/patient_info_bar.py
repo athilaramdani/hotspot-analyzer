@@ -1,4 +1,4 @@
-# frontend/widgets/patient_info.py
+# core\gui\patient_info_bar.py
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit

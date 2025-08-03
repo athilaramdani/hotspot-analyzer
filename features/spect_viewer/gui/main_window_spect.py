@@ -1,4 +1,4 @@
-# features/spect_viewer/gui/main_window_spect.py - SIMPLIFIED: No AI processing during patient load
+# features/spect_viewer/gui/main_window_spect.py - FIXED with BSI integration
 from __future__ import annotations
 
 from pathlib import Path
@@ -9,9 +9,9 @@ import numpy as np
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QMainWindow, QSplitter, QPushButton,
-    QWidget, QVBoxLayout, QHBoxLayout, QDialog, QApplication, QLabel
+    QWidget, QVBoxLayout, QHBoxLayout, QDialog, QApplication, QLabel, QFileDialog, QMessageBox
 )
-from PySide6.QtGui import QCloseEvent
+from PySide6.QtGui import QCloseEvent, QShortcut, QKeySequence
 import multiprocessing
 
 # Import NEW config paths and session management
@@ -19,7 +19,8 @@ from core.config.paths import (
     get_session_spect_path,
     get_patient_spect_path,
     SPECT_DATA_PATH,
-    generate_filename_stem
+    generate_filename_stem,
+    extract_study_date_from_dicom
 )
 from core.config.sessions import get_current_session
 
@@ -29,6 +30,9 @@ from features.dicom_import.logic.directory_scanner import (
     get_session_patients,
     get_patient_dicom_files
 )
+
+# Import frame selector yang sudah difix
+from .frame_selector import FrameSelector
 
 # ===== TAMBAHKAN IMPORT LOADING DIALOG =====
 from core.gui.loading_dialog import SPECTLoadingDialog
@@ -50,11 +54,21 @@ from core.gui.ui_constants import (
 
 from core.gui.searchable_combobox import SearchableComboBox
 from core.gui.patient_info_bar import PatientInfoBar
-from .scan_timeline_widget import ScanTimelineWidget  # UPDATED: Use modular timeline widget
-from .side_panel import SidePanel
+from .scan_timeline import ScanTimelineWidget  # UPDATED: Use modular timeline widget
+
+# ✅ FIXED: Import BSISidePanel instead of SidePanel
+from .side_panel import BSISidePanel
+
 from .mode_selector import ModeSelector
 from .view_selector import ViewSelector
 from features.spect_viewer.logic.processing_wrapper import run_yolo_detection_for_patient, run_hotspot_processing_in_process,run_segmentation_in_process
+
+# ✅ NEW: Import BSI integration
+from features.spect_viewer.logic.bsi_timeline_integration import (
+    get_bsi_integration,
+    load_bsi_for_selected_patient,
+    update_timeline_scans_with_bsi
+)
 
 class MainWindowSpect(QMainWindow):
     logout_requested = Signal()
@@ -72,10 +86,177 @@ class MainWindowSpect(QMainWindow):
         self._session_patients_map: Dict[str, List[str]] = {}
         self._loaded: Dict[str, List[Dict]] = {}
         self.scan_buttons: List[QPushButton] = []
+        
+        # ✅ NEW: BSI integration
+        self.bsi_integration = get_bsi_integration()
 
         self._build_ui()
         self._scan_folder()
+    def _setup_frame_selector_connections(self):
+        """✅ Setup proper connections between frame selector and timeline"""
+        
+        # ✅ Connect view_changed signal for proper view switching
+        self.view_selector.view_changed.connect(self._on_view_changed_enhanced)
+        
+        print("[MainWindow] Frame selector connections established")
 
+    def _on_view_changed_enhanced(self, view_name: str):
+        """✅ Enhanced view change handler"""
+        print(f"[MainWindow] View changed to: {view_name}")
+        
+        # Update timeline view - CRITICAL FIX
+        if hasattr(self, 'timeline_widget'):
+            self.timeline_widget.set_active_view(view_name)
+        
+        print(f"[MainWindow] ✅ View change propagated to timeline")
+
+    def _setup_timeline_connections(self):
+        """✅ Setup timeline connections with proper view synchronization"""
+        
+        # Timeline scan selection already connected in __init__
+        # Just ensure session code is set
+        if hasattr(self.timeline_widget, 'set_session_code') and self.session_code:
+            self.timeline_widget.set_session_code(self.session_code)
+        
+        print("[MainWindow] Timeline connections established")
+
+    def _setup_keyboard_shortcuts(self):
+        """✅ Setup global keyboard shortcuts with error handling"""
+        
+        try:
+            # Timeline zoom shortcuts (global) - with safety checks
+            if hasattr(self, 'timeline_widget'):
+                # Zoom shortcuts
+                zoom_in_shortcut = QShortcut(QKeySequence("Ctrl++"), self)
+                zoom_in_shortcut.activated.connect(self._safe_zoom_in)
+                
+                zoom_in_alt_shortcut = QShortcut(QKeySequence("Ctrl+="), self)
+                zoom_in_alt_shortcut.activated.connect(self._safe_zoom_in)
+                
+                zoom_out_shortcut = QShortcut(QKeySequence("Ctrl+-"), self)
+                zoom_out_shortcut.activated.connect(self._safe_zoom_out)
+                
+                # ✅ FIXED: Safe zoom reset with fallback
+                zoom_reset_shortcut = QShortcut(QKeySequence("Ctrl+0"), self)
+                zoom_reset_shortcut.activated.connect(self._safe_zoom_reset)
+            
+            # View switching shortcuts
+            anterior_shortcut = QShortcut(QKeySequence("Ctrl+1"), self)
+            anterior_shortcut.activated.connect(lambda: self._sync_view_across_components("Anterior"))
+            
+            posterior_shortcut = QShortcut(QKeySequence("Ctrl+2"), self)
+            posterior_shortcut.activated.connect(lambda: self._sync_view_across_components("Posterior"))
+            
+            print("[MainWindow] ✅ Global keyboard shortcuts setup complete")
+            
+        except Exception as e:
+            print(f"[MainWindow] ⚠️ Error setting up keyboard shortcuts: {e}")
+
+    def _safe_zoom_in(self):
+        """Safe zoom in with error handling"""
+        try:
+            if hasattr(self, 'timeline_widget') and hasattr(self.timeline_widget, 'zoom_in'):
+                self.timeline_widget.zoom_in()
+            else:
+                print("[MainWindow] Timeline widget or zoom_in method not available")
+        except Exception as e:
+            print(f"[MainWindow] Error in zoom in: {e}")
+
+    def _safe_zoom_out(self):
+        """Safe zoom out with error handling"""
+        try:
+            if hasattr(self, 'timeline_widget') and hasattr(self.timeline_widget, 'zoom_out'):
+                self.timeline_widget.zoom_out()
+            else:
+                print("[MainWindow] Timeline widget or zoom_out method not available")
+        except Exception as e:
+            print(f"[MainWindow] Error in zoom out: {e}")
+
+    def _safe_zoom_reset(self):
+        """Safe zoom reset with fallback implementation"""
+        try:
+            if hasattr(self, 'timeline_widget'):
+                # Try the zoom_reset method first
+                if hasattr(self.timeline_widget, 'zoom_reset'):
+                    self.timeline_widget.zoom_reset()
+                else:
+                    # ✅ FALLBACK: Manual zoom reset if method doesn't exist
+                    print("[MainWindow] zoom_reset method not found, using fallback")
+                    if hasattr(self.timeline_widget, '_zoom_factor'):
+                        self.timeline_widget._zoom_factor = 1.0
+                        if hasattr(self.timeline_widget, '_rebuild'):
+                            self.timeline_widget._rebuild()
+                        print("[MainWindow] ✅ Zoom reset via fallback method")
+                    else:
+                        print("[MainWindow] Cannot reset zoom - no zoom_factor attribute")
+            else:
+                print("[MainWindow] Timeline widget not available")
+        except Exception as e:
+            print(f"[MainWindow] Error in zoom reset: {e}")
+
+    def _sync_view_across_components(self, view_name: str):
+        """✅ Synchronize view across all components"""
+        print(f"[MainWindow] Syncing view '{view_name}' across all components")
+        
+        try:
+            # Update view selector (without triggering signal loop)
+            if hasattr(self, 'view_selector'):
+                self.view_selector.combo.blockSignals(True)
+                if view_name == "Anterior":
+                    self.view_selector.combo.setCurrentIndex(0)
+                else:
+                    self.view_selector.combo.setCurrentIndex(1)
+                self.view_selector.combo.blockSignals(False)
+            
+            # Update timeline widget - CRITICAL
+            if hasattr(self, 'timeline_widget'):
+                self.timeline_widget.set_active_view(view_name)
+            
+            print(f"[MainWindow] ✅ View sync completed")
+            
+        except Exception as e:
+            print(f"[MainWindow] Error syncing view: {e}")
+
+    def update_timeline_with_scans_enhanced(self, scans_data: list, active_index: int = -1):
+        """✅ Enhanced timeline update with BSI integration"""
+        try:
+            print(f"[MainWindow] Updating timeline with {len(scans_data)} scans")
+            
+            # ✅ Update scans with BSI information
+            updated_scans = update_timeline_scans_with_bsi(scans_data, self.session_code)
+            
+            # Set session code for timeline
+            if hasattr(self, 'timeline_widget') and self.session_code:
+                self.timeline_widget.set_session_code(self.session_code)
+            
+            # Update timeline display
+            self.timeline_widget.display_timeline(updated_scans, active_index)
+            
+            print(f"[MainWindow] ✅ Timeline updated with BSI integration")
+            
+        except Exception as e:
+            print(f"[MainWindow] Error updating timeline: {e}")
+            # Fallback to original method
+            self.timeline_widget.display_timeline(scans_data, active_index)
+
+    def complete_initialization_setup(self):
+        """✅ Complete initialization sequence - CALL THIS AT END OF __init__"""
+        
+        # 1. Setup frame selector connections
+        self._setup_frame_selector_connections()
+        
+        # 2. Setup timeline connections  
+        self._setup_timeline_connections()
+        
+        # 3. Setup keyboard shortcuts
+        self._setup_keyboard_shortcuts()
+        
+        # 4. Initialize with default view
+        default_view = "Anterior"
+        self._sync_view_across_components(default_view)
+        
+        print("[MainWindow] ✅ Complete integration initialization finished")
+    
     def _build_ui(self) -> None:
         # --- Top Bar ---
         top_actions = QWidget()
@@ -130,7 +311,7 @@ class MainWindowSpect(QMainWindow):
         view_button_layout.addWidget(zoom_in_btn)
         view_button_layout.addWidget(zoom_out_btn)
 
-        # --- Main Splitter (RESIZABLE LAYOUT: Mode Selector | Timeline | Side Panel) ---
+        # --- Main Splitter (RESIZABLE LAYOUT: Mode Selector | Timeline | BSI Panel) ---
         main_splitter = QSplitter(Qt.Orientation.Horizontal)
 
         # LEFT PANEL: Mode selector (RESIZABLE - no fixed width)
@@ -176,16 +357,22 @@ class MainWindowSpect(QMainWindow):
         
         main_splitter.addWidget(self.timeline_widget)
 
-        # RIGHT PANEL: Grafik dan ringkasan
-        self.side_panel = SidePanel()
-        main_splitter.addWidget(self.side_panel)
+        # ✅ FIXED: RIGHT PANEL: BSI Side Panel instead of old SidePanel
+        self.bsi_panel = BSISidePanel()
+        self.bsi_panel.set_session_code(self.session_code)
         
-        # Set splitter proportions: Mode Selector | Timeline | Side Panel
+        # ✅ NEW: Connect BSI panel signals
+        self.bsi_panel.export_requested.connect(self._on_bsi_export_requested)
+        self.bsi_panel.analysis_requested.connect(self._on_bsi_analysis_requested)
+        
+        main_splitter.addWidget(self.bsi_panel)
+        
+        # Set splitter proportions: Mode Selector | Timeline | BSI Panel
         # Make all panels resizable with proper ratios
         main_splitter.setStretchFactor(0, 1)  # Mode selector: resizable
         main_splitter.setStretchFactor(1, 3)  # Timeline: gets most space
-        main_splitter.setStretchFactor(2, 1)  # Side panel: resizable
-        main_splitter.setSizes([280, 900, 320])  # Initial sizes (total: 1500)
+        main_splitter.setStretchFactor(2, 1)  # BSI panel: resizable
+        main_splitter.setSizes([280, 900, 350])  # Initial sizes (total: 1530)
         
         # Style the splitter handles for better visibility
         main_splitter.setStyleSheet("""
@@ -210,6 +397,129 @@ class MainWindowSpect(QMainWindow):
         main_layout.addWidget(view_button_widget)
         main_layout.addWidget(main_splitter, stretch=1)
         self.setCentralWidget(main_widget)
+        self.complete_initialization_setup()
+    def debug_timeline_status(self):
+        """Debug method untuk cek status timeline"""
+        if hasattr(self, 'timeline_widget'):
+            print(f"[DEBUG] Timeline current view: {getattr(self.timeline_widget, 'current_view', 'Unknown')}")
+            print(f"[DEBUG] Timeline active layers: {self.timeline_widget.get_active_layers()}")
+            print(f"[DEBUG] Timeline has layer data - Original: {self.timeline_widget.has_layer_data('Original')}")
+            print(f"[DEBUG] Timeline has layer data - Segmentation: {self.timeline_widget.has_layer_data('Segmentation')}")
+            print(f"[DEBUG] Timeline has layer data - Hotspot: {self.timeline_widget.has_layer_data('Hotspot')}")
+
+    # ✅ NEW: BSI panel event handlers
+    def _on_bsi_export_requested(self, export_type: str):
+        """Handle BSI export requests"""
+        print(f"[BSI] Export requested: {export_type}")
+        
+        try:
+            if export_type == "chart":
+                # Export BSI chart
+                file_path, _ = QFileDialog.getSaveFileName(
+                    self, 
+                    "Export BSI Chart",
+                    f"bsi_chart_{self._get_current_patient_id()}.png",
+                    "PNG Files (*.png);;All Files (*)"
+                )
+                
+                if file_path:
+                    success = self.bsi_panel.export_chart_to_file(Path(file_path))
+                    if success:
+                        QMessageBox.information(self, "Export Successful", f"BSI chart exported to:\n{file_path}")
+                    else:
+                        QMessageBox.warning(self, "Export Failed", "Failed to export BSI chart.")
+            
+            elif export_type == "report":
+                # Export BSI report
+                file_path, _ = QFileDialog.getSaveFileName(
+                    self,
+                    "Export BSI Report", 
+                    f"bsi_report_{self._get_current_patient_id()}.txt",
+                    "Text Files (*.txt);;All Files (*)"
+                )
+                
+                if file_path:
+                    success = self.bsi_panel.export_report_to_file(Path(file_path))
+                    if success:
+                        QMessageBox.information(self, "Export Successful", f"BSI report exported to:\n{file_path}")
+                    else:
+                        QMessageBox.warning(self, "Export Failed", "Failed to export BSI report.")
+        
+        except Exception as e:
+            print(f"[BSI ERROR] Export failed: {e}")
+            QMessageBox.critical(self, "Export Error", f"Export failed:\n{str(e)}")
+
+    def _on_bsi_analysis_requested(self):
+        """Handle BSI analysis requests"""
+        print("[BSI] Analysis requested")
+        
+        try:
+            # Get current patient info
+            patient_id, session_code = self._get_current_patient_info()
+            
+            if not patient_id:
+                QMessageBox.warning(self, "No Patient Selected", "Please select a patient first.")
+                return
+            
+            # Run quantification analysis
+            from features.spect_viewer.logic.processing_wrapper import run_quantification_for_patient
+            
+            # Get patient DICOM file
+            dicom_files = get_patient_dicom_files(session_code, patient_id, primary_only=True)
+            
+            if not dicom_files:
+                QMessageBox.warning(self, "No DICOM Files", "No DICOM files found for this patient.")
+                return
+            
+            dicom_path = dicom_files[0]  # Use first DICOM file
+            study_date = extract_study_date_from_dicom(dicom_path)
+            
+            # Show loading dialog
+            loading_dialog = SPECTLoadingDialog(f"Running BSI analysis for {patient_id}...", parent=self)
+            loading_dialog.show()
+            QApplication.processEvents()
+            
+            # Run quantification
+            success = run_quantification_for_patient(dicom_path, patient_id, study_date)
+            
+            loading_dialog.close()
+            
+            if success:
+                QMessageBox.information(self, "Analysis Complete", "BSI quantification completed successfully!")
+                # Refresh BSI panel
+                self.bsi_panel.refresh_current_patient()
+            else:
+                QMessageBox.warning(self, "Analysis Failed", "BSI quantification failed. Please check that classification has been completed.")
+        
+        except Exception as e:
+            print(f"[BSI ERROR] Analysis failed: {e}")
+            if 'loading_dialog' in locals():
+                loading_dialog.close()
+            QMessageBox.critical(self, "Analysis Error", f"BSI analysis failed:\n{str(e)}")
+
+    def _get_current_patient_id(self) -> str:
+        """Get current patient ID for file naming"""
+        try:
+            patient_id, _ = self._get_current_patient_info()
+            return patient_id or "unknown"
+        except:
+            return "unknown"
+
+    def _get_current_patient_info(self) -> tuple[str, str]:
+        """Get current patient ID and session code"""
+        try:
+            id_text = self.patient_bar.id_combo.currentText()
+            if not id_text.startswith("ID: "):
+                return None, None
+                
+            remainder = id_text[4:]  # Remove "ID: "
+            patient_id = remainder.split(" (")[0]  # "12"
+            session_part = remainder.split(" (")[1]  # "NSY)"
+            session = session_part.rstrip(")")  # "NSY"
+            
+            return patient_id, session
+        except:
+            return None, None
 
     # FIXED: NEW method to handle timeline scan selection
     def _on_timeline_scan_selected(self, scan_index: int):
@@ -220,29 +530,47 @@ class MainWindowSpect(QMainWindow):
         for i, btn in enumerate(self.scan_buttons):
             btn.setChecked(i == scan_index)
         
-        # Update side panel with selected scan data
+        # ✅ NEW: Update BSI panel with selected scan data
         try:
-            id_text = self.patient_bar.id_combo.currentText()
-            if not id_text.startswith("ID: "):
-                print(f"[DEBUG] Invalid format: {id_text}")
+            patient_id, session_code = self._get_current_patient_info()
+            
+            if not patient_id or not session_code:
+                print(f"[DEBUG] Invalid patient info")
                 return
                 
-            remainder = id_text[4:]  # Remove "ID: "
-            patient_id = remainder.split(" (")[0]  # "12"
-            session_part = remainder.split(" (")[1]  # "NSY)"
-            session = session_part.rstrip(")")  # "NSY"
-            
-            cache_key = f"{patient_id}_{session}"
+            cache_key = f"{patient_id}_{session_code}"
             scans = self._loaded.get(cache_key, [])
             
             if scans and scan_index < len(scans):
                 selected_scan = scans[scan_index]
-                self.side_panel.set_chart_data(scans)
-                self.side_panel.set_summary(selected_scan["meta"])
-                print(f"[DEBUG] Updated side panel for scan {scan_index + 1}")
+                
+                # ✅ NEW: Load BSI data for selected scan
+                self._load_bsi_for_scan(selected_scan, session_code)
+                
+                print(f"[DEBUG] Updated BSI panel for scan {scan_index + 1}")
                 
         except (IndexError, AttributeError) as e:
-            print(f"[DEBUG] Failed to update side panel: {e}")
+            print(f"[DEBUG] Failed to update BSI panel: {e}")
+
+    def _load_bsi_for_scan(self, scan_data: Dict, session_code: str):
+        """Load BSI data for selected scan"""
+        try:
+            print(f"[BSI] Loading BSI data for selected scan")
+            
+            # Extract patient info from scan
+            dicom_path = Path(scan_data["path"])
+            patient_folder = dicom_path.parent
+            
+            # Get patient ID from path or scan data
+            patient_id = patient_folder.name
+            study_date = extract_study_date_from_dicom(dicom_path)
+            
+            # Load BSI data
+            self.bsi_panel.load_patient_data(patient_folder, patient_id, study_date)
+            
+        except Exception as e:
+            print(f"[BSI ERROR] Failed to load BSI data: {e}")
+            self.bsi_panel.clear_patient_data()
 
     # NEW: Handle checkbox-based layer changes
     def _on_layers_changed(self, active_layers: list) -> None:
@@ -273,7 +601,7 @@ class MainWindowSpect(QMainWindow):
 
     # UPDATED: Enhanced scan button click handler for checkbox system
     def _on_scan_button_clicked(self, index: int) -> None:
-        """Handle scan button click with checkbox mode support"""
+        """✅ ENHANCED: Handle scan button click with proper BSI integration"""
         print(f"[DEBUG] Scan button {index + 1} clicked")
         
         # Get current active layers and sync timeline settings
@@ -291,19 +619,9 @@ class MainWindowSpect(QMainWindow):
 
         # Get current patient data
         try:
-            id_text = self.patient_bar.id_combo.currentText()
-            # Parse "ID: 12 (NSY)" format correctly
-            if not id_text.startswith("ID: "):
-                print(f"[DEBUG] Invalid format: {id_text}")
-                return
-                
-            remainder = id_text[4:]  # Remove "ID: "
-            patient_id = remainder.split(" (")[0]  # "12"
-            session_part = remainder.split(" (")[1]  # "NSY)"
-            session = session_part.rstrip(")")  # "NSY"
-            
-            cache_key = f"{patient_id}_{session}"
-        except (IndexError, AttributeError):
+            patient_id, session_code = self._get_current_patient_info()
+            cache_key = f"{patient_id}_{session_code}"
+        except:
             print("[DEBUG] Failed to get current patient ID")
             return
 
@@ -316,12 +634,11 @@ class MainWindowSpect(QMainWindow):
         
         selected_scan = scans[index]
 
-        # Update timeline display with current settings
-        self.timeline_widget.display_timeline(scans, active_index=index)
+        # ✅ ENHANCED: Update timeline display with BSI integration
+        self.update_timeline_with_scans_enhanced(scans, active_index=index)
 
-        # Update side panel
-        self.side_panel.set_chart_data(scans)
-        self.side_panel.set_summary(selected_scan["meta"])
+        # Update BSI panel with selected scan
+        self._load_bsi_for_scan(selected_scan, session_code)
         
         print(f"[DEBUG] Displaying {len(scans)} scans in timeline with layers: {active_layers}")
 
@@ -394,10 +711,11 @@ class MainWindowSpect(QMainWindow):
         print("[DEBUG] Process pool ditutup.")
         if hasattr(self, 'timeline_widget') and hasattr(self.timeline_widget, 'cleanup'):
             self.timeline_widget.cleanup()
-        if hasattr(self, 'side_panel') and hasattr(self.side_panel, 'cleanup'):
-            self.side_panel.cleanup()
+        if hasattr(self, 'bsi_panel') and hasattr(self.bsi_panel, 'cleanup'):
+            print("[DEBUG] Cleaning up BSI panel...")
         super().closeEvent(event)
 
+    # Rest of the methods remain the same...
     def _run_hotspot_processing_on_demand(self):
         """
         Check if hotspot files exist, if not, create them (fallback only)
@@ -546,6 +864,9 @@ class MainWindowSpect(QMainWindow):
         self.patient_bar.clear_info(keep_id_list=True)
         self.timeline_widget.display_timeline([])
         
+        # ✅ NEW: Clear BSI panel
+        self.bsi_panel.clear_patient_data()
+        
         print("[DEBUG] Folder scan completed")
     
     def _on_patient_selected(self, txt: str) -> None:
@@ -683,11 +1004,22 @@ class MainWindowSpect(QMainWindow):
         if scans:
             self.patient_bar.set_patient_meta(scans[-1]["meta"])
             self._populate_scan_buttons(scans)
-            self._on_scan_button_clicked(0)
+            
+            # ✅ ENHANCED: Use enhanced timeline update
+            self.update_timeline_with_scans_enhanced(scans, active_index=0)
+            
+            # Load first scan
+            self._load_bsi_for_scan(scans[0], session_code)
+            
+            # Set first button as checked
+            if self.scan_buttons:
+                self.scan_buttons[0].setChecked(True)
         else:
             self.patient_bar.clear_info()
             self._populate_scan_buttons([])
             self.timeline_widget.display_timeline([])
+            self.bsi_panel.clear_patient_data()
+
 
     def _populate_scan_buttons(self, scans: List[Dict]) -> None:
         """Populate scan buttons"""
