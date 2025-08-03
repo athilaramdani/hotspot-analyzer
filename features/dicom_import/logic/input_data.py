@@ -1,4 +1,4 @@
-# features/dicom_import/logic/input_data.py - Enhanced with YOLO detection during import
+# features/dicom_import/logic/input_data.py - UPDATED with QUANTIFICATION INTEGRATION
 from __future__ import annotations
 from pathlib import Path
 from shutil  import copy2
@@ -17,8 +17,6 @@ from pydicom.uid     import (
 
 from .dicom_loader import load_frames_and_metadata
 from features.spect_viewer.logic.segmenter import predict_bone_mask
-# ✅ ADD YOLO DETECTION IMPORT
-from features.spect_viewer.logic.processing_wrapper import run_yolo_detection_for_patient
 from core.logger import _log
 from core.gui.ui_constants import truncate_text
 
@@ -112,31 +110,58 @@ def _save_secondary_capture(ref: Dataset, img: np.ndarray, out_path: Path, descr
 def _ensure_2d(mask: np.ndarray) -> np.ndarray:
     return mask if mask.ndim == 2 else mask[0] if mask.shape[0] == 1 else mask[:, :, 0]
 
-def _upload_to_cloud(file_path: Path, session_code: str, patient_id: str, is_edited: bool = False) -> bool:
-    """Upload file to cloud storage if enabled - ONLY for input DICOM files"""
+def _save_original_frame_png(frame: np.ndarray, output_path: Path) -> None:
+    """
+    Save original DICOM frame as normalized PNG for classification use
+    
+    Args:
+        frame: Original frame data from DICOM
+        output_path: Path to save the PNG file
+    """
+    try:
+        # Normalize frame to uint8 (0-255 range)
+        if frame.dtype != np.uint8:
+            frame_norm = frame.astype(np.float32)
+            frame_norm = (frame_norm - frame_norm.min()) / max(frame_norm.max() - frame_norm.min(), 1)
+            frame_uint8 = (frame_norm * 255).astype(np.uint8)
+        else:
+            frame_uint8 = frame
+        
+        # Save as grayscale PNG
+        Image.fromarray(frame_uint8, mode="L").save(output_path)
+        _log(f"     Original frame saved: {output_path.name}")
+        
+    except Exception as e:
+        _log(f"     [WARN] Failed to save original frame PNG: {e}")
+
+def _upload_original_png_to_cloud(png_path: Path, session_code: str, patient_id: str) -> bool:
+    """
+    ✅ FIXED: Upload ONLY original PNG files to cloud
+    
+    Args:
+        png_path: Path to original PNG file
+        session_code: Session code
+        patient_id: Patient ID
+        
+    Returns:
+        True if successful upload
+    """
     if not CLOUD_AVAILABLE or not is_cloud_enabled():
         return False
     
-    # ✅ ONLY UPLOAD ORIGINAL INPUT DICOM FILES
-    # Skip processed files (mask, colored, etc.)
-    if any(pattern in file_path.name.lower() for pattern in ['mask', 'colored', '_ant_', '_post_']):
-        _log(f"     Skipping processed file upload: {file_path.name}")
-        return False
-    
-    # ✅ ONLY UPLOAD .dcm files that are input files
-    if file_path.suffix.lower() not in {'.dcm', '.dicom'}:
-        _log(f"     Skipping non-DICOM file upload: {file_path.name}")
+    # ✅ ONLY UPLOAD ORIGINAL PNG FILES
+    if not png_path.name.endswith('_original.png'):
         return False
     
     try:
-        success = upload_patient_file(file_path, session_code, patient_id, is_edited)
+        success = upload_patient_file(png_path, session_code, patient_id, is_edited=False)
         if success:
-            _log(f"     ✅ Uploaded input DICOM: {file_path.name}")
+            _log(f"     ✅ Uploaded original PNG: {png_path.name}")
         else:
-            _log(f"     ❌ Failed to upload: {file_path.name}")
+            _log(f"     ❌ Failed to upload PNG: {png_path.name}")
         return success
     except Exception as e:
-        _log(f"     [WARN] Cloud upload failed: {e}")
+        _log(f"     [WARN] PNG upload failed: {e}")
         return False
 
 # ---------------------------------------------------------------- core
@@ -162,37 +187,11 @@ def _process_one(src: Path, session_code: str) -> Path:
     # Create destination path with new naming convention
     dest_path = get_dicom_output_path(pid, session_code, study_date)
     
-    # Copy file to destination with new name
+    # ✅ STEP 1: Copy file to destination with new name (LOCAL ONLY)
     if src.resolve() != dest_path.resolve():
         _log(f"  >> Copying to patient directory with new name...")
         copy2(src, dest_path)
     _log(f"  Copied → {truncate_text(str(dest_path), 60)}")
-
-    # ✅ UPLOAD HANYA INPUT DICOM SAJA
-    _upload_to_cloud(dest_path, session_code, pid)
-
-    # ✅ NEW: Run YOLO detection right after file copy
-    _log("  >> Running YOLO hotspot detection...")
-    try:
-        yolo_result = run_yolo_detection_for_patient(dest_path, pid)
-        if yolo_result:
-            _log(f"     YOLO detection completed - XML files created")
-        else:
-            _log(f"     YOLO detection completed - no detections found")
-    except Exception as e:
-        _log(f"     [WARN] YOLO detection failed: {e}")
-
-    # ✅ NEW: Run Otsu hotspot processing right after YOLO
-    _log("  >> Running Otsu hotspot processing...")
-    try:
-        from features.spect_viewer.logic.processing_wrapper import run_hotspot_processing_in_process
-        hotspot_result = run_hotspot_processing_in_process(dest_path, pid)
-        if hotspot_result:
-            _log(f"     Otsu processing completed - hotspot PNG files created")
-        else:
-            _log(f"     Otsu processing completed - no hotspots generated")
-    except Exception as e:
-        _log(f"     [WARN] Otsu hotspot processing failed: {e}")
 
     # Load DICOM for processing
     _log("  >> Loading DICOM frames...")
@@ -206,8 +205,26 @@ def _process_one(src: Path, session_code: str) -> Path:
 
     overlay_group = 0x6000
     saved: List[str] = []
+    png_files_to_upload: List[Path] = []  # ✅ Track PNG files for upload
 
-    # Process each frame/view
+    # ✅ STEP 2: SAVE ORIGINAL FRAMES AS PNG (FOR CLASSIFICATION)
+    _log("  >> Saving original frames for classification...")
+    for view_name, frame in frames.items():
+        view_normalized = view_name.lower()
+        
+        # Determine view type and save original PNG
+        if "ant" in view_normalized:
+            original_png_path = dest_dir / f"{filename_stem}_anterior_original.png"
+            _save_original_frame_png(frame, original_png_path)
+            saved.append(f"{filename_stem}_anterior_original.png")
+            png_files_to_upload.append(original_png_path)  # ✅ Add to upload list
+        elif "post" in view_normalized:
+            original_png_path = dest_dir / f"{filename_stem}_posterior_original.png"
+            _save_original_frame_png(frame, original_png_path)
+            saved.append(f"{filename_stem}_posterior_original.png")
+            png_files_to_upload.append(original_png_path)  # ✅ Add to upload list
+
+    # ✅ STEP 3: SEGMENTATION PROCESSING (BUAT REGION FILES)
     for view_idx, (view, img) in enumerate(frames.items(), 1):
         view_name = truncate_text(view, 20)
         _log(f"  >> [{view_idx}/{len(frames)}] Processing {view_name}")
@@ -265,13 +282,73 @@ def _process_one(src: Path, session_code: str) -> Path:
     ds.is_little_endian = True
     ds.is_implicit_VR = False
     ds.save_as(dest_path, write_like_original=False)
+
+    # ✅ STEP 4: YOLO DETECTION (SETELAH SEGMENTATION SELESAI)
+    _log("  >> Running YOLO hotspot detection...")
+    try:
+        from features.spect_viewer.logic.processing_wrapper import run_yolo_detection_for_patient
+        yolo_result = run_yolo_detection_for_patient(dest_path, pid)
+        if yolo_result:
+            _log(f"     YOLO detection completed - XML files created")
+        else:
+            _log(f"     YOLO detection completed - no detections found")
+    except Exception as e:
+        _log(f"     [WARN] YOLO detection failed: {e}")
+
+    # ✅ STEP 5: OTSU HOTSPOT PROCESSING (SETELAH YOLO)
+    _log("  >> Running Otsu hotspot processing...")
+    try:
+        from features.spect_viewer.logic.processing_wrapper import run_hotspot_processing_in_process
+        hotspot_result = run_hotspot_processing_in_process(dest_path, pid)
+        if hotspot_result:
+            _log(f"     Otsu processing completed - hotspot PNG files created")
+        else:
+            _log(f"     Otsu processing completed - no hotspots generated")
+    except Exception as e:
+        _log(f"     [WARN] Otsu hotspot processing failed: {e}")
+
+    # ✅ STEP 6: CLASSIFICATION (SETELAH SEMUA FILE SIAP)
+    _log("  >> Running hotspot classification inference...")
+    try:
+        from features.spect_viewer.logic.processing_wrapper import run_classification_for_patient
+        classification_result = run_classification_for_patient(dest_path, pid, study_date)
+        if classification_result:
+            _log(f"     Classification completed - Normal/Abnormal results saved")
+        else:
+            _log(f"     Classification completed - no classifications generated")
+    except Exception as e:
+        _log(f"     [WARN] Classification failed: {e}")
+
+    # ✅ STEP 7: NEW QUANTIFICATION (SETELAH CLASSIFICATION - USES CLASSIFICATION MASKS)
+    _log("  >> Running BSI quantification with classification masks...")
+    try:
+        from features.spect_viewer.logic.quantification_wrapper import run_quantification_for_patient
+        quantification_result = run_quantification_for_patient(dest_path, pid, study_date)
+        if quantification_result:
+            _log(f"     BSI quantification completed - results saved")
+        else:
+            _log(f"     BSI quantification failed - missing required files")
+    except Exception as e:
+        _log(f"     [WARN] BSI quantification failed: {e}")
+
+    # ✅ STEP 8: UPLOAD ORIGINAL PNG FILES TO CLOUD
+    _log("  >> Uploading original PNG files to cloud...")
+    uploaded_count = 0
+    for png_path in png_files_to_upload:
+        if _upload_original_png_to_cloud(png_path, session_code, pid):
+            uploaded_count += 1
+    
+    if uploaded_count > 0:
+        _log(f"     ✅ Uploaded {uploaded_count} original PNG files to cloud")
+    else:
+        _log(f"     ⚠️  No files uploaded to cloud (cloud storage unavailable)")
     
     _log(f"  DICOM processing completed")
     _log(f"  Files saved locally: {len(saved)} items")
-    _log(f"  Cloud upload: Input DICOM only")
-    _log(f"  YOLO detection: XML files created")
-    _log(f"  Otsu processing: Hotspot PNG files created")
-    _log(f"  New filename pattern: {filename_stem}_[view]_[type]")
+    _log(f"  Cloud upload: {uploaded_count} original PNG files only")
+    _log(f"  Pipeline: Copy → Original PNG → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG")
+    _log(f"  New quantification: Uses classification masks instead of Otsu results")
+    _log(f"  Filename pattern: {filename_stem}_[view]_[type]")
     
     return dest_path
 
@@ -285,8 +362,8 @@ def process_files(
     session_code: str | None = None 
 ) -> List[Path]:
     """
-    Process multiple DICOM files with new directory structure, study date in filenames,
-    and YOLO detection during import
+    Process multiple DICOM files with COMPLETE NEW workflow order:
+    1. Copy DICOM → 2. Save Original Frames → 3. Segmentation → 4. YOLO → 5. Otsu → 6. Classification → 7. NEW Quantification → 8. Upload PNG
     
     Args:
         paths: List of DICOM file paths to process
@@ -326,8 +403,10 @@ def process_files(
     _log(f"## Starting batch import: {total} file(s)")
     _log(f"## Session code: {session_code}")
     _log(f"## Target directory: data/SPECT/{session_code}/[patient_id]/")
-    _log(f"## Processing: DICOM → Segmentation → YOLO → Otsu Hotspot")
-    _log(f"## New naming: [patient_id]_[study_date]_[view]_[type]")
+    _log(f"## NEW Processing workflow: Copy → Original PNG → Segmentation → YOLO → Otsu → Classification → QUANTIFICATION → Upload PNG")
+    _log(f"## NEW Quantification: Uses classification masks instead of Otsu results")
+    _log(f"## NEW naming: [patient_id]_[study_date]_[view]_[type]")
+    _log(f"## Cloud upload: Original PNG files only (not DICOM)")
 
     for i, p in enumerate(paths, 1):
         try:
@@ -344,9 +423,11 @@ def process_files(
                 progress_cb(i, total, str(p))
 
     _log("## Batch import process completed")
-    _log("## All files processed: DICOM → Segmentation → YOLO → Otsu")
-    _log("## Local processing completed. Only input DICOM files uploaded to cloud.")
+    _log("## NEW Complete workflow: Copy → Original PNG → Segmentation → YOLO → Otsu → Classification → QUANTIFICATION → Upload PNG")
+    _log("## NEW Quantification: BSI calculated using classification masks")
+    _log("## Local processing completed. Original PNG files uploaded to cloud.")
     _log("## All files now use study date naming convention.")
+    _log("## Quantification results saved as JSON with BSI scores.")
     
     globals()["_log"] = orig_log      # kembalikan logger asli
     return out

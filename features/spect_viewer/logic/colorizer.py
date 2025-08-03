@@ -1,5 +1,5 @@
 # =====================================================================
-# backend/colorizer.py – FIXED LABEL↔PALETTE ORDER
+# features\spect_viewer\logic\colorizer.py – FIXED LABEL↔PALETTE ORDER
 # ---------------------------------------------------------------------
 """Konversi label mask 0‑12 → RGB ndarray sesuai palette.
 

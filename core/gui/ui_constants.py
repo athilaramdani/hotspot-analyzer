@@ -1,14 +1,14 @@
-# core/gui/ui_constants.py
+# core/gui/ui_constants.py - UPDATED with BSI styles
 """Reusable Qt stylesheet constants for the Hotspot‑Analyzer GUI.
 
-Enhanced version with support for new mode selector components including
-radio buttons, sliders, and layered display indicators.
+Enhanced version with support for BSI quantification components including
+canvas styles, panel layouts, and quantification-specific UI elements.
 
 Import the constants you need, e.g.::
 
-    from core.gui.ui_constants import PRIMARY_BUTTON_STYLE, RADIO_BUTTON_STYLE
+    from core.gui.ui_constants import PRIMARY_BUTTON_STYLE, BSI_PANEL_STYLE
     my_button.setStyleSheet(PRIMARY_BUTTON_STYLE)
-    my_radio.setStyleSheet(RADIO_BUTTON_STYLE)
+    my_panel.setStyleSheet(BSI_PANEL_STYLE)
 
 This keeps styling centralised so multiple widgets share the same look.
 """
@@ -66,6 +66,13 @@ GRAY_BUTTON_STYLE = _BUTTON_BASE + (
     }
     QPushButton:hover {
         background-color: #5a6268;
+    }
+    QPushButton:pressed {
+        background-color: #495057;
+    }
+    QPushButton:disabled {
+        background-color: #cccccc;
+        color: #666666;
     }
     """
 )
@@ -448,6 +455,200 @@ OPACITY_VALUE_LABEL_STYLE = (
     """
 )
 
+# ---------- NEW: BSI-specific styles ----------
+BSI_PANEL_STYLE = (
+    """
+    QWidget {
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+    }
+    """
+)
+
+BSI_TITLE_STYLE = (
+    """
+    QLabel {
+        font-size: 16px;
+        font-weight: bold;
+        color: #2c3e50;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        margin-bottom: 8px;
+    }
+    """
+)
+
+BSI_SCORE_LABEL_STYLE = (
+    """
+    QLabel {
+        font-size: 18px;
+        font-weight: bold;
+        padding: 12px;
+        border-radius: 6px;
+        text-align: center;
+        border: 2px solid #dee2e6;
+        margin: 4px 0px;
+    }
+    """
+)
+
+BSI_SCORE_HIGH_STYLE = (
+    """
+    QLabel {
+        font-size: 18px;
+        font-weight: bold;
+        color: #d32f2f;
+        background: #ffebee;
+        border: 2px solid #f5c6cb;
+        padding: 12px;
+        border-radius: 6px;
+        text-align: center;
+        margin: 4px 0px;
+    }
+    """
+)
+
+BSI_SCORE_MEDIUM_STYLE = (
+    """
+    QLabel {
+        font-size: 18px;
+        font-weight: bold;
+        color: #ff9800;
+        background: #fff3e0;
+        border: 2px solid #ffcc02;
+        padding: 12px;
+        border-radius: 6px;
+        text-align: center;
+        margin: 4px 0px;
+    }
+    """
+)
+
+BSI_SCORE_LOW_STYLE = (
+    """
+    QLabel {
+        font-size: 18px;
+        font-weight: bold;
+        color: #4caf50;
+        background: #e8f5e8;
+        border: 2px solid #c3e6cb;
+        padding: 12px;
+        border-radius: 6px;
+        text-align: center;
+        margin: 4px 0px;
+    }
+    """
+)
+
+BSI_INFO_ITEM_STYLE = (
+    """
+    QLabel {
+        font-size: 12px;
+        color: #495057;
+        padding: 6px 8px;
+        margin: 2px 0px;
+        background: #f8f9fa;
+        border-radius: 4px;
+        border: 1px solid #e9ecef;
+    }
+    """
+)
+
+BSI_COMMENTS_STYLE = (
+    """
+    QTextEdit {
+        background: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 12px;
+        font-size: 11px;
+        color: #495057;
+        line-height: 1.5;
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    """
+)
+
+BSI_CANVAS_FRAME_STYLE = (
+    """
+    QFrame {
+        background: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 8px;
+    }
+    """
+)
+
+BSI_EXPORT_BUTTON_STYLE = _BUTTON_BASE + (
+    """
+    QPushButton {
+        background-color: #17a2b8;
+        color: white;
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+    QPushButton:hover {
+        background-color: #138496;
+    }
+    QPushButton:pressed {
+        background-color: #117a8b;
+    }
+    QPushButton:disabled {
+        background-color: #cccccc;
+        color: #666666;
+    }
+    """
+)
+
+BSI_STATUS_SUCCESS_STYLE = (
+    """
+    QLabel {
+        font-size: 10px;
+        color: #28a745;
+        font-style: italic;
+        font-weight: bold;
+        padding: 4px 8px;
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 3px;
+    }
+    """
+)
+
+BSI_STATUS_ERROR_STYLE = (
+    """
+    QLabel {
+        font-size: 10px;
+        color: #dc3545;
+        font-style: italic;
+        font-weight: bold;
+        padding: 4px 8px;
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 3px;
+    }
+    """
+)
+
+BSI_STATUS_WARNING_STYLE = (
+    """
+    QLabel {
+        font-size: 10px;
+        color: #856404;
+        font-style: italic;
+        font-weight: bold;
+        padding: 4px 8px;
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        border-radius: 3px;
+    }
+    """
+)
+
 # ---------- NEW: Layer indicator styles ----------
 LAYER_INDICATOR_STYLES = {
     "Original": (
@@ -531,6 +732,9 @@ class Colors:
     WARNING = "#FF9800"
     WARNING_HOVER = "#F57C00"
     
+    DANGER = "#f44336"
+    DANGER_HOVER = "#da190b"
+    
     SECONDARY = "#6c757d"
     SECONDARY_HOVER = "#5a6268"
     
@@ -551,6 +755,13 @@ class Colors:
     DIALOG_BORDER = "#bdc3c7"
     DIALOG_TEXT = "#2c3e50"
     DIALOG_SUBTITLE = "#7f8c8d"
+    
+    # BSI-specific colors
+    BSI_HIGH = "#d32f2f"
+    BSI_MEDIUM = "#ff9800"
+    BSI_LOW = "#4caf50"
+    BSI_BACKGROUND = "#f8f9fa"
+    BSI_BORDER = "#e9ecef"
 
 # ---------- Text truncation utility ----------
 def truncate_text(text: str, max_length: int = 50) -> str:
@@ -584,7 +795,53 @@ def create_layer_indicator_style(layer_name: str, opacity: float = 1.0) -> str:
     }}
     """
 
+def get_bsi_score_style(bsi_score: float) -> str:
+    """Get appropriate style for BSI score based on value"""
+    if bsi_score > 5.0:
+        return BSI_SCORE_HIGH_STYLE
+    elif bsi_score > 2.0:
+        return BSI_SCORE_MEDIUM_STYLE
+    else:
+        return BSI_SCORE_LOW_STYLE
+
+def get_bsi_status_style(status_type: str) -> str:
+    """Get appropriate status style for BSI panel"""
+    status_map = {
+        "success": BSI_STATUS_SUCCESS_STYLE,
+        "error": BSI_STATUS_ERROR_STYLE,
+        "warning": BSI_STATUS_WARNING_STYLE
+    }
+    return status_map.get(status_type, BSI_STATUS_WARNING_STYLE)
+
+# ---------- BSI-specific utility functions ----------
+def format_bsi_score(bsi_score: float) -> str:
+    """Format BSI score with appropriate precision"""
+    return f"{bsi_score:.2f}%"
+
+def get_bsi_severity_text(bsi_score: float) -> str:
+    """Get severity text for BSI score"""
+    if bsi_score > 8.0:
+        return "Very High"
+    elif bsi_score > 5.0:
+        return "High"
+    elif bsi_score > 2.0:
+        return "Moderate"
+    elif bsi_score > 1.0:
+        return "Mild"
+    else:
+        return "Low"
+
+def get_bsi_severity_color(bsi_score: float) -> str:
+    """Get color for BSI severity"""
+    if bsi_score > 5.0:
+        return Colors.BSI_HIGH
+    elif bsi_score > 2.0:
+        return Colors.BSI_MEDIUM
+    else:
+        return Colors.BSI_LOW
+
 __all__ = [
+    # Existing button styles
     "PRIMARY_BUTTON_STYLE",
     "SUCCESS_BUTTON_STYLE", 
     "GRAY_BUTTON_STYLE",
@@ -611,9 +868,29 @@ __all__ = [
     "DIALOG_FRAME_STYLE",
     "FILE_ITEM_NAME_STYLE",
     "FILE_ITEM_PATH_STYLE",
+    # NEW: BSI-specific styles
+    "BSI_PANEL_STYLE",
+    "BSI_TITLE_STYLE",
+    "BSI_SCORE_LABEL_STYLE",
+    "BSI_SCORE_HIGH_STYLE",
+    "BSI_SCORE_MEDIUM_STYLE", 
+    "BSI_SCORE_LOW_STYLE",
+    "BSI_INFO_ITEM_STYLE",
+    "BSI_COMMENTS_STYLE",
+    "BSI_CANVAS_FRAME_STYLE",
+    "BSI_EXPORT_BUTTON_STYLE",
+    "BSI_STATUS_SUCCESS_STYLE",
+    "BSI_STATUS_ERROR_STYLE",
+    "BSI_STATUS_WARNING_STYLE",
     # Utilities
     "Colors",
     "get_layer_color",
     "create_layer_indicator_style",
-    "truncate_text"
+    "truncate_text",
+    # NEW: BSI utilities
+    "get_bsi_score_style",
+    "get_bsi_status_style",
+    "format_bsi_score",
+    "get_bsi_severity_text",
+    "get_bsi_severity_color"
 ]

@@ -1,4 +1,4 @@
-# F:\projek dosen\prototype riset\hotspot-analyzer\frontend\widgets\searchable_combobox.py
+# core\gui\searchable_combobox.py
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QMouseEvent
 from PySide6.QtWidgets import QComboBox, QLineEdit, QListView, QVBoxLayout, QWidget, QFrame

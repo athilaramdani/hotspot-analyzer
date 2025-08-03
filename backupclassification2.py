@@ -1,3 +1,4 @@
+# features\spect_viewer\logic\inference_classification_hs.py - FIXED to match backup preprocessing
 # Preliminaries
 import pandas as pd
 import numpy as np
@@ -14,10 +15,15 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.image as mpimg
 
-# Path
-PATH_MAIN = "./models"
-MODEL_PATH = PATH_MAIN + "/model_classification_hs_xgboost_250724.pkl"
-SCALER_PATH = PATH_MAIN + "/scaler_classification_32features.pkl"
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent.parent))
+
+from core.config.paths import CLASSIFICATION_XGBOOST_MODEL, CLASSIFICATION_SCALER_MODEL
+
+# Kemudian gunakan:
+MODEL_PATH = str(CLASSIFICATION_XGBOOST_MODEL)
+SCALER_PATH = str(CLASSIFICATION_SCALER_MODEL)
 
 # Constants
 SEGMENT_ID_DICT = {
@@ -86,40 +92,71 @@ extractor = featureextractor.RadiomicsFeatureExtractor()
 extractor.enableAllFeatures()
 
 def loadBoundingBox2List(list_bb):
-    bboxes = []
-    for bbox in list_bb:
-        x_min, y_min, x_max, y_max = map(int, bbox['bbox'])
-        label = bbox['label']
-        bboxes.append({
-            "label": label,
-            "xmin": x_min,
-            "ymin": y_min,
-            "xmax": x_max,
-            "ymax": y_max
-        })
-    return bboxes
+    """Data sudah dalam format yang benar dari classification_wrapper"""
+    return list_bb
 
 def findCoordinate(xmin, ymin, xmax, ymax, image_hotspot):
+    """Find coordinates of non-zero pixels in bounding box - EXACT SAME AS BACKUP with DEBUG"""
     arrCoor = []
     height, width = image_hotspot.shape[:2]
+    
+    print(f"[COORD DEBUG] Image size: {width}x{height}")
+    print(f"[COORD DEBUG] Bounding box: ({xmin},{ymin}) to ({xmax},{ymax})")
+    
+    # Check if bounding box is within image bounds
+    if xmin >= width or ymin >= height or xmax <= 0 or ymax <= 0:
+        print(f"[COORD DEBUG] FAILED: Bounding box completely outside image bounds")
+        return arrCoor
+    
+    # Count pixels in bounding box
+    total_pixels = 0
+    non_zero_pixels = 0
+    pixel_values = []
+    
     for x in range(xmin, min(xmax, width)):
         for y in range(ymin, min(ymax, height)):
-            if image_hotspot[y][x] != 0:
+            total_pixels += 1
+            pixel_value = image_hotspot[y][x]
+            pixel_values.append(pixel_value)
+            if pixel_value != 0:
                 arrCoor.append([y, x])
+                non_zero_pixels += 1
+    
+    print(f"[COORD DEBUG] Total pixels checked: {total_pixels}")
+    print(f"[COORD DEBUG] Non-zero pixels found: {non_zero_pixels}")
+    print(f"[COORD DEBUG] Unique pixel values: {sorted(set(pixel_values))}")
+    print(f"[COORD DEBUG] Min/Max pixel values: {min(pixel_values) if pixel_values else 'N/A'} / {max(pixel_values) if pixel_values else 'N/A'}")
+    
     return arrCoor
 
 def findSegment(arrCoor, image_segment):
+    """Find the most common segment ID in the coordinate array - EXACT SAME AS BACKUP with DEBUG"""
     segmentIDArr = []
     height, width = image_segment.shape
+    
+    print(f"[SEGMENT DEBUG] Processing {len(arrCoor)} coordinates")
+    print(f"[SEGMENT DEBUG] Segment image size: {width}x{height}")
+    
     for y, x in arrCoor:
         if 0 <= y < height and 0 <= x < width:
-            segmentIDArr.append(image_segment[y][x])
+            segment_id = image_segment[y][x]
+            segmentIDArr.append(segment_id)
+    
     if not segmentIDArr:
+        print(f"[SEGMENT DEBUG] FAILED: No valid segment IDs found")
         return 0
+    
     values, counts = np.unique(segmentIDArr, return_counts=True)
-    return values[np.argmax(counts)]
+    most_common_id = values[np.argmax(counts)]
+    
+    print(f"[SEGMENT DEBUG] Segment IDs found: {dict(zip(values, counts))}")
+    print(f"[SEGMENT DEBUG] Most common segment ID: {most_common_id}")
+    print(f"[SEGMENT DEBUG] Segment name: {SEGMENT_ID_DICT.get(most_common_id, 'unknown')}")
+    
+    return most_common_id
 
 def cropSegmentSpot(arrCoor, image_hotspot):
+    """Crop hotspot image to show only specified coordinates - EXACT SAME AS BACKUP"""
     image_hotspot_new = np.zeros_like(image_hotspot)
     height, width = image_hotspot.shape[:2]
     for y, x in arrCoor:
@@ -128,6 +165,7 @@ def cropSegmentSpot(arrCoor, image_hotspot):
     return image_hotspot_new
 
 def cropOnlySegment(segmentID, img_segment, img_raw):
+    """Crop segment from raw image - EXACT SAME AS BACKUP"""
     mask = (img_segment == segmentID)
     if len(img_raw.shape) == 2:
         img_segment_new = np.zeros_like(img_raw)
@@ -141,11 +179,13 @@ def cropOnlySegment(segmentID, img_segment, img_raw):
     return img_segment_new
 
 def to_gray(image):
+    """Convert to grayscale - EXACT SAME AS BACKUP"""
     if len(image.shape) == 3 and image.shape[2] == 3:
         return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     return image
 
 def create_hotspot_mask(image_shape, results):
+    """Create hotspot mask from results - EXACT SAME AS BACKUP"""
     mask = np.zeros(image_shape[:2], dtype=np.uint8)
     
     for result in results:
@@ -158,6 +198,7 @@ def create_hotspot_mask(image_shape, results):
     return mask
 
 def extractFeatures(image_raw, image_segment, image_hotspot, bb, file_path):
+    """Extract features - EXACT SAME AS BACKUP"""
     coordinate = findCoordinate(bb["xmin"], bb["ymin"], bb["xmax"], bb["ymax"], image_hotspot)
     if not coordinate:
         return None
@@ -250,12 +291,8 @@ def extractFeatures(image_raw, image_segment, image_hotspot, bb, file_path):
 
     return features
 
-def process_new_image(raw_path, segment_path, hotspot_path, xml_path):
-    images = [cv2.imread(p, cv2.IMREAD_GRAYSCALE) for p in [raw_path, segment_path, hotspot_path]]
-    list_bb = loadBoundingBox2List(xml_path)
-    return [f for bb in list_bb if (f := extractFeatures(*images, bb, raw_path))]
-
 def predict_features(features_list):
+    """Predict features - EXACT SAME AS BACKUP"""
     if not features_list:
         return []
 
@@ -277,27 +314,71 @@ def predict_features(features_list):
     return features_list
 
 def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
-    # Load images
+    """
+    Main inference function - FIXED to use PNG files with same preprocessing as backup
+    """
+    print(f"[INFERENCE DEBUG] Starting inference with PNG files")
+    print(f"[INFERENCE DEBUG] Input paths:")
+    print(f"  Raw: {path_raw}")
+    print(f"  Segment: {path_segment}")
+    print(f"  Hotspot: {path_hotspot}")
+    print(f"  XML: {len(path_xml) if isinstance(path_xml, list) else path_xml}")
+    
+    # ✅ FIXED: Use simple OpenCV loading like backup - NO SMART LOADING
+    # Load images using exact same method as backup classification
     image_raw = cv2.imread(path_raw, cv2.IMREAD_GRAYSCALE)
     image_segment = cv2.imread(path_segment, cv2.IMREAD_GRAYSCALE)
-    image_hotspot = cv2.imread(path_hotspot, cv2.IMREAD_GRAYSCALE)
+    
+    # Handle both array and path inputs for hotspot (same as backup)
+    if isinstance(path_hotspot, np.ndarray):
+        image_hotspot = np.squeeze(path_hotspot)
+    else:
+        image_hotspot = cv2.imread(str(path_hotspot), cv2.IMREAD_GRAYSCALE)
+    
+    # Ensure all images are 2D (same as backup)
+    image_raw = np.squeeze(image_raw)
+    image_segment = np.squeeze(image_segment)
+    image_hotspot = np.squeeze(image_hotspot)
+    
+    print(f"[INFERENCE DEBUG] Images loaded using OpenCV (same as backup):")
+    print(f"  Raw: {image_raw.shape if image_raw is not None else 'Failed'}")
+    print(f"  Segment: {image_segment.shape if image_segment is not None else 'Failed'}")
+    print(f"  Hotspot: {image_hotspot.shape if image_hotspot is not None else 'Failed'}")
+    
+    if image_raw is None or image_segment is None or image_hotspot is None:
+        print(f"[INFERENCE ERROR] Failed to load one or more images")
+        return [], None
+    
+    # Process bounding boxes
     list_bb = loadBoundingBox2List(path_xml)
+    print(f"[INFERENCE DEBUG] Loaded {len(list_bb)} bounding boxes")
 
-    # Extract features
+    # Extract features (same processing as backup)
     list_features = []
-    for bb in list_bb:
+    for i, bb in enumerate(list_bb):
+        print(f"[INFERENCE DEBUG] Processing bbox {i}: {bb}")
         feature = extractFeatures(image_raw, image_segment, image_hotspot, bb, path_raw)
         if feature is None:
+            print(f"[INFERENCE DEBUG] Feature extraction failed for bbox {i}")
             continue
         list_features.append(feature)
+        print(f"[INFERENCE DEBUG] Feature extracted for bbox {i}: segment={feature.get('segment')}")
 
     if not list_features:
-        return []
+        print(f"[INFERENCE DEBUG] No valid features extracted")
+        return [], None
 
-    # Predict
-    results = predict_features(list_features)
+    print(f"[INFERENCE DEBUG] Extracted {len(list_features)} valid features")
+
+    # Predict (same as backup)
+    try:
+        results = predict_features(list_features)
+        print(f"[INFERENCE DEBUG] Prediction completed: {len(results)} results")
+    except Exception as e:
+        print(f"[INFERENCE ERROR] Prediction failed: {e}")
+        return [], None
     
-    # Format output untuk kemudahan
+    # Format output (same as backup)
     output_list = []
     for result in results:
         output_dict = {
@@ -331,7 +412,13 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
         }
         output_list.append(output_dict)
         
-    hotspot_mask_gray = create_hotspot_mask(image_raw.shape, output_list)
-    hotspot_mask= cv2.cvtColor(hotspot_mask_gray, cv2.COLOR_GRAY2BGR)
+    print(f"[INFERENCE DEBUG] Final output: {len(output_list)} classifications")
+    
+    # Create output mask (same as backup)
+    if output_list:
+        hotspot_mask_gray = create_hotspot_mask(image_raw.shape, output_list)
+        hotspot_mask = cv2.cvtColor(hotspot_mask_gray, cv2.COLOR_GRAY2BGR)
+    else:
+        hotspot_mask = np.zeros((image_raw.shape[0], image_raw.shape[1], 3), dtype=np.uint8)
     
     return output_list, hotspot_mask

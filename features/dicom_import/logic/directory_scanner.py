@@ -1,5 +1,5 @@
 # =====================================================================
-# backend/directory_scanner.py
+# features\dicom_import\logic\directory_scanner.py
 # ---------------------------------------------------------------------
 """
 Pindai folder `data/…` dan kembalikan mapping untuk NEW directory structure:
