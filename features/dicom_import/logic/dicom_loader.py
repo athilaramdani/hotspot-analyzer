@@ -1,25 +1,16 @@
-# =====================================================================
-# features\dicom_import\logic\dicom_loader.py - Updated with study date support
-# ---------------------------------------------------------------------
+# features/dicom_import/logic/dicom_loader.py - Enhanced with view assignment support
 """
-Utility untuk:
-1.  Membaca file DICOM (single‑/multi‑frame)
-2.  Mengekstrak frame‑frame sebagai ndarray
-3.  Menentukan label view (Anterior / Posterior) untuk tiap frame
-4.  Menyimpan frame ke PNG (format *_0000.png) agar cocok dg model
-5.  Extract study date dan patient info dengan naming convention baru
-
-API:
-    frames, meta = load_frames_and_metadata(path: str)
-    png_path     = save_frame_to_png(frame: np.ndarray, view: str, uid: str)
-    patient_id, session_code = extract_patient_info_from_path(path: Path)
-    study_date = extract_study_date_from_dicom(path: Path)
+Enhanced DICOM loader yang mendukung:
+1. Multiple detection methods untuk Anterior/Posterior 
+2. User-assigned view labels
+3. Fallback ke root ViewCodeSequence 
+4. Proper naming convention dengan study date
 """
 from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 
 import numpy as np
 import pydicom
@@ -34,7 +25,11 @@ PNG_ROOT.mkdir(parents=True, exist_ok=True)
 
 # ------------------------------------------------------------------ helpers
 
-def _label_from_meaning(meaning: str) -> str:
+def _label_from_meaning(meaning: str) -> Optional[str]:
+    """Enhanced label detection dari meaning string"""
+    if not meaning:
+        return None
+        
     up = meaning.upper()
     if "ANT" in up:
         return "Anterior"
@@ -43,10 +38,14 @@ def _label_from_meaning(meaning: str) -> str:
     return meaning.strip() or None
 
 
-def _extract_labels(ds) -> list[str]:
+def _extract_labels_enhanced(ds) -> list[str]:
+    """
+    Enhanced label extraction dengan multiple fallback methods
+    """
     n = int(getattr(ds, "NumberOfFrames", 1))
     labels = [None] * n
 
+    # ✅ METHOD 1: DetectorInformationSequence (standard method)
     det_seq = getattr(ds, "DetectorInformationSequence", None)
     if det_seq:
         for idx, det in enumerate(det_seq):
@@ -54,14 +53,45 @@ def _extract_labels(ds) -> list[str]:
                 continue
             meaning = str(det.ViewCodeSequence[0].CodeMeaning)
             name = _label_from_meaning(meaning)
-            if name:
+            if name and idx < n:
                 labels[idx] = name
 
-    # fallback
-    for i, lbl in enumerate(labels):
-        if not lbl:
-            labels[i] = f"Frame {i+1}"
-    # dedup
+    # ✅ METHOD 2: Root ViewCodeSequence (untuk DICOM kedua)
+    elif hasattr(ds, "ViewCodeSequence"):
+        view_seq = ds.ViewCodeSequence
+        for idx, view_item in enumerate(view_seq):
+            if idx >= n:
+                break
+            if hasattr(view_item, "CodeMeaning"):
+                meaning = str(view_item.CodeMeaning)
+                name = _label_from_meaning(meaning)
+                if name:
+                    labels[idx] = name
+
+    # ✅ METHOD 3: ViewPosition tag
+    elif hasattr(ds, "ViewPosition"):
+        view_pos = str(ds.ViewPosition)
+        if "\\" in view_pos:  # Multiple views separated by backslash
+            positions = view_pos.split("\\")
+            for idx, pos in enumerate(positions):
+                if idx >= n:
+                    break
+                name = _label_from_meaning(pos)
+                if name:
+                    labels[idx] = name
+
+    # ✅ METHOD 4: Smart fallback untuk bone scan
+    all_none = all(lbl is None for lbl in labels)
+    if all_none and n == 2:
+        # Standard bone scan assumption: frame 0 = anterior, frame 1 = posterior
+        labels = ["Anterior", "Posterior"]
+        print(f"   🎯 Using bone scan assumption: [Anterior, Posterior]")
+    elif all_none:
+        # Generic fallback with frame numbers
+        labels = [f"Frame {i+1}" for i in range(n)]
+        print(f"   ⚠️  Generic fallback: {labels}")
+    
+    # ✅ DEDUPLICATION: Handle duplicate names
     seen: Dict[str, int] = {}
     for i, lbl in enumerate(labels):
         if lbl in seen:
@@ -69,29 +99,64 @@ def _extract_labels(ds) -> list[str]:
             labels[i] = f"{lbl} #{seen[lbl]}"
         else:
             seen[lbl] = 1
+    
     return labels
+
+# Backward compatibility
+_extract_labels = _extract_labels_enhanced
 
 # ------------------------------------------------------------------ public
 
-def load_frames_and_metadata(path: str) -> Tuple[Dict[str, np.ndarray], dict]:
+def load_frames_and_metadata_with_assignments(
+    path: str, 
+    view_assignments: Optional[Dict[int, str]] = None
+) -> Tuple[Dict[str, np.ndarray], dict]:
     """
-    Load DICOM frames and metadata with enhanced study date extraction
+    Load DICOM frames with user-assigned view labels
     
     Args:
         path: Path to DICOM file
+        view_assignments: Optional dict {frame_index: view_name}
         
     Returns:
         Tuple of (frames_dict, metadata_dict)
         frames_dict: {view_name: numpy_array}
-        metadata_dict: Patient and study information including study_date
+        metadata_dict: Patient and study information
     """
     ds = pydicom.dcmread(Path(path))
     arr = ds.pixel_array
     if arr.ndim == 2:
         arr = arr[np.newaxis, ...]
 
-    labels = _extract_labels(ds)
-    frames = {lbl: arr[i] for i, lbl in enumerate(labels)}
+    # Use user assignments if provided, otherwise auto-detect
+    if view_assignments:
+        labels = []
+        for i in range(arr.shape[0]):
+            if i in view_assignments:
+                labels.append(view_assignments[i])
+            else:
+                labels.append(f"Frame {i+1}")
+    else:
+        labels = _extract_labels_enhanced(ds)
+
+    # ✅ ENFORCE ANTERIOR/POSTERIOR NAMING
+    # Convert any Frame X to proper view names if possible
+    normalized_labels = []
+    for i, label in enumerate(labels):
+        if label in ["Anterior", "Posterior"]:
+            normalized_labels.append(label)
+        elif "Frame" in label and len(labels) == 2:
+            # For 2-frame case, assume Frame 1=Anterior, Frame 2=Posterior
+            if i == 0:
+                normalized_labels.append("Anterior")
+            else:
+                normalized_labels.append("Posterior")
+        else:
+            # Keep original but warn
+            normalized_labels.append(label)
+            print(f"   ⚠️  Non-standard view name: {label}")
+    
+    frames = {lbl: arr[i] for i, lbl in enumerate(normalized_labels)}
 
     # Enhanced metadata extraction with study date
     meta = {
@@ -129,19 +194,61 @@ def load_frames_and_metadata(path: str) -> Tuple[Dict[str, np.ndarray], dict]:
     return frames, meta
 
 
+def load_frames_and_metadata(path: str) -> Tuple[Dict[str, np.ndarray], dict]:
+    """
+    Backward compatibility function - load frames with auto-detection only
+    """
+    return load_frames_and_metadata_with_assignments(path, None)
+
+
+def validate_view_assignments(view_assignments: Dict[int, str]) -> Tuple[bool, List[str]]:
+    """
+    Validate view assignments untuk memastikan ada Anterior dan Posterior
+    
+    Args:
+        view_assignments: Dict {frame_index: view_name}
+        
+    Returns:
+        Tuple of (is_valid, error_messages)
+    """
+    errors = []
+    views = set(view_assignments.values())
+    
+    if "Anterior" not in views:
+        errors.append("Missing Anterior view assignment")
+    
+    if "Posterior" not in views:
+        errors.append("Missing Posterior view assignment")
+    
+    # Check for duplicate assignments
+    view_counts = {}
+    for view in view_assignments.values():
+        view_counts[view] = view_counts.get(view, 0) + 1
+    
+    for view, count in view_counts.items():
+        if count > 1 and view in ["Anterior", "Posterior"]:
+            errors.append(f"Multiple frames assigned to {view} view")
+    
+    return len(errors) == 0, errors
+
+
 def save_frame_to_png(frame: np.ndarray, *, view: str, uid: str, study_date: str = None) -> Path:
     """
     Simpan ndarray → PNG dg format <View>_<UID>_<StudyDate>_0000.png & return path.
     
     Args:
         frame: Numpy array of the frame
-        view: View name (Anterior/Posterior)
+        view: View name (MUST be "Anterior" or "Posterior")
         uid: Unique identifier
         study_date: Study date in YYYYMMDD format (optional)
         
     Returns:
         Path to saved PNG file
     """
+    # ✅ ENFORCE proper view names
+    if view not in ["Anterior", "Posterior"]:
+        raise ValueError(f"View must be 'Anterior' or 'Posterior', got: {view}")
+    
     dataset_id = f"Dataset00{'1' if view == 'Anterior' else '2'}_BoneScan{view}"
     out_dir = PNG_ROOT / dataset_id / "imagesTs"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -162,18 +269,23 @@ def save_frame_to_png(frame: np.ndarray, *, view: str, uid: str, study_date: str
     plt.imsave(fpath, frame, cmap="gray")
     return fpath
 
+
 def get_png_output_dir(view: str) -> Path:
     """
     Get output directory for PNG files based on view
     
     Args:
-        view: View name (Anterior/Posterior)
+        view: View name (MUST be "Anterior" or "Posterior")
         
     Returns:
         Path to output directory
     """
+    if view not in ["Anterior", "Posterior"]:
+        raise ValueError(f"View must be 'Anterior' or 'Posterior', got: {view}")
+        
     dataset_id = f"Dataset00{'1' if view == 'Anterior' else '2'}_BoneScan{view}"
     return PNG_ROOT / dataset_id / "imagesTs"
+
 
 def cleanup_temp_png_files(uid: str = None, study_date: str = None):
     """
@@ -204,6 +316,7 @@ def cleanup_temp_png_files(uid: str = None, study_date: str = None):
                         
     except Exception as e:
         print(f"Warning: PNG cleanup failed: {e}")
+
 
 def extract_patient_info_from_path(dicom_path: Path) -> Tuple[str, str]:
     """
@@ -246,6 +359,7 @@ def extract_patient_info_from_path(dicom_path: Path) -> Tuple[str, str]:
     except Exception:
         return "UNKNOWN", "UNKNOWN"
 
+
 def extract_study_date_from_dicom(dicom_path: Path) -> str:
     """
     Extract study date from DICOM file
@@ -281,6 +395,7 @@ def extract_study_date_from_dicom(dicom_path: Path) -> str:
         print(f"Warning: Could not extract study date from {dicom_path}: {e}")
         from datetime import datetime
         return datetime.now().strftime("%Y%m%d")
+
 
 def extract_all_dicom_metadata(dicom_path: Path) -> dict:
     """
@@ -359,11 +474,13 @@ def extract_all_dicom_metadata(dicom_path: Path) -> dict:
         
     except Exception as e:
         print(f"Error extracting metadata from {dicom_path}: {e}")
+        from datetime import datetime
         return {
             "patient_id": "UNKNOWN",
             "study_date": datetime.now().strftime("%Y%m%d"),
             "error": str(e)
         }
+
 
 def validate_dicom_file(dicom_path: Path) -> bool:
     """
@@ -381,6 +498,7 @@ def validate_dicom_file(dicom_path: Path) -> bool:
         return hasattr(ds, 'PatientID') and hasattr(ds, 'Modality')
     except Exception:
         return False
+
 
 def get_dicom_preview_info(dicom_path: Path) -> dict:
     """

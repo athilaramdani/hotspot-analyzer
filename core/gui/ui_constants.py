@@ -840,6 +840,332 @@ def get_bsi_severity_color(bsi_score: float) -> str:
     else:
         return Colors.BSI_LOW
 
+# ---------- View Selector Dialog Styles ----------
+VIEW_SELECTOR_TITLE_STYLE = (
+    """
+    QLabel {
+        font-size: 18px; 
+        font-weight: bold; 
+        margin: 10px 0px 8px 0px;
+        color: #2c3e50;
+        padding: 8px;
+        background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
+            stop: 0 #f8f9fa, stop: 1 #e9ecef);
+        border-radius: 6px;
+    }
+    """
+)
+
+VIEW_SELECTOR_INSTRUCTIONS_STYLE = (
+    """
+    QLabel {
+        background: #e3f2fd;
+        border: 1px solid #90caf9;
+        border-radius: 6px;
+        padding: 12px;
+        font-size: 12px;
+        color: #0d47a1;
+        line-height: 1.5;
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    """
+)
+
+FRAME_PREVIEW_STYLE = (
+    """
+    QLabel {
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background: #f8f9fa;
+        padding: 4px;
+    }
+    QLabel:hover {
+        border-color: #4e73ff;
+        background: #f0f4ff;
+    }
+    """
+)
+
+FRAME_WIDGET_STYLE = (
+    """
+    QWidget {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 8px;
+        margin: 4px;
+    }
+    QWidget:hover {
+        border-color: #4e73ff;
+        box-shadow: 0 2px 4px rgba(78, 115, 255, 0.1);
+    }
+    """
+)
+
+DICOM_FILE_HEADER_STYLE = (
+    """
+    QFrame {
+        background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
+            stop: 0 #f8f9fa, stop: 1 #ffffff);
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 8px;
+        margin-bottom: 8px;
+    }
+    """
+)
+
+VIEW_CHECKBOX_STYLE = (
+    """
+    QCheckBox {
+        font-size: 12px;
+        font-weight: bold;
+        color: #495057;
+        spacing: 6px;
+    }
+    QCheckBox::indicator {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+    }
+    QCheckBox::indicator:unchecked {
+        border: 2px solid #ced4da;
+        background: white;
+    }
+    QCheckBox::indicator:unchecked:hover {
+        border: 2px solid #4e73ff;
+        background: #f0f4ff;
+    }
+    QCheckBox::indicator:checked {
+        border: 2px solid #4e73ff;
+        background: #4e73ff;
+        image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDEyIDkiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xMC42IDEuNkw0LjYwMDA1IDcuNkwxLjQgNC40IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K);
+    }
+    QCheckBox::indicator:checked:hover {
+        background: #3e63e6;
+        border: 2px solid #3e63e6;
+    }
+    """
+)
+
+AUTO_DETECTED_BADGE_STYLE = (
+    """
+    QLabel {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        border-radius: 12px;
+        padding: 2px 8px;
+        font-size: 10px;
+        font-weight: bold;
+        max-width: 80px;
+    }
+    """
+)
+
+MANUAL_REQUIRED_BADGE_STYLE = (
+    """
+    QLabel {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+        border-radius: 12px;
+        padding: 2px 8px;
+        font-size: 10px;
+        font-weight: bold;
+        max-width: 120px;
+    }
+    """
+)
+
+VALIDATION_STATUS_SUCCESS_STYLE = (
+    """
+    QLabel {
+        color: #28a745;
+        font-size: 12px;
+        font-weight: bold;
+        padding: 4px 8px;
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 4px;
+    }
+    """
+)
+
+VALIDATION_STATUS_WARNING_STYLE = (
+    """
+    QLabel {
+        color: #856404;
+        font-size: 12px;
+        font-weight: bold;
+        padding: 4px 8px;
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        border-radius: 4px;
+    }
+    """
+)
+
+CONFIRM_PROCESS_BUTTON_STYLE = (
+    """
+    QPushButton {
+        background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+            stop: 0 #28a745, stop: 1 #20c997);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    QPushButton:hover:enabled {
+        background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+            stop: 0 #218838, stop: 1 #1e7e34);
+        box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+    }
+    QPushButton:pressed:enabled {
+        background: #1e7e34;
+    }
+    QPushButton:disabled {
+        background: #6c757d;
+        color: #adb5bd;
+    }
+    """
+)
+
+LOADING_OVERLAY_STYLE = (
+    """
+    QWidget {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+    }
+    """
+)
+
+FRAME_INFO_LABEL_STYLE = (
+    """
+    QLabel {
+        color: #6c757d;
+        font-size: 10px;
+        font-weight: bold;
+        text-align: center;
+        padding: 4px;
+        background: rgba(108, 117, 125, 0.1);
+        border-radius: 4px;
+    }
+    """
+)
+
+# Enhanced workflow styles
+ENHANCED_WORKFLOW_BADGE_STYLE = (
+    """
+    QLabel {
+        background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
+            stop: 0 #4e73ff, stop: 1 #7da3ff);
+        color: white;
+        border-radius: 12px;
+        padding: 4px 12px;
+        font-size: 11px;
+        font-weight: bold;
+    }
+    """
+)
+
+WORKFLOW_STEP_INDICATOR_STYLE = (
+    """
+    QLabel {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: bold;
+        color: #495057;
+        min-width: 20px;
+        max-width: 40px;
+        text-align: center;
+    }
+    """
+)
+
+WORKFLOW_STEP_ACTIVE_STYLE = (
+    """
+    QLabel {
+        background: #4e73ff;
+        border: 2px solid #3e63e6;
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+        min-width: 20px;
+        max-width: 40px;
+        text-align: center;
+    }
+    """
+)
+
+WORKFLOW_STEP_COMPLETE_STYLE = (
+    """
+    QLabel {
+        background: #28a745;
+        border: 2px solid #20c997;
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+        min-width: 20px;
+        max-width: 40px;
+        text-align: center;
+    }
+    """
+)
+
+# Add to the Colors class
+class ViewSelectorColors:
+    """Colors specific to view selector components"""
+    DETECTED_BG = "#d4edda"
+    DETECTED_TEXT = "#155724"
+    DETECTED_BORDER = "#c3e6cb"
+    
+    MANUAL_BG = "#fff3cd"
+    MANUAL_TEXT = "#856404"
+    MANUAL_BORDER = "#ffeeba"
+    
+    FRAME_BORDER = "#dee2e6"
+    FRAME_BORDER_HOVER = "#4e73ff"
+    FRAME_BG = "#f8f9fa"
+    FRAME_BG_HOVER = "#f0f4ff"
+    
+    CHECKBOX_UNCHECKED = "#ced4da"
+    CHECKBOX_CHECKED = "#4e73ff"
+    CHECKBOX_HOVER = "#3e63e6"
+
+# Utility functions for view selector
+def get_detection_status_style(has_auto_detection: bool) -> str:
+    """Get style for detection status badge"""
+    if has_auto_detection:
+        return AUTO_DETECTED_BADGE_STYLE
+    else:
+        return MANUAL_REQUIRED_BADGE_STYLE
+
+def get_validation_status_style(is_valid: bool) -> str:
+    """Get style for validation status"""
+    if is_valid:
+        return VALIDATION_STATUS_SUCCESS_STYLE
+    else:
+        return VALIDATION_STATUS_WARNING_STYLE
+
+def get_workflow_step_style(step_status: str) -> str:
+    """Get style for workflow step indicator"""
+    styles = {
+        "pending": WORKFLOW_STEP_INDICATOR_STYLE,
+        "active": WORKFLOW_STEP_ACTIVE_STYLE,
+        "complete": WORKFLOW_STEP_COMPLETE_STYLE
+    }
+    return styles.get(step_status, WORKFLOW_STEP_INDICATOR_STYLE)
+
 __all__ = [
     # Existing button styles
     "PRIMARY_BUTTON_STYLE",
@@ -893,4 +1219,30 @@ __all__ = [
     "format_bsi_score",
     "get_bsi_severity_text",
     "get_bsi_severity_color"
+    # View selector styles
+    "VIEW_SELECTOR_TITLE_STYLE",
+    "VIEW_SELECTOR_INSTRUCTIONS_STYLE",
+    "FRAME_PREVIEW_STYLE",
+    "FRAME_WIDGET_STYLE",
+    "DICOM_FILE_HEADER_STYLE",
+    "VIEW_CHECKBOX_STYLE",
+    "AUTO_DETECTED_BADGE_STYLE", 
+    "MANUAL_REQUIRED_BADGE_STYLE",
+    "VALIDATION_STATUS_SUCCESS_STYLE",
+    "VALIDATION_STATUS_WARNING_STYLE",
+    "CONFIRM_PROCESS_BUTTON_STYLE",
+    "LOADING_OVERLAY_STYLE",
+    "FRAME_INFO_LABEL_STYLE",
+    
+    # Enhanced workflow styles
+    "ENHANCED_WORKFLOW_BADGE_STYLE",
+    "WORKFLOW_STEP_INDICATOR_STYLE",
+    "WORKFLOW_STEP_ACTIVE_STYLE", 
+    "WORKFLOW_STEP_COMPLETE_STYLE",
+    
+    # Colors and utilities
+    "ViewSelectorColors",
+    "get_detection_status_style",
+    "get_validation_status_style",
+    "get_workflow_step_style",
 ]
