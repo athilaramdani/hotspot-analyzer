@@ -6,7 +6,8 @@ Shows BSI chart, summary statistics, and detailed analysis comments
 from pathlib import Path
 from typing import Optional, Dict, Any
 from datetime import datetime
-
+from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QAbstractItemView
+from PySide6.QtGui import QColor
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, 
@@ -59,44 +60,52 @@ class BSISidePanel(QWidget):
         self._build_ui()
     
     def _build_ui(self):
-        """Build the side panel UI"""
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(8, 8, 8, 8)
-        main_layout.setSpacing(8)
+        """Membangun UI utama panel dengan QScrollArea agar bisa di-scroll."""
         
-        # Title section
-        self._create_title_section(main_layout)
+        # Layout utama panel ini hanya akan berisi satu widget: QScrollArea.
+        main_panel_layout = QVBoxLayout(self)
+        main_panel_layout.setContentsMargins(0, 0, 0, 0)
+
+        # 1. Buat QScrollArea untuk membungkus semua konten.
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QFrame.NoFrame)
+
+        # 2. Buat widget "kontainer" yang akan diletakkan di dalam scroll area.
+        content_widget = QWidget()
+        scroll_area.setWidget(content_widget)
+
+        # 3. Buat layout untuk widget "kontainer". SEMUA elemen UI akan masuk ke layout ini.
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(8, 8, 8, 8)
+        content_layout.setSpacing(12)
+
+        # --- Mulai Tambahkan Semua Elemen Secara Berurutan ke 'content_layout' ---
+
+        # A. Judul
+        self._create_title_section(content_layout)
+
+        # B. BSI Chart
+        self.bsi_canvas = BSICanvas()
+        content_layout.addWidget(self.bsi_canvas)
+
+        # C. Area Tombol Pilihan Scan
+        scan_selector = self._create_scan_selection_section()
+        content_layout.addWidget(scan_selector)
+
+        # D. Tabel Hasil BSI
+        results_table = self._create_results_table()
+        content_layout.addWidget(results_table)
         
-        # Create main splitter: chart (top) and details (bottom)
-        self.main_splitter = QSplitter(Qt.Vertical)
+        # E. Tombol Kontrol (Export, dll.)
+        controls_section = self._create_controls_section()
+        content_layout.addWidget(controls_section)
         
-        # Top section: BSI Chart and Info
-        chart_section = self._create_chart_section()
-        self.main_splitter.addWidget(chart_section)
-        
-        # Bottom section: Analysis Comments and Controls
-        details_section = self._create_details_section()
-        self.main_splitter.addWidget(details_section)
-        
-        # Set splitter proportions: Chart 60%, Details 40%
-        self.main_splitter.setStretchFactor(0, 3)
-        self.main_splitter.setStretchFactor(1, 2)
-        self.main_splitter.setSizes([400, 200])
-        
-        # Style splitter
-        self.main_splitter.setStyleSheet("""
-            QSplitter::handle {
-                background-color: #e9ecef;
-                height: 3px;
-                margin: 2px;
-                border-radius: 1px;
-            }
-            QSplitter::handle:hover {
-                background-color: #4e73ff;
-            }
-        """)
-        
-        main_layout.addWidget(self.main_splitter)
+        # F. Beri ruang kosong di bagian bawah agar konten tidak menempel
+        content_layout.addStretch()
+
+        # 4. Terakhir, tambahkan QScrollArea yang sudah berisi semua konten ke layout utama panel.
+        main_panel_layout.addWidget(scroll_area)
     
     def _create_title_section(self, layout):
         """Create title section with patient info"""
@@ -137,76 +146,106 @@ class BSISidePanel(QWidget):
         title_layout.addWidget(self.patient_info_label)
         
         layout.addWidget(title_frame)
-    
-    def _create_chart_section(self) -> QWidget:
-        """Create chart section with BSI canvas and info panel"""
-        section_widget = QWidget()
-        section_layout = QHBoxLayout(section_widget)
-        section_layout.setContentsMargins(0, 0, 0, 0)
-        section_layout.setSpacing(8)
+    def _create_results_table(self) -> QWidget:
+        """Membuat tabel untuk menampilkan rincian hasil BSI per segmen."""
+        self.results_table = QTableWidget()
+        self.results_table.setColumnCount(4)
+        self.results_table.setHorizontalHeaderLabels(["Anatomical Region", "% Abnormal", "Abnormal Pixels", "Normal Pixels"])
+        self.results_table.setMinimumHeight(300) # Beri tinggi minimal
+        self.results_table.setAlternatingRowColors(True)
+        self.results_table.setEditTriggers(QAbstractItemView.NoEditTriggers) # Agar tidak bisa diedit
+        self.results_table.horizontalHeader().setStretchLastSection(True)
         
-        # Create horizontal splitter for chart and info
-        chart_splitter = QSplitter(Qt.Horizontal)
+        # Atur lebar kolom
+        self.results_table.setColumnWidth(0, 150) # Region
+        self.results_table.setColumnWidth(1, 100) # % Abnormal
         
-        # Left: BSI Chart
-        self.bsi_canvas = BSICanvas()
-        chart_splitter.addWidget(self.bsi_canvas)
+        return self.results_table
+    def _create_scan_selection_section(self) -> QWidget:
+        """Membuat widget container untuk tombol pilihan scan."""
+        section_widget = QFrame()
+        section_widget.setStyleSheet("padding: 8px 0px;")
         
-        # Right: BSI Info Panel
-        self.bsi_info_panel = BSIInfoPanel()
-        chart_splitter.addWidget(self.bsi_info_panel)
+        self.scan_buttons_layout = QHBoxLayout(section_widget)
+        self.scan_buttons_layout.setContentsMargins(0, 0, 0, 0)
+        self.scan_buttons_layout.setSpacing(8)
         
-        # Set proportions: Chart 70%, Info 30%
-        chart_splitter.setStretchFactor(0, 7)
-        chart_splitter.setStretchFactor(1, 3)
-        chart_splitter.setSizes([500, 200])
+        # Label
+        label = QLabel("<b>Select Scan:</b>")
+        self.scan_buttons_layout.addWidget(label)
         
-        section_layout.addWidget(chart_splitter)
-        
+        self.scan_buttons_layout.addStretch()
         return section_widget
+    def _populate_results_table(self, bsi_results: dict):
+        """Mengisi tabel dengan data hasil BSI dari scan yang dipilih."""
+        if not bsi_results:
+            self.results_table.setRowCount(0)
+            return
+
+        # UBAH BARIS INI:
+        # Sebelumnya: segments_to_display = {k: v for k, v in bsi_results.items() if k != "background" ...}
+        # Menjadi:
+        segments_to_display = bsi_results
+        
+        self.results_table.setRowCount(len(segments_to_display))
+        
+        # Urutkan berdasarkan nama segmen agar konsisten (opsional tapi disarankan)
+        sorted_segments = sorted(segments_to_display.items())
+        
+        for row, (segment_name, data) in enumerate(sorted_segments):
+            # Kolom 0: Nama Region
+            # Gunakan .title() untuk membuat huruf kapital di awal kata (e.g., "cervical vertebrae" -> "Cervical Vertebrae")
+            self.results_table.setItem(row, 0, QTableWidgetItem(segment_name.title()))
+            
+            # Kolom 1: Persentase Abnormal
+            abnormal_pct = data.get('percentage_abnormal', 0) * 100
+            item_pct = QTableWidgetItem(f"{abnormal_pct:.2f}%")
+            self.results_table.setItem(row, 1, item_pct)
+            
+            # Kolom 2: Piksel Abnormal
+            self.results_table.setItem(row, 2, QTableWidgetItem(str(data.get('hotspot_abnormal', 0))))
+            
+            # Kolom 3: Piksel Normal
+            self.results_table.setItem(row, 3, QTableWidgetItem(str(data.get('hotspot_normal', 0))))
+            
+            # (Opsional) Beri warna pada baris berdasarkan tingkat abnormalitas
+            if abnormal_pct > 10:
+                item_pct.setBackground(QColor("#d32f2f")) # Merah
+                item_pct.setForeground(QColor("white"))
+            elif abnormal_pct > 2:
+                item_pct.setBackground(QColor("#ffc107")) # Kuning
+    
+    def _on_scan_selected(self, scan_data: dict, emit_signal: bool = True):
+        """Menangani saat tombol scan ditekan dan mengisi tabel."""
+        study_date = scan_data.get("study_date")
+        if not study_date:
+            return
+
+        print(f"[BSI SIDE PANEL] Scan dipilih: {study_date}, memuat detail...")
+        self.current_study_date = study_date
+        self._update_patient_info(self.current_patient_id, self.current_study_date)
+
+        # Muat hasil kuantifikasi LENGKAP untuk studi ini
+        quant_results = self.quant_manager.load_quantification_results(
+            self.current_patient_folder, self.current_patient_id, study_date
+        )
+        
+        if quant_results:
+            # Ambil bagian 'bsi_results' dan isi tabel
+            bsi_results_data = quant_results.get('bsi_results', {})
+            self._populate_results_table(bsi_results_data)
+
+        if emit_signal:
+            self.scan_selected.emit(study_date)
+
+    def _create_chart_section(self) -> QWidget:
+        self.bsi_canvas = BSICanvas()
+        return self.bsi_canvas
     
     def _create_details_section(self) -> QWidget:
         """Create details section with comments and controls"""
-        section_widget = QWidget()
-        section_layout = QVBoxLayout(section_widget)
-        section_layout.setContentsMargins(0, 0, 0, 0)
-        section_layout.setSpacing(8)
-        
-        # Analysis comments section
-        comments_frame = QFrame()
-        comments_frame.setStyleSheet(GROUP_BOX_STYLE)
-        comments_layout = QVBoxLayout(comments_frame)
-        
-        # Comments header
-        comments_header = QLabel("<b>Analysis Comments</b>")
-        comments_header.setStyleSheet(DIALOG_PANEL_HEADER_STYLE)
-        comments_layout.addWidget(comments_header)
-        
-        # Comments text area
-        self.comments_text = QTextEdit()
-        self.comments_text.setReadOnly(True)
-        self.comments_text.setMaximumHeight(120)
-        self.comments_text.setStyleSheet("""
-            QTextEdit {
-                background: #ffffff;
-                border: 1px solid #dee2e6;
-                border-radius: 4px;
-                padding: 8px;
-                font-size: 11px;
-                color: #495057;
-                line-height: 1.4;
-            }
-        """)
-        self.comments_text.setPlainText("Select a patient with quantification results to view analysis comments.")
-        comments_layout.addWidget(self.comments_text)
-        
-        section_layout.addWidget(comments_frame)
-        
-        # Control buttons section
         controls_frame = self._create_controls_section()
-        section_layout.addWidget(controls_frame)
-        
-        return section_widget
+        return controls_frame
     
     def _create_controls_section(self) -> QFrame:
         """Create control buttons section"""
@@ -293,74 +332,66 @@ class BSISidePanel(QWidget):
         return controls_frame
     
     # ===== Public API =====
+    # GANTI FUNGSI INI DI DALAM KELAS BSISidePanel
     def load_patient_data(self, patient_folder: Path, patient_id: str, study_date: str) -> bool:
         """
-        Load BSI data for a patient
-        
-        Args:
-            patient_folder: Patient directory path
-            patient_id: Patient ID  
-            study_date: Study date
-            
-        Returns:
-            True if data loaded successfully
+        Memuat data BSI untuk pasien.
+        - Chart akan menampilkan tren BSI dari semua studi.
+        - Info Panel dan Komentar akan menampilkan detail dari study_date yang dipilih.
         """
         try:
-            print(f"[BSI SIDE PANEL] Loading BSI data for patient {patient_id}")
+            print(f"[BSI SIDE PANEL] Loading data for patient {patient_id}, focus on study {study_date}")
             
-            # Store current patient info
+            # Simpan info pasien saat ini
             self.current_patient_folder = patient_folder
             self.current_patient_id = patient_id
             self.current_study_date = study_date
             
-            # Update patient info display
+            # Update label info pasien di bagian atas
             self._update_patient_info(patient_id, study_date)
             
-            # Check quantification status
-            status = get_quantification_status(
-                patient_folder / f"{patient_id}_{study_date}.dcm", 
-                patient_id, 
-                study_date
-            )
-            
-            if not status.get("quantification_complete", False):
-                self._show_no_quantification_data()
-                return False
-            
-            # Load BSI data into canvas
+            # LANGKAH 1: Muat dan tampilkan chart tren BSI (diagram garis)
+            # Fungsi ini sekarang akan memuat SEMUA skor untuk pasien tersebut
+            # dan mengabaikan 'study_date' yang dilewatkan.
             canvas_success = self.bsi_canvas.load_bsi_data(patient_folder, patient_id, study_date)
             
             if not canvas_success:
-                self._show_quantification_error()
+                # Jika chart gagal dimuat (misal: tidak ada data sama sekali)
+                self._show_no_quantification_data()
+                self._update_button_states(False)
+                # Tetap aktifkan tombol 'Run Analysis' jika belum ada kuantifikasi
+                status = get_quantification_status(patient_folder / f"{patient_id}_{study_date}.dcm", patient_id, study_date)
+                self.run_analysis_btn.setEnabled(status.get("can_run_quantification", False))
                 return False
+
+            # LANGKAH 2: Muat data ringkasan untuk STUDI SPESIFIK yang dipilih
+            # Kita gunakan QuantificationManager secara langsung di sini.
+            summary_data_specific_study = None
+            quant_results = self.quant_manager.load_quantification_results(patient_folder, patient_id, study_date)
+            if quant_results:
+                summary_data_specific_study = self.quant_manager.get_bsi_summary()
+
+            if not summary_data_specific_study:
+                self._show_quantification_error() # Tampilkan error jika data studi spesifik tidak bisa dimuat
+                return False
+
+            # LANGKAH 3: Update Info Panel dan Komentar dengan data studi spesifik
+            # self.bsi_info_panel.update_info(summary_data_specific_study)
+            # self._generate_analysis_comments(summary_data_specific_study)
             
-            # Load summary data into info panel
-            summary_data = self.bsi_canvas.get_summary_data()
-            self.bsi_info_panel.update_info(summary_data)
-            
-            # Generate analysis comments
-            self._generate_analysis_comments(summary_data)
-            
-            # Update button states
+            # Update status tombol dan label
             self._update_button_states(True)
+            bsi_score = summary_data_specific_study.get('bsi_score', 0)
+            self.status_label.setText(f"Trend loaded. Showing details for study BSI: {bsi_score:.2f}%")
+            self.status_label.setStyleSheet("QLabel { font-size: 10px; color: #28a745; font-style: italic; margin-top: 4px; }")
             
-            # Update status
-            bsi_score = summary_data.get('bsi_score', 0) if summary_data else 0
-            self.status_label.setText(f"BSI analysis loaded (Score: {bsi_score:.2f}%)")
-            self.status_label.setStyleSheet("""
-                QLabel {
-                    font-size: 10px;
-                    color: #28a745;
-                    font-style: italic;
-                    margin-top: 4px;
-                }
-            """)
-            
-            print(f"[BSI SIDE PANEL] Successfully loaded BSI data for {patient_id}")
+            print(f"[BSI SIDE PANEL] Successfully displayed BSI trend and study details for {patient_id}")
             return True
             
         except Exception as e:
             print(f"[BSI SIDE PANEL] Error loading patient data: {e}")
+            import traceback
+            traceback.print_exc()
             self._show_quantification_error()
             return False
     
@@ -375,11 +406,11 @@ class BSISidePanel(QWidget):
         
         # Clear components
         self.bsi_canvas.clear_data()
-        self.bsi_info_panel.clear_info()
+        # self.bsi_info_panel.clear_info()
         
         # Reset UI
         self.patient_info_label.setText("Select a patient to view BSI analysis")
-        self.comments_text.setPlainText("Select a patient with quantification results to view analysis comments.")
+        # self.comments_text.setPlainText("Select a patient with quantification results to view analysis comments.")
         
         # Update button states
         self._update_button_states(False)
@@ -489,67 +520,6 @@ class BSISidePanel(QWidget):
         
         self._update_button_states(False)
     
-    def _generate_analysis_comments(self, summary_data: Dict[str, Any]):
-        """Generate analysis comments based on BSI data"""
-        if not summary_data:
-            self.comments_text.setPlainText("No summary data available.")
-            return
-        
-        bsi_score = summary_data.get('bsi_score', 0)
-        total_abnormal = summary_data.get('total_abnormal_hotspots', 0)
-        segments_affected = summary_data.get('segments_with_abnormal', 0)
-        segments_total = summary_data.get('segments_analyzed', 0)
-        
-        # Generate interpretation based on BSI score
-        if bsi_score < 1.0:
-            interpretation = "Low BSI suggests minimal bone abnormalities."
-            severity = "Low"
-        elif bsi_score < 3.0:
-            interpretation = "Moderate BSI indicates some bone lesions present."
-            severity = "Moderate"
-        elif bsi_score < 8.0:
-            interpretation = "High BSI suggests significant bone involvement."
-            severity = "High"
-        else:
-            interpretation = "Very high BSI indicates extensive bone disease."
-            severity = "Very High"
-        
-        # Create detailed comment
-        comments = []
-        comments.append(f"BSI ANALYSIS REPORT")
-        comments.append(f"=" * 40)
-        comments.append(f"")
-        comments.append(f"BSI Score: {bsi_score:.2f}% ({severity})")
-        comments.append(f"{interpretation}")
-        comments.append(f"")
-        comments.append(f"FINDINGS:")
-        comments.append(f"• Total abnormal hotspots detected: {total_abnormal}")
-        comments.append(f"• Anatomical segments affected: {segments_affected}/{segments_total}")
-        comments.append(f"• Analysis method: Classification-based quantification")
-        comments.append(f"")
-        
-        if total_abnormal > 0:
-            comments.append(f"RECOMMENDATIONS:")
-            if bsi_score > 5.0:
-                comments.append(f"• Consider additional imaging for extent evaluation")
-                comments.append(f"• Multidisciplinary team consultation recommended")
-            elif bsi_score > 2.0:
-                comments.append(f"• Monitor disease progression with follow-up imaging")
-                comments.append(f"• Clinical correlation advised")
-            else:
-                comments.append(f"• Routine follow-up as clinically indicated")
-            
-            comments.append(f"• Correlation with clinical symptoms and other imaging")
-        else:
-            comments.append(f"RECOMMENDATIONS:")
-            comments.append(f"• No significant bone abnormalities detected")
-            comments.append(f"• Routine clinical follow-up as appropriate")
-        
-        comments.append(f"")
-        comments.append(f"Note: BSI quantification is based on classification of hotspot")
-        comments.append(f"regions as normal or abnormal using machine learning analysis.")
-        
-        self.comments_text.setPlainText("\n".join(comments))
     
     def _update_button_states(self, has_data: bool):
         """Update button enabled states"""
