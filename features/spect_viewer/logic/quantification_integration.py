@@ -2,7 +2,7 @@
 
 from pathlib import Path
 import json
-from typing import Dict, Any, Optional
+from typing import List,Dict, Any, Optional
 from core.logger import _log
 from core.config.paths import (
     get_patient_spect_path,
@@ -53,7 +53,54 @@ class QuantificationManager:
         except Exception as e:
             _log(f"Failed to load quantification results: {e}")
             return None
-    
+    # GANTI FUNGSI INI DI quantification_integration.py
+
+    def load_all_quantification_scores(self, patient_folder: Path, patient_id: str) -> List[Dict[str, Any]]:
+        """
+        Memuat semua skor BSI untuk seorang pasien dari semua file kuantifikasi JSON.
+        Versi ini sudah diperbaiki untuk mengambil data dari lokasi yang benar di dalam JSON.
+        """
+        all_scores = []
+        search_pattern = f"{patient_id}_*_bsi_quantification.json"
+        
+        try:
+            for file_path in patient_folder.glob(search_pattern):
+                with open(file_path, 'r') as f:
+                    data = json.load(f)
+                
+                # AMBIL DARI LOKASI YANG BENAR DI DALAM JSON
+                patient_info = data.get('patient_info', {})
+                summary = data.get('summary_statistics', {})
+
+                # Ekstrak data dari dictionary masing-masing
+                study_date = patient_info.get('study_date')
+                bsi_score = summary.get('bsi_score')
+
+                if study_date is not None and bsi_score is not None:
+                    all_scores.append({
+                        "study_date": study_date,
+                        "bsi_score": bsi_score
+                    })
+                else:
+                    _log(f"Data 'study_date' atau 'bsi_score' tidak ditemukan/lengkap di {file_path.name}", level='warning')
+
+        except Exception as e:
+            _log(f"Gagal memuat semua skor BSI: {e}", level='error')
+            
+        return all_scores
+
+    def _extract_study_date_from_filename(self, filename: str) -> str:
+        """
+        Extracts study_date from filename pattern: {patient_id}_{study_date}_quant.json
+        """
+        try:
+            parts = filename.split('_')
+            if len(parts) >= 3:
+                return parts[1]
+        except:
+            pass
+        return "Unknown"
+        
     def get_bsi_summary(self) -> Dict[str, Any]:
         """
         Get BSI summary statistics
