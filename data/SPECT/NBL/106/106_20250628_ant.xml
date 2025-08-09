@@ -1,0 +1,50 @@
+<?xml version="1.0" ?>
+<annotation>
+    <folder>BS-80K</folder>
+    <filename>106_20250628_ant.png</filename>
+    <source>
+        <database>The BS-80K Database</database>
+    </source>
+    <size>
+        <width>256</width>
+        <height>1024</height>
+        <depth>1</depth>
+    </size>
+    <segmented>0</segmented>
+    <object>
+        <name>Abnormal</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>144</xmin>
+            <ymin>621</ymin>
+            <xmax>199</xmax>
+            <ymax>720</ymax>
+        </bndbox>
+    </object>
+    <object>
+        <name>Normal</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>108</xmin>
+            <ymin>461</ymin>
+            <xmax>145</xmax>
+            <ymax>480</ymax>
+        </bndbox>
+    </object>
+    <object>
+        <name>Normal</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>123</xmin>
+            <ymin>190</ymin>
+            <xmax>137</xmax>
+            <ymax>205</ymax>
+        </bndbox>
+    </object>
+</annotation>

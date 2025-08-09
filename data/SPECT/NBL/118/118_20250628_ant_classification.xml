@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>118_20250628_anterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\118\118_20250628_anterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>128</xmin>
+      <ymin>418</ymin>
+      <xmax>145</xmax>
+      <ymax>432</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "sacrum", "probability_normal": 0.3363579511642456, "probability_abnormal": 0.6636420488357544, "hotspot_pixels": 170, "hotspot_mm2": 977.2425266463923} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>56</xmin>
+      <ymin>296</ymin>
+      <xmax>71</xmax>
+      <ymax>319</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "rib", "probability_normal": 0.036062657833099365, "probability_abnormal": 0.9639373421669006, "hotspot_pixels": 212, "hotspot_mm2": 1218.67891558256} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>59</xmin>
+      <ymin>157</ymin>
+      <xmax>76</xmax>
+      <ymax>178</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "scapula", "probability_normal": 0.10885822772979736, "probability_abnormal": 0.8911417722702026, "hotspot_pixels": 227, "hotspot_mm2": 1304.9061973454768} -->
+  </object>
+</annotation>

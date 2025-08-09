@@ -1,0 +1,118 @@
+{
+  "patient_info": {
+    "patient_id": "107",
+    "study_date": "20250628",
+    "filename_stem": "107_20250628",
+    "quantification_method": "BSI_with_classification_masks",
+    "input_files": {
+      "segmentation_anterior": "107_20250628_anterior_colored.png",
+      "segmentation_posterior": "107_20250628_posterior_colored.png",
+      "hotspot_anterior": "107_20250628_anterior_classification_mask.png",
+      "hotspot_posterior": "107_20250628_posterior_classification_mask.png"
+    }
+  },
+  "bsi_results": {
+    "background": {
+      "total_segment_pixels": 398337,
+      "hotspot_normal": 0,
+      "percentage_normal": 0.0,
+      "hotspot_abnormal": 6,
+      "percentage_abnormal": 1.5062622854517658e-05
+    },
+    "skull": {
+      "total_segment_pixels": 14158,
+      "hotspot_normal": 0,
+      "percentage_normal": 0.0,
+      "hotspot_abnormal": 436,
+      "percentage_abnormal": 0.030795310072044075
+    },
+    "cervical vertebrae": {
+      "total_segment_pixels": 2713,
+      "hotspot_normal": 0,
+      "percentage_normal": 0.0,
+      "hotspot_abnormal": 0,
+      "percentage_abnormal": 0.0
+    },
+    "thoracic vertebrae": {
+      "total_segment_pixels": 6623,
+      "hotspot_normal": 0,
+      "percentage_normal": 0.0,
+      "hotspot_abnormal": 0,
+      "percentage_abnormal": 0.0
+    },
+    "rib": {
+      "total_segment_pixels": 33114,
+      "hotspot_normal": 0,
+      "percentage_normal": 0.0,
+      "hotspot_abnormal": 0,
+      "percentage_abnormal": 0.0
+    },
+    "sternum": {
+      "total_segment_pixels": 2507,
+      "hotspot_normal": 0,
+      "percentage_normal": 0.0,
+      "hotspot_abnormal": 0,
+      "percentage_abnormal": 0.0
+    },
+    "collarbone": {
+      "total_segment_pixels": 2517,
+      "hotspot_normal": 0,
+      "percentage_normal": 0.0,
+      "hotspot_abnormal": 0,
+      "percentage_abnormal": 0.0
+    },
+    "scapula": {
+      "total_segment_pixels": 8365,
+      "hotspot_normal": 0,
+      "percentage_normal": 0.0,
+      "hotspot_abnormal": 186,
+      "percentage_abnormal": 0.022235505080693364
+    },
+    "humerus": {
+      "total_segment_pixels": 10449,
+      "hotspot_normal": 0,
+      "percentage_normal": 0.0,
+      "hotspot_abnormal": 99,
+      "percentage_abnormal": 0.009474590869939707
+    },
+    "lumbar vertebrae": {
+      "total_segment_pixels": 6184,
+      "hotspot_normal": 0,
+      "percentage_normal": 0.0,
+      "hotspot_abnormal": 349,
+      "percentage_abnormal": 0.0564359637774903
+    },
+    "sacrum": {
+      "total_segment_pixels": 3978,
+      "hotspot_normal": 0,
+      "percentage_normal": 0.0,
+      "hotspot_abnormal": 0,
+      "percentage_abnormal": 0.0
+    },
+    "pelvis": {
+      "total_segment_pixels": 16434,
+      "hotspot_normal": 0,
+      "percentage_normal": 0.0,
+      "hotspot_abnormal": 1015,
+      "percentage_abnormal": 0.06176220031641719
+    },
+    "femur": {
+      "total_segment_pixels": 18909,
+      "hotspot_normal": 0,
+      "percentage_normal": 0.0,
+      "hotspot_abnormal": 1516,
+      "percentage_abnormal": 0.08017346237241525
+    }
+  },
+  "summary_statistics": {
+    "total_segment_pixels": 524288,
+    "total_normal_hotspots": 0,
+    "total_abnormal_hotspots": 3607,
+    "overall_normal_percentage": 0.0,
+    "overall_abnormal_percentage": 0.0068798065185546875,
+    "segments_with_normal_hotspots": 0,
+    "segments_with_abnormal_hotspots": 7,
+    "total_segments_analyzed": 13,
+    "bsi_score": 0.6879806518554688
+  }
+}

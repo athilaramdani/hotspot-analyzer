@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>24_20250628_posterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\24\24_20250628_posterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>112</xmin>
+      <ymin>281</ymin>
+      <xmax>130</xmax>
+      <ymax>297</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "thoracic vertebrae", "probability_normal": 0.03472262620925903, "probability_abnormal": 0.965277373790741, "hotspot_pixels": 162, "hotspot_mm2": 931.2546430395033} -->
+  </object>
+  <object>
+    <name>Normal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>151</xmin>
+      <ymin>414</ymin>
+      <xmax>170</xmax>
+      <ymax>440</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "pelvis", "probability_normal": 0.7889993190765381, "probability_abnormal": 0.2110006958246231, "hotspot_pixels": 265, "hotspot_mm2": 1523.3486444782} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>127</xmin>
+      <ymin>317</ymin>
+      <xmax>144</xmax>
+      <ymax>332</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "thoracic vertebrae", "probability_normal": 0.01599985361099243, "probability_abnormal": 0.9840001463890076, "hotspot_pixels": 210, "hotspot_mm2": 1207.1819446808377} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>120</xmin>
+      <ymin>441</ymin>
+      <xmax>142</xmax>
+      <ymax>463</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "sacrum", "probability_normal": 0.028618931770324707, "probability_abnormal": 0.9713810682296753, "hotspot_pixels": 298, "hotspot_mm2": 1713.048664356617} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>120</xmin>
+      <ymin>441</ymin>
+      <xmax>142</xmax>
+      <ymax>462</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "sacrum", "probability_normal": 0.028618931770324707, "probability_abnormal": 0.9713810682296753, "hotspot_pixels": 298, "hotspot_mm2": 1713.048664356617} -->
+  </object>
+</annotation>
