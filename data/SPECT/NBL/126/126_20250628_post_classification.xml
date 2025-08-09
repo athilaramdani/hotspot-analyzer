@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>126_20250628_posterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\126\126_20250628_posterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>120</xmin>
+      <ymin>205</ymin>
+      <xmax>140</xmax>
+      <ymax>229</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "cervical vertebrae", "probability_normal": 0.05871075391769409, "probability_abnormal": 0.9412892460823059, "hotspot_pixels": 479, "hotspot_mm2": 2753.5245309624815} -->
+  </object>
+</annotation>

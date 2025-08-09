@@ -1,0 +1,50 @@
+<?xml version="1.0" ?>
+<annotation>
+    <folder>BS-80K</folder>
+    <filename>144_20250628_ant.png</filename>
+    <source>
+        <database>The BS-80K Database</database>
+    </source>
+    <size>
+        <width>256</width>
+        <height>1024</height>
+        <depth>1</depth>
+    </size>
+    <segmented>0</segmented>
+    <object>
+        <name>Normal</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>125</xmin>
+            <ymin>541</ymin>
+            <xmax>139</xmax>
+            <ymax>556</ymax>
+        </bndbox>
+    </object>
+    <object>
+        <name>Normal</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>81</xmin>
+            <ymin>705</ymin>
+            <xmax>106</xmax>
+            <ymax>732</ymax>
+        </bndbox>
+    </object>
+    <object>
+        <name>Normal</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>161</xmin>
+            <ymin>705</ymin>
+            <xmax>187</xmax>
+            <ymax>732</ymax>
+        </bndbox>
+    </object>
+</annotation>

@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>106_20250628_anterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\106\106_20250628_anterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>144</xmin>
+      <ymin>621</ymin>
+      <xmax>199</xmax>
+      <ymax>720</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "femur", "probability_normal": 0.00035583972930908203, "probability_abnormal": 0.9996441602706909, "hotspot_pixels": 2605, "hotspot_mm2": 14974.804599493247} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>123</xmin>
+      <ymin>190</ymin>
+      <xmax>137</xmax>
+      <ymax>205</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "sternum", "probability_normal": 0.3670753836631775, "probability_abnormal": 0.6329246163368225, "hotspot_pixels": 210, "hotspot_mm2": 1207.1819446808377} -->
+  </object>
+</annotation>

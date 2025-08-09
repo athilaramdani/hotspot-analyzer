@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>141_20250628_posterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\141\141_20250628_posterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>198</xmin>
+      <ymin>170</ymin>
+      <xmax>228</xmax>
+      <ymax>226</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "humerus", "probability_normal": 0.01902669668197632, "probability_abnormal": 0.9809733033180237, "hotspot_pixels": 897, "hotspot_mm2": 5156.3914494224355} -->
+  </object>
+  <object>
+    <name>Normal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>112</xmin>
+      <ymin>485</ymin>
+      <xmax>135</xmax>
+      <ymax>499</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "pelvis", "probability_normal": 0.6382259726524353, "probability_abnormal": 0.3617740273475647, "hotspot_pixels": 322, "hotspot_mm2": 1851.012315177284} -->
+  </object>
+</annotation>

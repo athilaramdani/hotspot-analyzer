@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>15_20250628_anterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\15\15_20250628_anterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Normal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>109</xmin>
+      <ymin>494</ymin>
+      <xmax>142</xmax>
+      <ymax>510</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "pelvis", "probability_normal": 0.5712089538574219, "probability_abnormal": 0.4287910759449005, "hotspot_pixels": 407, "hotspot_mm2": 2339.6335785004803} -->
+  </object>
+</annotation>

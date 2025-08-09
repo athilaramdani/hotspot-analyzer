@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>122_20250628_anterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\122\122_20250628_anterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Normal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>147</xmin>
+      <ymin>183</ymin>
+      <xmax>161</xmax>
+      <ymax>202</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "sternum", "probability_normal": 0.7518515586853027, "probability_abnormal": 0.24814842641353607, "hotspot_pixels": 189, "hotspot_mm2": 1086.463750212754} -->
+  </object>
+</annotation>

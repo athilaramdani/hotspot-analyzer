@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>132_20250628_posterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\132\132_20250628_posterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>53</xmin>
+      <ymin>494</ymin>
+      <xmax>74</xmax>
+      <ymax>522</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "femur", "probability_normal": 0.009122192859649658, "probability_abnormal": 0.9908778071403503, "hotspot_pixels": 416, "hotspot_mm2": 2391.3699475582307} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>102</xmin>
+      <ymin>272</ymin>
+      <xmax>114</xmax>
+      <ymax>288</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "thoracic vertebrae", "probability_normal": 0.0019162893295288086, "probability_abnormal": 0.9980837106704712, "hotspot_pixels": 147, "hotspot_mm2": 845.0273612765864} -->
+  </object>
+  <object>
+    <name>Normal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>98</xmin>
+      <ymin>480</ymin>
+      <xmax>130</xmax>
+      <ymax>506</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "pelvis", "probability_normal": 0.5342657566070557, "probability_abnormal": 0.46573421359062195, "hotspot_pixels": 640, "hotspot_mm2": 3679.030688551124} -->
+  </object>
+</annotation>

@@ -1,0 +1,236 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>117_20250628_anterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\117\117_20250628_anterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>33</xmin>
+      <ymin>189</ymin>
+      <xmax>49</xmax>
+      <ymax>208</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "humerus", "probability_normal": 0.13326537609100342, "probability_abnormal": 0.8667346239089966, "hotspot_pixels": 187, "hotspot_mm2": 1074.9667793110316} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>112</xmin>
+      <ymin>407</ymin>
+      <xmax>138</xmax>
+      <ymax>440</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "sacrum", "probability_normal": 0.011859536170959473, "probability_abnormal": 0.9881404638290405, "hotspot_pixels": 565, "hotspot_mm2": 3247.8942797365394} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>114</xmin>
+      <ymin>263</ymin>
+      <xmax>134</xmax>
+      <ymax>278</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "sternum", "probability_normal": 0.023726582527160645, "probability_abnormal": 0.9762734174728394, "hotspot_pixels": 267, "hotspot_mm2": 1534.845615379922} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>110</xmin>
+      <ymin>381</ymin>
+      <xmax>146</xmax>
+      <ymax>406</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "lumbar vertebrae", "probability_normal": 0.08600115776062012, "probability_abnormal": 0.9139988422393799, "hotspot_pixels": 710, "hotspot_mm2": 4081.4246701114034} -->
+  </object>
+  <object>
+    <name>Normal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>102</xmin>
+      <ymin>90</ymin>
+      <xmax>117</xmax>
+      <ymax>108</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "skull", "probability_normal": 0.8040235638618469, "probability_abnormal": 0.19597643613815308, "hotspot_pixels": 181, "hotspot_mm2": 1040.475866605865} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>117</xmin>
+      <ymin>346</ymin>
+      <xmax>144</xmax>
+      <ymax>366</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "lumbar vertebrae", "probability_normal": 0.043526291847229004, "probability_abnormal": 0.956473708152771, "hotspot_pixels": 401, "hotspot_mm2": 2305.142665795314} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>52</xmin>
+      <ymin>553</ymin>
+      <xmax>64</xmax>
+      <ymax>568</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "femur", "probability_normal": 0.034069836139678955, "probability_abnormal": 0.965930163860321, "hotspot_pixels": 176, "hotspot_mm2": 1011.7334393515591} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>82</xmin>
+      <ymin>462</ymin>
+      <xmax>99</xmax>
+      <ymax>482</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "pelvis", "probability_normal": 0.19770407676696777, "probability_abnormal": 0.8022959232330322, "hotspot_pixels": 286, "hotspot_mm2": 1644.0668389462837} -->
+  </object>
+  <object>
+    <name>Normal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>99</xmin>
+      <ymin>8</ymin>
+      <xmax>110</xmax>
+      <ymax>20</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "skull", "probability_normal": 0.9690434336662292, "probability_abnormal": 0.030956583097577095, "hotspot_pixels": 131, "hotspot_mm2": 753.0515940628082} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>53</xmin>
+      <ymin>497</ymin>
+      <xmax>70</xmax>
+      <ymax>514</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "femur", "probability_normal": 0.017099201679229736, "probability_abnormal": 0.9829007983207703, "hotspot_pixels": 289, "hotspot_mm2": 1661.312295298867} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>74</xmin>
+      <ymin>455</ymin>
+      <xmax>99</xmax>
+      <ymax>483</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "pelvis", "probability_normal": 0.10802805423736572, "probability_abnormal": 0.8919719457626343, "hotspot_pixels": 494, "hotspot_mm2": 2839.751812725399} -->
+  </object>
+  <object>
+    <name>Normal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>101</xmin>
+      <ymin>482</ymin>
+      <xmax>122</xmax>
+      <ymax>499</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "pelvis", "probability_normal": 0.9699745774269104, "probability_abnormal": 0.030025407671928406, "hotspot_pixels": 208, "hotspot_mm2": 1195.6849737791154} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>112</xmin>
+      <ymin>346</ymin>
+      <xmax>146</xmax>
+      <ymax>404</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "lumbar vertebrae", "probability_normal": 0.18432921171188354, "probability_abnormal": 0.8156707882881165, "hotspot_pixels": 1442, "hotspot_mm2": 8289.316020141752} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>54</xmin>
+      <ymin>173</ymin>
+      <xmax>72</xmax>
+      <ymax>195</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "scapula", "probability_normal": 0.02223038673400879, "probability_abnormal": 0.9777696132659912, "hotspot_pixels": 332, "hotspot_mm2": 1908.4971696858956} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>116</xmin>
+      <ymin>151</ymin>
+      <xmax>136</xmax>
+      <ymax>166</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "cervical vertebrae", "probability_normal": 0.019462287425994873, "probability_abnormal": 0.9805377125740051, "hotspot_pixels": 196, "hotspot_mm2": 1126.7031483687817} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>116</xmin>
+      <ymin>346</ymin>
+      <xmax>145</xmax>
+      <ymax>373</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "lumbar vertebrae", "probability_normal": 0.021536409854888916, "probability_abnormal": 0.9784635901451111, "hotspot_pixels": 564, "hotspot_mm2": 3242.1457942856778} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>150</xmin>
+      <ymin>418</ymin>
+      <xmax>200</xmax>
+      <ymax>471</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "pelvis", "probability_normal": 0.03354614973068237, "probability_abnormal": 0.9664538502693176, "hotspot_pixels": 1498, "hotspot_mm2": 8611.231205389975} -->
+  </object>
+</annotation>

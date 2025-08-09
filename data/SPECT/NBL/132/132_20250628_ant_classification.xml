@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>132_20250628_anterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\132\132_20250628_anterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>136</xmin>
+      <ymin>186</ymin>
+      <xmax>157</xmax>
+      <ymax>219</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "sternum", "probability_normal": 0.03316861391067505, "probability_abnormal": 0.966831386089325, "hotspot_pixels": 419, "hotspot_mm2": 2408.615403910814} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>199</xmin>
+      <ymin>175</ymin>
+      <xmax>215</xmax>
+      <ymax>191</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "scapula", "probability_normal": 0.05175238847732544, "probability_abnormal": 0.9482476115226746, "hotspot_pixels": 210, "hotspot_mm2": 1207.1819446808377} -->
+  </object>
+  <object>
+    <name>Normal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>135</xmin>
+      <ymin>482</ymin>
+      <xmax>159</xmax>
+      <ymax>503</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "pelvis", "probability_normal": 0.9513630270957947, "probability_abnormal": 0.04863697290420532, "hotspot_pixels": 319, "hotspot_mm2": 1833.7668588247009} -->
+  </object>
+  <object>
+    <name>Normal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>132</xmin>
+      <ymin>87</ymin>
+      <xmax>145</xmax>
+      <ymax>102</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "skull", "probability_normal": 0.9490353465080261, "probability_abnormal": 0.05096465349197388, "hotspot_pixels": 140, "hotspot_mm2": 804.7879631205585} -->
+  </object>
+</annotation>

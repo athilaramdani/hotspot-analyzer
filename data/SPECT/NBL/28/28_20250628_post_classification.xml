@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>28_20250628_posterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\28\28_20250628_posterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>112</xmin>
+      <ymin>205</ymin>
+      <xmax>123</xmax>
+      <ymax>218</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "rib", "probability_normal": 0.008934199810028076, "probability_abnormal": 0.9910658001899719, "hotspot_pixels": 143, "hotspot_mm2": 822.0334194731419} -->
+  </object>
+</annotation>

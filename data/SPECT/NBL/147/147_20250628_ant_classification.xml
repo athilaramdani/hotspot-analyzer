@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>147_20250628_anterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\147\147_20250628_anterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>115</xmin>
+      <ymin>356</ymin>
+      <xmax>132</xmax>
+      <ymax>369</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "lumbar vertebrae", "probability_normal": 0.10689419507980347, "probability_abnormal": 0.8931058049201965, "hotspot_pixels": 175, "hotspot_mm2": 1005.984953900698} -->
+  </object>
+  <object>
+    <name>Normal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>99</xmin>
+      <ymin>97</ymin>
+      <xmax>112</xmax>
+      <ymax>112</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "skull", "probability_normal": 0.649779200553894, "probability_abnormal": 0.35022076964378357, "hotspot_pixels": 129, "hotspot_mm2": 741.5546231610859} -->
+  </object>
+</annotation>
