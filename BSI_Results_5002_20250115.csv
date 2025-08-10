@@ -1,0 +1,23 @@
+Region,Total Pixels,Normal Pixels,Normal (%),Abnormal Pixels,Abnormal (%)
+Background,413742,0,0.00%,3,0.00%
+Cervical Vertebrae,2413,0,0.00%,214,8.87%
+Collarbone,1991,0,0.00%,0,0.00%
+Femur,17216,0,0.00%,2056,11.94%
+Humerus,10383,0,0.00%,0,0.00%
+Lumbar Vertebrae,4960,0,0.00%,0,0.00%
+Pelvis,17044,0,0.00%,0,0.00%
+Rib,25631,0,0.00%,0,0.00%
+Sacrum,4098,0,0.00%,0,0.00%
+Scapula,6503,0,0.00%,0,0.00%
+Skull,13284,0,0.00%,7,0.05%
+Sternum,2068,0,0.00%,0,0.00%
+Thoracic Vertebrae,4955,0,0.00%,0,0.00%
+
+Summary Information
+Patient ID,5002
+Study Date,2025-01-15
+Export Date,2025-08-10 20:52:28
+
+BSI Summary
+BSI Score (%),0.43%
+Total Abnormal Hotspots,2280
