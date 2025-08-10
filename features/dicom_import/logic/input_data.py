@@ -1,4 +1,4 @@
-# features/dicom_import/logic/input_data.py - UPDATED with view assignment support
+# features/dicom_import/logic/input_data.py - FIXED: No DICOM modification
 from __future__ import annotations
 from pathlib import Path
 from shutil import copy2
@@ -44,67 +44,8 @@ except ImportError:
 _VERBOSE = True
 _LOG_FILE = None
 
-# ---------------------------------------------------------------- overlay util
-def _insert_overlay(ds: Dataset, mask: np.ndarray, *, group: int, desc: str) -> None:
-    if mask.ndim != 2:
-        mask = mask[0] if mask.shape[0] == 1 else mask[:, :, 0]
-
-    rows, cols = mask.shape
-    packed = np.packbits((mask > 0).astype(np.uint8).reshape(-1, 8)[:, ::-1]).tobytes()
-
-    ds.add_new(Tag(group, 0x0010), "US", rows)
-    ds.add_new(Tag(group, 0x0011), "US", cols)
-    ds.add_new(Tag(group, 0x0022), "LO", desc)
-    ds.add_new(Tag(group, 0x0040), "CS", "G")
-    ds.add_new(Tag(group, 0x0050), "SS", [1, 1])
-    ds.add_new(Tag(group, 0x0100), "US", 1)
-    ds.add_new(Tag(group, 0x0102), "US", 0)
-    ds.add_new(Tag(group, 0x3000), "OW", packed)
-
-# ---------------------------------------------------------------- SC-DICOM helper
-def _save_secondary_capture(ref: Dataset, img: np.ndarray, out_path: Path, descr: str) -> None:
-    """Buat SC-DICOM sederhana (Modality=OT) dari ndarray uint8."""
-    rgb = img.ndim == 3
-    rows, cols = img.shape[:2]
-
-    meta = pydicom.Dataset()
-    meta.MediaStorageSOPClassUID = SecondaryCaptureImageStorage
-    meta.MediaStorageSOPInstanceUID = generate_uid()
-    meta.TransferSyntaxUID = ExplicitVRLittleEndian
-    meta.ImplementationClassUID = generate_uid()
-
-    ds = FileDataset(str(out_path), {}, file_meta=meta, preamble=b"\0" * 128)
-
-    # inherit pasien & study utama
-    for tag in [
-        "PatientID", "PatientName", "PatientBirthDate", "PatientSex",
-        "StudyInstanceUID", "StudyDate", "StudyTime", "AccessionNumber"
-    ]:
-        if hasattr(ref, tag):
-            setattr(ds, tag, getattr(ref, tag))
-
-    ds.Modality = "OT"
-    ds.SeriesInstanceUID = generate_uid()
-    ds.SeriesNumber = 999
-    ds.InstanceNumber = 1
-    ds.SeriesDescription = descr
-
-    ds.SamplesPerPixel = 3 if rgb else 1
-    ds.PhotometricInterpretation = "RGB" if rgb else "MONOCHROME2"
-    ds.Rows, ds.Columns = rows, cols
-    ds.BitsAllocated = 8
-    ds.BitsStored = 8
-    ds.HighBit = 7
-    ds.PixelRepresentation = 0
-    if rgb:
-        ds.PlanarConfiguration = 0
-
-    ds.PixelData = img.astype(np.uint8).tobytes()
-
-    ds.is_little_endian = True
-    ds.is_implicit_VR = False
-    ds.save_as(out_path, write_like_original=False)
-    _log(f"     SC-DICOM saved: {out_path.name}")
+# ✅ REMOVED: _insert_overlay() function - no DICOM overlay modification
+# ✅ REMOVED: _save_secondary_capture() function - no DICOM creation
 
 # ---------------------------------------------------------------- helpers
 def _ensure_2d(mask: np.ndarray) -> np.ndarray:
@@ -171,7 +112,7 @@ def _process_one_with_assignments(
     view_assignments: Optional[Dict[int, str]] = None
 ) -> Path:
     """
-    Process single DICOM with view assignments
+    ✅ FIXED: Process single DICOM without any modification - only copy and generate outputs
     
     Args:
         src: Source DICOM path
@@ -180,13 +121,13 @@ def _process_one_with_assignments(
     """
     _log(f"\n=== Processing {truncate_text(src.name, 40)} ===")
 
-    # Read patient info and study date
+    # Read patient info and study date from ORIGINAL DICOM
     _log("  >> Reading DICOM metadata...")
     ds_temp = pydicom.dcmread(src, stop_before_pixels=True)
-    pid = str(ds_temp.PatientID)
+    pid = str(ds_temp.PatientID)  # ✅ Use ORIGINAL PatientID without modification
     study_date = extract_study_date_from_dicom(src)
     
-    _log(f"  Patient ID: {pid}")
+    _log(f"  Patient ID: {pid} (ORIGINAL - NO MODIFICATION)")
     _log(f"  Study Date: {study_date}")
     
     if view_assignments:
@@ -202,21 +143,17 @@ def _process_one_with_assignments(
     dest_dir.mkdir(parents=True, exist_ok=True)
     
     # Create destination path with new naming convention
-    dest_path = get_dicom_output_path(pid, session_code, study_date)
+    dest_path = dest_dir / f"{filename_stem}.dcm"
     
-    # STEP 1: Copy file to destination with new name (LOCAL ONLY)
+    # STEP 1: Copy ORIGINAL file to destination WITHOUT ANY MODIFICATION
     if src.resolve() != dest_path.resolve():
-        _log(f"  >> Copying to patient directory with new name...")
+        _log(f"  >> Copying ORIGINAL DICOM without modification...")
         copy2(src, dest_path)
-    _log(f"  Copied → {truncate_text(str(dest_path), 60)}")
+    _log(f"  Copied ORIGINAL → {truncate_text(str(dest_path), 60)}")
 
-    # Load DICOM for processing with view assignments
-    _log("  >> Loading DICOM frames with view assignments...")
-    ds = pydicom.dcmread(dest_path)
+    # ✅ CRITICAL: Load ORIGINAL DICOM for processing WITHOUT MODIFICATION
+    _log("  >> Loading ORIGINAL DICOM frames with view assignments...")
     
-    if session_code not in str(ds.PatientID):
-        ds.PatientID = f"{pid}_{session_code}"
-
     frames, _ = load_frames_and_metadata_with_assignments(dest_path, view_assignments)
     _log(f"  Frames detected: {list(frames.keys())}")
 
@@ -227,7 +164,6 @@ def _process_one_with_assignments(
         _log(f"  [ERROR] {error_msg}")
         raise ValueError(error_msg)
 
-    overlay_group = 0x6000
     saved: List[str] = []
     png_files_to_upload: List[Path] = []
 
@@ -243,7 +179,8 @@ def _process_one_with_assignments(
         else:
             _log(f"  [WARN] Skipping non-standard view: {view_name}")
 
-    # STEP 3: SEGMENTATION PROCESSING
+    # STEP 3: SEGMENTATION PROCESSING (PNG OUTPUT ONLY)
+    _log("  >> Generating segmentation masks and colored overlays...")
     for view_idx, (view, img) in enumerate(frames.items(), 1):
         if view not in ["Anterior", "Posterior"]:
             _log(f"  [WARN] Skipping segmentation for non-standard view: {view}")
@@ -266,15 +203,12 @@ def _process_one_with_assignments(
             _log(f"    [ERROR] Segmentation failed for {view_name}: {e}")
             continue
 
-        # Insert overlay into DICOM
-        _log(f"     Inserting overlay into DICOM...")
-        _insert_overlay(ds, mask, group=overlay_group, desc=f"Seg {view}")
-        overlay_group += 0x2
+        # ✅ NO DICOM OVERLAY INSERTION - ORIGINAL DICOM UNTOUCHED
 
         # Use proper view tag
         view_tag = view.lower()
         
-        # PNG files with enforced naming
+        # PNG files with enforced naming (OUTPUT ONLY)
         _log(f"     Saving PNG files with enforced naming...")
         mask_png_path = dest_dir / f"{filename_stem}_{view_tag}_mask.png"
         colored_png_path = dest_dir / f"{filename_stem}_{view_tag}_colored.png"
@@ -284,27 +218,9 @@ def _process_one_with_assignments(
         
         saved += [f"{filename_stem}_{view_tag}_mask.png", f"{filename_stem}_{view_tag}_colored.png"]
 
-        # SC-DICOM files with enforced naming
-        try:
-            _log(f"     Creating secondary capture DICOM...")
-            mask_dcm_path = dest_dir / f"{filename_stem}_{view_tag}_mask.dcm"
-            colored_dcm_path = dest_dir / f"{filename_stem}_{view_tag}_colored.dcm"
-            
-            _save_secondary_capture(ds, (mask > 0).astype(np.uint8) * 255,
-                                    mask_dcm_path, descr=f"{view} Mask")
-            _save_secondary_capture(ds, rgb, colored_dcm_path, descr=f"{view} RGB")
-            
-            saved += [f"{filename_stem}_{view_tag}_mask.dcm", f"{filename_stem}_{view_tag}_colored.dcm"]
-            
-        except Exception as e:
-            _log(f"    [WARN] SC-DICOM save failed for {view_name}: {e}")
+        # ✅ NO SECONDARY CAPTURE DICOM CREATION
 
-    # Save updated DICOM with overlays
-    _log("  >> Finalizing DICOM with overlays...")
-    ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
-    ds.is_little_endian = True
-    ds.is_implicit_VR = False
-    ds.save_as(dest_path, write_like_original=False)
+    # ✅ NO DICOM MODIFICATION OR SAVING - ORIGINAL REMAINS UNTOUCHED
 
     # STEP 4: YOLO DETECTION
     _log("  >> Running YOLO hotspot detection...")
@@ -366,11 +282,11 @@ def _process_one_with_assignments(
     else:
         _log(f"     ⚠️  No files uploaded to cloud (cloud storage unavailable)")
     
-    _log(f"  DICOM processing completed")
-    _log(f"  Files saved locally: {len(saved)} items")
+    _log(f"  ✅ DICOM processing completed - ORIGINAL DICOM UNTOUCHED")
+    _log(f"  Files saved locally: {len(saved)} PNG output files")
     _log(f"  Cloud upload: {uploaded_count} original PNG files only")
     _log(f"  Views processed: {list(frames.keys())}")
-    _log(f"  Enforced naming: ANTERIOR/POSTERIOR only")
+    _log(f"  ORIGINAL DICOM: {dest_path.name} (NO MODIFICATION)")
     
     return dest_path
 
@@ -439,8 +355,9 @@ def process_files_with_assignments(
     _log(f"## Starting batch import with view assignments: {total} file(s)")
     _log(f"## Session code: {session_code}")
     _log(f"## Target directory: data/SPECT/{session_code}/[patient_id]/")
-    _log(f"## ENFORCED NAMING: Anterior/Posterior views only")
-    _log(f"## Processing workflow: Copy → Original PNG → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG")
+    _log(f"## ✅ DICOM PROTECTION: Original DICOM files will NOT be modified")
+    _log(f"## ✅ OUTPUT ONLY: PNG/XML files for analysis results")
+    _log(f"## Processing workflow: Copy Original → PNG outputs → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG")
 
     for i, file_path in enumerate(paths, 1):
         try:
@@ -448,7 +365,7 @@ def process_files_with_assignments(
             view_assignments = file_view_assignments[file_path]
             result = _process_one_with_assignments(file_path, session_code, view_assignments)
             out.append(result)
-            _log(f"## File {i}/{total} completed successfully")
+            _log(f"## File {i}/{total} completed successfully - ORIGINAL DICOM PRESERVED")
         except Exception as e:
             error_msg = f"File {i}/{total} failed: {str(e)[:100]}..."
             _log(f"[ERROR] {error_msg}")
@@ -458,8 +375,9 @@ def process_files_with_assignments(
                 progress_cb(i, total, str(file_path))
 
     _log("## Batch import process completed")
-    _log("## ENFORCED VIEW NAMING: All files processed with Anterior/Posterior views")
-    _log("## Local processing completed. Original PNG files uploaded to cloud.")
+    _log("## ✅ DICOM PROTECTION: All original DICOM files preserved without modification")
+    _log("## ✅ OUTPUT GENERATION: PNG/XML analysis files created successfully")
+    _log("## ✅ CLOUD UPLOAD: Original PNG files uploaded to cloud storage")
     _log("## All files use study date naming convention with proper view names.")
     
     globals()["_log"] = orig_log
@@ -517,15 +435,16 @@ def process_files(
     _log(f"## Starting batch import with AUTO-DETECTION: {total} file(s)")
     _log(f"## Session code: {session_code}")
     _log(f"## Target directory: data/SPECT/{session_code}/[patient_id]/")
-    _log(f"## AUTO-DETECTION: System will detect Anterior/Posterior views")
-    _log(f"## Processing workflow: Copy → Original PNG → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG")
+    _log(f"## ✅ DICOM PROTECTION: Original DICOM files will NOT be modified")
+    _log(f"## ✅ AUTO-DETECTION: System will detect Anterior/Posterior views")
+    _log(f"## Processing workflow: Copy Original → PNG outputs → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG")
 
     for i, p in enumerate(paths, 1):
         try:
             _log(f"\n## Processing file {i}/{total}: {truncate_text(p.name, 30)}")
             result = _process_one_with_assignments(Path(p), session_code, None)
             out.append(result)
-            _log(f"## File {i}/{total} completed successfully")
+            _log(f"## File {i}/{total} completed successfully - ORIGINAL DICOM PRESERVED")
         except Exception as e:
             error_msg = f"File {i}/{total} failed: {str(e)[:100]}..."
             _log(f"[ERROR] {error_msg}")
@@ -535,8 +454,10 @@ def process_files(
                 progress_cb(i, total, str(p))
 
     _log("## Batch import process completed")
-    _log("## AUTO-DETECTION completed. Check logs for any view assignment issues.")
-    _log("## Local processing completed. Original PNG files uploaded to cloud.")
+    _log("## ✅ DICOM PROTECTION: All original DICOM files preserved without modification")
+    _log("## ✅ AUTO-DETECTION completed. Check logs for any view assignment issues.")
+    _log("## ✅ OUTPUT GENERATION: PNG/XML analysis files created successfully")
+    _log("## ✅ CLOUD UPLOAD: Original PNG files uploaded to cloud storage")
     _log("## All files use study date naming convention.")
     
     globals()["_log"] = orig_log

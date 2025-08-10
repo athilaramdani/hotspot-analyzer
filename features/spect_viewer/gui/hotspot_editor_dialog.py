@@ -650,8 +650,45 @@ class HotspotEditorDialog(QDialog):
         print(f"Keys di scan[frames]: {list(scan['frames'].keys())}")
         print("======================\n")
 
-        # Load original array dari DICOM frames
-        orig_arr = scan["frames"][view]
+        # ✅ FIXED: Load original PNG instead of DICOM frames
+        dest_dir = Path(scan["path"]).parent
+        view_normalized = view.lower()
+
+        # Try to get study date for proper filename
+        try:
+            study_date = extract_study_date_from_dicom(scan["path"])
+            patient_id = dest_dir.name
+            filename_stem_with_date = generate_filename_stem(patient_id, study_date)
+        except Exception as e:
+            print(f"[WARN] Could not extract study date: {e}")
+            filename_stem_with_date = Path(scan["path"]).stem
+
+        orig_png_path = dest_dir / f"{filename_stem_with_date}_{view_normalized}_original.png"
+
+        print(f"Looking for original PNG: {orig_png_path}")
+
+        if orig_png_path.exists():
+            try:
+                orig_arr = np.array(Image.open(orig_png_path).convert('L'))
+                print(f"✓ Loaded original PNG: {orig_png_path}")
+                print(f"✓ PNG image range: min={orig_arr.min()}, max={orig_arr.max()}, shape={orig_arr.shape}")
+            except Exception as e:
+                print(f"✗ Failed to load PNG {orig_png_path}: {e}")
+                # Fallback to DICOM only if PNG failed
+                if view in scan["frames"]:
+                    orig_arr = scan["frames"][view]
+                    print(f"✓ Fallback to DICOM frame for {view}")
+                else:
+                    raise KeyError(f"View '{view}' not found in frames and PNG not available")
+        else:
+            print(f"✗ Original PNG not found: {orig_png_path}")
+            # Fallback to DICOM if PNG not found
+            if view in scan["frames"]:
+                orig_arr = scan["frames"][view]
+                print(f"✓ Fallback to DICOM frame for {view}")
+            else:
+                available_views = list(scan["frames"].keys())
+                raise KeyError(f"View '{view}' not found in frames: {available_views}. PNG also not available.")
         
         # FIXED: Check for existing hotspot data with proper priority
         if self._png_color.exists():
@@ -707,20 +744,9 @@ class HotspotEditorDialog(QDialog):
             print(f"✗ No existing hotspot data found. Creating empty mask.")
             mask_arr = np.zeros_like(orig_arr, np.uint8)
 
-        # Load original PNG if exists
+        # Use the loaded original data
+        orig_png_arr = orig_arr  # Already loaded above with PNG priority
         self._has_orig_png = orig_png_path.exists()
-        
-        if self._has_orig_png:
-            try:
-                orig_png_arr = np.array(Image.open(orig_png_path).convert('L'))
-                print(f"✓ Loaded original PNG: {orig_png_path}")
-            except Exception as e:
-                print(f"✗ Failed to load PNG {orig_png_path}: {e}")
-                orig_png_arr = orig_arr
-        else:
-            # Use DICOM frame data directly
-            orig_png_arr = orig_arr
-            print(f"✓ Using DICOM frame data for {view}")
 
         print(f"✓ DEBUG Original image range: min={orig_png_arr.min()}, max={orig_png_arr.max()}, shape={orig_png_arr.shape}")
 
@@ -840,7 +866,8 @@ class HotspotEditorDialog(QDialog):
         bar.addWidget(btn_contrast)
 
         # Instructions dengan info yang lebih jelas
-        data_source = "Original PNG loaded" if self._has_orig_png else "DICOM frames used"
+        orig_png_check_path = dest_dir / f"{filename_stem_with_date}_{view_normalized}_original.png"
+        data_source = "Original PNG loaded" if orig_png_check_path.exists() else "DICOM frames used"
         mask_status = "Existing mask loaded" if self._png_color.exists() else "New mask created"
         
         instructions = QLabel(
@@ -854,7 +881,7 @@ class HotspotEditorDialog(QDialog):
             f"<b>Data Info:</b><br>"
             f"• Image: {data_source}<br>"
             f"• Mask: {mask_status}<br>"
-            f"• Size: {orig_png_arr.shape[1]}×{orig_png_arr.shape[0]}"
+            f"• Size: {orig_arr.shape[1]}×{orig_arr.shape[0]}"
         )
         instructions.setWordWrap(True)
         instructions.setStyleSheet("QLabel { background: #f0f0f0; padding: 8px; border-radius: 4px; }")
@@ -886,7 +913,7 @@ class HotspotEditorDialog(QDialog):
         right_layout.addWidget(info_frame)
 
         # Canvas
-        self.canvas = _Canvas(orig_png_arr, mask_arr)
+        self.canvas = _Canvas(orig_arr, mask_arr)  # Use orig_arr directly
         self.canvas.set_info_callback(self._update_info_display)
         right_layout.addWidget(self.canvas)
 
