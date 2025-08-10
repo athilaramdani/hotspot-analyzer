@@ -8,6 +8,8 @@ import numpy as np
 import xml.etree.ElementTree as ET
 from core.logger import _log
 from core.config.paths import CLASSIFICATION_MODEL_PATH
+from core.config.paths import get_classification_files # Pastikan ini di-import
+print(">>>>>> [BUKTI] MEMUAT classification_wrapper.py VERSI TERBARU <<<<<<") # <-- TAMBAHKAN INI
 
 def setup_classification_path():
     """Add classification model path to Python path"""
@@ -361,7 +363,7 @@ def run_classification_inference(raw_path: str, segment_path: str, hotspot_path:
         _log(f"[ERROR] Full traceback: {traceback.format_exc()}")
         return [], None
 
-def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date: str) -> bool:
+def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date: str, source_is_editor: bool = False) -> bool:
     """
     Run hotspot classification for both anterior and posterior views with grayscale conversion
     """
@@ -413,7 +415,7 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
             if classification_result:
                 # Save results
                 save_classification_results(
-                    patient_folder, filename_stem, view, classification_result, classification_mask
+                    patient_folder, filename_stem, view, classification_result, classification_mask, source_is_editor
                 )
                 _log(f"     {view.title()} classification completed: {len(classification_result)} hotspots classified")
                 results.append(True)
@@ -462,11 +464,21 @@ def get_classification_input_paths(patient_folder: Path, filename_stem: str, vie
         'xml_file': next((p for p in xml_candidates if p.exists()), xml_candidates[-1])
     }
 
-def save_classification_results(patient_folder: Path, filename_stem: str, view: str, results: list, mask: any):
-    """✅ UPDATED: Save classification results with XML creation"""
+def save_classification_results(patient_folder: Path, filename_stem: str, view: str, results: list, mask: any, source_is_editor: bool = False):
+    """✅ UPDATED: Save classification results with conditional naming"""
     try:
-        # Save classification results as JSON
-        json_path = patient_folder / f"{filename_stem}_{view}_classification.json"
+        # Dapatkan semua path yang relevan dari paths.py
+        clf_files = get_classification_files(patient_folder, filename_stem, view)
+
+        # Logika IF/ELSE untuk menentukan path output
+        if source_is_editor:
+            json_path = clf_files['json_edited']
+            mask_path = clf_files['mask_edited']
+            _log(f"     Saving EDITED classification results to: {json_path.name}")
+        else:
+            json_path = clf_files['json_original']
+            mask_path = clf_files['mask_original']
+            _log(f"     Saving ORIGINAL classification results to: {json_path.name}")
         
         # Convert results to JSON-serializable format
         json_data = {

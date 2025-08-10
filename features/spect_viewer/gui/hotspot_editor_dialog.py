@@ -1,28 +1,34 @@
 # =====================================================================
-# frontend/widgets/segmentation_editor_dialog.py  – v2.1-precision-fixed
+# frontend/widgets/segmentation_editor_dialog.py  – v2.3-segmentation-integrated
 # ---------------------------------------------------------------------
 """
-Full-screen dialog untuk manual edit segmentasi.
+Full-screen dialog untuk manual edit segmentasi dengan XML management dan segmentation layer.
 
-Perbaikan v2.1:
-- Fix koordinat brush yang miss/meleset
-- Fix loading PNG dari DICOM frames yang benar
-- Improve pixel precision untuk drawing
-- Better handling untuk DICOM dengan multiple frames
+Perbaikan v2.3:
+- Integrasi fitur segmentation layer dari code pertama
+- Pembatasan painting hanya pada area segmen (bukan background)
+- Detection segment pada posisi cursor dan bounding box
+- Segmentation opacity control
+- Enhanced segment validation
 """
 from __future__ import annotations
 from pathlib import Path
 from typing import Dict, List, Tuple
 import math
+import xml.etree.ElementTree as ET
+from datetime import datetime
+import shutil
+from datetime import datetime
 
 from core.config.paths import (
     extract_study_date_from_dicom,
     generate_filename_stem,
 )
 
-
 import numpy as np
 from PIL import Image
+from scipy import ndimage
+from skimage import measure
 
 from PySide6.QtCore    import Qt, QRectF, QPointF, Signal
 from PySide6.QtGui     import (
@@ -40,12 +46,32 @@ from features.spect_viewer.logic.hotspot_processor import HotspotProcessor, pars
 
 from features.spect_viewer.logic.colorizer import label_mask_to_hotspot_rgb,label_new_mask_to_hotspot_rgb, _HOTSPOT_PALLETTE
 
+# Import segmentation colorizer
+from features.spect_viewer.logic.colorizer import _PALETTE
+
 # ---------------------------------------------------------------- label names & desc
 _LABEL_INFO: List[Tuple[str, str]] = [
     ("Background", "kosong"),
     ("Abnormal", "Terdeteksi anomali"),
     ("Normal", "Tidak terdeteksi anomali")
 ]
+
+# Mapping dari label ID ke nama segment (sesuai colorizer.py)
+_SEGMENT_NAMES = {
+    0: "background",
+    1: "skull", 
+    2: "cervical_vertebrae",
+    3: "thoracic_vertebrae", 
+    4: "rib",
+    5: "sternum",
+    6: "collarbone",
+    7: "scapula",
+    8: "humerus",
+    9: "lumbar_vertebrae",
+    10: "sacrum",
+    11: "pelvis", 
+    12: "femur"
+}
 
 class _BCPad(QWidget):
     """Pad 2-D:  X  = brightness (−1 … +1)
@@ -200,7 +226,7 @@ class _BCPad(QWidget):
 
 # ==================================================================== Canvas
 class _Canvas(QGraphicsView):
-    """Interactive view: pan, zoom, brush / eraser dengan koordinat presisi tinggi."""
+    """Interactive view: pan, zoom, brush / eraser dengan koordinat presisi tinggi dan segmentation support."""
 
     def __init__(self, orig: np.ndarray, mask: np.ndarray, parent=None):
         super().__init__(parent)
@@ -230,9 +256,21 @@ class _Canvas(QGraphicsView):
 
         # mask layer
         self._mask_arr = mask.astype(np.uint8)
+        
+        # Load segmentation layer
+        self._segmentation_arr = self._load_segmentation_layer(orig)
+        self._segmentation_img = None
+        self._item_segmentation = None
+        if self._segmentation_arr is not None:
+            self._segmentation_img = self._segmentation_to_qimage()
+            self._item_segmentation = QGraphicsPixmapItem(QPixmap.fromImage(self._segmentation_img))
+            self._item_segmentation.setOpacity(0.3)  # Default 30% opacity
+            self._scene.addItem(self._item_segmentation)
+        
         # --- NEW: bank layer per-label ---------------------------------
         self._layers = {lbl: (self._mask_arr == lbl).astype(np.uint8)
                         for lbl in range(len(_HOTSPOT_PALLETTE))}
+        self._bg_alpha = 0.0  # Opacity for background (label-0)
         # ---------------------------------------------------------------
         self._mask_img = self._mask_to_qimage(show_all=False, label=1)
         self._item_mask = QGraphicsPixmapItem(QPixmap.fromImage(self._mask_img))
@@ -248,9 +286,10 @@ class _Canvas(QGraphicsView):
         print("Shape original image:", orig.shape)
         print("Shape mask array     :", mask.shape)
         print("Unique mask values   :", np.unique(self._mask_arr))
+        print("Segmentation loaded  :", self._segmentation_arr is not None)
         print("Opacity gray image   :", self._item_gray.opacity())
         print("Mask QImage size     :", self._mask_img.size())
-        print("QGraphicsScene items :", self._scene.items())
+        print("QGraphicsScene items :", len(self._scene.items()))
         print("=========================\n")
 
         self._cur_label = 1
@@ -277,6 +316,84 @@ class _Canvas(QGraphicsView):
             
         # Simpan state awal untuk semua layer
         self._save_all_states()
+
+    def _load_segmentation_layer(self, orig_frame: np.ndarray) -> np.ndarray:
+        """Load segmentation colored PNG jika tersedia."""
+        try:
+            # Konstruksi path segmentation berdasarkan naming convention
+            # Akan dicari di parent dialog nanti
+            return None  # Placeholder, akan di-set dari dialog
+        except Exception as e:
+            print(f"[DEBUG] Could not load segmentation layer: {e}")
+            return None
+    
+    def set_segmentation_layer(self, segmentation_path: Path):
+        """Set segmentation layer dari path eksternal."""
+        try:
+            if segmentation_path and segmentation_path.exists():
+                # Load RGB image dan convert ke label mask
+                rgb_img = np.array(Image.open(segmentation_path).convert("RGB"))
+                
+                # Convert RGB ke label mask menggunakan palette
+                label_mask = np.zeros(rgb_img.shape[:2], dtype=np.uint8)
+                for label_id, color in enumerate(_PALETTE):
+                    mask_matches = np.all(rgb_img == color, axis=-1)
+                    label_mask[mask_matches] = label_id
+                
+                self._segmentation_arr = label_mask
+                
+                # Update graphics item
+                if self._item_segmentation:
+                    self._scene.removeItem(self._item_segmentation)
+                
+                self._segmentation_img = self._segmentation_to_qimage()
+                self._item_segmentation = QGraphicsPixmapItem(QPixmap.fromImage(self._segmentation_img))
+                self._item_segmentation.setOpacity(0.3)
+                self._scene.addItem(self._item_segmentation)
+                
+                print(f"✓ Loaded segmentation layer: {segmentation_path}")
+                return True
+            else:
+                print(f"✗ Segmentation file not found: {segmentation_path}")
+                return False
+        except Exception as e:
+            print(f"✗ Failed to load segmentation: {e}")
+            return False
+    
+    def _segmentation_to_qimage(self) -> QImage:
+        """Convert segmentation array to QImage dengan transparency."""
+        if self._segmentation_arr is None:
+            return QImage()
+        
+        h, w = self._segmentation_arr.shape
+        rgb = np.zeros((h, w, 3), dtype=np.uint8)
+        alpha = np.zeros((h, w), dtype=np.uint8)
+        
+        # Apply colors from palette
+        for label_id, color in enumerate(_PALETTE):
+            mask = (self._segmentation_arr == label_id)
+            if label_id == 0:  # Background transparent
+                alpha[mask] = 0
+            else:  # Segments visible
+                rgb[mask] = color
+                alpha[mask] = 255
+        
+        # Create RGBA
+        rgba = np.dstack([rgb, alpha])
+        return QImage(rgba.data, w, h, 4*w, QImage.Format_RGBA8888).copy()
+
+    def get_segment_at_position(self, x: int, y: int) -> str:
+        """Get segment name at given position."""
+        if self._segmentation_arr is not None:
+            if 0 <= x < self._segmentation_arr.shape[1] and 0 <= y < self._segmentation_arr.shape[0]:
+                segment_label = self._segmentation_arr[y, x]
+                return _SEGMENT_NAMES.get(segment_label, "unknown")
+        return "manual_annotation"
+    
+    def set_segmentation_opacity(self, alpha: float):
+        """Set opacity untuk segmentation layer."""
+        if self._item_segmentation:
+            self._item_segmentation.setOpacity(alpha)
 
     def _init_layer_history(self, label_id: int):
         """Inisialisasi struktur history untuk layer tertentu"""
@@ -354,27 +471,20 @@ class _Canvas(QGraphicsView):
         return QImage(u8.data, w, h, w, QImage.Format_Grayscale8).copy()
 
     def _mask_to_qimage(self, *, show_all: bool, label: int) -> QImage:
-        rgb = label_mask_to_hotspot_rgb(self._mask_arr)          # (H, W, 3)
+        rgb = label_mask_to_hotspot_rgb(self._mask_arr)      # (H, W, 3)
         h, w, _ = rgb.shape
 
-        # build an alpha channel: fully opaque where we want to show,
-        #  fully transparent everywhere else
-        if show_all:
-            alpha = np.full((h, w), 255, np.uint8)
-            # label-0 transparency:
-            alpha[self._mask_arr == 0] = int(self._bg_alpha * 255)
-        else:
-            sel = (self._layers[label] == 1)   
-            rgb[sel] = np.array(_HOTSPOT_PALLETTE[label], dtype=np.uint8)# ← inilah baris baru
-            alpha = np.zeros((h, w), np.uint8)
-            alpha[sel] = 255
+        # Selalu tampilkan semua hotspot, mirip perilaku di kode lama.
+        alpha = np.full((h, w), 255, np.uint8)
+        
+        # Atur transparansi untuk background (label 0) jika slider BG opacity digeser.
+        alpha[self._mask_arr == 0] = int(self._bg_alpha * 255)
 
         # stack RGB + alpha → RGBA image
         rgba = np.dstack([rgb, alpha])
 
         # create QImage from the raw data
         return QImage(rgba.data, w, h, 4*w, QImage.Format_RGBA8888).copy()
-
 
     # -------- public setters
     def set_brush_size(self, sz: int):        
@@ -414,7 +524,6 @@ class _Canvas(QGraphicsView):
                    self._img_width, QImage.Format_Grayscale8).copy()
         self._item_gray.setPixmap(QPixmap.fromImage(q))
 
-        
     # -- background (label-0) opacity -----------------------------
     def set_bg_opacity(self, alpha: float):
         """alpha 0-1 hanya untuk label-0 (background)."""
@@ -429,8 +538,6 @@ class _Canvas(QGraphicsView):
                      self._img_width, QImage.Format_Grayscale8).copy()
         self._item_gray.setPixmap(QPixmap.fromImage(q))
 
-
-    
     def current_mask(self) -> np.ndarray:     
         return self._mask_arr
 
@@ -450,9 +557,9 @@ class _Canvas(QGraphicsView):
         self._item_mask.setPixmap(QPixmap.fromImage(self._mask_img))
         self.viewport().update()
 
-    # -------- FIXED: drawing helpers dengan koordinat yang presisi
+    # -------- FIXED: drawing helpers dengan koordinat yang presisi dan segmentation validation
     def _apply_brush(self, scene_pos: QPointF):
-        """Apply brush dengan koordinat yang presisi, tidak miss lagi."""
+        """Apply brush dengan koordinat yang presisi dan validasi segmentasi."""
         # Pastikan koordinat tepat pada pixel center
         x = max(0, min(self._img_width - 1, int(scene_pos.x() + 0.5)))
         y = max(0, min(self._img_height - 1, int(scene_pos.y() + 0.5)))
@@ -471,9 +578,16 @@ class _Canvas(QGraphicsView):
                         if 0 <= px < w and 0 <= py < h:
                             targets.append((px, py))
 
-        # ---- NEW core: sentuh hanya layer aktif -----------------------
+        # ---- NEW core: sentuh hanya layer aktif dengan validasi segmentasi ---------
         lay = self._layers[self._cur_label]
         for px, py in targets:
+            # VALIDATION: Hanya izinkan edit di area yang bukan background
+            if self._segmentation_arr is not None:
+                segment_label = self._segmentation_arr[py, px]
+                if segment_label == 0:  # Background segment
+                    continue  # Skip painting on background
+            
+            # Original painting logic
             if self._eraser:
                 lay[py, px] = 0            # hapus hanya label aktif
             else:
@@ -483,7 +597,6 @@ class _Canvas(QGraphicsView):
         # selesai → re-compose lalu refresh
         self._rebuild_combined()
         self._refresh_mask()
-
 
     # -------- Qt events dengan koordinat yang diperbaiki
     def mousePressEvent(self, ev):
@@ -587,6 +700,113 @@ class _Canvas(QGraphicsView):
                 painter.drawLine(max(0, left), y, min(self._img_width, right), y)
             y += step
 
+# ================================================================= XML Utilities
+def mask_to_bounding_boxes(mask: np.ndarray, segmentation_arr: np.ndarray = None, min_area: int = 10) -> List[Dict]:
+    """Convert mask annotations to bounding boxes with proper segment detection."""
+    bounding_boxes = []
+    
+    # Process Abnormal (label=1) and Normal (label=2) areas
+    for label_value in [1, 2]:
+        label_mask = (mask == label_value).astype(np.uint8)
+        
+        if not np.any(label_mask):
+            continue
+            
+        # Find connected components
+        labeled_regions = measure.label(label_mask)
+        
+        for region_id in range(1, labeled_regions.max() + 1):
+            region = (labeled_regions == region_id)
+            
+            # Skip small regions
+            if np.sum(region) < min_area:
+                continue
+                
+            # Get bounding box coordinates
+            coords = np.where(region)
+            y_min, y_max = coords[0].min(), coords[0].max()
+            x_min, x_max = coords[1].min(), coords[1].max()
+            
+            # Detect dominant segment in this region
+            segment_name = "manual_annotation"
+            if segmentation_arr is not None:
+                # Get segment labels in this region
+                region_segments = segmentation_arr[region]
+                # Find most common non-background segment
+                unique_segments, counts = np.unique(region_segments, return_counts=True)
+                # Filter out background (label 0)
+                non_bg_mask = unique_segments != 0
+                if np.any(non_bg_mask):
+                    dominant_segment_id = unique_segments[non_bg_mask][np.argmax(counts[non_bg_mask])]
+                    segment_name = _SEGMENT_NAMES.get(dominant_segment_id, "unknown")
+            
+            # Convert to proper format
+            bbox = {
+                'x': int(x_min),
+                'y': int(y_min),
+                'width': int(x_max - x_min + 1),
+                'height': int(y_max - y_min + 1),
+                'label': 'abnormal' if label_value == 1 else 'normal',
+                'confidence': 1.0,  # Manual annotation = high confidence
+                'hotspot_pixels': int(np.sum(region)),
+                'segment': segment_name
+            }
+            
+            bounding_boxes.append(bbox)
+    
+    return bounding_boxes
+
+def create_xml_from_bboxes(bounding_boxes: List[Dict], img_width: int, img_height: int, 
+                          patient_id: str, view: str, filename_stem: str) -> str:
+    """Create XML content from bounding boxes dengan format classification results."""
+    
+    # Create root element
+    root = ET.Element('annotation')
+    
+    # Add metadata
+    ET.SubElement(root, 'folder').text = 'classification_results'
+    ET.SubElement(root, 'filename').text = f'{filename_stem}_{view}_classification.png'
+    ET.SubElement(root, 'path').text = f'/path/to/{filename_stem}_{view}_classification.png'
+    
+    # Add source info
+    source = ET.SubElement(root, 'source')
+    ET.SubElement(source, 'database').text = 'Hotspot Classification Results'
+    
+    # Add image size
+    size = ET.SubElement(root, 'size')
+    ET.SubElement(size, 'width').text = str(img_width)
+    ET.SubElement(size, 'height').text = str(img_height)
+    ET.SubElement(size, 'depth').text = '1'
+    
+    ET.SubElement(root, 'segmented').text = '0'
+    
+    # Add bounding boxes
+    for bbox in bounding_boxes:
+        obj = ET.SubElement(root, 'object')
+        # FIXED: Gunakan format dengan huruf kapital pertama
+        label_name = bbox['label'].capitalize()  # 'abnormal' -> 'Abnormal'
+        ET.SubElement(obj, 'name').text = label_name
+        ET.SubElement(obj, 'pose').text = 'Unspecified'
+        ET.SubElement(obj, 'truncated').text = '0'
+        ET.SubElement(obj, 'difficult').text = '0'
+        
+        # Add bounding box coordinates
+        bndbox = ET.SubElement(obj, 'bndbox')
+        ET.SubElement(bndbox, 'xmin').text = str(bbox['x'])
+        ET.SubElement(bndbox, 'ymin').text = str(bbox['y'])
+        ET.SubElement(bndbox, 'xmax').text = str(bbox['x'] + bbox['width'])
+        ET.SubElement(bndbox, 'ymax').text = str(bbox['y'] + bbox['height'])
+    
+    # Convert to string with proper formatting
+    ET.indent(root, space="  ")
+    return ET.tostring(root, encoding='unicode')
+
+def save_xml_file(xml_content: str, file_path: Path):
+    """Save XML content to file with proper header."""
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+        f.write(xml_content)
+
 # ================================================================= Dialog
 class HotspotEditorDialog(QDialog):
     def __init__(self, scan: Dict, view: str, parent=None):
@@ -626,8 +846,23 @@ class HotspotEditorDialog(QDialog):
         self._png_color_legacy = base.parent / f"{filename_stem}_{view_short}_hotspot_colored.png"
         self._png_mask_legacy = base.parent / f"{filename_stem}_{view_short}_hotspot_mask.png"
         
-        # XML paths
-        xml_path = base.parent / f"{filename_stem}_{view_short}.xml"
+        # === NEW: XML path management ===
+        self._xml_original = base.parent / f"{filename_stem}_{view_short}.xml"
+        self._xml_edited = base.parent / f"{filename_stem}_{view_short}_edited.xml"
+        self._xml_loaded_from_edited = False  # Track source of loaded XML
+        
+        # Store data for XML generation
+        self._patient_id = patient_id
+        self._view_short = view_short
+        self._filename_stem = filename_stem
+        
+        # Store untuk akses ke processing wrapper
+        self._dicom_path = Path(scan["path"])
+        self._study_date = study_date
+        
+        # Load segmentation layer
+        segmentation_path = base.parent / f"{filename_stem}_{view_full}_colored.png"
+        self._segmentation_path = segmentation_path
         
         # Original PNG path
         orig_png_path = base.with_name(f"{base.stem}_{vtag}.png")
@@ -636,7 +871,9 @@ class HotspotEditorDialog(QDialog):
         print(f"  Save to (edited): {self._png_color}")
         print(f"  Original hotspot: {self._png_color_original}")
         print(f"  Legacy hotspot: {self._png_color_legacy}")
-        print(f"  XML: {xml_path}")
+        print(f"  XML original: {self._xml_original}")
+        print(f"  XML edited: {self._xml_edited}")
+        print(f"  Segmentation: {self._segmentation_path}")
         print(f"  Original PNG: {orig_png_path}")
 
         orig_png_arr = None
@@ -650,103 +887,50 @@ class HotspotEditorDialog(QDialog):
         print(f"Keys di scan[frames]: {list(scan['frames'].keys())}")
         print("======================\n")
 
-        # ✅ FIXED: Load original PNG instead of DICOM frames
-        dest_dir = Path(scan["path"]).parent
-        view_normalized = view.lower()
-
-        # Try to get study date for proper filename
-        try:
-            study_date = extract_study_date_from_dicom(scan["path"])
-            patient_id = dest_dir.name
-            filename_stem_with_date = generate_filename_stem(patient_id, study_date)
-        except Exception as e:
-            print(f"[WARN] Could not extract study date: {e}")
-            filename_stem_with_date = Path(scan["path"]).stem
-
-        orig_png_path = dest_dir / f"{filename_stem_with_date}_{view_normalized}_original.png"
-
-        print(f"Looking for original PNG: {orig_png_path}")
-
-        if orig_png_path.exists():
-            try:
-                orig_arr = np.array(Image.open(orig_png_path).convert('L'))
-                print(f"✓ Loaded original PNG: {orig_png_path}")
-                print(f"✓ PNG image range: min={orig_arr.min()}, max={orig_arr.max()}, shape={orig_arr.shape}")
-            except Exception as e:
-                print(f"✗ Failed to load PNG {orig_png_path}: {e}")
-                # Fallback to DICOM only if PNG failed
-                if view in scan["frames"]:
-                    orig_arr = scan["frames"][view]
-                    print(f"✓ Fallback to DICOM frame for {view}")
-                else:
-                    raise KeyError(f"View '{view}' not found in frames and PNG not available")
-        else:
-            print(f"✗ Original PNG not found: {orig_png_path}")
-            # Fallback to DICOM if PNG not found
-            if view in scan["frames"]:
-                orig_arr = scan["frames"][view]
-                print(f"✓ Fallback to DICOM frame for {view}")
-            else:
-                available_views = list(scan["frames"].keys())
-                raise KeyError(f"View '{view}' not found in frames: {available_views}. PNG also not available.")
+        # Load original array dari DICOM frames
+        orig_arr = scan["frames"][view]
         
         # FIXED: Check for existing hotspot data with proper priority
-        if self._png_color.exists():
-            # Priority 1: Edited version exists
+        if self._xml_edited.exists():
+            # Priority 1: Load from edited XML (always prioritize this)
+            print(f"✓ Found EDITED XML annotations: {self._xml_edited}")
+            self._xml_loaded_from_edited = True
+            mask_arr = self._load_from_xml(self._xml_edited, orig_arr, filename_stem, view_short, base.parent)
+        elif self._png_color.exists():
+            # Priority 2: Edited PNG version exists
             print(f"✓ Found existing EDITED hotspot: {self._png_color}")
             mask_arr = self._load_mask_from_png()
+        elif self._xml_original.exists():
+            # Priority 3: Generate from original XML (but will save to edited)
+            print(f"✓ Found ORIGINAL XML annotations: {self._xml_original}")
+            self._xml_loaded_from_edited = False  # Not loaded from edited, but will save to edited
+            mask_arr = self._load_from_xml(self._xml_original, orig_arr, filename_stem, view_short, base.parent)
         elif self._png_color_original.exists():
-            # Priority 2: Original version exists
+            # Priority 4: Original version exists
             print(f"✓ Found existing ORIGINAL hotspot: {self._png_color_original}")
             mask_arr = self._load_mask_from_png()
         elif self._png_color_legacy.exists():
-            # Priority 3: Legacy version exists
+            # Priority 5: Legacy version exists
             print(f"✓ Found existing LEGACY hotspot: {self._png_color_legacy}")
             mask_arr = self._load_mask_from_png()
-        elif xml_path.exists():
-            # Priority 4: Generate from XML
-            print(f"✓ Found XML annotations: {xml_path}")
-            try:
-                # Determine image to use for processing
-                if orig_png_path.exists():
-                    input_image_path = str(orig_png_path)
-                    print(f"✓ Using original PNG for processing: {orig_png_path}")
-                else:
-                    # Save DICOM frame to temp PNG so hotspot_processor can read it
-                    temp_png_path = base.parent / f"{filename_stem}_temp.png"
-                    Image.fromarray(orig_arr).save(temp_png_path)
-                    input_image_path = str(temp_png_path)
-                    print(f"✓ Saved DICOM frame to temp PNG for processing: {input_image_path}")
-
-                # Parse and process
-                boxes = parse_xml_annotations(str(xml_path))
-                if boxes:
-                    mask_arr, overlayed_pil = create_hotspot_mask(
-                        input_image_path,
-                        boxes,
-                        patient_id,
-                        view_short, str(base.parent)
-                    )
-                    print(mask_arr.shape, mask_arr.dtype)
-                    recolor = np.zeros_like(mask_arr, dtype=np.uint8)
-                    recolor[mask_arr > 200] = 1      # Abnormal
-                    recolor[(mask_arr > 50) & (mask_arr <= 200)] = 2  # Normal
-                    mask_arr = recolor
-                    orig_png_arr = np.array(overlayed_pil.convert('L'))
-                    print(f"✓ Generated mask and overlayed image from XML.")
-                else:
-                    print(f"✗ No bounding boxes in XML, using empty mask.")
-                    mask_arr = np.zeros_like(orig_arr, np.uint8)
-            except Exception as e:
-                print(f"✗ Error processing XML: {e}")
-                mask_arr = np.zeros_like(orig_arr, np.uint8)
         else:
             print(f"✗ No existing hotspot data found. Creating empty mask.")
             mask_arr = np.zeros_like(orig_arr, np.uint8)
 
-        # Use the loaded original data
-        orig_png_arr = orig_arr  # Already loaded above with PNG priority
+        # Load original PNG if exists
         self._has_orig_png = orig_png_path.exists()
+        
+        if self._has_orig_png:
+            try:
+                orig_png_arr = np.array(Image.open(orig_png_path).convert('L'))
+                print(f"✓ Loaded original PNG: {orig_png_path}")
+            except Exception as e:
+                print(f"✗ Failed to load PNG {orig_png_path}: {e}")
+                orig_png_arr = orig_arr
+        else:
+            # Use DICOM frame data directly
+            orig_png_arr = orig_arr
+            print(f"✓ Using DICOM frame data for {view}")
 
         print(f"✓ DEBUG Original image range: min={orig_png_arr.min()}, max={orig_png_arr.max()}, shape={orig_png_arr.shape}")
 
@@ -861,14 +1045,44 @@ class HotspotEditorDialog(QDialog):
         bg_row.addWidget(self.lbl_bg)
         bar.addLayout(bg_row)
         
+        # ===== SEGMENTATION OPACITY SLIDER DENGAN TOMBOL +/- =====
+        bar.addWidget(QLabel("Segmentation Opacity"))
+        self.slider_seg = QSlider(Qt.Horizontal)
+        self.slider_seg.setRange(0, 100)
+        self.slider_seg.setValue(30)           # default 30 %
+        self.lbl_seg = QLabel("30 %"); self.lbl_seg.setFixedWidth(35); self.lbl_seg.setAlignment(Qt.AlignRight)
+        self.btn_seg_minus = QPushButton("-"); self.btn_seg_minus.setFixedSize(30, 22)
+        self.btn_seg_plus = QPushButton("+"); self.btn_seg_plus.setFixedSize(30, 22)
+        seg_row = QHBoxLayout()
+        seg_row.setSpacing(3)
+        seg_row.addWidget(self.btn_seg_minus)
+        seg_row.addWidget(self.slider_seg, 1)
+        seg_row.addWidget(self.btn_seg_plus)
+        seg_row.addWidget(self.lbl_seg)
+        bar.addLayout(seg_row)
+        
         # --- Contrast button ---
         btn_contrast = QPushButton("Contrast…")
         bar.addWidget(btn_contrast)
 
+        # Setup segmentation layer status
+        if self._segmentation_path.exists():
+            segmentation_status = f"Segmentation loaded: {self._segmentation_path.name}"
+        else:
+            segmentation_status = f"No segmentation found: {self._segmentation_path.name}"
+            self.slider_seg.setEnabled(False)  # Disable slider if no segmentation
+
         # Instructions dengan info yang lebih jelas
-        orig_png_check_path = dest_dir / f"{filename_stem_with_date}_{view_normalized}_original.png"
-        data_source = "Original PNG loaded" if orig_png_check_path.exists() else "DICOM frames used"
-        mask_status = "Existing mask loaded" if self._png_color.exists() else "New mask created"
+        data_source = "Original PNG loaded" if self._has_orig_png else "DICOM frames used"
+        if mask_arr is not None and np.any(mask_arr):
+            if self._xml_loaded_from_edited:
+                mask_status = "Edited XML loaded"
+            elif hasattr(self, '_xml_original') and self._xml_original.exists():
+                mask_status = "Original XML loaded"
+            else:
+                mask_status = "Existing mask loaded"
+        else:
+            mask_status = "New mask created"
         
         instructions = QLabel(
             "<b>Controls:</b><br>"
@@ -877,11 +1091,14 @@ class HotspotEditorDialog(QDialog):
             "• Ctrl+scroll: Zoom<br>"
             "• Ctrl+Z: Undo edit<br>"
             "• Ctrl+Y: Redo Edit<br>"
-            "• Grid appears at 2x+ zoom<br><br>"
+            "• Grid appears at 2x+ zoom<br>"
+            "• <b>Paint only on colored segments</b><br><br>"
             f"<b>Data Info:</b><br>"
             f"• Image: {data_source}<br>"
             f"• Mask: {mask_status}<br>"
-            f"• Size: {orig_arr.shape[1]}×{orig_arr.shape[0]}"
+            f"• Segmentation: {segmentation_status}<br>"
+            f"• Size: {orig_png_arr.shape[1]}×{orig_png_arr.shape[0]}<br>"
+            f"• XML: Save to '_edited' only"
         )
         instructions.setWordWrap(True)
         instructions.setStyleSheet("QLabel { background: #f0f0f0; padding: 8px; border-radius: 4px; }")
@@ -913,8 +1130,19 @@ class HotspotEditorDialog(QDialog):
         right_layout.addWidget(info_frame)
 
         # Canvas
-        self.canvas = _Canvas(orig_arr, mask_arr)  # Use orig_arr directly
+        self.canvas = _Canvas(orig_png_arr, mask_arr)
         self.canvas.set_info_callback(self._update_info_display)
+        
+        # Setup segmentation layer
+        if self._segmentation_path.exists():
+            success = self.canvas.set_segmentation_layer(self._segmentation_path)
+            if success:
+                print(f"✓ Segmentation loaded: {self._segmentation_path.name}")
+            else:
+                print(f"✗ Segmentation load failed: {self._segmentation_path.name}")
+        else:
+            print(f"✗ No segmentation found: {self._segmentation_path.name}")
+        
         right_layout.addWidget(self.canvas)
 
         # ===== SIGNALS =====
@@ -927,6 +1155,7 @@ class HotspotEditorDialog(QDialog):
         self.slider_gray.valueChanged.connect(self._gray_alpha_changed)
         self.slider_mask.valueChanged.connect(self._mask_alpha_changed)
         self.slider_bg.valueChanged.connect(self._bg_alpha_changed)
+        self.slider_seg.valueChanged.connect(self._seg_alpha_changed)
         btn_contrast.clicked.connect(self._open_contrast_popup)
         btn_save.clicked.connect(self._save_all)
         btn_cancel.clicked.connect(self.reject)
@@ -952,6 +1181,48 @@ class HotspotEditorDialog(QDialog):
         # Background opacity buttons
         self.btn_bg_minus.clicked.connect(lambda: self._adjust_slider(self.slider_bg, -5))
         self.btn_bg_plus.clicked.connect(lambda: self._adjust_slider(self.slider_bg, 5))
+        
+        # Segmentation opacity controls
+        self.btn_seg_minus.clicked.connect(lambda: self._adjust_slider(self.slider_seg, -5))
+        self.btn_seg_plus.clicked.connect(lambda: self._adjust_slider(self.slider_seg, 5))
+
+    def _load_from_xml(self, xml_path: Path, orig_arr: np.ndarray, filename_stem: str, 
+                       view_short: str, base_dir: Path) -> np.ndarray:
+        """Load mask from XML file."""
+        try:
+            # Determine image to use for processing
+            orig_png_path = base_dir / f"{filename_stem}_{view_short}.png"
+            if orig_png_path.exists():
+                input_image_path = str(orig_png_path)
+                print(f"✓ Using original PNG for XML processing: {orig_png_path}")
+            else:
+                # Save DICOM frame to temp PNG
+                temp_png_path = base_dir / f"{filename_stem}_temp.png"
+                Image.fromarray(orig_arr).save(temp_png_path)
+                input_image_path = str(temp_png_path)
+                print(f"✓ Saved DICOM frame to temp PNG for XML processing: {input_image_path}")
+
+            # Parse and process
+            boxes = parse_xml_annotations(str(xml_path))
+            if boxes:
+                mask_arr, overlayed_pil, _ = create_hotspot_mask(
+                    input_image_path,
+                    boxes,
+                    self._patient_id,
+                    view_short, str(base_dir)
+                )
+                # Convert to label format
+                recolor = np.zeros_like(mask_arr, dtype=np.uint8)
+                recolor[mask_arr > 200] = 1      # Abnormal
+                recolor[(mask_arr > 50) & (mask_arr <= 200)] = 2  # Normal
+                print(f"✓ Generated mask from XML: {xml_path}")
+                return recolor
+            else:
+                print(f"✗ No bounding boxes in XML: {xml_path}")
+                return np.zeros_like(orig_arr, np.uint8)
+        except Exception as e:
+            print(f"✗ Error processing XML {xml_path}: {e}")
+            return np.zeros_like(orig_arr, np.uint8)
 
     def _adjust_slider(self, slider, step):
         """Helper method untuk mengubah nilai slider dengan step tertentu"""
@@ -1033,6 +1304,12 @@ class HotspotEditorDialog(QDialog):
         a = val / 100.0
         self.canvas.set_bg_opacity(a)
         self.lbl_bg.setText(f"{val} %")
+
+    def _seg_alpha_changed(self, val: int):
+        """Handle segmentation opacity change."""
+        alpha = val / 100.0
+        self.canvas.set_segmentation_opacity(alpha)
+        self.lbl_seg.setText(f"{val} %")
         
     # ---------- contrast mini-popup ------------------------------
     def _open_contrast_popup(self):
@@ -1134,11 +1411,140 @@ class HotspotEditorDialog(QDialog):
         ds.PixelData = img.astype(np.uint8).tobytes()
         ds.save_as(path, write_like_original=False)
 
-    def _save_all(self):
-        """FIXED: Always save to EDITED versions"""
-        mask = self.canvas.current_mask()
+    def _save_xml_with_backup(self, mask: np.ndarray):
+        """FIXED: Save XML only to '_edited' file, never touch original with segmentation support"""
         try:
-            # Save to EDITED file paths (never overwrite originals)
+            print(f"[DEBUG-XML] Starting XML save for {self._patient_id}")
+            print(f"[DEBUG-XML] View: {self._view_short}, Filename stem: {self._filename_stem}")
+            print(f"[DEBUG-XML] Will save to: {self._xml_edited}")
+            print(f"[DEBUG-XML] Mask shape: {mask.shape}, unique values: {np.unique(mask)}")
+            
+            # Generate bounding boxes with segment detection
+            segmentation_arr = self.canvas._segmentation_arr
+            bounding_boxes = mask_to_bounding_boxes(mask, segmentation_arr, min_area=10)
+            print(f"[DEBUG-XML] Generated {len(bounding_boxes)} bounding boxes")
+            
+            for i, bbox in enumerate(bounding_boxes):
+                print(f"[DEBUG-XML] Bbox {i+1}: {bbox['label']} at ({bbox['x']},{bbox['y']}) size {bbox['width']}x{bbox['height']} segment={bbox['segment']}")
+            
+            if not bounding_boxes:
+                # Even if empty, save empty XML to mark that editing was done
+                print("✓ Saving empty XML (no annotations found)")
+            
+            # Get image dimensions
+            img_height, img_width = mask.shape
+            
+            # Generate XML content
+            xml_content = create_xml_from_bboxes(
+                bounding_boxes, img_width, img_height, 
+                self._patient_id, self._view_short, self._filename_stem
+            )
+            
+            # === SIMPLIFIED SAVING LOGIC ===
+            # Always save to "_edited" file only, never touch original
+            
+            # Check if we're overwriting an existing edited file
+            is_overwrite = self._xml_edited.exists()
+            
+            # Save to edited location
+            save_xml_file(xml_content, self._xml_edited)
+            print(f"✓ Saved XML to: {self._xml_edited}")
+            
+            # Prepare result
+            saved_files = []
+            if is_overwrite:
+                saved_files.append(f"• {self._xml_edited.name} (updated)")
+                action_type = "updated"
+            else:
+                saved_files.append(f"• {self._xml_edited.name} (created)")
+                action_type = "created"
+            
+            # Show success message
+            bbox_count = len(bounding_boxes)
+            abnormal_count = len([b for b in bounding_boxes if b['label'] == 'abnormal'])
+            normal_count = len([b for b in bounding_boxes if b['label'] == 'normal'])
+            
+            return {
+                'saved_files': saved_files,
+                'bbox_stats': f"{bbox_count} annotations ({abnormal_count} abnormal, {normal_count} normal)",
+                'action_type': action_type
+            }
+            
+        except Exception as e:
+            print(f"✗ Failed to save XML: {e}")
+            return None
+    
+    def _trigger_quantification(self):
+        """
+        MODIFIED: Memicu alur analisis lengkap: Klasifikasi DULU, BARU Kuantifikasi.
+        """
+        try:
+            # Cukup satu kali import di awal
+            from features.spect_viewer.logic.processing_wrapper import (
+                run_classification_for_patient,
+                run_quantification_for_patient
+            )
+
+            # --- LANGKAH 1: Jalankan ulang Klasifikasi ---
+            import inspect
+            try:
+                path_file = inspect.getfile(run_classification_for_patient)
+                print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                print(f"!!! DEBUG: Fungsi 'run_classification_for_patient' dimuat dari:")
+                print(f"!!! {path_file}")
+                print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            except TypeError:
+                print("!!! DEBUG: Tidak bisa menemukan path file untuk 'run_classification_for_patient'.")
+            # =================================================
+
+            print("[SAVE-PIPELINE] Memicu Klasifikasi ulang (dari editor)...")
+            clf_success = run_classification_for_patient(
+                self._dicom_path,
+                self._patient_id,
+                self._study_date,
+                source_is_editor=True
+            )
+
+            # --- LANGKAH 2: PERIKSA HASIL KLASIFIKASI ---
+            if not clf_success:
+                print("[SAVE-PIPELINE] Klasifikasi ulang gagal. Proses kuantifikasi dibatalkan.")
+                QMessageBox.warning(self, "Analisis Gagal", 
+                                    "Proses klasifikasi ulang gagal. Kuantifikasi tidak dijalankan.")
+                return False
+
+            print("[SAVE-PIPELINE] Klasifikasi ulang berhasil.")
+
+            # --- LANGKAH 3: Jalankan ulang Kuantifikasi (HANYA JIKA KLASIFIKASI SUKSES) ---
+            print("[SAVE-PIPELINE] Memicu Kuantifikasi ulang...")
+            quant_success = run_quantification_for_patient(
+                self._dicom_path,
+                self._patient_id,
+                self._study_date
+            )
+            
+            if quant_success:
+                print("[SAVE-PIPELINE] Kuantifikasi ulang berhasil.")
+            else:
+                print("[SAVE-PIPELINE] Kuantifikasi ulang gagal.")
+                QMessageBox.warning(self, "Analisis Gagal", 
+                                    "Proses kuantifikasi ulang gagal setelah klasifikasi berhasil.")
+
+            return quant_success
+
+        except Exception as e:
+            print(f"[SAVE-PIPELINE ERROR] Gagal menjalankan analisis lanjutan: {e}")
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "Error Kritis", 
+                                f"Terjadi error saat menjalankan analisis lanjutan:\n{e}")
+            return False
+        
+    def _save_all(self):
+        """Enhanced save - only saves to '_edited' files"""
+        mask = self.canvas.current_mask()
+        
+        try:
+            # Save PNG files (existing logic)
             bin_img = (mask > 0).astype(np.uint8) * 255
             Image.fromarray(bin_img, mode="L").save(self._png_mask)
             print(f"✓ Saved edited mask PNG: {self._png_mask}")
@@ -1147,39 +1553,48 @@ class HotspotEditorDialog(QDialog):
             Image.fromarray(rgb_img).save(self._png_color)
             print(f"✓ Saved edited colored PNG: {self._png_color}")
 
-            QMessageBox.information(self, "Success", 
+            # Save XML files with segmentation support
+            xml_result = self._save_xml_with_backup(mask)
+            
+            # Prepare success message
+            success_msg = (
                 f"Hotspot edits saved successfully!\n\n"
-                f"Edited files saved:\n"
-                f"• {self._png_mask.name}\n"
-                f"• {self._png_color.name}\n\n"
-                f"Original files preserved.")
+                f"Image files saved:\n"
+                f"• {self._png_mask.name} (edited version)\n"
+                f"• {self._png_color.name} (edited version)\n\n"
+            )
+            
+            if xml_result:
+                success_msg += f"XML annotation file:\n"
+                for file_info in xml_result['saved_files']:
+                    success_msg += file_info + "\n"
+                success_msg += f"\nAnnotations: {xml_result['bbox_stats']}"
+                
+                # Add note about original preservation
+                if not self._xml_loaded_from_edited and self._xml_original.exists():
+                    success_msg += f"\n\nNote: Original XML file preserved:\n• {self._xml_original.name} (unchanged)"
+                
+                # Add segmentation info if available
+                if self.canvas._segmentation_arr is not None:
+                    success_msg += f"\n\nSegmentation-aware annotations saved with anatomical segments detected."
+            else:
+                success_msg += "Note: XML save failed or no annotations to save"
+
+            QMessageBox.information(self, "Success", success_msg)
+            
+            # NEW: Trigger quantification setelah XML berhasil disimpan
+            if xml_result:
+                print("[SAVE] Triggering quantification after XML save...")
+                quant_success = self._trigger_quantification()
+                if quant_success:
+                    print("[SAVE] Quantification completed after XML save")
+                else:
+                    print("[SAVE] Quantification failed after XML save")
             
             self.accept()
+            
         except Exception as e:
             print(f"✗ Save failed: {e}")
             QMessageBox.critical(self, "Save failed", 
-                f"Failed to save hotspot edits:\n{str(e)}")
-            """FIXED: Save dengan nama file yang konsisten"""
-            mask = self.canvas.current_mask()
-            try:
-                # FIXED: Save with consistent naming
-                bin_img = (mask > 0).astype(np.uint8) * 255
-                Image.fromarray(bin_img, mode="L").save(self._png_mask)
-                print(f"✓ Saved mask PNG: {self._png_mask}")
-
-                rgb_img = label_mask_to_hotspot_rgb(mask)
-                Image.fromarray(rgb_img).save(self._png_color)
-                print(f"✓ Saved colored PNG: {self._png_color}")
-
-                QMessageBox.information(self, "Success", 
-                    f"Hotspot saved successfully!\n\n"
-                    f"Files saved:\n"
-                    f"• {self._png_mask.name}\n"
-                    f"• {self._png_color.name}")
-                
-                self.accept()
-            except Exception as e:
-                print(f"✗ Save failed: {e}")
-                QMessageBox.critical(self, "Save failed", 
-                    f"Failed to save hotspot:\n{str(e)}\n\n"
-                    f"Please check file permissions and disk space.")
+                f"Failed to save hotspot edits:\n{str(e)}\n\n"
+                f"Please check file permissions and disk space.")

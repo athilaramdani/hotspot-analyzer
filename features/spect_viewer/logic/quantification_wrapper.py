@@ -5,6 +5,8 @@ import cv2
 from pathlib import Path
 import json
 from core.logger import _log
+from core.config.paths import get_classification_files, get_quantification_files # Pastikan ini di-import
+
 
 # Quantification constants from your provided code
 DICT_SEGMENT_ID = {
@@ -140,29 +142,23 @@ def calculate_BSI(image_segment_anterior, image_segment_posterior, image_hotspot
         }
     return result
 
-def get_quantification_input_paths(patient_folder: Path, filename_stem: str):
-    """
-    Get input file paths for quantification
+def get_quantification_input_paths(patient_folder: Path, filename_stem: str) -> dict:
+    """Get input file paths for quantification, prioritizing _edited files."""
+    # Dapatkan path untuk kedua view menggunakan fungsi dari paths.py
+    ant_clf_files = get_classification_files(patient_folder, filename_stem, "anterior")
+    post_clf_files = get_classification_files(patient_folder, filename_stem, "posterior")
+    quant_files = get_quantification_files(patient_folder, filename_stem)
     
-    Args:
-        patient_folder: Patient directory path
-        filename_stem: Filename stem ([patient_id]_[study_date])
-        
-    Returns:
-        Dictionary with all required file paths
-    """
+    # Pilih path mask yang benar (prioritaskan _edited jika ada)
+    ant_mask_to_use = ant_clf_files['mask_edited'] if ant_clf_files['mask_edited'].exists() else ant_clf_files['mask_original']
+    post_mask_to_use = post_clf_files['mask_edited'] if post_clf_files['mask_edited'].exists() else post_clf_files['mask_original']
     
     return {
-        # Segmentation files (colored PNG converted to ID arrays)
         'segment_anterior': patient_folder / f"{filename_stem}_anterior_colored.png",
         'segment_posterior': patient_folder / f"{filename_stem}_posterior_colored.png",
-        
-        # Classification mask files (converted to hotspot ID arrays)  
-        'hotspot_anterior': patient_folder / f"{filename_stem}_anterior_classification_mask.png",
-        'hotspot_posterior': patient_folder / f"{filename_stem}_posterior_classification_mask.png",
-        
-        # Output file
-        'output_result': patient_folder / f"{filename_stem}_bsi_quantification.json"
+        'hotspot_anterior': ant_mask_to_use,
+        'hotspot_posterior': post_mask_to_use,
+        'output_result': quant_files['bsi_json_edited']
     }
 
 def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date: str) -> bool:
