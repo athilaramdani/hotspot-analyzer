@@ -95,13 +95,34 @@ class BSISidePanel(QWidget):
         self.results_table.setMinimumHeight(450)
         self.results_table.setAlternatingRowColors(True)
         self.results_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.results_table.horizontalHeader().setStretchLastSection(False)
-        self.results_table.setColumnWidth(0, 140)
-        self.results_table.setColumnWidth(1, 80)
-        self.results_table.setColumnWidth(2, 90)
-        self.results_table.setColumnWidth(3, 80)
-        self.results_table.setColumnWidth(4, 100)
-        self.results_table.setColumnWidth(5, 90)
+        
+        # ✅ RESPONSIVE: Set column resize mode untuk auto-expand
+        header = self.results_table.horizontalHeader()
+        header.setStretchLastSection(True)  # Last column stretches
+        
+        # ✅ Set minimum widths instead of fixed widths
+        self.results_table.setColumnWidth(0, 140)  # Region name needs fixed space
+        header.setSectionResizeMode(0, header.ResizeMode.Interactive)
+        
+        # Other columns can resize automatically
+        for col in range(1, 6):
+            header.setSectionResizeMode(col, header.ResizeMode.Stretch)
+        
+        # ✅ Set minimum column widths to prevent too narrow
+        self.results_table.setColumnWidth(1, 80)   # Total Pixels min
+        self.results_table.setColumnWidth(2, 80)   # Normal Pixels min  
+        self.results_table.setColumnWidth(3, 70)   # Normal % min
+        self.results_table.setColumnWidth(4, 90)   # Abnormal Pixels min
+        self.results_table.setColumnWidth(5, 80)   # Abnormal % min
+        
+        # ✅ RESPONSIVE: Allow table to expand
+        from PySide6.QtWidgets import QSizePolicy
+        from PySide6.QtCore import Qt
+        self.results_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        
+        # ✅ Enable horizontal scrollbar when needed
+        self.results_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        
         return self.results_table
 
     def _create_controls_section(self) -> QWidget:
@@ -116,6 +137,13 @@ class BSISidePanel(QWidget):
         self.export_chart_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
         self.export_chart_btn.clicked.connect(lambda: self.export_requested.emit("chart"))
         buttons_layout.addWidget(self.export_chart_btn)
+        
+        # ✅ TAMBAHKAN: Export CSV button
+        self.export_csv_btn = QPushButton("Export CSV")
+        self.export_csv_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
+        self.export_csv_btn.clicked.connect(self._export_csv_data)
+        buttons_layout.addWidget(self.export_csv_btn)
+        
         buttons_layout.addStretch()
         controls_layout.addLayout(buttons_layout)
         return controls_frame
@@ -201,9 +229,7 @@ class BSISidePanel(QWidget):
     def _update_button_states(self, has_data: bool):
         """Mengaktifkan atau menonaktifkan tombol-tombol kontrol."""
         self.export_chart_btn.setEnabled(has_data)
-        # Tambahkan tombol lain di sini jika ada, contoh:
-        # self.export_report_btn.setEnabled(has_data)
-        # self.run_analysis_btn.setEnabled(not has_data)
+        self.export_csv_btn.setEnabled(has_data)  # ✅ TAMBAHKAN
         
     def clear_patient_data(self):
         """Membersihkan semua data pasien dari panel dan me-reset UI."""
@@ -223,3 +249,72 @@ class BSISidePanel(QWidget):
     def set_session_code(self, session_code: str):
         """Menyimpan session code untuk keperluan internal."""
         self._current_session_code = session_code
+        
+    def _export_csv_data(self):
+        """Export current table data to CSV"""
+        if not self.current_patient_id or not self.current_study_date:
+            print("[BSI EXPORT] No patient data to export")
+            return
+            
+        try:
+            from PySide6.QtWidgets import QFileDialog
+            import csv
+            
+            # Get save location
+            filename = f"BSI_Results_{self.current_patient_id}_{self.current_study_date}.csv"
+            file_path, _ = QFileDialog.getSaveFileName(
+                self, 
+                "Export BSI Results to CSV", 
+                filename,
+                "CSV Files (*.csv)"
+            )
+            
+            if not file_path:
+                return
+                
+            # Export table data
+            with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                
+                # Write header
+                headers = []
+                for col in range(self.results_table.columnCount()):
+                    headers.append(self.results_table.horizontalHeaderItem(col).text())
+                writer.writerow(headers)
+                
+                # Write data rows
+                for row in range(self.results_table.rowCount()):
+                    row_data = []
+                    for col in range(self.results_table.columnCount()):
+                        item = self.results_table.item(row, col)
+                        row_data.append(item.text() if item else "")
+                    writer.writerow(row_data)
+                
+                # Write summary info
+                writer.writerow([])  # Empty row
+                writer.writerow(["Summary Information"])
+                writer.writerow(["Patient ID", self.current_patient_id])
+                
+                # ✅ Format study date yang lebih readable
+                try:
+                    formatted_study_date = datetime.strptime(self.current_study_date, "%Y%m%d").strftime("%Y-%m-%d")
+                    writer.writerow(["Study Date", formatted_study_date])
+                except ValueError:
+                    writer.writerow(["Study Date", self.current_study_date])
+                
+                writer.writerow(["Export Date", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+                
+                # ✅ OPSIONAL: Tambahkan BSI score summary
+                if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
+                    summary_stats = self.quant_manager.current_results.get('summary_statistics', {})
+                    bsi_score = summary_stats.get('bsi_score', 0.0)
+                    total_abnormal = summary_stats.get('total_abnormal_hotspots', 0)
+                    writer.writerow([])
+                    writer.writerow(["BSI Summary"])
+                    writer.writerow(["BSI Score (%)", f"{bsi_score:.2f}%"])
+                    writer.writerow(["Total Abnormal Hotspots", total_abnormal])
+                                    
+            print(f"[BSI EXPORT] CSV exported successfully: {file_path}")
+            
+        except Exception as e:
+            print(f"[BSI EXPORT] Error exporting CSV: {e}")

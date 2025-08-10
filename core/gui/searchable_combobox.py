@@ -28,6 +28,11 @@ class SearchableComboBox(QComboBox):
         
         self.currentIndexChanged.connect(self._on_item_activated)
 
+    def setMinimumDropdownHeight(self, height: int):
+        """Set minimum height for dropdown to ensure visibility"""
+        self._min_dropdown_height = height
+    
+    
     def mousePressEvent(self, event: QMouseEvent):
         """
         Memaksa popup untuk selalu muncul saat combobox diklik.
@@ -51,6 +56,29 @@ class SearchableComboBox(QComboBox):
         # Kustomisasi hanya dilakukan sekali saat popup pertama kali dibuat.
         if not self._popup_customized:
             self._customize_popup()
+
+        # TAMBAHKAN bagian ini untuk mengatur tinggi minimum dropdown:
+        popup_frame = self.view().parentWidget()
+        if popup_frame:
+            # Hitung tinggi berdasarkan jumlah item visible
+            visible_items = sum(1 for i in range(self.count()) 
+                            if not self.view().isRowHidden(i))
+            
+            # Tinggi minimum: search bar (30) + separator (5) + minimal 1 item (25) + padding (10)
+            min_height = 70
+            
+            # Tinggi berdasarkan item: setiap item sekitar 25px + padding
+            calculated_height = 40 + (visible_items * 25) + 10  # 40 untuk search bar + separator
+            
+            # Gunakan tinggi yang lebih besar antara minimum dan calculated
+            dropdown_height = max(min_height, calculated_height)
+            
+            # Batas maksimum untuk menghindari dropdown terlalu tinggi
+            max_height = 40 + (5 * 25) + 10  # maksimal 5 item
+            dropdown_height = min(dropdown_height, max_height)
+            
+            popup_frame.setMinimumHeight(dropdown_height)
+            popup_frame.resize(popup_frame.width(), dropdown_height)
 
         # Setiap kali popup muncul, reset filter dan fokus ke search bar.
         self.view().setMinimumWidth(self.width())
@@ -96,13 +124,33 @@ class SearchableComboBox(QComboBox):
         Menyembunyikan/menampilkan item di list view berdasarkan teks pencarian.
         """
         text = text.lower()
+        visible_count = 0
+        
         for i in range(self.count()):
             item_text = self.itemText(i)
             if item_text and text in item_text.lower():
                 self.view().setRowHidden(i, False)
+                visible_count += 1
             else:
                 self.view().setRowHidden(i, True)
-    
+        
+        # UPDATE tinggi dropdown berdasarkan item yang terfilter
+        popup_frame = self.view().parentWidget()
+        if popup_frame and visible_count > 0:
+            # Tinggi minimum untuk memastikan visibility
+            min_height = 70
+            
+            # Hitung tinggi berdasarkan item visible
+            calculated_height = 40 + (visible_count * 25) + 10
+            
+            # Batas maksimum
+            max_height = 40 + (5 * 25) + 10
+            
+            dropdown_height = max(min_height, min(calculated_height, max_height))
+            
+            popup_frame.setMinimumHeight(dropdown_height)
+            popup_frame.resize(popup_frame.width(), dropdown_height)
+        
     def _on_item_activated(self, index: int):
         """
         Mengirim sinyal 'item_selected' dengan teks dari item yang dipilih.
