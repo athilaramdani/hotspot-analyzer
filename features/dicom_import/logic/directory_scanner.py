@@ -3,14 +3,13 @@
 # ---------------------------------------------------------------------
 """
 Pindai folder `data/…` dan kembalikan mapping untuk NEW directory structure:
-    {SessionCode: {PatientID: [daftar-file scan primer (*.dcm)]}}
+    {SessionCode: {PatientID: [daftar-file scan (*.dcm)]}}
 
 NEW Structure: data/SPECT/[session_code]/[patient_id]/files...
 OLD Structure: data/SPECT/[patient_id]_[session_code]/files...
 
-‣  Hanya file DICOM "primer" (NM / bukan Secondary-Capture) yang dihitung
-   agar overlay & SC-DICOM buatan kita (Modality=OT atau
-   SOP Class UID = SecondaryCapture) tidak dianggap sebagai scan baru.
+✅ FIXED: Hapus filtering _is_primary() - baca semua DICOM input tanpa filter
+✅ FIXED: Tidak ada pembedaan primary/secondary - semua DICOM dibaca
 """
 from pathlib import Path
 from typing  import Dict, List, Tuple
@@ -20,29 +19,10 @@ import pydicom
 # Use centralized path configuration
 from core.config.paths import SPECT_DATA_PATH, get_patient_spect_path, get_session_spect_path
 
-_UID_SC = "1.2.840.10008.5.1.4.1.1.7"          # Secondary Capture Image Storage
+# ✅ REMOVED: _UID_SC constant and _is_primary() function
+# No more filtering - read all DICOM files
 
 # ---------------------------------------------------------------- helpers
-def _is_primary(ds) -> bool:
-    """True jika berkas adalah scan NM primer, False jika turunan (mask/RGB)."""
-    modality = (ds.get("Modality", "") or "").upper()
-    if modality == "OT":                # SC-DICOM yang kita buat
-        return False
-
-    if ds.get("SOPClassUID") == _UID_SC:
-        return False                    # generic Secondary-Capture
-
-    image_type = "\\".join(ds.get("ImageType", [])).upper()
-    if "DERIVED" in image_type:
-        return False                    # turunan yang ditandai DERIVED
-
-    # Additional filters for edited files
-    series_desc = str(ds.get("SeriesDescription", "")).upper()
-    if "MASK" in series_desc or "RGB" in series_desc or "EDITED" in series_desc:
-        return False
-
-    return True
-
 def _extract_session_patient_from_path(dicom_path: Path) -> Tuple[str, str]:
     """
     Extract session code and patient ID from path
@@ -89,7 +69,7 @@ def _extract_session_patient_from_path(dicom_path: Path) -> Tuple[str, str]:
 
 def scan_dicom_directory(directory: Path) -> Dict[str, List[Path]]:
     """
-    Scan directory with OLD structure compatibility
+    ✅ FIXED: Scan directory without any filtering
     Returns: {PatientID: [file_paths]}
     """
     patient_map: Dict[str, List[Path]] = {}
@@ -104,8 +84,8 @@ def scan_dicom_directory(directory: Path) -> Dict[str, List[Path]]:
             print(f"[WARN] Tidak bisa baca {p}: {e}")
             continue
 
-        if not _is_primary(ds):
-            continue
+        # ✅ REMOVED: _is_primary() filter
+        # Read ALL DICOM files without any filtering
 
         pid = ds.get("PatientID")
         if not pid:
@@ -114,12 +94,12 @@ def scan_dicom_directory(directory: Path) -> Dict[str, List[Path]]:
         patient_map.setdefault(pid, []).append(p)
 
     total_scans = sum(len(v) for v in patient_map.values())
-    print(f"Ditemukan {len(patient_map)} ID pasien (total {total_scans} scan primer).")
+    print(f"Ditemukan {len(patient_map)} ID pasien (total {total_scans} file DICOM).")
     return patient_map
 
 def scan_spect_directory_new_structure(directory: Path = None) -> Dict[str, Dict[str, List[Path]]]:
     """
-    Scan SPECT directory with NEW structure
+    ✅ FIXED: Scan SPECT directory with NEW structure - NO FILTERING
     Returns: {SessionCode: {PatientID: [file_paths]}}
     """
     if directory is None:
@@ -141,8 +121,8 @@ def scan_spect_directory_new_structure(directory: Path = None) -> Dict[str, Dict
             print(f"[WARN] Tidak bisa baca {p}: {e}")
             continue
 
-        if not _is_primary(ds):
-            continue
+        # ✅ REMOVED: _is_primary() filter
+        # Read ALL DICOM files without any filtering
 
         pid = ds.get("PatientID")
         if not pid:
@@ -169,19 +149,19 @@ def scan_spect_directory_new_structure(directory: Path = None) -> Dict[str, Dict
     total_scans = sum(len(files) for patients in session_patient_map.values() 
                      for files in patients.values())
     
-    print(f"Ditemukan {total_sessions} session, {total_patients} pasien (total {total_scans} scan primer).")
+    print(f"Ditemukan {total_sessions} session, {total_patients} pasien (total {total_scans} file DICOM).")
     
     # Print detailed breakdown
     for session_code, patients in session_patient_map.items():
         patient_count = len(patients)
         scan_count = sum(len(files) for files in patients.values())
-        print(f"  📁 {session_code}: {patient_count} pasien, {scan_count} scan")
+        print(f"  📁 {session_code}: {patient_count} pasien, {scan_count} file")
     
     return session_patient_map
 
 def get_session_patients(session_code: str) -> Dict[str, List[Path]]:
     """
-    Get all patients and their files for a specific session
+    ✅ FIXED: Get all patients and their files for a specific session - NO FILTERING
     Returns: {PatientID: [file_paths]}
     """
     session_path = get_session_spect_path(session_code)
@@ -203,9 +183,10 @@ def get_session_patients(session_code: str) -> Dict[str, List[Path]]:
         # Find all DICOM files for this patient
         for dicom_file in patient_dir.glob("*.dcm"):
             try:
+                # ✅ REMOVED: _is_primary() check
+                # Add ALL DICOM files
                 ds = pydicom.dcmread(dicom_file, stop_before_pixels=True)
-                if _is_primary(ds):
-                    patient_files.append(dicom_file)
+                patient_files.append(dicom_file)
             except Exception as e:
                 print(f"[WARN] Tidak bisa baca {dicom_file}: {e}")
                 continue
@@ -252,12 +233,12 @@ def get_patient_files(session_code: str, patient_id: str) -> List[Path]:
 
 def get_patient_dicom_files(session_code: str, patient_id: str, primary_only: bool = True) -> List[Path]:
     """
-    Get DICOM files for a specific patient
+    ✅ FIXED: Get DICOM files for a specific patient - NO FILTERING
     
     Args:
         session_code: Session code (NSY, ATL, NBL, etc.)
         patient_id: Patient ID
-        primary_only: If True, only return primary DICOM files (not derived/edited)
+        primary_only: IGNORED - all DICOM files returned
         
     Returns:
         List of DICOM file paths
@@ -270,12 +251,10 @@ def get_patient_dicom_files(session_code: str, patient_id: str, primary_only: bo
     dicom_files = []
     for dicom_file in patient_path.glob("*.dcm"):
         try:
-            if primary_only:
-                ds = pydicom.dcmread(dicom_file, stop_before_pixels=True)
-                if _is_primary(ds):
-                    dicom_files.append(dicom_file)
-            else:
-                dicom_files.append(dicom_file)
+            # ✅ REMOVED: _is_primary() check
+            # Return ALL DICOM files regardless of primary_only parameter
+            ds = pydicom.dcmread(dicom_file, stop_before_pixels=True)
+            dicom_files.append(dicom_file)
         except Exception as e:
             print(f"[WARN] Tidak bisa baca {dicom_file}: {e}")
             continue

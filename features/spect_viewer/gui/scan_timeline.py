@@ -685,7 +685,7 @@ class ScanTimelineWidget(QWidget):
             print(f"[WARN] Failed to extract patient/session from scan: {e}")
             return "UNKNOWN", self.session_code or "UNKNOWN"
     
-    def _create_bbox_visualization_from_classification(self, xml_path: Path, original_frame: np.ndarray) -> Optional[Image.Image]:
+    def _create_bbox_visualization_from_classification(self, xml_path: Path, image_dimensions: tuple) -> Optional[Image.Image]:
         """✅ FIXED: Create bounding box visualization from CLASSIFICATION XML only"""
         try:
             import xml.etree.ElementTree as ET
@@ -698,7 +698,7 @@ class ScanTimelineWidget(QWidget):
             root = tree.getroot()
             
             # Get image dimensions
-            height, width = original_frame.shape[:2]
+            width, height = image_dimensions  # (width, height) from PIL Image.size
             
             # Create transparent image for bounding boxes
             bbox_image = Image.new('RGBA', (width, height), (0, 0, 0, 0))
@@ -801,18 +801,7 @@ class ScanTimelineWidget(QWidget):
         dicom_path = Path(scan["path"])
         filename = dicom_path.stem
         
-        layers = {}
-        
-        # ✅ Layer 1: Original (base) - convert to RGBA for opacity support
-        if self.current_view in frame_map:
-            original_arr = frame_map[self.current_view]
-            # Convert to PIL Image with RGBA mode for opacity support
-            original_normalized = ((original_arr - original_arr.min()) / max(1, np.ptp(original_arr)) * 255).astype(np.uint8)
-            original_image = Image.fromarray(original_normalized).convert("RGBA")
-            layers["Original"] = original_image
-            print(f"[DEBUG] Loaded Original layer for {self.current_view}")
-        
-        # Layer 2: Segmentation - with transparency processing
+        # ✅ PINDAHKAN KE AWAL: Extract study date and create filename
         try:
             study_date = extract_study_date_from_dicom(dicom_path)
             patient_id, session_code = self._get_patient_session_from_scan(scan)
@@ -822,6 +811,38 @@ class ScanTimelineWidget(QWidget):
             print(f"[WARN] Could not extract study date, using original filename: {e}")
             study_date = None
             filename_with_date = filename
+
+        layers = {}
+        
+        # ✅ Layer 1: Original - load from PNG file (not DICOM)
+        view_normalized = self.current_view.lower()
+        original_png_path = dicom_path.parent / f"{filename_with_date}_{view_normalized}_original.png"  # ✅ Sekarang sudah terdefinisi
+
+        if original_png_path.exists():
+            try:
+                original_image = Image.open(original_png_path).convert("RGBA")
+                layers["Original"] = original_image
+                print(f"[DEBUG] Loaded Original layer from PNG: {original_png_path}")
+            except Exception as e:
+                print(f"[WARN] Failed to load original PNG: {e}")
+                # Fallback to DICOM if PNG not found
+                if self.current_view in frame_map:
+                    original_arr = frame_map[self.current_view]
+                    original_normalized = ((original_arr - original_arr.min()) / max(1, np.ptp(original_arr)) * 255).astype(np.uint8)
+                    original_image = Image.fromarray(original_normalized).convert("RGBA")
+                    layers["Original"] = original_image
+                    print(f"[DEBUG] Fallback: Loaded Original layer from DICOM for {self.current_view}")
+        else:
+            print(f"[WARN] Original PNG not found: {original_png_path}")
+            # Fallback to DICOM if PNG not found
+            if self.current_view in frame_map:
+                original_arr = frame_map[self.current_view]
+                original_normalized = ((original_arr - original_arr.min()) / max(1, np.ptp(original_arr)) * 255).astype(np.uint8)
+                original_image = Image.fromarray(original_normalized).convert("RGBA")
+                layers["Original"] = original_image
+                print(f"[DEBUG] Fallback: Loaded Original layer from DICOM for {self.current_view}")
+        
+        # Layer 2: Segmentation - with transparency processing
         
         seg_files = get_segmentation_files_with_edited(dicom_path.parent, filename_with_date, self.current_view)
         
@@ -868,11 +889,29 @@ class ScanTimelineWidget(QWidget):
             view_short = "ant" if "ant" in self.current_view.lower() else "post"
             classification_xml_path = dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml"
             
-            print(f"[DEBUG] Looking for CLASSIFICATION XML ONLY: {classification_xml_path}")
-            
             if classification_xml_path.exists():
+                # ✅ Get dimensions from Original PNG instead of DICOM array
+                if "Original" in layers:
+                    # Use already loaded Original layer
+                    original_pil = layers["Original"]
+                    original_dimensions = original_pil.size  # (width, height)
+                else:
+                    # Load Original PNG to get dimensions
+                    original_png_path = dicom_path.parent / f"{filename_with_date}_{view_normalized}_original.png"
+                    if original_png_path.exists():
+                        original_pil = Image.open(original_png_path)
+                        original_dimensions = original_pil.size  # (width, height)
+                    else:
+                        # Fallback: use DICOM if PNG not available
+                        if self.current_view in frame_map:
+                            original_arr_fallback = frame_map[self.current_view]
+                            original_dimensions = (original_arr_fallback.shape[1], original_arr_fallback.shape[0])  # (width, height)
+                        else:
+                            print(f"[ERROR] Cannot get dimensions for bbox visualization")
+                            print(f"[DEBUG] Skipping HotspotBBox layer - no dimensions available")
+                
                 # Create bounding box visualization from CLASSIFICATION XML
-                bbox_image = self._create_bbox_visualization_from_classification(classification_xml_path, original_arr)
+                bbox_image = self._create_bbox_visualization_from_classification(classification_xml_path, original_dimensions)  # ✅ Pass dimensions instead of array
                 if bbox_image:
                     layers["HotspotBBox"] = bbox_image
                     print(f"[DEBUG] ✅ Created HotspotBBox from CLASSIFICATION XML: {classification_xml_path}")
