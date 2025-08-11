@@ -396,7 +396,7 @@ class ScanTimelineWidget(QWidget):
                 }
             """)
         
-        # ✅ UPDATED: Classification edit button
+        # ✅ FIXED: Hotspot edit button - require both hotspot layer AND scan
         if has_hotspot and has_scan:
             self.hotspot_edit_btn.setEnabled(True)
             self.hotspot_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
@@ -867,21 +867,33 @@ class ScanTimelineWidget(QWidget):
         
         # ✅ Layer 3: Hotspot - CLASSIFICATION MASKS ONLY
         view_normalized = self.current_view.lower()
-        classification_mask_path = dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png"
-        
-        print(f"[DEBUG] Looking for CLASSIFICATION mask ONLY: {classification_mask_path}")
-        
-        if classification_mask_path.exists():
+
+        # ✅ FIXED: Check edited classification mask first
+        classification_mask_edited = dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask_edited.png"
+        classification_mask_original = dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png"
+
+        print(f"[DEBUG] Looking for CLASSIFICATION masks:")
+        print(f"[DEBUG]   Edited: {classification_mask_edited}")
+        print(f"[DEBUG]   Original: {classification_mask_original}")
+
+        # Priority: edited first, then original
+        if classification_mask_edited.exists():
+            classification_path = classification_mask_edited
+            print(f"[DEBUG] ✅ Using EDITED classification mask")
+        elif classification_mask_original.exists():
+            classification_path = classification_mask_original
+            print(f"[DEBUG] ✅ Using ORIGINAL classification mask")
+        else:
+            classification_path = None
+            print(f"[DEBUG] ❌ No classification mask found")
+
+        if classification_path:
             try:
-                # Load classification mask with transparency
-                classification_image = load_image_with_transparency(classification_mask_path, make_transparent=True)
+                classification_image = load_image_with_transparency(classification_path, make_transparent=True)
                 layers["Hotspot"] = classification_image
-                print(f"[DEBUG] ✅ Loaded CLASSIFICATION MASK as Hotspot layer: {classification_mask_path}")
+                print(f"[DEBUG] ✅ Loaded CLASSIFICATION MASK as Hotspot layer: {classification_path.name}")
             except Exception as e:
                 print(f"[WARN] Failed to load classification mask: {e}")
-        else:
-            print(f"[DEBUG] ❌ CLASSIFICATION mask not found: {classification_mask_path}")
-            print(f"[DEBUG] ❌ NO FALLBACK - Classification results only!")
         
         # ✅ Layer 4: HotspotBBox - CLASSIFICATION XML ONLY
         try:
@@ -1059,22 +1071,21 @@ class ScanTimelineWidget(QWidget):
             self._rebuild()
 
     def _open_hotspot_editor(self):
-        """✅ UPDATED: Open hotspot editor for current scan - CLASSIFICATION FILES ONLY"""
+        """✅ FIXED: Open hotspot editor - ALLOW MANUAL EDITING EVEN WITHOUT CLASSIFICATION FILES"""
         if not self._scans_cache or self.active_scan_index < 0 or self.active_scan_index >= len(self._scans_cache):
-            print("[DEBUG] No valid scan selected for classification editing")
+            print("[DEBUG] No valid scan selected for hotspot editing")
             return
-            
-        scan = self._scans_cache[self.active_scan_index]
-        print(f"[DEBUG] Opening CLASSIFICATION editor for scan {self.active_scan_index + 1}")
         
-        # ✅ PREPARE CLASSIFICATION-SPECIFIC DATA FOR EDITOR
+        # ✅ FIXED: Get scan from cache
+        scan = self._scans_cache[self.active_scan_index]
+        
         try:
             dicom_path = Path(scan["path"])
             study_date = extract_study_date_from_dicom(dicom_path)
             patient_id, session_code = self._get_patient_session_from_scan(scan)
             filename_with_date = generate_filename_stem(patient_id, study_date)
             
-            # Get classification files
+            # Get classification files (for reference, but don't require them)
             view_normalized = self.current_view.lower()
             view_short = "ant" if "ant" in self.current_view.lower() else "post"
             
@@ -1089,24 +1100,22 @@ class ScanTimelineWidget(QWidget):
                 exists = "✅" if path.exists() else "❌"
                 print(f"[DEBUG]   {key}: {exists} {path}")
             
-            # Check if classification files exist
-            if not classification_files['mask_path'].exists():
-                print(f"[ERROR] No classification mask found: {classification_files['mask_path']}")
-                return
+            # ✅ REMOVED: Don't check if files exist - allow manual editing from scratch
+            print(f"[DEBUG] Opening hotspot editor for manual editing (classification files optional)")
             
-            # Create enhanced scan data with classification paths
+            # Create enhanced scan data with classification paths (optional)
             enhanced_scan = scan.copy()
             enhanced_scan['classification_files'] = classification_files
             enhanced_scan['is_classification_mode'] = True  # Flag for editor
             
-            # Open hotspot editor with classification data
+            # ✅ FIXED: Open hotspot editor regardless of file existence
             dlg = HotspotEditorDialog(enhanced_scan, self.current_view, parent=self)
             if dlg.exec():
-                print("[DEBUG] CLASSIFICATION editor completed, refreshing timeline")
+                print("[DEBUG] Hotspot editor completed, refreshing timeline")
                 self._rebuild()
                 
         except Exception as e:
-            print(f"[ERROR] Failed to prepare classification data for editor: {e}")
+            print(f"[ERROR] Failed to open hotspot editor: {e}")
     
     # ------------------------------------------------------ backward compatibility
     def set_image_mode(self, mode: str):

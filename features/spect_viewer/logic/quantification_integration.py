@@ -21,23 +21,22 @@ class QuantificationManager:
         self.current_study_date = None
     
     def load_quantification_results(self, patient_folder: Path, patient_id: str, study_date: str) -> Optional[Dict]:
-        """
-        Load quantification results for a patient
-        
-        Args:
-            patient_folder: Patient directory path
-            patient_id: Patient ID
-            study_date: Study date in YYYYMMDD format
-            
-        Returns:
-            Dictionary with quantification results or None if not found
-        """
         try:
             filename_stem = generate_filename_stem(patient_id, study_date)
-            result_path = patient_folder / f"{filename_stem}_bsi_quantification.json"
             
-            if not result_path.exists():
-                _log(f"Quantification results not found: {result_path.name}")
+            # ✅ FIXED: Priority system - check edited first
+            result_path_edited = patient_folder / f"{filename_stem}_bsi_quantification_edited.json"
+            result_path_original = patient_folder / f"{filename_stem}_bsi_quantification.json"
+            
+            # Use edited version if exists, otherwise use original
+            if result_path_edited.exists():
+                result_path = result_path_edited
+                print(f"[BSI] Loading EDITED quantification: {result_path.name}")
+            elif result_path_original.exists():
+                result_path = result_path_original
+                print(f"[BSI] Loading ORIGINAL quantification: {result_path.name}")
+            else:
+                _log(f"Quantification results not found: {result_path_original.name}")
                 return None
             
             with open(result_path, 'r') as f:
@@ -58,34 +57,78 @@ class QuantificationManager:
     def load_all_quantification_scores(self, patient_folder: Path, patient_id: str) -> List[Dict[str, Any]]:
         """
         Memuat semua skor BSI untuk seorang pasien dari semua file kuantifikasi JSON.
-        Versi ini sudah diperbaiki untuk mengambil data dari lokasi yang benar di dalam JSON.
+        ✅ FIXED: Prioritaskan file _edited, hindari duplikasi study_date
         """
         all_scores = []
-        search_pattern = f"{patient_id}_*_bsi_quantification.json"
+        found_study_dates = set()  # Track processed study dates to avoid duplicates
+        
+        # ✅ FIXED: Search patterns dengan prioritas
+        search_patterns = [
+            f"{patient_id}_*_bsi_quantification_edited.json",  # Priority 1: edited files
+            f"{patient_id}_*_bsi_quantification.json"          # Priority 2: original files
+        ]
         
         try:
-            for file_path in patient_folder.glob(search_pattern):
-                with open(file_path, 'r') as f:
-                    data = json.load(f)
-                
-                # AMBIL DARI LOKASI YANG BENAR DI DALAM JSON
-                patient_info = data.get('patient_info', {})
-                summary = data.get('summary_statistics', {})
+            # Process each pattern in priority order
+            for pattern in search_patterns:
+                for file_path in patient_folder.glob(pattern):
+                    try:
+                        # Extract study date from filename to check for duplicates
+                        filename_parts = file_path.stem.split('_')
+                        if len(filename_parts) >= 2:
+                            study_date = filename_parts[1]
+                            
+                            # ✅ Skip if we already processed this study date (from higher priority file)
+                            if study_date in found_study_dates:
+                                print(f"[BSI] Skipping {file_path.name} - study_date {study_date} already processed from higher priority file")
+                                continue
+                            
+                            # Mark this study date as processed
+                            found_study_dates.add(study_date)
+                        else:
+                            print(f"[BSI] Invalid filename format: {file_path.name}")
+                            continue
+                        
+                        # Load and process the JSON file
+                        with open(file_path, 'r') as f:
+                            data = json.load(f)
+                        
+                        # AMBIL DARI LOKASI YANG BENAR DI DALAM JSON
+                        patient_info = data.get('patient_info', {})
+                        summary = data.get('summary_statistics', {})
 
-                # Ekstrak data dari dictionary masing-masing
-                study_date = patient_info.get('study_date')
-                bsi_score = summary.get('bsi_score')
+                        # Ekstrak data dari dictionary masing-masing
+                        json_study_date = patient_info.get('study_date')
+                        bsi_score = summary.get('bsi_score')
 
-                if study_date is not None and bsi_score is not None:
-                    all_scores.append({
-                        "study_date": study_date,
-                        "bsi_score": bsi_score
-                    })
-                else:
-                    _log(f"Data 'study_date' atau 'bsi_score' tidak ditemukan/lengkap di {file_path.name}", level='warning')
+                        if json_study_date is not None and bsi_score is not None:
+                            # ✅ Use study_date from JSON content, not filename
+                            all_scores.append({
+                                "study_date": json_study_date,
+                                "bsi_score": bsi_score,
+                                "file_source": file_path.name,  # ✅ Track which file was used
+                                "is_edited": "_edited" in file_path.name  # ✅ Track if edited version
+                            })
+                            print(f"[BSI] ✅ Loaded BSI data from {file_path.name}: study_date={json_study_date}, bsi_score={bsi_score:.2f}")
+                        else:
+                            print(f"[BSI] ⚠️ Missing study_date or bsi_score in {file_path.name}")
+                            
+                    except Exception as e:
+                        print(f"[BSI] ❌ Error processing {file_path.name}: {e}")
+                        continue
+
+            # ✅ Sort by study_date for consistent display
+            all_scores = sorted(all_scores, key=lambda x: x["study_date"])
+            
+            print(f"[BSI] 📊 Total BSI scores loaded: {len(all_scores)} (from {len(found_study_dates)} unique study dates)")
+            
+            # ✅ Debug: Show which files were used
+            for score in all_scores:
+                priority_indicator = "🟢 EDITED" if score["is_edited"] else "🔵 ORIGINAL"
+                print(f"[BSI]   {score['study_date']}: {score['bsi_score']:.1f}% ({priority_indicator}) from {score['file_source']}")
 
         except Exception as e:
-            _log(f"Gagal memuat semua skor BSI: {e}", level='error')
+            print(f"[BSI] ❌ Failed to load BSI scores: {e}")
             
         return all_scores
 

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>104_20250628_ant_classification.png</filename>
+  <path>/path/to/104_20250628_ant_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Normal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>37</xmin>
+      <ymin>329</ymin>
+      <xmax>50</xmax>
+      <ymax>346</ymax>
+    </bndbox>
+  </object>
+</annotation>

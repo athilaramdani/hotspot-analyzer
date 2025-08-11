@@ -52,6 +52,50 @@ def load_image_as_array(path):
     if image is None:
         raise FileNotFoundError(f"Could not load image: {path}")
     return image
+# Quantification constants from your provided code
+DICT_SEGMENT_ID = {
+    0: "background", 
+    1: "skull", 
+    2: "cervical vertebrae", 
+    3: "thoracic vertebrae",
+    4: "rib", 
+    5: "sternum", 
+    6: "collarbone", 
+    7: "scapula", 
+    8: "humerus",
+    9: "lumbar vertebrae", 
+    10: "sacrum", 
+    11: "pelvis", 
+    12: "femur"
+}
+
+DICT_HOTSPOT_COLOR = {
+    1: (0, 255, 0),     # Normal - Green
+    2: (255, 0, 0)      # Abnormal - Red
+}
+
+DICT_SEGMENT_COLOR = {
+    0: (0, 0, 0), 
+    1: (176, 230, 13), 
+    2: (0, 151, 219), 
+    3: (126, 230, 225),
+    4: (166, 55, 167), 
+    5: (230, 157, 180), 
+    6: (167, 110, 77), 
+    7: (121, 0, 24),
+    8: (56, 65, 184), 
+    9: (230, 218, 0), 
+    10: (230, 114, 35), 
+    11: (12, 187, 62),
+    12: (230, 182, 22)
+}
+
+def load_image_as_array(path):
+    """Load image as numpy array"""
+    image = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
+    if image is None:
+        raise FileNotFoundError(f"Could not load image: {path}")
+    return image
 
 def load_colored_segmentation_as_id(path):
     """
@@ -124,15 +168,30 @@ def load_classification_mask_as_hotspot(path):
 def calculate_BSI(image_segment_anterior, image_segment_posterior, image_hotspot_anterior, image_hotspot_posterior):
     """
     Calculate BSI (Bone Scan Index) from segmentation and hotspot images
-    Same as your original code
+    Updated to handle None parameters (missing data)
     """
     result = {}
     for segment_id in DICT_SEGMENT_ID:
-        mask_anterior = image_segment_anterior == segment_id
-        mask_posterior = image_segment_posterior == segment_id
-        count_segment = np.sum(mask_anterior) + np.sum(mask_posterior)
-        count_hotspot_normal = np.sum(image_hotspot_anterior[mask_anterior] == 1) + np.sum(image_hotspot_posterior[mask_posterior] == 1)
-        count_hotspot_abnormal = np.sum(image_hotspot_anterior[mask_anterior] == 2) + np.sum(image_hotspot_posterior[mask_posterior] == 2)
+        # Initialize counts
+        count_segment = 0
+        count_hotspot_normal = 0
+        count_hotspot_abnormal = 0
+        
+        # Process anterior data if available
+        if image_segment_anterior is not None and image_hotspot_anterior is not None:
+            mask_anterior = image_segment_anterior == segment_id
+            count_segment += np.sum(mask_anterior)
+            count_hotspot_normal += np.sum(image_hotspot_anterior[mask_anterior] == 1)
+            count_hotspot_abnormal += np.sum(image_hotspot_anterior[mask_anterior] == 2)
+        
+        # Process posterior data if available
+        if image_segment_posterior is not None and image_hotspot_posterior is not None:
+            mask_posterior = image_segment_posterior == segment_id
+            count_segment += np.sum(mask_posterior)
+            count_hotspot_normal += np.sum(image_hotspot_posterior[mask_posterior] == 1)
+            count_hotspot_abnormal += np.sum(image_hotspot_posterior[mask_posterior] == 2)
+        
+        # Store results
         result[DICT_SEGMENT_ID[segment_id]] = {
             "total_segment_pixels": int(count_segment),
             "hotspot_normal": int(count_hotspot_normal),
@@ -140,6 +199,7 @@ def calculate_BSI(image_segment_anterior, image_segment_posterior, image_hotspot
             "hotspot_abnormal": int(count_hotspot_abnormal),
             "percentage_abnormal": float(count_hotspot_abnormal) / count_segment if count_segment else 0.0,
         }
+    
     return result
 
 def get_quantification_input_paths(patient_folder: Path, filename_stem: str) -> dict:
@@ -153,13 +213,49 @@ def get_quantification_input_paths(patient_folder: Path, filename_stem: str) -> 
     ant_mask_to_use = ant_clf_files['mask_edited'] if ant_clf_files['mask_edited'].exists() else ant_clf_files['mask_original']
     post_mask_to_use = post_clf_files['mask_edited'] if post_clf_files['mask_edited'].exists() else post_clf_files['mask_original']
     
+    output_file = quant_files['bsi_json_edited'] if (
+        ant_clf_files['mask_edited'].exists() or post_clf_files['mask_edited'].exists()
+    ) else quant_files['bsi_json_original']
+
     return {
         'segment_anterior': patient_folder / f"{filename_stem}_anterior_colored.png",
         'segment_posterior': patient_folder / f"{filename_stem}_posterior_colored.png",
         'hotspot_anterior': ant_mask_to_use,
         'hotspot_posterior': post_mask_to_use,
-        'output_result': quant_files['bsi_json_edited']
+        'output_result': output_file
     }
+    
+def check_available_files(paths):
+    """
+    Check which files are available and determine if quantification can proceed
+    
+    Args:
+        paths: Dictionary with file paths
+        
+    Returns:
+        tuple: (available_paths, missing_files, can_proceed)
+    """
+    available_paths = {}
+    missing_files = []
+    
+    # Check each path (except output_result)
+    for name, path in paths.items():
+        if name != 'output_result':
+            if path.exists():
+                available_paths[name] = path
+            else:
+                missing_files.append(f"{name} ({path.name})")
+    
+    # Determine if we can proceed
+    # We need at least one segmentation-hotspot pair
+    has_anterior_pair = ('segment_anterior' in available_paths and 
+                        'hotspot_anterior' in available_paths)
+    has_posterior_pair = ('segment_posterior' in available_paths and 
+                         'hotspot_posterior' in available_paths)
+    
+    can_proceed = has_anterior_pair or has_posterior_pair
+    
+    return available_paths, missing_files, can_proceed
 
 def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date: str) -> bool:
     """
