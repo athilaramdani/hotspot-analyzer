@@ -737,15 +737,14 @@ class SegmentationEditorDialog(QDialog):
                 return False
         
         def _trigger_quantification_after_segmentation(self):
-            """✅ FIX: Trigger quantification after segmentation save"""
+            """✅ FIXED: Trigger quantification directly after segmentation save (no classification needed)"""
             try:
-                # Import processing functions
+                # Import only quantification function
                 from features.spect_viewer.logic.processing_wrapper import (
-                    run_classification_for_patient,
                     run_quantification_for_patient
                 )
                 
-                print("[SEGMENTATION-SAVE] Triggering analysis pipeline...")
+                print("[SEGMENTATION-SAVE] Triggering quantification pipeline (direct)...")
                 
                 # ✅ FIXED: Find DICOM file in patient folder
                 # Get patient folder from one of the segmentation file paths
@@ -762,31 +761,19 @@ class SegmentationEditorDialog(QDialog):
                     print("[SEGMENTATION-SAVE] No DICOM file found, skipping quantification")
                     return False
                 
-                # Step 2: Run classification (using updated segmentation)
-                clf_success = run_classification_for_patient(
+                # ✅ DIRECT: Run quantification only (segmentation updated, classification unchanged)
+                print("[SEGMENTATION-SAVE] Running quantification with updated segmentation...")
+                quant_success = run_quantification_for_patient(
                     dicom_path,
                     self.patient_id,
-                    self.study_date,
-                    source_is_editor=True
+                    self.study_date
                 )
                 
-                if clf_success:
-                    print("[SEGMENTATION-SAVE] Classification successful, running quantification...")
-                    # Step 3: Run quantification
-                    quant_success = run_quantification_for_patient(
-                        dicom_path,
-                        self.patient_id,
-                        self.study_date
-                    )
-                    
-                    if quant_success:
-                        print("[SEGMENTATION-SAVE] Quantification completed successfully")
-                        return True
-                    else:
-                        print("[SEGMENTATION-SAVE] Quantification failed")
-                        return False
+                if quant_success:
+                    print("[SEGMENTATION-SAVE] Quantification completed successfully")
+                    return True
                 else:
-                    print("[SEGMENTATION-SAVE] Classification failed, skipping quantification")
+                    print("[SEGMENTATION-SAVE] Quantification failed")
                     return False
                     
             except Exception as e:
