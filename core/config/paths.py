@@ -238,7 +238,8 @@ def get_segmentation_files_with_edited(patient_folder: Path, filename_stem: str,
 
 def get_hotspot_files(patient_id: str, session_code: str, view: str, study_date: str):
     """
-    FIXED: Get hotspot file paths with proper edited file prioritization
+    FIXED: Get hotspot file paths with proper edited file prioritization.
+    This function now contains the logic to select the correct XML file.
     
     Args:
         patient_id: Patient ID
@@ -247,12 +248,12 @@ def get_hotspot_files(patient_id: str, session_code: str, view: str, study_date:
         study_date: Study date in YYYYMMDD format
         
     Returns:
-        Dictionary with hotspot file paths with edited prioritization
+        Dictionary with hotspot file paths, where 'xml_file' is prioritized.
     """
     patient_folder = get_patient_spect_path(patient_id, session_code)
     filename_stem = generate_filename_stem(patient_id, study_date)
     
-    # FIXED: Normalize view names to full format consistently
+    # Normalize view names
     view_normalized = view.lower()
     if "ant" in view_normalized:
         view_full = "anterior"
@@ -261,20 +262,28 @@ def get_hotspot_files(patient_id: str, session_code: str, view: str, study_date:
         view_full = "posterior" 
         view_short = "post"
     
+    # --- LOGIKA PRIORITAS XML ---
+    xml_edited_path = patient_folder / f"{filename_stem}_{view_short}_edited.xml"
+    xml_original_path = patient_folder / f"{filename_stem}_{view_short}.xml"
+    
+    # Pilih xml_edited jika ada, jika tidak, gunakan yang original
+    final_xml_path = xml_edited_path if xml_edited_path.exists() else xml_original_path
+    
     return {
-        # ✅ EDITED VERSIONS (highest priority for loading)
+        # PNG paths (untuk referensi)
         'colored_png_edited': patient_folder / f"{filename_stem}_{view_full}_hotspot_edited_colored.png",
         'mask_file_edited': patient_folder / f"{filename_stem}_{view_full}_hotspot_edited_mask.png",
-        
-        # ✅ ORIGINAL VERSIONS (fallback for loading)
         'colored_png': patient_folder / f"{filename_stem}_{view_full}_hotspot_colored.png",
         'mask_file': patient_folder / f"{filename_stem}_{view_full}_hotspot_mask.png",
         
-        # ✅ XML FILES: Use short names for compatibility (ant.xml, post.xml)
-        'xml_file': patient_folder / f"{filename_stem}_{view_short}.xml",
-        'xml_file_edited': patient_folder / f"{filename_stem}_{view_short}_edited.xml",
+        # ✅ XML FILE YANG SUDAH DIPILIH BERDASARKAN PRIORITAS
+        'xml_file': final_xml_path,
         
-        # ✅ LEGACY PATHS: For backward compatibility (short names)
+        # (Opsional) Path individual jika masih diperlukan di tempat lain
+        'xml_file_original': xml_original_path,
+        'xml_file_edited': xml_edited_path,
+        
+        # Legacy paths (untuk backward compatibility)
         'colored_png_legacy': patient_folder / f"{filename_stem}_{view_short}_hotspot_colored.png",
         'mask_file_legacy': patient_folder / f"{filename_stem}_{view_short}_hotspot_mask.png",
     }
@@ -308,6 +317,27 @@ def get_hotspot_xml_files(patient_id: str, session_code: str, view: str, study_d
         
         # ✅ ORIGINAL XML (fallback for loading)
         'xml_file': patient_folder / f"{filename_stem}_{view_short}.xml",
+    }
+
+def get_classification_files(patient_folder: Path, filename_stem: str, view: str) -> dict:
+    """
+    Menyediakan path untuk file-file klasifikasi, termasuk versi _edited.
+    """
+    vtag = view.lower()
+    return {
+        "json_original": patient_folder / f"{filename_stem}_{vtag}_classification.json",
+        "json_edited": patient_folder / f"{filename_stem}_{vtag}_classification_edited.json",
+        "mask_original": patient_folder / f"{filename_stem}_{vtag}_classification_mask.png",
+        "mask_edited": patient_folder / f"{filename_stem}_{vtag}_classification_mask_edited.png",
+    }
+
+def get_quantification_files(patient_folder: Path, filename_stem: str) -> dict:
+    """
+    Menyediakan path untuk file-file kuantifikasi, termasuk versi _edited.
+    """
+    return {
+        "bsi_json_original": patient_folder / f"{filename_stem}_bsi_quantification.json",
+        "bsi_json_edited": patient_folder / f"{filename_stem}_bsi_quantification_edited.json",
     }
 
 def get_dicom_output_path(patient_id: str, session_code: str, study_date: str) -> Path:

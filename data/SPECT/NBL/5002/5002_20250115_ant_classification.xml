@@ -2,7 +2,7 @@
 <annotation>
   <folder>classification_results</folder>
   <filename>5002_20250115_anterior_classification.png</filename>
-  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\5002\5002_20250115_anterior_classification.png</path>
+  <path>C:\hotspot\hotspot-analyzer\data\SPECT\NBL\5002\5002_20250115_anterior_classification.png</path>
   <source>
     <database>Hotspot Classification Results</database>
   </source>
@@ -18,11 +18,11 @@
     <truncated>0</truncated>
     <difficult>0</difficult>
     <bndbox>
-      <xmin>69</xmin>
+      <xmin>72</xmin>
       <ymin>501</ymin>
       <xmax>96</xmax>
-      <ymax>554</ymax>
+      <ymax>553</ymax>
     </bndbox>
-    <!-- Classification data: {"segment": "femur", "probability_normal": 0.0019379258155822754, "probability_abnormal": 0.9980620741844177, "hotspot_pixels": 1032, "hotspot_mm2": 5932.4369852886875} -->
+    <!-- Classification data: {"segment": "femur", "probability_normal": 0.0019379258155822754, "probability_abnormal": 0.9980620741844177, "hotspot_pixels": 1023, "hotspot_mm2": 5880.700616230937} -->
   </object>
 </annotation>

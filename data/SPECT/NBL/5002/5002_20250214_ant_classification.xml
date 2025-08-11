@@ -2,7 +2,7 @@
 <annotation>
   <folder>classification_results</folder>
   <filename>5002_20250214_anterior_classification.png</filename>
-  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\5002\5002_20250214_anterior_classification.png</path>
+  <path>/Users/indra/Library/Mobile Documents/com~apple~CloudDocs/007 - WORK/Penelitian Segmentasi TUlang/hotspot-analyzer/data/SPECT/NBL/5002/5002_20250214_anterior_classification.png</path>
   <source>
     <database>Hotspot Classification Results</database>
   </source>
@@ -18,11 +18,11 @@
     <truncated>0</truncated>
     <difficult>0</difficult>
     <bndbox>
-      <xmin>118</xmin>
-      <ymin>217</ymin>
-      <xmax>134</xmax>
+      <xmin>122</xmin>
+      <ymin>220</ymin>
+      <xmax>133</xmax>
       <ymax>233</ymax>
     </bndbox>
-    <!-- Classification data: {"segment": "sternum", "probability_normal": 0.005833983421325684, "probability_abnormal": 0.9941660165786743, "hotspot_pixels": 138, "hotspot_mm2": 793.2909922188361} -->
+    <!-- Classification data: {"segment": "sternum", "probability_normal": 0.004320025444030762, "probability_abnormal": 0.9956799745559692, "hotspot_pixels": 130, "hotspot_mm2": 747.303108611947} -->
   </object>
 </annotation>
