@@ -150,6 +150,10 @@ class BSISidePanel(QWidget):
 
     def load_patient_data(self, patient_folder: Path, patient_id: str, study_date: str) -> bool:
         try:
+            print(f"[BSI PANEL DEBUG] Loading patient data:")
+            print(f"[BSI PANEL DEBUG]   Patient folder: {patient_folder}")
+            print(f"[BSI PANEL DEBUG]   Patient ID: {patient_id}")
+            print(f"[BSI PANEL DEBUG]   Study date: {study_date}")
             self.current_patient_folder = patient_folder
             self.current_patient_id = patient_id
             self.bsi_canvas.load_bsi_data(patient_folder, patient_id, study_date)
@@ -249,7 +253,25 @@ class BSISidePanel(QWidget):
     def set_session_code(self, session_code: str):
         """Menyimpan session code untuk keperluan internal."""
         self._current_session_code = session_code
-        
+    
+    # ✅ NEW: Add refresh method
+    def refresh_current_patient(self):
+        """Refresh BSI panel untuk patient yang sedang aktif"""
+        if self.current_patient_folder and self.current_patient_id:
+            print(f"[BSI PANEL] Refreshing data for patient {self.current_patient_id}")
+            # Reload with current data
+            success = self.load_patient_data(
+                self.current_patient_folder, 
+                self.current_patient_id, 
+                self.current_study_date or "latest"
+            )
+            if success:
+                print("[BSI PANEL] ✅ Refresh successful")
+            else:
+                print("[BSI PANEL] ❌ Refresh failed")
+        else:
+            print("[BSI PANEL] No patient data to refresh")
+    
     def _export_csv_data(self):
         """Export current table data to CSV"""
         if not self.current_patient_id or not self.current_study_date:
