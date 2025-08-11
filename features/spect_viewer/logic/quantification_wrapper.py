@@ -5,16 +5,53 @@ import cv2
 from pathlib import Path
 import json
 from core.logger import _log
+from core.config.paths import get_classification_files, get_quantification_files # Pastikan ini di-import
 
-# Import from updated algorithm_quantification
-from .algorithm_quantification import (
-    DICT_SEGMENT_ID,
-    DICT_HOTSPOT_COLOR, 
-    DICT_SEGMENT_COLOR,
-    load_image_as_array,
-    calculate_BSI,
-    validate_quantification_inputs
-)
+
+# Quantification constants from your provided code
+DICT_SEGMENT_ID = {
+    0: "background", 
+    1: "skull", 
+    2: "cervical vertebrae", 
+    3: "thoracic vertebrae",
+    4: "rib", 
+    5: "sternum", 
+    6: "collarbone", 
+    7: "scapula", 
+    8: "humerus",
+    9: "lumbar vertebrae", 
+    10: "sacrum", 
+    11: "pelvis", 
+    12: "femur"
+}
+
+DICT_HOTSPOT_COLOR = {
+    1: (0, 255, 0),     # Normal - Green
+    2: (255, 0, 0)      # Abnormal - Red
+}
+
+DICT_SEGMENT_COLOR = {
+    0: (0, 0, 0), 
+    1: (176, 230, 13), 
+    2: (0, 151, 219), 
+    3: (126, 230, 225),
+    4: (166, 55, 167), 
+    5: (230, 157, 180), 
+    6: (167, 110, 77), 
+    7: (121, 0, 24),
+    8: (56, 65, 184), 
+    9: (230, 218, 0), 
+    10: (230, 114, 35), 
+    11: (12, 187, 62),
+    12: (230, 182, 22)
+}
+
+def load_image_as_array(path):
+    """Load image as numpy array"""
+    image = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
+    if image is None:
+        raise FileNotFoundError(f"Could not load image: {path}")
+    return image
 
 def load_colored_segmentation_as_id(path):
     """
@@ -92,70 +129,45 @@ def load_classification_mask_as_hotspot(path):
         _log(f"     [ERROR] Failed to convert classification mask: {e}")
         return None
 
-def get_quantification_input_paths(patient_folder: Path, filename_stem: str):
+def calculate_BSI(image_segment_anterior, image_segment_posterior, image_hotspot_anterior, image_hotspot_posterior):
     """
-    Get input file paths for quantification
+    Calculate BSI (Bone Scan Index) from segmentation and hotspot images
+    Same as your original code
+    """
+    result = {}
+    for segment_id in DICT_SEGMENT_ID:
+        mask_anterior = image_segment_anterior == segment_id
+        mask_posterior = image_segment_posterior == segment_id
+        count_segment = np.sum(mask_anterior) + np.sum(mask_posterior)
+        count_hotspot_normal = np.sum(image_hotspot_anterior[mask_anterior] == 1) + np.sum(image_hotspot_posterior[mask_posterior] == 1)
+        count_hotspot_abnormal = np.sum(image_hotspot_anterior[mask_anterior] == 2) + np.sum(image_hotspot_posterior[mask_posterior] == 2)
+        result[DICT_SEGMENT_ID[segment_id]] = {
+            "total_segment_pixels": int(count_segment),
+            "hotspot_normal": int(count_hotspot_normal),
+            "percentage_normal": float(count_hotspot_normal) / count_segment if count_segment else 0.0,
+            "hotspot_abnormal": int(count_hotspot_abnormal),
+            "percentage_abnormal": float(count_hotspot_abnormal) / count_segment if count_segment else 0.0,
+        }
+    return result
+
+def get_quantification_input_paths(patient_folder: Path, filename_stem: str) -> dict:
+    """Get input file paths for quantification, prioritizing _edited files."""
+    # Dapatkan path untuk kedua view menggunakan fungsi dari paths.py
+    ant_clf_files = get_classification_files(patient_folder, filename_stem, "anterior")
+    post_clf_files = get_classification_files(patient_folder, filename_stem, "posterior")
+    quant_files = get_quantification_files(patient_folder, filename_stem)
     
-    Args:
-        patient_folder: Patient directory path
-        filename_stem: Filename stem ([patient_id]_[study_date])
-        
-    Returns:
-        Dictionary with all required file paths
-    """
+    # Pilih path mask yang benar (prioritaskan _edited jika ada)
+    ant_mask_to_use = ant_clf_files['mask_edited'] if ant_clf_files['mask_edited'].exists() else ant_clf_files['mask_original']
+    post_mask_to_use = post_clf_files['mask_edited'] if post_clf_files['mask_edited'].exists() else post_clf_files['mask_original']
     
     return {
-        # Segmentation files (colored PNG converted to ID arrays)
         'segment_anterior': patient_folder / f"{filename_stem}_anterior_colored.png",
         'segment_posterior': patient_folder / f"{filename_stem}_posterior_colored.png",
-        
-        # Classification mask files (converted to hotspot ID arrays)  
-        'hotspot_anterior': patient_folder / f"{filename_stem}_anterior_classification_mask.png",
-        'hotspot_posterior': patient_folder / f"{filename_stem}_posterior_classification_mask.png",
-        
-        # Output file
-        'output_result': patient_folder / f"{filename_stem}_bsi_quantification.json"
+        'hotspot_anterior': ant_mask_to_use,
+        'hotspot_posterior': post_mask_to_use,
+        'output_result': quant_files['bsi_json_edited']
     }
-
-def check_available_files(paths):
-    """
-    Check which files are available for quantification
-    
-    Args:
-        paths: Dictionary of file paths
-        
-    Returns:
-        Tuple (available_paths, missing_files, can_proceed)
-    """
-    available_paths = {}
-    missing_files = []
-    
-    required_files = ['segment_anterior', 'segment_posterior', 'hotspot_anterior', 'hotspot_posterior']
-    
-    for name in required_files:
-        path = paths[name]
-        if path.exists():
-            available_paths[name] = path
-        else:
-            missing_files.append(f"{name} ({path.name})")
-    
-    # Check if we can proceed with partial data
-    has_anterior_seg = 'segment_anterior' in available_paths
-    has_posterior_seg = 'segment_posterior' in available_paths
-    has_anterior_hot = 'hotspot_anterior' in available_paths
-    has_posterior_hot = 'hotspot_posterior' in available_paths
-    
-    # We need at least one segmentation and one hotspot file
-    has_segmentation = has_anterior_seg or has_posterior_seg
-    has_hotspot = has_anterior_hot or has_posterior_hot
-    
-    # Check for matching pairs
-    has_anterior_pair = has_anterior_seg and has_anterior_hot
-    has_posterior_pair = has_posterior_seg and has_posterior_hot
-    
-    can_proceed = has_segmentation and has_hotspot and (has_anterior_pair or has_posterior_pair)
-    
-    return available_paths, missing_files, can_proceed
 
 def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date: str) -> bool:
     """

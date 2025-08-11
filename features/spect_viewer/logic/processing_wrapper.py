@@ -182,7 +182,7 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
         return {"frames": [], "ant_frames": [], "post_frames": []}
 
 
-def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date: str) -> bool:
+def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date: str, source_is_editor: bool = False) -> bool:
     """
     Run classification for patient using the new classification wrapper
     
@@ -197,7 +197,7 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
     try:
         print(f"[CLASSIFICATION] Starting classification for patient {patient_id}")
         from .classification_wrapper import run_classification_for_patient as clf_runner
-        result = clf_runner(dicom_path, patient_id, study_date)
+        result = clf_runner(dicom_path, patient_id, study_date,source_is_editor=source_is_editor)
         
         if result:
             print(f"[CLASSIFICATION] Classification completed successfully")
