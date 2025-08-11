@@ -16,6 +16,10 @@ from PySide6.QtCore    import Qt, QRectF, QPointF, Signal
 from PySide6.QtGui     import (
     QPixmap, QImage, QPainter, QColor, QPen, QWheelEvent, QCursor, QLinearGradient
 )
+
+from core.gui.loading_dialog import LoadingDialog
+from PySide6.QtCore import QThread, Signal
+
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
     QPushButton, QSlider, QWidget, QMessageBox, QGraphicsView, QGraphicsScene,
@@ -600,6 +604,125 @@ class _Canvas(QGraphicsView):
 
 # ================================================================= Dialog
 class SegmentationEditorDialog(QDialog):
+    class SaveThread(QThread):
+        """Thread untuk save process dengan progress reporting"""
+        progress_updated = Signal(int, str)  # progress percentage, message
+        save_completed = Signal(bool, str)   # success, message
+        
+        def __init__(self, canvas, seg_files_edited, patient_id, session_code, study_date):
+            super().__init__()
+            self.canvas = canvas
+            self.seg_files_edited = seg_files_edited
+            self.patient_id = patient_id
+            self.session_code = session_code
+            self.study_date = study_date
+            
+        def run(self):
+            try:
+                mask = self.canvas.current_mask()
+                
+                self.progress_updated.emit(10, "Preparing images...")
+                
+                # Prepare images
+                bin_img = (mask > 0).astype(np.uint8) * 255
+                rgb_img = label_mask_to_rgb(mask)
+                
+                self.progress_updated.emit(30, "Creating directories...")
+                
+                # Create parent directories if needed
+                self.seg_files_edited['png_mask_edited'].parent.mkdir(parents=True, exist_ok=True)
+                
+                self.progress_updated.emit(50, "Saving PNG mask...")
+                
+                # Save PNG files only
+                Image.fromarray(bin_img, mode="L").save(self.seg_files_edited['png_mask_edited'])
+                print(f"✓ Saved edited mask PNG: {self.seg_files_edited['png_mask_edited']}")
+                
+                self.progress_updated.emit(70, "Saving PNG colored...")
+                
+                Image.fromarray(rgb_img).save(self.seg_files_edited['png_colored_edited'])
+                print(f"✓ Saved edited colored PNG: {self.seg_files_edited['png_colored_edited']}")
+                
+                self.progress_updated.emit(85, "Uploading to cloud...")
+                
+                # Upload to cloud
+                cloud_success = self._upload_edited_files_to_cloud()
+                
+                self.progress_updated.emit(100, "Save completed!")
+                
+                # Success message
+                success_msg = (
+                    f"Edited segmentation saved successfully!\n\n"
+                    f"PNG files saved with study date naming:\n"
+                    f"• {self.seg_files_edited['png_mask_edited'].name}\n"
+                    f"• {self.seg_files_edited['png_colored_edited'].name}\n\n"
+                    f"Study Date: {self.study_date}\n"
+                    f"Patient ID: {self.patient_id}\n"
+                    f"Session: {self.session_code}"
+                )
+                
+                if cloud_success:
+                    success_msg += "\n\n✅ Colored PNG synced to cloud storage"
+                else:
+                    success_msg += "\n\n⚠️ Cloud sync failed (files saved locally)"
+                
+                self.save_completed.emit(True, success_msg)
+                
+            except Exception as e:
+                error_msg = f"Failed to save edited segmentation:\n{str(e)}\n\nPlease check file permissions and disk space."
+                print(f"✗ Save failed: {e}")
+                self.save_completed.emit(False, error_msg)
+                
+        def _save_sc_dicom(self, img: np.ndarray, path: Path, desc: str):
+            """Simple 8-bit Secondary-Capture DICOM."""
+            rgb = img.ndim == 3
+            rows, cols = img.shape[:2]
+            meta = pydicom.Dataset()
+            meta.MediaStorageSOPClassUID    = SecondaryCaptureImageStorage
+            meta.MediaStorageSOPInstanceUID = generate_uid()
+            meta.TransferSyntaxUID          = ExplicitVRLittleEndian
+
+            ds = pydicom.FileDataset(str(path), {}, file_meta=meta, preamble=b"\0"*128)
+            ds.Modality = "OT"
+            ds.SeriesInstanceUID = generate_uid()
+            ds.SeriesDescription = desc
+            ds.Rows, ds.Columns  = rows, cols
+            ds.SamplesPerPixel   = 3 if rgb else 1
+            ds.PhotometricInterpretation = "RGB" if rgb else "MONOCHROME2"
+            ds.BitsAllocated = ds.BitsStored = 8
+            ds.HighBit = 7
+            if rgb: ds.PlanarConfiguration = 0
+            ds.PixelRepresentation = 0
+            ds.PixelData = img.astype(np.uint8).tobytes()
+            ds.save_as(path, write_like_original=False)
+        
+        def _upload_edited_files_to_cloud(self) -> bool:
+            """Upload edited files to cloud storage - ONLY colored PNG"""
+            try:
+                # Upload only the colored PNG file
+                file_path = self.seg_files_edited['png_colored_edited']
+                
+                if file_path.exists():
+                    success = upload_patient_file(
+                        file_path, 
+                        self.session_code, 
+                        self.patient_id, 
+                        is_edited=True
+                    )
+                    if success:
+                        print(f"✅ Uploaded to cloud: {file_path.name}")
+                        return True
+                    else:
+                        print(f"❌ Failed to upload: {file_path.name}")
+                        return False
+                else:
+                    print(f"⚠️ File not found for upload: {file_path}")
+                    return False
+                    
+            except Exception as e:
+                print(f"❌ Cloud upload failed: {e}")
+                return False
+        
     def __init__(self, scan: Dict, view: str, parent=None):
         super().__init__(parent, Qt.Window)
         from PySide6.QtGui import QGuiApplication
@@ -645,6 +768,9 @@ class SegmentationEditorDialog(QDialog):
         
         # NEW: Check for hotspot XML files with study date naming
         self._check_hotspot_xml_files()
+        self._save_thread = None
+        self._loading_dialog = None
+        self._is_saving = False
         
         # ===== DEBUG: cek isi frame & view =====
         print("\n======================")
@@ -691,8 +817,18 @@ class SegmentationEditorDialog(QDialog):
         # FIXED: Load mask dari PNG jika ada, atau buat mask kosong
         if self._png_color.exists():
             mask_arr = self._load_mask_from_png()
+            # ✅ FIXED: Ensure mask has same dimensions as original image
+            if mask_arr.shape != orig_arr.shape:
+                print(f"⚠️ WARNING: Mask shape {mask_arr.shape} != original shape {orig_arr.shape}")
+                print("🔄 Resizing mask to match original image...")
+                from PIL import Image as PILImage
+                mask_pil = PILImage.fromarray(mask_arr)
+                mask_resized = mask_pil.resize((orig_arr.shape[1], orig_arr.shape[0]), PILImage.NEAREST)
+                mask_arr = np.array(mask_resized)
+                print(f"✅ Mask resized to: {mask_arr.shape}")
         else:
             mask_arr = np.zeros_like(orig_arr, np.uint8)
+            print(f"✅ Created empty mask with shape: {mask_arr.shape}")
 
         # Use the loaded original data for canvas
         orig_png_arr = orig_arr  # Already loaded above with PNG priority
@@ -847,9 +983,7 @@ class SegmentationEditorDialog(QDialog):
             f"• Patient: {self.patient_id}<br>"
             f"• Study Date: {self.study_date}<br>"
             f"• Size: {orig_arr.shape[1]}×{orig_arr.shape[0]}<br>"
-            f"• Cloud: {cloud_available} Available<br>"
             f"• XML Files: {self._xml_files_info}<br>"
-            "<b>Save mode:</b> Edited files only"
         )
         instructions.setWordWrap(True)
         instructions.setStyleSheet("QLabel { background: #f0f0f0; padding: 8px; border-radius: 4px; }")
@@ -1088,6 +1222,7 @@ class SegmentationEditorDialog(QDialog):
             mask = np.zeros(rgb.shape[:2], np.uint8)
             for lbl, col in enumerate(_PALETTE):
                 mask[(rgb == col).all(-1)] = lbl
+            print(f"✓ Loaded mask shape: {mask.shape}")
             return mask
         except Exception as e:
             print(f"✗ Failed to load mask from {png_path}: {e}")
@@ -1171,56 +1306,81 @@ class SegmentationEditorDialog(QDialog):
         print(f"[DEBUG] XML hotspot files: {self._xml_files_info}")
         
     def _save_all(self):
-        """Save edited segmentation with cloud sync support and study date naming"""
-        mask = self.canvas.current_mask()
-        try:
-            # Save to EDITED files (never overwrite originals)
-            bin_img = (mask > 0).astype(np.uint8) * 255
-            rgb_img = label_mask_to_rgb(mask)
-            
-            # Create parent directories if needed
-            self._png_mask_edited.parent.mkdir(parents=True, exist_ok=True)
-            
-            # --- Save PNG files with _edited suffix
-            Image.fromarray(bin_img, mode="L").save(self._png_mask_edited)
-            print(f"✓ Saved edited mask PNG: {self._png_mask_edited}")
+        """Save edited segmentation with threaded processing and loading dialog"""
+        
+        # Prevent multiple save operations
+        if self._is_saving:
+            QMessageBox.warning(self, "Save in Progress", "Please wait for the current save operation to complete.")
+            return
+        
+        self._is_saving = True
+        
+        # Disable save button to prevent spam clicks
+        for widget in self.findChildren(QPushButton):
+            if widget.text() == "Save":
+                widget.setEnabled(False)
+                widget.setText("Saving...")
+        
+        # Create and show loading dialog
+        self._loading_dialog = LoadingDialog(
+            title="Saving Segmentation",
+            message="Preparing to save edited segmentation...",
+            show_progress=True,
+            show_cancel=False,
+            parent=self
+        )
+        self._loading_dialog.show()
+        
+        # Create save thread
+        self._save_thread = self.SaveThread(
+            self.canvas,
+            {
+                'png_mask_edited': self._png_mask_edited,
+                'png_colored_edited': self._png_color_edited
+                # ✅ REMOVED: DICOM files not needed anymore
+            },
+            self.patient_id,
+            self.session_code,
+            self.study_date
+        )
+        
+        # Connect signals
+        self._save_thread.progress_updated.connect(self._on_save_progress)
+        self._save_thread.save_completed.connect(self._on_save_completed)
+        
+        # Start save process
+        self._save_thread.start()
 
-            Image.fromarray(rgb_img).save(self._png_color_edited)
-            print(f"✓ Saved edited colored PNG: {self._png_color_edited}")
+    def _on_save_progress(self, progress: int, message: str):
+        """Handle save progress updates"""
+        if self._loading_dialog:
+            self._loading_dialog.set_progress(progress)
+            self._loading_dialog.set_message(message)
 
-            # --- Save DICOM SC files with _edited suffix
-            self._save_sc_dicom(bin_img, self._dcm_mask_edited, desc="Edited Mask")
-            print(f"✓ Saved edited mask DICOM: {self._dcm_mask_edited}")
-            
-            self._save_sc_dicom(rgb_img, self._dcm_color_edited, desc="Edited Colored")
-            print(f"✓ Saved edited colored DICOM: {self._dcm_color_edited}")
-
-            # --- Upload to cloud storage
-            cloud_success = self._upload_edited_files_to_cloud()
-            
-            # Success message
-            success_msg = (
-                f"Edited segmentation saved successfully!\n\n"
-                f"Files saved with study date naming:\n"
-                f"• {self._png_mask_edited.name}\n"
-                f"• {self._png_color_edited.name}\n"
-                f"• {self._dcm_mask_edited.name}\n"
-                f"• {self._dcm_color_edited.name}\n\n"
-                f"Study Date: {self.study_date}\n"           # ← BARU
-                f"Patient ID: {self.patient_id}\n"           # ← BARU
-                f"Session: {self.session_code}"              # ← BARU
-            )
-            
-            if cloud_success:
-                success_msg += "\n\n✅ Files synced to cloud storage"
-            else:
-                success_msg += "\n\n⚠️ Cloud sync failed (files saved locally)"
-            
-            QMessageBox.information(self, "Success", success_msg)
+    def _on_save_completed(self, success: bool, message: str):
+        """Handle save completion"""
+        # Close loading dialog
+        if self._loading_dialog:
+            self._loading_dialog.close()
+            self._loading_dialog = None
+        
+        # Reset save state
+        self._is_saving = False
+        
+        # Re-enable save button
+        for widget in self.findChildren(QPushButton):
+            if "Saving..." in widget.text():
+                widget.setEnabled(True)
+                widget.setText("Save")
+        
+        # Show result message
+        if success:
+            QMessageBox.information(self, "Success", message)
             self.accept()
-            
-        except Exception as e:
-            print(f"✗ Save failed: {e}")
-            QMessageBox.critical(self, "Save failed", 
-                f"Failed to save edited segmentation:\n{str(e)}\n\n"
-                f"Please check file permissions and disk space.")
+        else:
+            QMessageBox.critical(self, "Save Failed", message)
+        
+        # Clean up thread
+        if self._save_thread:
+            self._save_thread.deleteLater()
+            self._save_thread = None
