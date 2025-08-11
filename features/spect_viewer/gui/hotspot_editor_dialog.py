@@ -832,30 +832,25 @@ class HotspotEditorDialog(QDialog):
             print(f"[WARN] Could not extract study date: {e}")
             filename_stem = base.stem
         
-        # FIXED: Define all possible file paths
-        # EDITED versions (for saving)
-        self._png_color = base.parent / f"{filename_stem}_{view_full}_hotspot_edited_colored.png"
-        self._png_mask = base.parent / f"{filename_stem}_{view_full}_hotspot_edited_mask.png"
-        
-        # ORIGINAL versions (for loading fallback)
-        self._png_color_original = base.parent / f"{filename_stem}_{view_full}_hotspot_colored.png"
-        self._png_mask_original = base.parent / f"{filename_stem}_{view_full}_hotspot_mask.png"
-        
-        # LEGACY versions (for loading fallback)
+        # ✅ FIXED: Use CLASSIFICATION naming convention only
         view_short = "ant" if "ant" in view.lower() else "post"
-        self._png_color_legacy = base.parent / f"{filename_stem}_{view_short}_hotspot_colored.png"
-        self._png_mask_legacy = base.parent / f"{filename_stem}_{view_short}_hotspot_mask.png"
-        
-        # === NEW: XML path management ===
-        self._xml_original = base.parent / f"{filename_stem}_{view_short}.xml"
-        self._xml_edited = base.parent / f"{filename_stem}_{view_short}_edited.xml"
+
+        # CLASSIFICATION files (only ones we use)
+        self._classification_mask_original = base.parent / f"{filename_stem}_{view_full}_classification_mask.png"
+        self._classification_mask_edited = base.parent / f"{filename_stem}_{view_full}_classification_mask_edited.png"
+
+        # XML files
+        self._xml_original = base.parent / f"{filename_stem}_{view_short}_classification.xml"
+        self._xml_edited = base.parent / f"{filename_stem}_{view_short}_classification_edited.xml"
+
+        # ✅ ADD MISSING ATTRIBUTES
         self._xml_loaded_from_edited = False  # Track source of loaded XML
-        
+
         # Store data for XML generation
         self._patient_id = patient_id
         self._view_short = view_short
         self._filename_stem = filename_stem
-        
+
         # Store untuk akses ke processing wrapper
         self._dicom_path = Path(scan["path"])
         self._study_date = study_date
@@ -867,10 +862,9 @@ class HotspotEditorDialog(QDialog):
         # Original PNG path
         orig_png_path = base.with_name(f"{base.stem}_{vtag}.png")
         
-        print(f"[DEBUG] Hotspot editor paths:")
-        print(f"  Save to (edited): {self._png_color}")
-        print(f"  Original hotspot: {self._png_color_original}")
-        print(f"  Legacy hotspot: {self._png_color_legacy}")
+        print(f"[DEBUG] Classification editor paths:")
+        print(f"  Classification mask (original): {self._classification_mask_original}")
+        print(f"  Classification mask (edited): {self._classification_mask_edited}")
         print(f"  XML original: {self._xml_original}")
         print(f"  XML edited: {self._xml_edited}")
         print(f"  Segmentation: {self._segmentation_path}")
@@ -890,32 +884,32 @@ class HotspotEditorDialog(QDialog):
         # Load original array dari DICOM frames
         orig_arr = scan["frames"][view]
         
-        # FIXED: Check for existing hotspot data with proper priority
-        if self._xml_edited.exists():
-            # Priority 1: Load from edited XML (always prioritize this)
+        # ✅ FIXED: CLASSIFICATION ONLY - simple priority
+        if self._classification_mask_edited.exists():
+            # Priority 1: Load from edited classification mask
+            print(f"✓ Found EDITED classification mask: {self._classification_mask_edited}")
+            mask_arr = self._load_mask_from_classification_png(self._classification_mask_edited)
+            self._xml_loaded_from_edited = True  # ✅ SET ATTRIBUTE
+        elif self._classification_mask_original.exists():
+            # Priority 2: Load from original classification mask
+            print(f"✓ Found ORIGINAL classification mask: {self._classification_mask_original}")
+            mask_arr = self._load_mask_from_classification_png(self._classification_mask_original)
+            self._xml_loaded_from_edited = False  # ✅ SET ATTRIBUTE
+        elif self._xml_edited.exists():
+            # Priority 3: Load from edited XML
             print(f"✓ Found EDITED XML annotations: {self._xml_edited}")
-            self._xml_loaded_from_edited = True
+            self._xml_loaded_from_edited = True  # ✅ SET ATTRIBUTE
             mask_arr = self._load_from_xml(self._xml_edited, orig_arr, filename_stem, view_short, base.parent)
-        elif self._png_color.exists():
-            # Priority 2: Edited PNG version exists
-            print(f"✓ Found existing EDITED hotspot: {self._png_color}")
-            mask_arr = self._load_mask_from_png()
         elif self._xml_original.exists():
-            # Priority 3: Generate from original XML (but will save to edited)
+            # Priority 4: Load from original XML
             print(f"✓ Found ORIGINAL XML annotations: {self._xml_original}")
-            self._xml_loaded_from_edited = False  # Not loaded from edited, but will save to edited
+            self._xml_loaded_from_edited = False  # ✅ SET ATTRIBUTE
             mask_arr = self._load_from_xml(self._xml_original, orig_arr, filename_stem, view_short, base.parent)
-        elif self._png_color_original.exists():
-            # Priority 4: Original version exists
-            print(f"✓ Found existing ORIGINAL hotspot: {self._png_color_original}")
-            mask_arr = self._load_mask_from_png()
-        elif self._png_color_legacy.exists():
-            # Priority 5: Legacy version exists
-            print(f"✓ Found existing LEGACY hotspot: {self._png_color_legacy}")
-            mask_arr = self._load_mask_from_png()
         else:
-            print(f"✗ No existing hotspot data found. Creating empty mask.")
+            # ✅ EMPTY START - no fallback to hotspot files
+            print(f"✗ No classification data found. Creating empty mask.")
             mask_arr = np.zeros_like(orig_arr, np.uint8)
+            self._xml_loaded_from_edited = False  # ✅ SET ATTRIBUTE
 
         # Load original PNG if exists
         self._has_orig_png = orig_png_path.exists()
@@ -1357,35 +1351,28 @@ class HotspotEditorDialog(QDialog):
         self.canvas.set_label(idx)
 
     # ---------- FIXED: I/O helpers dengan error handling yang lebih baik
-    def _load_mask_from_png(self) -> np.ndarray:
-        """FIXED: Load from highest priority available file"""
+    
+    def _load_mask_from_classification_png(self, classification_path: Path) -> np.ndarray:
+        """Load mask from classification PNG file."""
         try:
-            # Priority 1: Try edited version first
-            if self._png_color.exists():
-                load_path = self._png_color
-                print(f"✓ Loading EDITED hotspot from: {load_path}")
-            # Priority 2: Try original version
-            elif self._png_color_original.exists():
-                load_path = self._png_color_original
-                print(f"✓ Loading ORIGINAL hotspot from: {load_path}")
-            # Priority 3: Try legacy version
-            elif self._png_color_legacy.exists():
-                load_path = self._png_color_legacy
-                print(f"✓ Loading LEGACY hotspot from: {load_path}")
-            else:
-                print(f"✗ No hotspot file found in any location")
-                return np.zeros((256, 256), np.uint8)
-            
-            # Load the mask
-            rgb = np.array(Image.open(load_path).convert("RGB"))
+            # Load classification mask
+            rgb = np.array(Image.open(classification_path).convert("RGB"))
             mask = np.zeros(rgb.shape[:2], np.uint8)
-            for lbl, col in enumerate(_HOTSPOT_PALLETTE):
-                mask[(rgb == col).all(-1)] = lbl
-            print(f"✓ Successfully loaded hotspot mask from: {load_path}")
+            
+            # Convert classification colors to hotspot labels
+            # Red (255,0,0) -> Abnormal (1)
+            red_mask = np.all(rgb == [255, 0, 0], axis=-1)
+            mask[red_mask] = 1
+            
+            # Cream (255,241,188) -> Normal (2)  
+            cream_mask = np.all(rgb == [255, 241, 188], axis=-1)
+            mask[cream_mask] = 2
+            
+            print(f"✓ Successfully loaded classification mask from: {classification_path}")
             return mask
             
         except Exception as e:
-            print(f"✗ Failed to load hotspot mask: {e}")
+            print(f"✗ Failed to load classification mask: {e}")
             return np.zeros((256, 256), np.uint8)
     
     def _save_sc_dicom(self, img: np.ndarray, path: Path, desc: str):
@@ -1544,24 +1531,21 @@ class HotspotEditorDialog(QDialog):
         mask = self.canvas.current_mask()
         
         try:
-            # Save PNG files (existing logic)
-            bin_img = (mask > 0).astype(np.uint8) * 255
-            Image.fromarray(bin_img, mode="L").save(self._png_mask)
-            print(f"✓ Saved edited mask PNG: {self._png_mask}")
-
+            # ✅ FIXED: Save CLASSIFICATION mask only
             rgb_img = label_mask_to_hotspot_rgb(mask)
-            Image.fromarray(rgb_img).save(self._png_color)
-            print(f"✓ Saved edited colored PNG: {self._png_color}")
+            Image.fromarray(rgb_img).save(self._classification_mask_edited)
+            print(f"✓ Saved edited classification mask: {self._classification_mask_edited}")
+
+            # ✅ REMOVED: Binary mask save (not needed for classification workflow)
 
             # Save XML files with segmentation support
             xml_result = self._save_xml_with_backup(mask)
             
             # Prepare success message
             success_msg = (
-                f"Hotspot edits saved successfully!\n\n"
-                f"Image files saved:\n"
-                f"• {self._png_mask.name} (edited version)\n"
-                f"• {self._png_color.name} (edited version)\n\n"
+                f"Classification edits saved successfully!\n\n"
+                f"Classification file saved:\n"
+                f"• {self._classification_mask_edited.name} (edited version)\n\n"
             )
             
             if xml_result:
@@ -1573,6 +1557,7 @@ class HotspotEditorDialog(QDialog):
                 # Add note about original preservation
                 if not self._xml_loaded_from_edited and self._xml_original.exists():
                     success_msg += f"\n\nNote: Original XML file preserved:\n• {self._xml_original.name} (unchanged)"
+
                 
                 # Add segmentation info if available
                 if self.canvas._segmentation_arr is not None:

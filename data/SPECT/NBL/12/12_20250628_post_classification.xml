@@ -31,10 +31,10 @@
     <truncated>0</truncated>
     <difficult>0</difficult>
     <bndbox>
-      <xmin>123</xmin>
-      <ymin>364</ymin>
-      <xmax>144</xmax>
-      <ymax>385</ymax>
+      <xmin>115</xmin>
+      <ymin>347</ymin>
+      <xmax>143</xmax>
+      <ymax>407</ymax>
     </bndbox>
     <!-- Classification data: {"segment": "lumbar vertebrae", "probability_normal": 0.0019497871398925781, "probability_abnormal": 0.9980502128601074, "hotspot_pixels": 394, "hotspot_mm2": 2264.903267639286} -->
   </object>

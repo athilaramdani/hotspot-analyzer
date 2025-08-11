@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>24_20250628_anterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NBL\24\24_20250628_anterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Normal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>83</xmin>
+      <ymin>415</ymin>
+      <xmax>102</xmax>
+      <ymax>439</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "pelvis", "probability_normal": 0.799034833908081, "probability_abnormal": 0.20096513628959656, "hotspot_pixels": 376, "hotspot_mm2": 2161.4305295237855} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>112</xmin>
+      <ymin>441</ymin>
+      <xmax>137</xmax>
+      <ymax>462</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "sacrum", "probability_normal": 0.1122589111328125, "probability_abnormal": 0.8877410888671875, "hotspot_pixels": 446, "hotspot_mm2": 2563.824511084065} -->
+  </object>
+</annotation>
