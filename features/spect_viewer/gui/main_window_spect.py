@@ -348,12 +348,16 @@ class MainWindowSpect(QMainWindow):
         
         main_splitter.addWidget(left_panel)
 
-        # MIDDLE PANEL: Timeline untuk menampilkan gambar
+        # Di _build_ui(), setelah membuat timeline widget
         self.timeline_widget = ScanTimelineWidget()
         self.timeline_widget.set_session_code(self.session_code)
-        
+
         # FIXED: Connect timeline scan selection signal to sync with scan buttons
         self.timeline_widget.scan_selected.connect(self._on_timeline_scan_selected)
+
+        # ✅ NEW: Connect editor completion signals to refresh BSI panel
+        self.timeline_widget.editor_completed.connect(self._on_editor_completed)
+        # These signals will be emitted when editors successfully save
         
         main_splitter.addWidget(self.timeline_widget)
 
@@ -552,6 +556,41 @@ class MainWindowSpect(QMainWindow):
         except (IndexError, AttributeError) as e:
             print(f"[DEBUG] Failed to update BSI panel: {e}")
 
+    def _on_editor_completed(self):
+        """Handle editor completion - refresh BSI panel and timeline"""
+        print("[MainWindow] Editor completed, refreshing BSI panel...")
+        
+        try:
+            # Get current patient info
+            patient_id, session_code = self._get_current_patient_info()
+            
+            if not patient_id or not session_code:
+                print("[MainWindow] No patient selected, skipping refresh")
+                return
+            
+            # Refresh timeline to pick up new files
+            self.timeline_widget.refresh_current_view()
+            
+            # Refresh BSI panel with latest data
+            self._refresh_bsi_panel_for_current_patient()
+            
+            print("[MainWindow] ✅ Auto-refresh completed")
+            
+        except Exception as e:
+            print(f"[MainWindow] Error in auto-refresh: {e}")
+
+    def _refresh_bsi_panel_for_current_patient(self):
+        """Refresh BSI panel for currently selected patient"""
+        try:
+            # ✅ IMPROVED: Use BSI panel's own refresh method
+            if hasattr(self, 'bsi_panel'):
+                self.bsi_panel.refresh_current_patient()
+            
+            print(f"[MainWindow] ✅ BSI panel auto-refreshed")
+            
+        except Exception as e:
+            print(f"[MainWindow] Error refreshing BSI panel: {e}")
+            
     def _load_bsi_for_scan(self, scan_data: Dict, session_code: str):
         """Load BSI data for selected scan"""
         try:
