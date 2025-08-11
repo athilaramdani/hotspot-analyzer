@@ -18,7 +18,7 @@ import math
 import xml.etree.ElementTree as ET
 from datetime import datetime
 import shutil
-from datetime import datetime
+import os
 
 from core.config.paths import (
     extract_study_date_from_dicom,
@@ -30,8 +30,8 @@ from PIL import Image
 from scipy import ndimage
 from skimage import measure
 
-from PySide6.QtCore    import Qt, QRectF, QPointF, Signal
-from PySide6.QtGui     import (
+from PySide6.QtCore import Qt, QRectF, QPointF, Signal, QThread
+from PySide6.QtGui import (
     QPixmap, QImage, QPainter, QColor, QPen, QWheelEvent, QCursor, QLinearGradient
 )
 from PySide6.QtWidgets import (
@@ -48,6 +48,9 @@ from features.spect_viewer.logic.colorizer import label_mask_to_hotspot_rgb,labe
 
 # Import segmentation colorizer
 from features.spect_viewer.logic.colorizer import _PALETTE
+
+# ✅ ADD: Loading dialog import
+from core.gui.loading_dialog import LoadingDialog
 
 # ---------------------------------------------------------------- label names & desc
 _LABEL_INFO: List[Tuple[str, str]] = [
@@ -72,6 +75,7 @@ _SEGMENT_NAMES = {
     11: "pelvis", 
     12: "femur"
 }
+
 
 class _BCPad(QWidget):
     """Pad 2-D:  X  = brightness (−1 … +1)
@@ -807,7 +811,154 @@ def save_xml_file(xml_content: str, file_path: Path):
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         f.write(xml_content)
 
-# ================================================================= Dialog
+class SaveThread(QThread):
+    """Thread untuk save process dengan progress reporting"""
+    progress_updated = Signal(int, str)  # progress percentage, message
+    save_completed = Signal(bool, str)   # success, message
+    
+    def __init__(self, canvas, classification_mask_edited, xml_edited, patient_id, view_short, filename_stem, dicom_path, study_date):
+        super().__init__()
+        self.canvas = canvas
+        self.classification_mask_edited = classification_mask_edited
+        self.xml_edited = xml_edited
+        self.patient_id = patient_id
+        self.view_short = view_short
+        self.filename_stem = filename_stem
+        
+        # ✅ FIX: Simpan dengan nama yang benar
+        self._dicom_path = dicom_path  # ← TAMBAHKAN INI
+        self._study_date = study_date  # ← TAMBAHKAN INI
+        
+    def run(self):
+        try:
+            mask = self.canvas.current_mask()
+            
+            self.progress_updated.emit(10, "Preparing classification data...")
+            
+            # Save classification mask
+            rgb_img = label_mask_to_hotspot_rgb(mask)
+            
+            self.progress_updated.emit(30, "Saving classification mask...")
+            
+            # Create parent directories
+            self.classification_mask_edited.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Save classification mask
+            Image.fromarray(rgb_img).save(self.classification_mask_edited)
+            print(f"✓ Saved edited classification mask: {self.classification_mask_edited}")
+            
+            self.progress_updated.emit(50, "Generating XML annotations...")
+            
+            # Generate and save XML
+            xml_result = self._save_xml_with_backup(mask)
+            
+            self.progress_updated.emit(80, "Running quantification...")
+            
+            # Trigger quantification
+            quant_success = self._trigger_quantification()
+            
+            self.progress_updated.emit(100, "Save completed!")
+            
+            # ✅ FIX: Update success message dengan info kuantifikasi
+            success_msg = f"Classification edits saved successfully!\n\n"
+            success_msg += f"Classification file saved:\n• {self.classification_mask_edited.name}\n\n"
+            
+            if xml_result:
+                success_msg += f"XML annotation file:\n"
+                for file_info in xml_result['saved_files']:
+                    success_msg += file_info + "\n"
+                success_msg += f"\nAnnotations: {xml_result['bbox_stats']}"
+            
+            # ✅ IMPROVED: Better quantification status
+            if quant_success:
+                success_msg += "\n\n✅ Quantification pipeline completed successfully"
+            else:
+                success_msg += "\n\n⚠️ Quantification pipeline failed (check logs for details)"
+            
+            self.save_completed.emit(True, success_msg)
+            
+        except Exception as error:
+            error_msg = f"Failed to save classification edits:\n{str(error)}"
+            print(f"✗ Save failed: {error}")
+            self.save_completed.emit(False, error_msg)
+    
+    def _save_xml_with_backup(self, mask):
+        """Save XML with backup logic"""
+        try:
+            # Generate bounding boxes with segment detection
+            segmentation_arr = self.canvas._segmentation_arr
+            bounding_boxes = mask_to_bounding_boxes(mask, segmentation_arr, min_area=10)
+            
+            # Get image dimensions
+            img_height, img_width = mask.shape
+            
+            # Generate XML content - ALWAYS generate, even if empty
+            xml_content = create_xml_from_bboxes(
+                bounding_boxes, img_width, img_height, 
+                self.patient_id, self.view_short, self.filename_stem
+            )
+            
+            # Save XML file
+            save_xml_file(xml_content, self.xml_edited)
+            print(f"✓ Saved XML to: {self.xml_edited}")
+            
+            # Prepare result
+            bbox_count = len(bounding_boxes)
+            abnormal_count = len([b for b in bounding_boxes if b['label'] == 'abnormal'])
+            normal_count = len([b for b in bounding_boxes if b['label'] == 'normal'])
+            
+            if bbox_count == 0:
+                bbox_stats = "No annotations (empty but valid for quantification)"
+            else:
+                bbox_stats = f"{bbox_count} annotations ({abnormal_count} abnormal, {normal_count} normal)"
+            
+            return {
+                'saved_files': [f"• {self.xml_edited.name} (created)"],
+                'bbox_stats': bbox_stats,
+                'action_type': "created"
+            }
+            
+        except Exception as error:  # ✅ FIX: Use 'error' instead of 'e'
+            print(f"✗ Failed to save XML: {error}")
+            return None
+    
+    def _trigger_quantification(self):
+        """Trigger quantification pipeline"""
+        try:
+            from features.spect_viewer.logic.processing_wrapper import (
+                run_quantification_for_patient
+            )
+            
+            # ✅ FIX: Gunakan atribut yang benar
+            print("[SAVE-PIPELINE] Editor sudah menyimpan classification files.")
+            print("[SAVE-PIPELINE] Langsung menjalankan kuantifikasi...")
+            
+            quant_success = run_quantification_for_patient(
+                self._dicom_path,    # ✅ Sekarang ada
+                self.patient_id,     # ✅ Sudah ada
+                self._study_date     # ✅ Sekarang ada
+            )
+            
+            if quant_success:
+                print("[SAVE-PIPELINE] Kuantifikasi berhasil.")
+            else:
+                print("[SAVE-PIPELINE] Kuantifikasi gagal.")
+                # ❌ HAPUS: Jangan panggil QMessageBox dari thread
+                # QMessageBox.warning(self, "Analisis Gagal", 
+                #                     "Proses kuantifikasi gagal. Periksa file input yang diperlukan.")
+
+            return quant_success
+                    
+        except Exception as error:  
+            print(f"[SAVE-PIPELINE ERROR] Gagal menjalankan kuantifikasi: {error}")
+            import traceback
+            print(f"[SAVE-PIPELINE] Full traceback: {traceback.format_exc()}")
+            
+            # ❌ HAPUS: Jangan panggil QMessageBox dari thread
+            # QMessageBox.critical(self, "Error Kritis", 
+            #                     f"Terjadi error saat menjalankan kuantifikasi:\n{error}")
+            return False
+    # ================================================================= Dialog
 class HotspotEditorDialog(QDialog):
     def __init__(self, scan: Dict, view: str, parent=None):
         super().__init__(parent, Qt.Window)
@@ -1179,6 +1330,11 @@ class HotspotEditorDialog(QDialog):
         # Segmentation opacity controls
         self.btn_seg_minus.clicked.connect(lambda: self._adjust_slider(self.slider_seg, -5))
         self.btn_seg_plus.clicked.connect(lambda: self._adjust_slider(self.slider_seg, 5))
+        
+        
+        self._save_thread = None
+        self._loading_dialog = None
+        self._is_saving = False
 
     def _load_from_xml(self, xml_path: Path, orig_arr: np.ndarray, filename_stem: str, 
                        view_short: str, base_dir: Path) -> np.ndarray:
@@ -1399,7 +1555,7 @@ class HotspotEditorDialog(QDialog):
         ds.save_as(path, write_like_original=False)
 
     def _save_xml_with_backup(self, mask: np.ndarray):
-        """FIXED: Save XML only to '_edited' file, never touch original with segmentation support"""
+        """✅ FIXED: Always generate XML even if no annotations found"""
         try:
             print(f"[DEBUG-XML] Starting XML save for {self._patient_id}")
             print(f"[DEBUG-XML] View: {self._view_short}, Filename stem: {self._filename_stem}")
@@ -1411,31 +1567,27 @@ class HotspotEditorDialog(QDialog):
             bounding_boxes = mask_to_bounding_boxes(mask, segmentation_arr, min_area=10)
             print(f"[DEBUG-XML] Generated {len(bounding_boxes)} bounding boxes")
             
-            for i, bbox in enumerate(bounding_boxes):
-                print(f"[DEBUG-XML] Bbox {i+1}: {bbox['label']} at ({bbox['x']},{bbox['y']}) size {bbox['width']}x{bbox['height']} segment={bbox['segment']}")
-            
+            # ✅ ALWAYS SAVE XML - even if empty
             if not bounding_boxes:
-                # Even if empty, save empty XML to mark that editing was done
-                print("✓ Saving empty XML (no annotations found)")
+                print("✓ Saving empty XML (no annotations found - but file will exist)")
+                # Create minimal valid XML structure for quantification
+                bounding_boxes = []  # Empty but valid list
             
             # Get image dimensions
             img_height, img_width = mask.shape
             
-            # Generate XML content
+            # Generate XML content - ALWAYS generate, even if empty
             xml_content = create_xml_from_bboxes(
                 bounding_boxes, img_width, img_height, 
                 self._patient_id, self._view_short, self._filename_stem
             )
             
-            # === SIMPLIFIED SAVING LOGIC ===
-            # Always save to "_edited" file only, never touch original
+            # ✅ ALWAYS SAVE XML FILE - even empty ones
+            save_xml_file(xml_content, self._xml_edited)
+            print(f"✓ Saved XML to: {self._xml_edited}")
             
             # Check if we're overwriting an existing edited file
             is_overwrite = self._xml_edited.exists()
-            
-            # Save to edited location
-            save_xml_file(xml_content, self._xml_edited)
-            print(f"✓ Saved XML to: {self._xml_edited}")
             
             # Prepare result
             saved_files = []
@@ -1451,9 +1603,15 @@ class HotspotEditorDialog(QDialog):
             abnormal_count = len([b for b in bounding_boxes if b['label'] == 'abnormal'])
             normal_count = len([b for b in bounding_boxes if b['label'] == 'normal'])
             
+            # ✅ BETTER MESSAGE for empty case
+            if bbox_count == 0:
+                bbox_stats = "No annotations (empty but valid for quantification)"
+            else:
+                bbox_stats = f"{bbox_count} annotations ({abnormal_count} abnormal, {normal_count} normal)"
+            
             return {
                 'saved_files': saved_files,
-                'bbox_stats': f"{bbox_count} annotations ({abnormal_count} abnormal, {normal_count} normal)",
+                'bbox_stats': bbox_stats,
                 'action_type': action_type
             }
             
@@ -1527,59 +1685,77 @@ class HotspotEditorDialog(QDialog):
             return False
         
     def _save_all(self):
-        """Enhanced save - only saves to '_edited' files"""
-        mask = self.canvas.current_mask()
+        """Save with threaded processing and loading dialog"""
         
-        try:
-            # ✅ FIXED: Save CLASSIFICATION mask only
-            rgb_img = label_mask_to_hotspot_rgb(mask)
-            Image.fromarray(rgb_img).save(self._classification_mask_edited)
-            print(f"✓ Saved edited classification mask: {self._classification_mask_edited}")
+        if self._is_saving:
+            QMessageBox.warning(self, "Save in Progress", "Please wait for current save to complete.")
+            return
+        
+        self._is_saving = True
+        
+        # Disable save button
+        for widget in self.findChildren(QPushButton):
+            if widget.text() == "Save":
+                widget.setEnabled(False)
+                widget.setText("Saving...")
+        
+        # Create and show loading dialog
+        self._loading_dialog = LoadingDialog(
+            title="Saving Classification",
+            message="Preparing to save classification edits...",
+            show_progress=True,
+            show_cancel=False,
+            parent=self
+        )
+        self._loading_dialog.show()
+        
+        # Create save thread
+        self._save_thread = SaveThread(
+            self.canvas,
+            self._classification_mask_edited,
+            self._xml_edited,
+            self._patient_id,
+            self._view_short,
+            self._filename_stem,
+            self._dicom_path,
+            self._study_date
+        )
+        
+        # Connect signals
+        self._save_thread.progress_updated.connect(self._on_save_progress)
+        self._save_thread.save_completed.connect(self._on_save_completed)
+        
+        # Start save process
+        self._save_thread.start()
 
-            # ✅ REMOVED: Binary mask save (not needed for classification workflow)
+    def _on_save_progress(self, progress: int, message: str):
+        """Handle save progress updates"""
+        if self._loading_dialog:
+            self._loading_dialog.set_progress(progress)
+            self._loading_dialog.set_message(message)
 
-            # Save XML files with segmentation support
-            xml_result = self._save_xml_with_backup(mask)
-            
-            # Prepare success message
-            success_msg = (
-                f"Classification edits saved successfully!\n\n"
-                f"Classification file saved:\n"
-                f"• {self._classification_mask_edited.name} (edited version)\n\n"
-            )
-            
-            if xml_result:
-                success_msg += f"XML annotation file:\n"
-                for file_info in xml_result['saved_files']:
-                    success_msg += file_info + "\n"
-                success_msg += f"\nAnnotations: {xml_result['bbox_stats']}"
-                
-                # Add note about original preservation
-                if not self._xml_loaded_from_edited and self._xml_original.exists():
-                    success_msg += f"\n\nNote: Original XML file preserved:\n• {self._xml_original.name} (unchanged)"
-
-                
-                # Add segmentation info if available
-                if self.canvas._segmentation_arr is not None:
-                    success_msg += f"\n\nSegmentation-aware annotations saved with anatomical segments detected."
-            else:
-                success_msg += "Note: XML save failed or no annotations to save"
-
-            QMessageBox.information(self, "Success", success_msg)
-            
-            # NEW: Trigger quantification setelah XML berhasil disimpan
-            if xml_result:
-                print("[SAVE] Triggering quantification after XML save...")
-                quant_success = self._trigger_quantification()
-                if quant_success:
-                    print("[SAVE] Quantification completed after XML save")
-                else:
-                    print("[SAVE] Quantification failed after XML save")
-            
+    def _on_save_completed(self, success: bool, message: str):
+        """Handle save completion"""
+        if self._loading_dialog:
+            self._loading_dialog.close()
+            self._loading_dialog = None
+        
+        self._is_saving = False
+        
+        # Re-enable save button
+        for widget in self.findChildren(QPushButton):
+            if "Saving..." in widget.text():
+                widget.setEnabled(True)
+                widget.setText("Save")
+        
+        # ✅ SEKARANG AMAN: Panggil QMessageBox dari main thread
+        if success:
+            QMessageBox.information(self, "Success", message)
             self.accept()
-            
-        except Exception as e:
-            print(f"✗ Save failed: {e}")
-            QMessageBox.critical(self, "Save failed", 
-                f"Failed to save hotspot edits:\n{str(e)}\n\n"
-                f"Please check file permissions and disk space.")
+        else:
+            QMessageBox.critical(self, "Save Failed", message)
+        
+        # Clean up thread
+        if self._save_thread:
+            self._save_thread.deleteLater()
+            self._save_thread = None

@@ -122,6 +122,10 @@ class BSISidePanel(QWidget):
 
     def load_patient_data(self, patient_folder: Path, patient_id: str, study_date: str) -> bool:
         try:
+            print(f"[BSI PANEL DEBUG] Loading patient data:")
+            print(f"[BSI PANEL DEBUG]   Patient folder: {patient_folder}")
+            print(f"[BSI PANEL DEBUG]   Patient ID: {patient_id}")
+            print(f"[BSI PANEL DEBUG]   Study date: {study_date}")
             self.current_patient_folder = patient_folder
             self.current_patient_id = patient_id
             self.bsi_canvas.load_bsi_data(patient_folder, patient_id, study_date)
@@ -223,3 +227,90 @@ class BSISidePanel(QWidget):
     def set_session_code(self, session_code: str):
         """Menyimpan session code untuk keperluan internal."""
         self._current_session_code = session_code
+    
+    # ✅ NEW: Add refresh method
+    def refresh_current_patient(self):
+        """Refresh BSI panel untuk patient yang sedang aktif"""
+        if self.current_patient_folder and self.current_patient_id:
+            print(f"[BSI PANEL] Refreshing data for patient {self.current_patient_id}")
+            # Reload with current data
+            success = self.load_patient_data(
+                self.current_patient_folder, 
+                self.current_patient_id, 
+                self.current_study_date or "latest"
+            )
+            if success:
+                print("[BSI PANEL] ✅ Refresh successful")
+            else:
+                print("[BSI PANEL] ❌ Refresh failed")
+        else:
+            print("[BSI PANEL] No patient data to refresh")
+    
+    def _export_csv_data(self):
+        """Export current table data to CSV"""
+        if not self.current_patient_id or not self.current_study_date:
+            print("[BSI EXPORT] No patient data to export")
+            return
+            
+        try:
+            from PySide6.QtWidgets import QFileDialog
+            import csv
+            
+            # Get save location
+            filename = f"BSI_Results_{self.current_patient_id}_{self.current_study_date}.csv"
+            file_path, _ = QFileDialog.getSaveFileName(
+                self, 
+                "Export BSI Results to CSV", 
+                filename,
+                "CSV Files (*.csv)"
+            )
+            
+            if not file_path:
+                return
+                
+            # Export table data
+            with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                
+                # Write header
+                headers = []
+                for col in range(self.results_table.columnCount()):
+                    headers.append(self.results_table.horizontalHeaderItem(col).text())
+                writer.writerow(headers)
+                
+                # Write data rows
+                for row in range(self.results_table.rowCount()):
+                    row_data = []
+                    for col in range(self.results_table.columnCount()):
+                        item = self.results_table.item(row, col)
+                        row_data.append(item.text() if item else "")
+                    writer.writerow(row_data)
+                
+                # Write summary info
+                writer.writerow([])  # Empty row
+                writer.writerow(["Summary Information"])
+                writer.writerow(["Patient ID", self.current_patient_id])
+                
+                # ✅ Format study date yang lebih readable
+                try:
+                    formatted_study_date = datetime.strptime(self.current_study_date, "%Y%m%d").strftime("%Y-%m-%d")
+                    writer.writerow(["Study Date", formatted_study_date])
+                except ValueError:
+                    writer.writerow(["Study Date", self.current_study_date])
+                
+                writer.writerow(["Export Date", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+                
+                # ✅ OPSIONAL: Tambahkan BSI score summary
+                if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
+                    summary_stats = self.quant_manager.current_results.get('summary_statistics', {})
+                    bsi_score = summary_stats.get('bsi_score', 0.0)
+                    total_abnormal = summary_stats.get('total_abnormal_hotspots', 0)
+                    writer.writerow([])
+                    writer.writerow(["BSI Summary"])
+                    writer.writerow(["BSI Score (%)", f"{bsi_score:.2f}%"])
+                    writer.writerow(["Total Abnormal Hotspots", total_abnormal])
+                                    
+            print(f"[BSI EXPORT] CSV exported successfully: {file_path}")
+            
+        except Exception as e:
+            print(f"[BSI EXPORT] Error exporting CSV: {e}")

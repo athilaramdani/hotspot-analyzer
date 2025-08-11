@@ -204,36 +204,43 @@ def calculate_BSI(image_segment_anterior, image_segment_posterior, image_hotspot
 
 def get_quantification_input_paths(patient_folder: Path, filename_stem: str) -> dict:
     """Get input file paths for quantification, prioritizing _edited files."""
+    # Import function dari paths.py
+    from core.config.paths import get_segmentation_files_for_quantification
+    
     # Dapatkan path untuk kedua view menggunakan fungsi dari paths.py
     ant_clf_files = get_classification_files(patient_folder, filename_stem, "anterior")
     post_clf_files = get_classification_files(patient_folder, filename_stem, "posterior")
     quant_files = get_quantification_files(patient_folder, filename_stem)
     
+    # ✅ NEW: Get segmentation files with edited priority
+    ant_seg_files = get_segmentation_files_for_quantification(patient_folder, filename_stem, "anterior")
+    post_seg_files = get_segmentation_files_for_quantification(patient_folder, filename_stem, "posterior")
+    
     # Pilih path mask yang benar (prioritaskan _edited jika ada)
     ant_mask_to_use = ant_clf_files['mask_edited'] if ant_clf_files['mask_edited'].exists() else ant_clf_files['mask_original']
     post_mask_to_use = post_clf_files['mask_edited'] if post_clf_files['mask_edited'].exists() else post_clf_files['mask_original']
     
-    output_file = quant_files['bsi_json_edited'] if (
-        ant_clf_files['mask_edited'].exists() or post_clf_files['mask_edited'].exists()
-    ) else quant_files['bsi_json_original']
+    # ✅ UPDATED: Check for any edited files (segmentation OR classification)
+    has_edited_files = (
+        ant_clf_files['mask_edited'].exists() or 
+        post_clf_files['mask_edited'].exists() or
+        ant_seg_files['colored_edited'].exists() or 
+        post_seg_files['colored_edited'].exists()
+    )
+    
+    output_file = quant_files['bsi_json_edited'] if has_edited_files else quant_files['bsi_json_original']
 
     return {
-        'segment_anterior': patient_folder / f"{filename_stem}_anterior_colored.png",
-        'segment_posterior': patient_folder / f"{filename_stem}_posterior_colored.png",
-        'hotspot_anterior': ant_mask_to_use,
-        'hotspot_posterior': post_mask_to_use,
-        'output_result': output_file
+        'segment_anterior': ant_seg_files['colored_to_use'],    # ✅ PRIORITY: edited → original
+        'segment_posterior': post_seg_files['colored_to_use'],  # ✅ PRIORITY: edited → original
+        'hotspot_anterior': ant_mask_to_use,                   # ✅ Already has priority
+        'hotspot_posterior': post_mask_to_use,                 # ✅ Already has priority
+        'output_result': output_file                           # ✅ Use edited JSON if any edited files
     }
     
 def check_available_files(paths):
     """
-    Check which files are available and determine if quantification can proceed
-    
-    Args:
-        paths: Dictionary with file paths
-        
-    Returns:
-        tuple: (available_paths, missing_files, can_proceed)
+    ✅ FIXED: Better validation for empty XML files
     """
     available_paths = {}
     missing_files = []
@@ -242,12 +249,19 @@ def check_available_files(paths):
     for name, path in paths.items():
         if name != 'output_result':
             if path.exists():
-                available_paths[name] = path
+                # ✅ SPECIAL CHECK: For XML files, validate they have proper structure
+                if name.endswith('_xml') or 'xml' in name:
+                    if _validate_xml_file(path):
+                        available_paths[name] = path
+                    else:
+                        print(f"[QUANTIFICATION] XML file exists but invalid: {path}")
+                        missing_files.append(f"{name} (invalid XML)")
+                else:
+                    available_paths[name] = path
             else:
                 missing_files.append(f"{name} ({path.name})")
     
     # Determine if we can proceed
-    # We need at least one segmentation-hotspot pair
     has_anterior_pair = ('segment_anterior' in available_paths and 
                         'hotspot_anterior' in available_paths)
     has_posterior_pair = ('segment_posterior' in available_paths and 
@@ -256,6 +270,25 @@ def check_available_files(paths):
     can_proceed = has_anterior_pair or has_posterior_pair
     
     return available_paths, missing_files, can_proceed
+
+def _validate_xml_file(xml_path: Path) -> bool:
+    """Validate XML file has proper structure (even if empty)"""
+    try:
+        import xml.etree.ElementTree as ET
+        tree = ET.parse(xml_path)
+        root = tree.getroot()
+        
+        # Check basic structure exists
+        if root.tag != 'annotation':
+            return False
+        
+        # XML is valid even if no objects (empty is OK for quantification)
+        return True
+        
+    except Exception as e:
+        print(f"[XML VALIDATION] Error validating {xml_path}: {e}")
+        return False
+
 
 def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date: str) -> bool:
     """

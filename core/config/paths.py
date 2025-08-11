@@ -319,6 +319,19 @@ def get_hotspot_xml_files(patient_id: str, session_code: str, view: str, study_d
         'xml_file': patient_folder / f"{filename_stem}_{view_short}.xml",
     }
 
+def get_segmentation_files_for_quantification(patient_folder: Path, filename_stem: str, view: str):
+    """Get segmentation files with edited priority for quantification"""
+    view_normalized = view.lower()
+    
+    edited_colored = patient_folder / f"{filename_stem}_{view_normalized}_edited_colored.png"
+    original_colored = patient_folder / f"{filename_stem}_{view_normalized}_colored.png"
+    
+    return {
+        'colored_edited': edited_colored,
+        'colored_original': original_colored,
+        'colored_to_use': edited_colored if edited_colored.exists() else original_colored
+    }
+
 def get_classification_files(patient_folder: Path, filename_stem: str, view: str) -> dict:
     """
     Menyediakan path untuk file-file klasifikasi, termasuk versi _edited.

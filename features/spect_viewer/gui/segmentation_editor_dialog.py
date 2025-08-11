@@ -648,9 +648,15 @@ class SegmentationEditorDialog(QDialog):
                 # Upload to cloud
                 cloud_success = self._upload_edited_files_to_cloud()
                 
+                self.progress_updated.emit(90, "Running quantification...")
+                
+                # ✅ NEW: Trigger quantification after successful save
+                print("[SEGMENTATION-SAVE] Starting quantification pipeline...")
+                quant_success = self._trigger_quantification_after_segmentation()
+                
                 self.progress_updated.emit(100, "Save completed!")
                 
-                # Success message
+                # Prepare success message
                 success_msg = (
                     f"Edited segmentation saved successfully!\n\n"
                     f"PNG files saved with study date naming:\n"
@@ -661,13 +667,20 @@ class SegmentationEditorDialog(QDialog):
                     f"Session: {self.session_code}"
                 )
                 
+                # Add quantification status
+                if quant_success:
+                    success_msg += "\n\n✅ Quantification pipeline completed successfully"
+                else:
+                    success_msg += "\n\n⚠️ Quantification pipeline failed (segmentation saved)"
+
+                # Add cloud sync status
                 if cloud_success:
                     success_msg += "\n\n✅ Colored PNG synced to cloud storage"
                 else:
                     success_msg += "\n\n⚠️ Cloud sync failed (files saved locally)"
                 
                 self.save_completed.emit(True, success_msg)
-                
+                        
             except Exception as e:
                 error_msg = f"Failed to save edited segmentation:\n{str(e)}\n\nPlease check file permissions and disk space."
                 print(f"✗ Save failed: {e}")
@@ -723,6 +736,63 @@ class SegmentationEditorDialog(QDialog):
                 print(f"❌ Cloud upload failed: {e}")
                 return False
         
+        def _trigger_quantification_after_segmentation(self):
+            """✅ FIX: Trigger quantification after segmentation save"""
+            try:
+                # Import processing functions
+                from features.spect_viewer.logic.processing_wrapper import (
+                    run_classification_for_patient,
+                    run_quantification_for_patient
+                )
+                
+                print("[SEGMENTATION-SAVE] Triggering analysis pipeline...")
+                
+                # ✅ FIXED: Find DICOM file in patient folder
+                # Get patient folder from one of the segmentation file paths
+                patient_folder = self.seg_files_edited['png_mask_edited'].parent
+                dicom_path = None
+                
+                # Look for DICOM file (not edited/mask files)
+                for possible_dicom in patient_folder.glob("*.dcm"):
+                    if not any(skip in possible_dicom.name.lower() for skip in ['mask', 'colored', 'edited']):
+                        dicom_path = possible_dicom
+                        break
+                
+                if not dicom_path or not dicom_path.exists():
+                    print("[SEGMENTATION-SAVE] No DICOM file found, skipping quantification")
+                    return False
+                
+                # Step 2: Run classification (using updated segmentation)
+                clf_success = run_classification_for_patient(
+                    dicom_path,
+                    self.patient_id,
+                    self.study_date,
+                    source_is_editor=True
+                )
+                
+                if clf_success:
+                    print("[SEGMENTATION-SAVE] Classification successful, running quantification...")
+                    # Step 3: Run quantification
+                    quant_success = run_quantification_for_patient(
+                        dicom_path,
+                        self.patient_id,
+                        self.study_date
+                    )
+                    
+                    if quant_success:
+                        print("[SEGMENTATION-SAVE] Quantification completed successfully")
+                        return True
+                    else:
+                        print("[SEGMENTATION-SAVE] Quantification failed")
+                        return False
+                else:
+                    print("[SEGMENTATION-SAVE] Classification failed, skipping quantification")
+                    return False
+                    
+            except Exception as e:
+                print(f"[SEGMENTATION-SAVE ERROR] {e}")
+                return False
+    
     def __init__(self, scan: Dict, view: str, parent=None):
         super().__init__(parent, Qt.Window)
         from PySide6.QtGui import QGuiApplication
@@ -1282,6 +1352,62 @@ class SegmentationEditorDialog(QDialog):
             
         except Exception as e:
             print(f"❌ Cloud upload failed: {e}")
+            return False
+        
+    def _trigger_quantification_after_segmentation(self):
+        """Trigger quantification after segmentation save"""
+        try:
+            # Import processing functions
+            from features.spect_viewer.logic.processing_wrapper import (
+                run_classification_for_patient,
+                run_quantification_for_patient
+            )
+            
+            print("[SEGMENTATION-SAVE] Triggering analysis pipeline...")
+            
+            # Step 1: Find DICOM file in patient folder
+            patient_folder = self.classification_mask_edited.parent
+            dicom_path = None
+            
+            # Look for DICOM file (not edited/mask files)
+            for possible_dicom in patient_folder.glob("*.dcm"):
+                if not any(skip in possible_dicom.name.lower() for skip in ['mask', 'colored', 'edited']):
+                    dicom_path = possible_dicom
+                    break
+            
+            if not dicom_path or not dicom_path.exists():
+                print("[SEGMENTATION-SAVE] No DICOM file found, skipping quantification")
+                return False
+            
+            # Step 2: Run classification (using updated segmentation)
+            clf_success = run_classification_for_patient(
+                dicom_path,
+                self.patient_id,
+                self.study_date,
+                source_is_editor=True
+            )
+            
+            if clf_success:
+                print("[SEGMENTATION-SAVE] Classification successful, running quantification...")
+                # Step 3: Run quantification
+                quant_success = run_quantification_for_patient(
+                    dicom_path,
+                    self.patient_id,
+                    self.study_date
+                )
+                
+                if quant_success:
+                    print("[SEGMENTATION-SAVE] Quantification completed successfully")
+                    return True
+                else:
+                    print("[SEGMENTATION-SAVE] Quantification failed")
+                    return False
+            else:
+                print("[SEGMENTATION-SAVE] Classification failed, skipping quantification")
+                return False
+                
+        except Exception as e:
+            print(f"[SEGMENTATION-SAVE ERROR] {e}")
             return False
         
     def _check_hotspot_xml_files(self):

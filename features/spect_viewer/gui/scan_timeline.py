@@ -104,6 +104,7 @@ class ScanTimelineWidget(QWidget):
     """
     # Signals
     scan_selected = Signal(int)  # Emit scan index when selected
+    editor_completed = Signal()  # Emit when editor is completed successfully
     
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -899,9 +900,23 @@ class ScanTimelineWidget(QWidget):
         try:
             # Determine view for XML files (use short names: ant/post)
             view_short = "ant" if "ant" in self.current_view.lower() else "post"
-            classification_xml_path = dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml"
             
-            if classification_xml_path.exists():
+            # ✅ FIXED: Priority for edited XML files
+            classification_xml_edited = dicom_path.parent / f"{filename_with_date}_{view_short}_classification_edited.xml"
+            classification_xml_original = dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml"
+            
+            # Choose edited first, then original
+            if classification_xml_edited.exists():
+                classification_xml_path = classification_xml_edited
+                print(f"[DEBUG] ✅ Using EDITED classification XML for bbox: {classification_xml_edited}")
+            elif classification_xml_original.exists():
+                classification_xml_path = classification_xml_original
+                print(f"[DEBUG] ✅ Using ORIGINAL classification XML for bbox: {classification_xml_original}")
+            else:
+                classification_xml_path = None
+                print(f"[DEBUG] ❌ No classification XML found for bbox")
+            
+            if classification_xml_path:
                 # ✅ Get dimensions from Original PNG instead of DICOM array
                 if "Original" in layers:
                     # Use already loaded Original layer
@@ -1069,7 +1084,9 @@ class ScanTimelineWidget(QWidget):
         if dlg.exec():
             print("[DEBUG] Segmentation editor completed, refreshing timeline")
             self._rebuild()
-
+            # ✅ NEW: Emit signal to main window for BSI refresh
+            self.editor_completed.emit()
+        
     def _open_hotspot_editor(self):
         """✅ FIXED: Open hotspot editor - ALLOW MANUAL EDITING EVEN WITHOUT CLASSIFICATION FILES"""
         if not self._scans_cache or self.active_scan_index < 0 or self.active_scan_index >= len(self._scans_cache):
@@ -1113,7 +1130,9 @@ class ScanTimelineWidget(QWidget):
             if dlg.exec():
                 print("[DEBUG] Hotspot editor completed, refreshing timeline")
                 self._rebuild()
-                
+                # ✅ NEW: Emit signal to main window for BSI refresh
+                self.editor_completed.emit()
+
         except Exception as e:
             print(f"[ERROR] Failed to open hotspot editor: {e}")
     
