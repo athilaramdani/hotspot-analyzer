@@ -392,9 +392,9 @@ class CloudStorageManager:
             return (uploaded, downloaded)
     
     def upload_patient_file(self, local_file: Path, session_code: str, 
-                          patient_id: str, is_edited: bool = False) -> bool:
+                      patient_id: str, is_edited: bool = False) -> bool:
         """
-        ✅ FIXED: Upload patient file with proper cloud path structure
+        ✅ FIXED: Upload patient file - support both original and edited files
         
         Args:
             local_file: Local file path
@@ -406,13 +406,6 @@ class CloudStorageManager:
             True if successful
         """
         try:
-            # ✅ ONLY UPLOAD ORIGINAL PNG FILES
-            if not (local_file.suffix.lower() == '.png' and 
-                    local_file.name.endswith('_original.png')):
-                logger.info(f"⏭️  Skipping non-original PNG file: {local_file.name}")
-                return False
-            
-            # Determine file type and create appropriate cloud path
             filename = local_file.name
             
             if is_edited and "_edited" not in filename:
@@ -492,7 +485,7 @@ def sync_pet_data(session_code: str = None, patient_id: str = None) -> Tuple[int
 
 def upload_patient_file(local_file: Path, session_code: str, patient_id: str, 
                        is_edited: bool = False) -> bool:
-    """✅ FIXED: Upload original PNG files only"""
+    """✅ FIXED: Upload edited files (not just original PNG)"""
     return cloud_storage.upload_patient_file(local_file, session_code, patient_id, is_edited)
 
 def test_cloud_connection() -> bool:

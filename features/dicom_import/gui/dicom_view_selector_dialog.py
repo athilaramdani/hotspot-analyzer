@@ -852,6 +852,7 @@ class FrameWidget(QWidget):
         checkbox_layout.addWidget(self.posterior_checkbox)
         layout.addWidget(checkbox_frame)
     
+    
     def _zoom_control(self, direction: int):
         """Control zoom via buttons with pan reset"""
         if hasattr(self.preview_label, 'zoom_factor'):
@@ -875,7 +876,7 @@ class FrameWidget(QWidget):
                 self.preview_label._update_display()
     
     def _connect_signals(self):
-        # ✅ FIXED: Use queued connections to prevent cascade crashes
+        # Connect with parent reference for mutual exclusivity
         self.anterior_checkbox.toggled.connect(
             lambda checked: QTimer.singleShot(10, lambda: self._on_anterior_toggled(checked))
         )
@@ -884,16 +885,25 @@ class FrameWidget(QWidget):
         )
         
     def _on_anterior_toggled(self, checked: bool):
-            # ✅ FIXED: Block signals during updates to prevent cascade
         try:
+            # Block posterior signals during update
             self.posterior_checkbox.blockSignals(True)
             
             if checked:
-                # Uncheck posterior (mutual exclusive)
+                # Uncheck posterior on this frame (mutual exclusive per frame)
                 self.posterior_checkbox.setChecked(False)
                 self.frame_info.is_anterior_checked = True
                 self.frame_info.is_posterior_checked = False
                 self.frame_info.user_selected_view = "Anterior"
+                
+                # Enforce mutual exclusivity across all frames in this DICOM
+                parent_widget = self.parent()
+                while parent_widget and not isinstance(parent_widget, DicomFileWidget):
+                    parent_widget = parent_widget.parent()
+                
+                if parent_widget:
+                    parent_widget._enforce_mutual_exclusivity("Anterior", self)
+                    
             else:
                 self.frame_info.is_anterior_checked = False
                 if not self.posterior_checkbox.isChecked():
@@ -901,30 +911,58 @@ class FrameWidget(QWidget):
             
             self.posterior_checkbox.blockSignals(False)
             
-            # ✅ FIXED: Emit signal safely with delay
+            # Emit signal safely with delay
             QTimer.singleShot(0, self.selection_changed.emit)
             
         except Exception as e:
             print(f"❌ ERROR in _on_anterior_toggled: {e}")
             self.posterior_checkbox.blockSignals(False)
-    
     def _on_posterior_toggled(self, checked: bool):
-        if checked:
-            # Uncheck anterior (mutual exclusive)
-            self.anterior_checkbox.setChecked(False)
-            self.frame_info.is_posterior_checked = True
-            self.frame_info.is_anterior_checked = False
-            self.frame_info.user_selected_view = "Posterior"
-        else:
-            self.frame_info.is_posterior_checked = False
-            if not self.anterior_checkbox.isChecked():
-                self.frame_info.user_selected_view = None
-        
-        self.selection_changed.emit()
+        try:
+            # Block anterior signals during update
+            self.anterior_checkbox.blockSignals(True)
+            
+            if checked:
+                # Uncheck anterior on this frame (mutual exclusive per frame)
+                self.anterior_checkbox.setChecked(False)
+                self.frame_info.is_posterior_checked = True
+                self.frame_info.is_anterior_checked = False
+                self.frame_info.user_selected_view = "Posterior"
+                
+                # Enforce mutual exclusivity across all frames in this DICOM
+                parent_widget = self.parent()
+                while parent_widget and not isinstance(parent_widget, DicomFileWidget):
+                    parent_widget = parent_widget.parent()
+                
+                if parent_widget:
+                    parent_widget._enforce_mutual_exclusivity("Posterior", self)
+                    
+            else:
+                self.frame_info.is_posterior_checked = False
+                if not self.anterior_checkbox.isChecked():
+                    self.frame_info.user_selected_view = None
+            
+            self.anterior_checkbox.blockSignals(False)
+            
+            # Emit signal safely with delay
+            QTimer.singleShot(0, self.selection_changed.emit)
+            
+        except Exception as e:
+            print(f"❌ ERROR in _on_posterior_toggled: {e}")
+            self.anterior_checkbox.blockSignals(False)
     
     def get_selection(self) -> Optional[str]:
         """Get current selection"""
         return self.frame_info.user_selected_view
+    
+    def get_dicom_file_widget(self) -> Optional['DicomFileWidget']:
+        """Get parent DicomFileWidget"""
+        parent = self.parent()
+        while parent:
+            if isinstance(parent, DicomFileWidget):
+                return parent
+            parent = parent.parent()
+        return None
 
 
 class DicomFileWidget(QWidget):
@@ -1110,6 +1148,41 @@ class DicomFileWidget(QWidget):
         
         layout.addWidget(frames_container)
     
+    def _enforce_mutual_exclusivity(self, selected_view: str, selected_frame_widget: 'FrameWidget'):
+        """Enforce mutual exclusivity: only one Anterior and one Posterior per DICOM file"""
+        print(f"🔒 Enforcing mutual exclusivity: {selected_view} selected")
+        
+        for frame_widget in self.frame_widgets:
+            if frame_widget == selected_frame_widget:
+                continue  # Skip the frame that was just selected
+            
+            # Block signals to prevent cascade updates
+            frame_widget.anterior_checkbox.blockSignals(True)
+            frame_widget.posterior_checkbox.blockSignals(True)
+            
+            if selected_view == "Anterior":
+                # Uncheck all other anterior checkboxes in this DICOM
+                if frame_widget.anterior_checkbox.isChecked():
+                    frame_widget.anterior_checkbox.setChecked(False)
+                    frame_widget.frame_info.is_anterior_checked = False
+                    if frame_widget.frame_info.user_selected_view == "Anterior":
+                        frame_widget.frame_info.user_selected_view = None
+                    print(f"  Unchecked Anterior on frame {frame_widget.frame_info.frame_index}")
+            
+            elif selected_view == "Posterior":
+                # Uncheck all other posterior checkboxes in this DICOM
+                if frame_widget.posterior_checkbox.isChecked():
+                    frame_widget.posterior_checkbox.setChecked(False)
+                    frame_widget.frame_info.is_posterior_checked = False
+                    if frame_widget.frame_info.user_selected_view == "Posterior":
+                        frame_widget.frame_info.user_selected_view = None
+                    print(f"  Unchecked Posterior on frame {frame_widget.frame_info.frame_index}")
+            
+            # Unblock signals
+            frame_widget.anterior_checkbox.blockSignals(False)
+            frame_widget.posterior_checkbox.blockSignals(False)
+    
+    
     def get_view_assignments(self) -> Dict[int, str]:
         """Get view assignments for all frames"""
         assignments = {}
@@ -1121,14 +1194,28 @@ class DicomFileWidget(QWidget):
         return assignments
     
     def has_complete_selection(self) -> Tuple[bool, List[str]]:
-        """Check if all frames have view assignments"""
-        missing_frames = []
-        for frame_widget in self.frame_widgets:
-            if not frame_widget.get_selection():
-                frame_num = frame_widget.frame_info.frame_index + 1
-                missing_frames.append(f"Frame {frame_num}")
+        """Check if file has exactly one Anterior and one Posterior frame selected"""
+        assignments = self.get_view_assignments()
         
-        return len(missing_frames) == 0, missing_frames
+        if not assignments:
+            return False, ["No frames selected"]
+        
+        views = list(assignments.values())
+        anterior_count = views.count("Anterior")
+        posterior_count = views.count("Posterior")
+        
+        missing = []
+        if anterior_count == 0:
+            missing.append("Anterior view")
+        elif anterior_count > 1:
+            missing.append(f"Too many Anterior views ({anterior_count}, should be 1)")
+        
+        if posterior_count == 0:
+            missing.append("Posterior view")
+        elif posterior_count > 1:
+            missing.append(f"Too many Posterior views ({posterior_count}, should be 1)")
+        
+        return len(missing) == 0, missing
     
     def get_detection_status(self) -> Dict[str, any]:
         """Get detection status summary for this file"""
