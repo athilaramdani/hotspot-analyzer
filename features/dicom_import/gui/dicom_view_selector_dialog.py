@@ -21,7 +21,8 @@ from PySide6.QtCore import Signal, Qt, QThread, QTimer, QPoint, QCoreApplication
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
     QScrollArea, QWidget, QFrame, QCheckBox, QGridLayout,
-    QGroupBox, QSplitter, QMessageBox, QProgressBar, QSlider
+    QGroupBox, QSplitter, QMessageBox, QProgressBar, QSlider,
+    QRadioButton, QButtonGroup  # TAMBAHAN BARU
 )
 from PySide6.QtGui import QPixmap, QFont, QImage, QWheelEvent, QMouseEvent, QPainter
 
@@ -47,6 +48,9 @@ class FrameInfo:
     is_anterior_checked: bool = False
     is_posterior_checked: bool = False
     detection_confidence: str = "none"  # "high", "low", "none"
+    # TAMBAHAN BARU:
+    selected_background: str = "black"  # "black" or "white"
+    pixel_analysis: Optional[Dict[str, any]] = None  # Pixel analysis results
 
 @dataclass
 class DicomInfo:
@@ -466,6 +470,7 @@ class ZoomableImageLabel(QLabel):
         self._update_display()
         super().mouseDoubleClickEvent(event)
 
+from features.dicom_import.logic.pixel_analyzer import analyze_pixel_distribution
 
 class DicomPreviewThread(QThread):
     """Thread untuk load preview DICOM files dengan enhanced detection"""
@@ -535,7 +540,35 @@ class DicomPreviewThread(QThread):
                 frame_info.is_anterior_checked = False
                 frame_info.is_posterior_checked = False
                 frame_info.user_selected_view = None
-                print(f"    ⚠️ MANUAL CONFIG REQUIRED: {confidence} confidence")
+            from features.dicom_import.logic.pixel_analyzer import analyze_background_type
+        
+            print(f"\n🔍 STARTING BACKGROUND ANALYSIS FOR FRAME {frame_index}...")
+            background_analysis = analyze_background_type(frame_data)
+            
+            if background_analysis:
+                frame_info.pixel_analysis = background_analysis
+                frame_info.selected_background = background_analysis["background_type"]
+                
+                confidence = background_analysis["confidence"]
+                bg_type = background_analysis["background_type"]
+                bg_percentage = background_analysis["background_percentage"]
+                
+                print(f"✅ BACKGROUND ANALYSIS RESULT:")
+                print(f"   Type: {bg_type}")
+                print(f"   Confidence: {confidence}%")
+                print(f"   Background area: {bg_percentage:.1f}%")
+                print(f"   Will auto-select: {bg_type} radio button")
+                
+                # Debug decision factors
+                if "debug_info" in background_analysis:
+                    debug = background_analysis["debug_info"]
+                    print(f"   Factors: {len(debug.get('decision_factors', []))}")
+            else:
+                print(f"❌ BACKGROUND ANALYSIS FAILED!")
+                frame_info.pixel_analysis = None
+                frame_info.selected_background = "black"  # Fallback
+
+            print(f"    ⚠️ MANUAL CONFIG REQUIRED: {confidence} confidence")
             
             frame_infos.append(frame_info)
         
@@ -765,21 +798,22 @@ class FrameWidget(QWidget):
         # ✅ FIX 3: Enhanced checkboxes with auto-config status
         checkbox_frame = QFrame()
         
-        # Style based on detection confidence
+        # Simple status determination
         if self.frame_info.detection_confidence == "high":
-            frame_bg = "#e8f5e8"  # Green tint for high confidence
-            frame_border = "#c3e6cb"
+            status_text = "✅ Auto-configured"
+            status_color = Colors.SUCCESS
         elif self.frame_info.detection_confidence == "low":
-            frame_bg = "#fff3cd"  # Yellow tint for low confidence  
-            frame_border = "#ffeeba"
+            status_text = "⚠️ Please confirm"
+            status_color = Colors.WARNING
         else:
-            frame_bg = Colors.LIGHT_GRAY  # Default for no detection
-            frame_border = Colors.BORDER_LIGHT
+            status_text = "⚙️ Manual selection required"
+            status_color = Colors.SECONDARY
         
+        # ✅ FIXED: Use consistent styling without variables
         checkbox_frame.setStyleSheet(f"""
             QFrame {{
-                background: {frame_bg};
-                border: 1px solid {frame_border};
+                background: rgba(248, 249, 250, 0.9);
+                border: 1px solid {Colors.BORDER_LIGHT};
                 border-radius: 6px;
                 padding: 6px;
             }}
@@ -851,6 +885,131 @@ class FrameWidget(QWidget):
         checkbox_layout.addWidget(self.anterior_checkbox)
         checkbox_layout.addWidget(self.posterior_checkbox)
         layout.addWidget(checkbox_frame)
+        
+        # TAMBAHAN BARU: Background Selection Controls
+        background_frame = QFrame()
+        background_frame.setStyleSheet(f"""
+            QFrame {{
+                background: rgba(248, 249, 250, 0.9);
+                border: 1px solid {Colors.BORDER_LIGHT};
+                border-radius: 6px;
+                padding: 8px;
+                margin-top: 8px;
+            }}
+        """)
+        background_layout = QVBoxLayout(background_frame)
+        background_layout.setSpacing(6)
+        
+        # Background selection header with pixel stats
+        if self.frame_info.pixel_analysis:
+            analysis = self.frame_info.pixel_analysis
+            bg_type = analysis.get("background_type", "unknown")
+            confidence = analysis.get("confidence", 0)
+            bg_percentage = analysis.get("background_percentage", 0)
+            
+            bg_stats = f"📊 {bg_type.title()} background detected ({confidence}% confidence)"
+        else:
+            bg_stats = "📊 Background Analysis"
+        
+        bg_header = QLabel(bg_stats)
+        bg_header.setStyleSheet(f"""
+            QLabel {{
+                color: {Colors.SECONDARY};
+                font-size: 10px;
+                font-weight: bold;
+                text-align: center;
+                margin-bottom: 4px;
+            }}
+        """)
+        background_layout.addWidget(bg_header)
+        
+        # Radio buttons for background selection
+        self.background_group = QButtonGroup()
+        
+        bg_radio_layout = QHBoxLayout()
+        bg_radio_layout.setSpacing(12)
+        
+        self.black_bg_radio = QRadioButton("🖤 Black Background")
+        self.white_bg_radio = QRadioButton("🤍 White Background")
+        
+        # Set initial selection based on analysis
+        detected_bg = self.frame_info.selected_background
+        confidence = self.frame_info.pixel_analysis.get("confidence", 0) if self.frame_info.pixel_analysis else 0
+        
+        detected_bg = self.frame_info.selected_background
+        pixel_analysis = self.frame_info.pixel_analysis
+        
+        print(f"\n🔍 FRAME {self.frame_info.frame_index} AUTO-SELECTION DEBUG:")
+        print(f"   detected_bg: '{detected_bg}'")
+        print(f"   pixel_analysis exists: {pixel_analysis is not None}")
+        
+        if pixel_analysis:
+            confidence = pixel_analysis.get("confidence", 0)
+            bg_type = pixel_analysis.get("background_type", "unknown")
+            print(f"   analysis.background_type: '{bg_type}'")
+            print(f"   analysis.confidence: {confidence}%")
+            
+            if "debug_info" in pixel_analysis:
+                debug = pixel_analysis["debug_info"]
+                print(f"   corner_mean: {debug.get('corner_mean', 'N/A')}")
+                print(f"   edge_mean: {debug.get('edge_mean', 'N/A')}")
+                print(f"   image_mean: {debug.get('image_mean', 'N/A')}")
+        else:
+            confidence = 0
+            print(f"   ❌ NO PIXEL ANALYSIS DATA!")
+        
+        # Auto-selection logic with detailed logging
+        if detected_bg == "black":
+            self.black_bg_radio.setChecked(True)
+            self.white_bg_radio.setChecked(False)
+            print(f"✅ AUTO-SELECTED: BLACK background radio button")
+        elif detected_bg == "white":
+            self.white_bg_radio.setChecked(True) 
+            self.black_bg_radio.setChecked(False)
+            print(f"✅ AUTO-SELECTED: WHITE background radio button")
+        else:
+            # Fallback dengan logging
+            self.black_bg_radio.setChecked(True)
+            self.white_bg_radio.setChecked(False)
+            print(f"⚠️ FALLBACK: Unknown detected_bg '{detected_bg}' → defaulting to BLACK")
+        
+        print(f"   Final state - Black checked: {self.black_bg_radio.isChecked()}")
+        print(f"   Final state - White checked: {self.white_bg_radio.isChecked()}")
+        
+        radio_style = f"""
+            QRadioButton {{
+                font-size: 10px;
+                font-weight: bold;
+                color: {Colors.DARK_GRAY};
+                padding: 2px;
+            }}
+            QRadioButton::indicator {{
+                width: 12px;
+                height: 12px;
+            }}
+            QRadioButton::indicator:unchecked {{
+                border: 2px solid {Colors.BORDER_MEDIUM};
+                border-radius: 6px;
+                background: white;
+            }}
+            QRadioButton::indicator:checked {{
+                border: 2px solid {Colors.PRIMARY};
+                border-radius: 6px;
+                background: {Colors.PRIMARY};
+            }}
+        """
+        
+        self.black_bg_radio.setStyleSheet(radio_style)
+        self.white_bg_radio.setStyleSheet(radio_style)
+        
+        self.background_group.addButton(self.black_bg_radio, 0)
+        self.background_group.addButton(self.white_bg_radio, 1)
+        
+        bg_radio_layout.addWidget(self.black_bg_radio)
+        bg_radio_layout.addWidget(self.white_bg_radio)
+        background_layout.addLayout(bg_radio_layout)
+        
+        layout.addWidget(background_frame)
     
     
     def _zoom_control(self, direction: int):
@@ -883,6 +1042,8 @@ class FrameWidget(QWidget):
         self.posterior_checkbox.toggled.connect(
             lambda checked: QTimer.singleShot(10, lambda: self._on_posterior_toggled(checked))
         )
+        
+        self.background_group.buttonToggled.connect(self._on_background_changed)
         
     def _on_anterior_toggled(self, checked: bool):
         try:
@@ -964,6 +1125,24 @@ class FrameWidget(QWidget):
             parent = parent.parent()
         return None
 
+    def _on_background_changed(self, button, checked):
+        """Handle background selection change"""
+        if not checked:
+            return
+            
+        if button == self.black_bg_radio:
+            self.frame_info.selected_background = "black"
+            print(f"🎨 Frame {self.frame_info.frame_index}: Selected black background")
+        elif button == self.white_bg_radio:
+            self.frame_info.selected_background = "white"
+            print(f"🎨 Frame {self.frame_info.frame_index}: Selected white background")
+        
+        # Emit selection changed to update parent
+        QTimer.singleShot(0, self.selection_changed.emit)
+
+    def get_background_selection(self) -> str:
+        """Get current background selection"""
+        return self.frame_info.selected_background
 
 class DicomFileWidget(QWidget):
     """Widget untuk menampilkan single DICOM file dengan enhanced status"""
@@ -1193,6 +1372,21 @@ class DicomFileWidget(QWidget):
                 assignments[frame_index] = selection
         return assignments
     
+    def get_view_assignments_with_background(self) -> Dict[int, Dict[str, str]]:
+        """Get view assignments with background selection for all frames"""
+        assignments = {}
+        for frame_widget in self.frame_widgets:
+            frame_index = frame_widget.frame_info.frame_index
+            selection = frame_widget.get_selection()
+            background = frame_widget.get_background_selection()
+            
+            if selection:  # Only include frames with view selections
+                assignments[frame_index] = {
+                    "view": selection,
+                    "background": background
+                }
+        return assignments
+    
     def has_complete_selection(self) -> Tuple[bool, List[str]]:
         """Check if file has exactly one Anterior and one Posterior frame selected"""
         assignments = self.get_view_assignments()
@@ -1214,7 +1408,14 @@ class DicomFileWidget(QWidget):
             missing.append("Posterior view")
         elif posterior_count > 1:
             missing.append(f"Too many Posterior views ({posterior_count}, should be 1)")
+        background_selections = [
+            self.frame_widgets[i].get_background_selection() 
+            for i in range(len(self.frame_widgets))
+            if self.frame_widgets[i].get_selection()  # Only for selected frames
+        ]
         
+        if not background_selections:
+            missing.append("Background selection")
         return len(missing) == 0, missing
     
     def get_detection_status(self) -> Dict[str, any]:
@@ -1898,13 +2099,18 @@ class DicomViewSelectorDialog(QDialog):
         
         # Collect all view assignments
         view_assignments = {}
+        background_assignments = {}
         
         for dicom_widget in self.dicom_widgets:
             file_path = dicom_widget.dicom_info.file_path
-            assignments = dicom_widget.get_view_assignments()
+            assignments = dicom_widget.get_view_assignments()  # Keep original for compatibility
+            assignments_with_bg = dicom_widget.get_view_assignments_with_background()
+            
             view_assignments[file_path] = assignments
+            background_assignments[file_path] = assignments_with_bg
             
             print(f"📄 {file_path.name}: {assignments}")
+            print(f"🎨 Background selections: {assignments_with_bg}")
         
         # Final validation
         if not self._validate_assignments(view_assignments):
@@ -1916,9 +2122,16 @@ class DicomViewSelectorDialog(QDialog):
         
         # Emit signal dengan path sebagai string (lebih aman)
         payload = {str(fp): assign for fp, assign in view_assignments.items()}
-
+        background_payload = {str(fp): assign for fp, assign in background_assignments.items()}
+        
+        # Create combined payload
+        combined_payload = {
+            "view_assignments": payload,
+            "background_assignments": background_payload
+        }
         print("🔍 DEBUG: Emitting views_confirmed signal (string paths)...")
-        self.views_confirmed.emit(payload)
+        print("🔍 DEBUG: Emitting views_confirmed signal with background data...")
+        self.views_confirmed.emit(combined_payload)
         print("🔍 DEBUG: Signal emitted, closing dialog...")
         
         self.accept()

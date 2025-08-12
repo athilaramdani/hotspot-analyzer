@@ -56,9 +56,12 @@ class ProcessingThread(QThread):
     log_updated = Signal(str)
     finished_processing = Signal()
     
-    def __init__(self, file_view_assignments: Dict[Path, Dict[int, str]], data_root: Path, session_code: str):
+    def __init__(self, file_view_assignments: Dict[Path, Dict[int, str]], 
+                 background_assignments: Dict[Path, Dict[int, Dict[str, str]]],
+                 data_root: Path, session_code: str):
         super().__init__()
         self.file_view_assignments = file_view_assignments
+        self.background_assignments = background_assignments  # TAMBAHAN BARU
         self.data_root = data_root
         self.session_code = session_code
         
@@ -67,6 +70,7 @@ class ProcessingThread(QThread):
             # Process files with view assignments
             process_files_with_assignments(
                 file_view_assignments=self.file_view_assignments,
+                background_assignments=self.background_assignments,  # TAMBAHAN BARU
                 data_root=self.data_root,
                 session_code=self.session_code,
                 progress_cb=self._progress_callback,
@@ -720,77 +724,42 @@ class DicomImportDialog(QDialog):
         self._update_ui_state()
         QCoreApplication.processEvents()
         
-    def _on_views_configured(self, view_assignments: Dict[Path, Dict[int, str]]):
-        """Handle confirmed view assignments"""
-        print(f"🔍 DEBUG: _on_views_configured called with {len(view_assignments)} assignments")
+    def _on_views_configured(self, payload: Dict[str, any]):
+        """Handle confirmed view assignments with background selections"""
+        print(f"🔍 DEBUG: _on_views_configured called with payload keys: {list(payload.keys())}")
+        
+        # Extract view assignments and background assignments
+        if isinstance(payload, dict) and "view_assignments" in payload:
+            # New format with background data
+            view_assignments = payload["view_assignments"] 
+            background_assignments = payload.get("background_assignments", {})
+            print(f"🎨 Background assignments received: {len(background_assignments)} files")
+        else:
+            # Legacy format (backward compatibility)
+            view_assignments = payload
+            background_assignments = {}
+            print("⚠️ Legacy format detected - no background assignments")
 
-        # Normalize key agar pasti Path, bukan str
-        normalized = {}
+        # Normalize keys to Path objects
+        normalized_views = {}
+        normalized_backgrounds = {}
+        
         for k, v in view_assignments.items():
             p = Path(k) if not isinstance(k, Path) else k
-            normalized[p] = v
+            normalized_views[p] = v
+        
+        for k, v in background_assignments.items():
+            p = Path(k) if not isinstance(k, Path) else k
+            normalized_backgrounds[p] = v
 
-        self.view_assignments = normalized
+        self.view_assignments = normalized_views
+        self.background_assignments = normalized_backgrounds  # Store background data
         
-        self._log_message("✅ View assignments configured successfully")
-        self._log_message(f"Files with view assignments: {len(view_assignments)}")
-        
-        # Update file list status with confirmed assignments
-        try:
-            self._update_file_list_with_assignments()
-        except Exception as e:
-            print(f"❌ ERROR in _update_file_list_with_assignments: {e}")
-        
-        try:
-            self._update_ui_state()
-        except Exception as e:
-            print(f"❌ ERROR in _update_ui_state: {e}")
-        
-        # Log summary with validation
-        auto_configured_count = 0
-        manually_configured_count = 0
-        
-        for file_path, assignments in self.view_assignments.items():
-            views = list(set(assignments.values()))
-            file_name = truncate_text(file_path.name, 30)
-            
-            # Check if this was auto-configured or manually configured
-            detection_info = self.file_detection_status.get(file_path, {})
-            was_auto_configured = detection_info.get("has_reliable_detection", False)
-            
-            # Validate assignments per file
-            has_anterior = "Anterior" in assignments.values()
-            has_posterior = "Posterior" in assignments.values()
-            
-            if has_anterior and has_posterior:
-                if was_auto_configured:
-                    status = "✅ Auto-configured"
-                    auto_configured_count += 1
-                else:
-                    status = "⚙️ Manually configured"
-                    manually_configured_count += 1
-                self._log_message(f"  📄 {file_name}: {', '.join(views)} - {status}")
-            else:
-                status = "⚠️ Incomplete"
-                self._log_message(f"  📄 {file_name}: {', '.join(views)} - {status}")
-        
-        # Final summary
-        total_configured = auto_configured_count + manually_configured_count
-        if total_configured == len(self.view_assignments):
-            self._log_message(f"🎉 All {total_configured} files configured!")
-            if auto_configured_count > 0 and manually_configured_count > 0:
-                self._log_message(f"   {auto_configured_count} auto + {manually_configured_count} manual")
-            elif auto_configured_count == total_configured:
-                self._log_message(f"   All {auto_configured_count} files auto-configured")
-            else:
-                self._log_message(f"   All {manually_configured_count} files manually configured")
-            self._log_message("Ready to start import process!")
-        else:
-            self._log_message("⚠️ Some files have incomplete assignments")
-        
-        # Force UI update
-        QCoreApplication.processEvents()
-        
+        self._log_message("✅ View assignments and background selections configured")
+        self._log_message(f"Files with assignments: {len(view_assignments)}")
+        if background_assignments:
+            self._log_message(f"Files with background selections: {len(background_assignments)}")
+    
     def _update_file_list_with_assignments(self):
         """Update file list status based on final assignments"""
         for i in range(self.file_list.count()):
@@ -968,6 +937,7 @@ class DicomImportDialog(QDialog):
         # Start processing thread with view assignments
         self.processing_thread = ProcessingThread(
             self.view_assignments,
+            getattr(self, 'background_assignments', {}),  # TAMBAHAN BARU
             self.data_root, 
             self.session_code
         )

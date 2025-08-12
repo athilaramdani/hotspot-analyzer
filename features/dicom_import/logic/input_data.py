@@ -31,6 +31,14 @@ from core.config.paths import (
     get_dicom_output_path
 )
 
+try:
+    from features.dicom_import.logic.pixel_analyzer import convert_to_black_background
+    PIXEL_ANALYZER_AVAILABLE = True
+except ImportError:
+    PIXEL_ANALYZER_AVAILABLE = False
+    def convert_to_black_background(frame_data, current_bg="auto"):
+        return frame_data
+
 # Import cloud storage
 try:
     from core.config.cloud_storage import upload_patient_file
@@ -109,7 +117,8 @@ def _upload_original_png_to_cloud(png_path: Path, session_code: str, patient_id:
 def _process_one_with_assignments(
     src: Path, 
     session_code: str,
-    view_assignments: Optional[Dict[int, str]] = None
+    view_assignments: Optional[Dict[int, str]] = None,
+    background_assignments: Optional[Dict[int, Dict[str, str]]] = None  # TAMBAHAN BARU
 ) -> Path:
     """
     ✅ FIXED: Process single DICOM without any modification - only copy and generate outputs
@@ -156,7 +165,39 @@ def _process_one_with_assignments(
     
     frames, _ = load_frames_and_metadata_with_assignments(dest_path, view_assignments)
     _log(f"  Frames detected: {list(frames.keys())}")
-
+    processed_frames = {}
+    if background_assignments and PIXEL_ANALYZER_AVAILABLE:
+        _log("  >> Processing background selections...")
+        for view_name, frame in frames.items():
+            # Find corresponding frame index
+            frame_idx = None
+            for idx, (v, _) in enumerate(frames.items()):
+                if v == view_name:
+                    frame_idx = idx
+                    break
+            
+            if frame_idx is not None and frame_idx in background_assignments:
+                bg_selection = background_assignments[frame_idx].get("background", "black")
+                _log(f"     Processing {view_name} with {bg_selection} background")
+                
+                # Safe background processing (PANGGIL FUNCTION BARU)
+                processed_frame = _safe_background_processing(frame, bg_selection, view_name)  # ← BARIS BARU
+                processed_frames[view_name] = processed_frame
+                
+                _log(f"     ✅ {view_name} background processed")
+            else:
+                # No background assignment, use original
+                processed_frames[view_name] = frame
+                _log(f"     Using original {view_name} (no background assignment)")
+        
+        # Update frames with processed versions
+        frames = processed_frames
+        _log("  ✅ Background processing completed")
+    else:
+        if background_assignments:
+            _log("  ⚠️  Background assignments provided but pixel analyzer not available")
+        else:
+            _log("  Using original frames (no background assignments)")
     # ✅ VALIDATE THAT WE HAVE ANTERIOR AND POSTERIOR
     frame_views = set(frames.keys())
     if "Anterior" not in frame_views or "Posterior" not in frame_views:
@@ -290,6 +331,17 @@ def _process_one_with_assignments(
     
     return dest_path
 
+def _safe_background_processing(frame_data, background_selection, view_name):
+    """Safely process background with error handling"""
+    try:
+        if PIXEL_ANALYZER_AVAILABLE:
+            return convert_to_black_background(frame_data, background_selection)
+        else:
+            _log(f"     ⚠️  Pixel analyzer not available for {view_name}")
+            return frame_data
+    except Exception as e:
+        _log(f"     ❌ Background processing failed for {view_name}: {e}")
+        return frame_data
 
 def _process_one(src: Path, session_code: str) -> Path:
     """
@@ -301,6 +353,7 @@ def _process_one(src: Path, session_code: str) -> Path:
 # ---------------------------------------------------------------- batch processing
 def process_files_with_assignments(
     file_view_assignments: Dict[Path, Dict[int, str]],
+    background_assignments: Dict[Path, Dict[int, Dict[str, str]]] = None,  # TAMBAHAN BARU
     *,
     data_root: str | Path | None = None,
     progress_cb: Callable[[int, int, str], None] | None = None,
@@ -308,10 +361,11 @@ def process_files_with_assignments(
     session_code: str | None = None 
 ) -> List[Path]:
     """
-    Process multiple DICOM files WITH user-assigned views
+    Process multiple DICOM files WITH user-assigned views and background selections
     
     Args:
         file_view_assignments: Dict {file_path: {frame_index: view_name}}
+        background_assignments: Dict {file_path: {frame_index: {"view": view_name, "background": bg_type}}}
         data_root: Root data directory
         progress_cb: Progress callback
         log_cb: Log callback
@@ -323,7 +377,11 @@ def process_files_with_assignments(
     
     if not session_code:
         raise ValueError("session_code is required for new directory structure")
-    
+    if background_assignments is None:
+        background_assignments = {}
+        _log("## No background assignments provided - using defaults")
+    else:
+        _log(f"## Background assignments provided for {len(background_assignments)} files")
     # Validate all assignments
     for file_path, view_assignments in file_view_assignments.items():
         from .dicom_loader import validate_view_assignments
@@ -357,13 +415,25 @@ def process_files_with_assignments(
     _log(f"## Target directory: data/SPECT/{session_code}/[patient_id]/")
     _log(f"## ✅ DICOM PROTECTION: Original DICOM files will NOT be modified")
     _log(f"## ✅ OUTPUT ONLY: PNG/XML files for analysis results")
+    if background_assignments:
+        bg_file_count = len(background_assignments)
+        _log(f"## 🎨 BACKGROUND PROCESSING: {bg_file_count} files have background selections")
+        _log(f"## Background conversion: White → Black (for model compatibility)")
+    else:
+        _log(f"## 🎨 BACKGROUND PROCESSING: Using original backgrounds (no selections)")
     _log(f"## Processing workflow: Copy Original → PNG outputs → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG")
 
     for i, file_path in enumerate(paths, 1):
         try:
             _log(f"\n## Processing file {i}/{total}: {truncate_text(file_path.name, 30)}")
             view_assignments = file_view_assignments[file_path]
-            result = _process_one_with_assignments(file_path, session_code, view_assignments)
+            file_background = background_assignments.get(file_path, {})
+            result = _process_one_with_assignments(
+                file_path, 
+                session_code, 
+                view_assignments, 
+                file_background
+            )
             out.append(result)
             _log(f"## File {i}/{total} completed successfully - ORIGINAL DICOM PRESERVED")
         except Exception as e:
