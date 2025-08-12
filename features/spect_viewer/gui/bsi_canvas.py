@@ -11,6 +11,9 @@ import json
 from matplotlib.dates import DateFormatter
 import numpy as np
 
+from datetime import datetime
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Signal
 
@@ -128,17 +131,51 @@ class BSICanvas(FigureCanvas):
                 return
 
             all_scores = sorted(all_scores, key=lambda x: x["study_date"])
-            dates = [entry["study_date"] for entry in all_scores]
-            scores = [entry["bsi_score"] for entry in all_scores]
+            
+            # ✅ FIXED: Konversi string tanggal ke datetime objects
+            dates = []
+            scores = []
+            date_labels = []  # ✅ Pastikan ini dideklarasikan dengan jelas
+            
+            for entry in all_scores:
+                try:
+                    date_str = entry["study_date"]
+                    print(f"[DEBUG BSI] Processing date: {date_str}")
+                    
+                    # Gunakan cara yang sama seperti di timeline
+                    date_obj = datetime.strptime(date_str, "%Y%m%d")
+                    formatted_date = date_obj.strftime("%d %b %Y")  # ✅ Ubah format jadi "15 Jan 2025"
+                    
+                    dates.append(date_obj)
+                    scores.append(entry["bsi_score"])
+                    date_labels.append(formatted_date)
+                    
+                    print(f"[DEBUG BSI] Formatted to: {formatted_date}")
+                    
+                except ValueError as e:
+                    print(f"[WARN] Invalid date format in BSI data: {entry['study_date']}, skipping...")
+                    continue
 
+            if not dates or not date_labels:  # ✅ Tambah check date_labels
+                ax.text(0.5, 0.5, 'No valid dates found in BSI data', ha='center', va='center',
+                        transform=ax.transAxes, fontsize=12, color='red')
+                self.figure.suptitle(f'BSI Trend for {self.patient_id}', fontsize=14, fontweight='bold')
+                self.figure.tight_layout()
+                self.draw()
+                return
+
+            # ✅ PLOT dengan custom ticks
             ax.plot(dates, scores, marker='o', linestyle='-', color='#007bff', linewidth=2, markersize=6)
+
+            # ✅ Set axis hanya pada data points
+            ax.set_xticks(dates)
+            ax.set_xticklabels(date_labels, rotation=45, ha='right')
 
             ax.set_title(f"BSI Score Trend", fontsize=12, fontweight='bold')
             ax.set_xlabel("Study Date", fontsize=10)
             ax.set_ylabel("BSI Score (%)", fontsize=10)
             ax.grid(True, linestyle='--', alpha=0.6)
-            ax.tick_params(axis='x', rotation=45)
-            ax.xaxis.set_major_formatter(DateFormatter('%d-%b-%Y'))
+            
             self.figure.suptitle(f'BSI Analysis for Patient: {self.patient_id}', fontsize=14, fontweight='bold')
 
         except Exception as e:
@@ -148,7 +185,6 @@ class BSICanvas(FigureCanvas):
 
         self.figure.tight_layout()
         self.draw()
-
     def export_chart(self, file_path: Path, dpi: int = 300) -> bool:
         """Mengekspor chart ke file gambar."""
         try:

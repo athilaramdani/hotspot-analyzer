@@ -116,4 +116,3 @@ def label_new_mask_to_hotspot_rgb(mask: np.ndarray) -> np.ndarray:
 def save_hotspot_colored(mask: np.ndarray, save_path: Path) -> None:
     """Simpan mask hotspot sebagai gambar berwarna."""
     Image.fromarray(label_mask_to_hotspot_rgb(mask)).save(save_path)
-

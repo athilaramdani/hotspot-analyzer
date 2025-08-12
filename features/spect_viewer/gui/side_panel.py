@@ -95,13 +95,34 @@ class BSISidePanel(QWidget):
         self.results_table.setMinimumHeight(450)
         self.results_table.setAlternatingRowColors(True)
         self.results_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.results_table.horizontalHeader().setStretchLastSection(False)
-        self.results_table.setColumnWidth(0, 140)
-        self.results_table.setColumnWidth(1, 80)
-        self.results_table.setColumnWidth(2, 90)
-        self.results_table.setColumnWidth(3, 80)
-        self.results_table.setColumnWidth(4, 100)
-        self.results_table.setColumnWidth(5, 90)
+        
+        # ✅ RESPONSIVE: Set column resize mode untuk auto-expand
+        header = self.results_table.horizontalHeader()
+        header.setStretchLastSection(True)  # Last column stretches
+        
+        # ✅ Set minimum widths instead of fixed widths
+        self.results_table.setColumnWidth(0, 140)  # Region name needs fixed space
+        header.setSectionResizeMode(0, header.ResizeMode.Interactive)
+        
+        # Other columns can resize automatically
+        for col in range(1, 6):
+            header.setSectionResizeMode(col, header.ResizeMode.Stretch)
+        
+        # ✅ Set minimum column widths to prevent too narrow
+        self.results_table.setColumnWidth(1, 80)   # Total Pixels min
+        self.results_table.setColumnWidth(2, 80)   # Normal Pixels min  
+        self.results_table.setColumnWidth(3, 70)   # Normal % min
+        self.results_table.setColumnWidth(4, 90)   # Abnormal Pixels min
+        self.results_table.setColumnWidth(5, 80)   # Abnormal % min
+        
+        # ✅ RESPONSIVE: Allow table to expand
+        from PySide6.QtWidgets import QSizePolicy
+        from PySide6.QtCore import Qt
+        self.results_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        
+        # ✅ Enable horizontal scrollbar when needed
+        self.results_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        
         return self.results_table
 
     def _create_controls_section(self) -> QWidget:
@@ -116,6 +137,13 @@ class BSISidePanel(QWidget):
         self.export_chart_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
         self.export_chart_btn.clicked.connect(lambda: self.export_requested.emit("chart"))
         buttons_layout.addWidget(self.export_chart_btn)
+        
+        # ✅ TAMBAHKAN: Export CSV button
+        self.export_csv_btn = QPushButton("Export CSV")
+        self.export_csv_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
+        self.export_csv_btn.clicked.connect(self._export_csv_data)
+        buttons_layout.addWidget(self.export_csv_btn)
+        
         buttons_layout.addStretch()
         controls_layout.addLayout(buttons_layout)
         return controls_frame
@@ -205,9 +233,7 @@ class BSISidePanel(QWidget):
     def _update_button_states(self, has_data: bool):
         """Mengaktifkan atau menonaktifkan tombol-tombol kontrol."""
         self.export_chart_btn.setEnabled(has_data)
-        # Tambahkan tombol lain di sini jika ada, contoh:
-        # self.export_report_btn.setEnabled(has_data)
-        # self.run_analysis_btn.setEnabled(not has_data)
+        self.export_csv_btn.setEnabled(has_data)  # ✅ TAMBAHKAN
         
     def clear_patient_data(self):
         """Membersihkan semua data pasien dari panel dan me-reset UI."""
