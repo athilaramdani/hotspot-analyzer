@@ -142,25 +142,25 @@ class ModeSelector(QWidget):
         main_layout.addWidget(opacity_group)
         
         # === Layer Information ===
-        info_label = QLabel("""
-        <b>Layer System (bottom → top):</b><br>
-        • <span style="color: #6c757d;">Layer 1:</span> Original (base)<br>
-        • <span style="color: #4CAF50;">Layer 2:</span> Segmentation (middle)<br>
-        • <span style="color: #FF9800;">Layer 3:</span> Hotspot (overlay)<br>
-        • <span style="color: #f44336;">Layer 4:</span> Hotspot BBox (overlay)<br>
-        <br><i>Note: Hotspot BBox shows XML bounding boxes.<br>Hotspot shows processed hotspot mask.</i>
-        """)
-        info_label.setStyleSheet("""
-            QLabel {
-                background: #f8f9fa;
-                border: 1px solid #e9ecef;
-                border-radius: 4px;
-                padding: 8px;
-                font-size: 10px;
-                color: #6c757d;
-            }
-        """)
-        main_layout.addWidget(info_label)
+        # info_label = QLabel("""
+        # <b>Layer System (bottom → top):</b><br>
+        # • <span style="color: #6c757d;">Layer 1:</span> Original (base)<br>
+        # • <span style="color: #4CAF50;">Layer 2:</span> Segmentation (middle)<br>
+        # • <span style="color: #FF9800;">Layer 3:</span> Hotspot (overlay)<br>
+        # • <span style="color: #f44336;">Layer 4:</span> Hotspot BBox (overlay)<br>
+        # <br><i>Note: Hotspot BBox shows XML bounding boxes.<br>Hotspot shows processed hotspot mask.</i>
+        # """)
+        # info_label.setStyleSheet("""
+        #     QLabel {
+        #         background: #f8f9fa;
+        #         border: 1px solid #e9ecef;
+        #         border-radius: 4px;
+        #         padding: 8px;
+        #         font-size: 10px;
+        #         color: #6c757d;
+        #     }
+        # """)
+        # main_layout.addWidget(info_label)
         
         main_layout.addStretch()
     
