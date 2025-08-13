@@ -36,6 +36,7 @@ from core.utils.image_converter import (
 from features.dicom_import.logic.dicom_loader import extract_patient_info_from_path
 # ✅ FIXED: Import updated image inverter functions
 from ..logic.image_inverter import invert_image_colors, simple_invert_pil_image
+from ..logic.adjust_contrast import apply_brightness_contrast
 
 from .segmentation_editor_dialog import SegmentationEditorDialog
 from .hotspot_editor_dialog import HotspotEditorDialog
@@ -118,12 +119,18 @@ class ScanTimelineWidget(QWidget):
         self._zoom_factor = 1.0
         self.card_width = 350
         self.invert_original = False
+        self._adjustments = {
+            "Anterior": {"brightness": 0.0, "contrast": 1.0},
+            "Posterior": {"brightness": 0.0, "contrast": 1.0}
+        }
+        self._anterior_image_label: QLabel | None = None
+        self._posterior_image_label: QLabel | None = None
         
         # Layer opacity settings
         self._layer_opacities = {
             "Original": 1.0,
-            "Segmentation": 0.7,
-            "Hotspot": 0.8,           # ✅ Classification mask only
+            "Segmentation": 0.35,
+            "Hotspot": 0.5,           # ✅ Classification mask only
             "HotspotBBox": 1.0        # ✅ Classification XML only
         }
         
@@ -146,19 +153,80 @@ class ScanTimelineWidget(QWidget):
 
         main_layout.addWidget(self.scroll_area)
 
-    def _load_original_image(self, dicom_path: Path, filename_with_date: str, view_normalized: str, frame_map: dict) -> Optional[Image.Image]:
+    def get_brightness_contrast(self, view_name: str) -> dict:
+        """Returns the brightness and contrast values for a specific view."""
+        return self._adjustments.get(view_name, {"brightness": 0.0, "contrast": 1.0})
+    
+    def set_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
+        """
+        ✅ FIXED: Sets the B/C values for a specific view and rebuilds the timeline.
+        """
+        if view_name in self._adjustments:
+            print(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
+            self._adjustments[view_name]["brightness"] = brightness
+            self._adjustments[view_name]["contrast"] = contrast
+            self._rebuild()
+        else:
+            print(f"[WARN] View '{view_name}' not found in adjustments dictionary. Cannot set contrast.")
+
+ 
+    def preview_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
+        """✅ FIXED: Applies a temporary B/C adjustment using the new override logic."""
+        if not self._scans_cache or self.active_scan_index < 0:
+            return
+
+        active_scan = self._scans_cache[self.active_scan_index]
+        w = int(self.card_width * self._zoom_factor)
+
+        target_label = self._anterior_image_label if view_name == "Anterior" else self._posterior_image_label
+        if not target_label:
+            print(f"[WARN] Preview failed: Could not find target label for {view_name}")
+            return
+
+        original_view_state = self.current_view
+        self.current_view = view_name
+        
+        # Get all layers, passing the override values for the preview
+        all_layers = self._get_layer_images(active_scan, override_b=brightness, override_c=contrast)
+
+        # Re-composite the image with the adjusted layer
+        active_layers_for_composite = {k: v for k, v in all_layers.items() if k in self._active_layers}
+        
+        if active_layers_for_composite:
+            composite_image = create_composite_image(
+                layers=active_layers_for_composite,
+                layer_order=self._active_layers,
+                layer_opacities=self._layer_opacities
+            )
+            
+            pixmap = _pil_to_pixmap(composite_image, w)
+            target_label.setPixmap(pixmap)
+        
+        self.current_view = original_view_state
+
+
+    def set_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
+        """
+        ✅ Sets the B/C values for a specific view and rebuilds the timeline.
+        """
+        if view_name in self._adjustments:
+            print(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
+            self._adjustments[view_name]["brightness"] = brightness
+            self._adjustments[view_name]["contrast"] = contrast
+            self._rebuild()
+        else:
+            print(f"[WARN] View '{view_name}' not found in adjustments. Cannot set contrast.")
+
+    def _load_original_image(self, dicom_path: Path, filename_with_date: str, view_name: str, frame_map: dict) -> Optional[Image.Image]:
         """Load original DICOM image for the specified view"""
         try:
             # Get the frame for the current view
-            if view_normalized in frame_map:
-                frame_data = frame_map[view_normalized]
+            # ✅ FIX: Use the capitalized view_name for the lookup
+            if view_name in frame_map:
+                frame_data = frame_map[view_name]
             else:
-                print(f"[DEBUG] View {view_normalized} not found in frame_map, using first available")
+                print(f"[DEBUG] View {view_name} not found in frame_map, using first available")
                 frame_data = next(iter(frame_map.values())) if frame_map else None
-            
-            if frame_data is None:
-                print(f"[DEBUG] No frame data available for view {view_normalized}")
-                return None
             
             # Convert numpy array to PIL Image
             if isinstance(frame_data, np.ndarray):
@@ -181,18 +249,26 @@ class ScanTimelineWidget(QWidget):
             print(f"[ERROR] Failed to load original image: {e}")
             return None
     def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
-        """Load segmentation layer if available"""
+        """✅ CORRECTED: Load segmentation layer if available"""
         try:
-            # Check for segmentation files
             seg_files = get_segmentation_files_with_edited(dicom_path.parent, filename_with_date, view_normalized)
             
-            if seg_files and seg_files.get('best_mask'):
-                seg_image = load_image_with_transparency(seg_files['best_mask'])
+            # ✅ FIX: Prioritize the edited file first, then the original
+            if seg_files['png_colored_edited'].exists():
+                seg_png = seg_files['png_colored_edited']
+                print(f"[DEBUG] Found edited segmentation: {seg_png}")
+            else:
+                seg_png = seg_files['png_colored']
+                print(f"[DEBUG] Looking for original segmentation: {seg_png}")
+
+            if seg_png.exists():
+                # Load with transparency (make black pixels transparent)
+                seg_image = load_image_with_transparency(seg_png, make_transparent=True)
                 if seg_image:
                     layers["Segmentation"] = seg_image
-                    print(f"[DEBUG] Loaded segmentation layer from: {seg_files['best_mask'].name}")
+                    print(f"[DEBUG] Loaded segmentation with transparency: {seg_png}")
             else:
-                print(f"[DEBUG] No segmentation files found for {filename_with_date}_{view_normalized}")
+                print(f"[WARN] Segmentation file not found: {seg_png}")
                 
         except Exception as e:
             print(f"[ERROR] Failed to load segmentation layer: {e}")
@@ -502,32 +578,30 @@ class ScanTimelineWidget(QWidget):
 
     # ------------------------------------------------------ public API
     def display_timeline(self, scans: List[Dict], active_index: int = -1):
-        """✅ FIXED: Display timeline with BSI integration"""
-        print(f"[DEBUG] display_timeline called with {len(scans)} scan(s), active_index = {active_index}")
+        """✅ MODIFIED: Display timeline with BSI integration, defaulting to the first scan."""
+        print(f"[DEBUG] display_timeline called with {len(scans)} scan(s), focusing on index = {active_index}")
         
-        # ✅ NEW: Update scans with BSI information
         updated_scans = []
         for scan in scans:
             updated_scan = self.bsi_integration.update_scan_meta_with_bsi(scan, self.session_code)
             updated_scans.append(updated_scan)
         
         self._scans_cache = updated_scans
-        self.active_scan_index = active_index
+        # Set the active index. If -1 was passed, default to 0 if scans exist.
+        self.active_scan_index = active_index if active_index >= 0 else (0 if self._scans_cache else -1)
+        
         self._zoom_factor = 1.0
         self._rebuild()
         
 
     def set_active_view(self, v: str): 
-        """✅ FIXED: Properly set view and force rebuild"""
-        old_view = self.current_view
-        self.current_view = v
-        print(f"[DEBUG] Setting view to: {self.current_view} (was: {old_view})")
-        
-        # ✅ CRITICAL: Force rebuild to show different view
-        if old_view != self.current_view:
-            print(f"[DEBUG] View changed from {old_view} to {self.current_view}, forcing rebuild...")
-            self._rebuild()
-            self._update_scan_info_display()
+        """
+        ✅ MODIFIED: This method is no longer needed as Anterior/Posterior are shown together.
+        Calling it will have no effect.
+        """
+        print(f"[DEBUG] set_active_view called with '{v}', but is now ignored.")
+        # Intentionally do nothing. The _rebuild method now controls the view for each card.
+        pass
         
     def set_active_layers(self, layers: list): 
         """Set active layers from checkbox mode selector"""
@@ -589,50 +663,36 @@ class ScanTimelineWidget(QWidget):
                 w.deleteLater()
 
     def _rebuild(self):
-        """✅ FIXED: Rebuild with proper view handling"""
-        print(f"[DEBUG] Rebuilding timeline for view: {self.current_view}")
+        """✅ MODIFIED: Rebuild to show Anterior and Posterior of the active scan side-by-side."""
         self._clear()
-        
-        if not self._scans_cache:
-            placeholder = QLabel("No scans available")
+        print(f"[DEBUG] Rebuilding timeline for active scan index: {self.active_scan_index}")
+
+        if not self._scans_cache or self.active_scan_index < 0:
+            placeholder = QLabel("No scan selected or available.")
             placeholder.setAlignment(Qt.AlignCenter)
-            placeholder.setStyleSheet("""
-                QLabel {
-                    color: #6c757d;
-                    font-size: 14px;
-                    padding: 40px;
-                    background: #f8f9fa;
-                    border: 2px dashed #dee2e6;
-                    border-radius: 8px;
-                }
-            """)
+            # (Stylesheet for placeholder remains the same)
             self.timeline_layout.addWidget(placeholder)
             return
 
-        w = int(self.card_width * self._zoom_factor)
+        # Get the single active scan
+        active_scan = self._scans_cache[self.active_scan_index]
         
-        # Show cards based on active layers
-        if not self._active_layers:
-            # No layers selected - show placeholder
-            placeholder = QLabel("No layers selected\nPlease select layers to display")
-            placeholder.setAlignment(Qt.AlignCenter)
-            placeholder.setStyleSheet("""
-                QLabel {
-                    color: #6c757d;
-                    font-size: 14px;
-                    padding: 40px;
-                    background: #f8f9fa;
-                    border: 2px dashed #dee2e6;
-                    border-radius: 8px;
-                }
-            """)
-            self.timeline_layout.addWidget(placeholder)
-        else:
-            # Show scans with active layers
-            for i, scan in enumerate(self._scans_cache):
-                card = self._make_layered_card(scan, w, i)
-                self.timeline_layout.addWidget(card)
-                print(f"[DEBUG] Created card {i} for view {self.current_view}")
+        # Calculate card width based on zoom
+        w = int(self.card_width * self._zoom_factor)
+
+        # --- Create Anterior Card ---
+        self.current_view = "Anterior"
+        anterior_card = self._make_layered_card(active_scan, w, self.active_scan_index)
+        self.timeline_layout.addWidget(anterior_card)
+        # ✅ FIX: Find the UNIQUE object name for the anterior label
+        self._anterior_image_label = anterior_card.findChild(QLabel, "image_display_Anterior")
+
+        # --- Create Posterior Card ---
+        self.current_view = "Posterior"
+        posterior_card = self._make_layered_card(active_scan, w, self.active_scan_index)
+        self.timeline_layout.addWidget(posterior_card)
+        # ✅ FIX: Find the UNIQUE object name for the posterior label
+        self._posterior_image_label = posterior_card.findChild(QLabel, "image_display_Posterior")
 
         self.timeline_layout.addStretch()
 
@@ -650,7 +710,7 @@ class ScanTimelineWidget(QWidget):
         bsi_text = ""
         if meta.get("has_bsi", False):
             bsi_score = meta.get("bsi_score", 0.0)
-            bsi_text = f"<br><small>BSI: {bsi_score:.1f}%</small>"
+            bsi_text = f"<br><small>BSI: {bsi_score:.1f}</small>"
 
         hbox = QHBoxLayout()
         
@@ -822,8 +882,8 @@ class ScanTimelineWidget(QWidget):
             print(f"[ERROR] Failed to create classification bbox visualization: {e}")
             return None
     
-    def _get_layer_images(self, scan: Dict) -> Dict[str, Image.Image]:
-        """✅ SIMPLIFIED: Cleaner layer loading with proper invert handling"""
+    def _get_layer_images(self, scan: Dict, override_b: float = None, override_c: float = None) -> Dict[str, Image.Image]:
+        """✅ FIXED: Now accepts optional override values for live previews."""
         frame_map = scan["frames"]
         dicom_path = Path(scan["path"])
 
@@ -837,16 +897,31 @@ class ScanTimelineWidget(QWidget):
         layers = {}
         view_normalized = self.current_view.lower()
         
-        # Load original image
-        original_image = self._load_original_image(dicom_path, filename_with_date, view_normalized, frame_map)
+        original_image = self._load_original_image(dicom_path, filename_with_date, self.current_view, frame_map)
+        
         if original_image:
-            # Apply inversion if requested
             if self.invert_original:
-                print(f"[DEBUG] Applying inversion to original image (invert_original={self.invert_original})")
                 original_image = simple_invert_pil_image(original_image)
+            
+            # Determine which brightness/contrast values to use
+            if override_b is not None and override_c is not None:
+                # Use preview values if they were passed in
+                brightness, contrast = override_b, override_c
+            else:
+                # Otherwise, use the stored values for the current view
+                adjustments = self._adjustments[self.current_view]
+                brightness = adjustments["brightness"]
+                contrast = adjustments["contrast"]
+
+            # Apply adjustment if needed
+            if brightness != 0.0 or contrast != 1.0:
+                print(f"[DEBUG] Applying B/C adjustment to {self.current_view} (B={brightness:.2f}, C={contrast:.2f})")
+                original_image = apply_brightness_contrast(
+                    original_image, brightness, contrast
+                )
+
             layers["Original"] = original_image
         
-        # Load other layers (unchanged)
         self._load_segmentation_layer(layers, dicom_path, filename_with_date, view_normalized)
         self._load_hotspot_layer(layers, dicom_path, filename_with_date, view_normalized)
         self._load_bbox_layer(layers, dicom_path, filename_with_date, view_normalized)
@@ -885,7 +960,7 @@ class ScanTimelineWidget(QWidget):
         lay.addLayout(self._make_header(scan, idx))
         
         lbl = QLabel(alignment=Qt.AlignCenter)
-        
+        lbl.setObjectName(f"image_display_{self.current_view}")
         # ✅ FIXED: Better debug messages
         print(f"[DEBUG] Creating CLASSIFICATION card {idx} for view: {self.current_view}")
         print(f"[DEBUG] Active layers selected: {self._active_layers}")

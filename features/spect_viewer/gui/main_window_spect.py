@@ -9,7 +9,7 @@ from datetime import datetime
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QMainWindow, QSplitter, QPushButton,
-    QWidget, QVBoxLayout, QHBoxLayout, QDialog, QApplication, QLabel, QFileDialog, QMessageBox,QCheckBox
+    QWidget, QVBoxLayout, QHBoxLayout, QDialog, QApplication, QLabel, QFileDialog, QMessageBox,QCheckBox, QInputDialog 
 )
 from PySide6.QtGui import QCloseEvent, QShortcut, QKeySequence
 import multiprocessing
@@ -56,7 +56,7 @@ from .scan_timeline import ScanTimelineWidget  # UPDATED: Use modular timeline w
 
 # ✅ FIXED: Import BSISidePanel instead of SidePanel
 from .side_panel import BSISidePanel
-
+from ..logic.adjust_contrast import ContrastDialog
 from .mode_selector import ModeSelector
 from features.spect_viewer.logic.processing_wrapper import run_yolo_detection_for_patient, run_hotspot_processing_in_process,run_segmentation_in_process
 
@@ -292,16 +292,17 @@ class MainWindowSpect(QMainWindow):
             except ValueError:
                 formatted_date = date
             
-            # ✅ NEW: Get BSI information
+            # Get BSI information
             bsi_info = ""
             if meta.get("has_bsi", False):
                 bsi_score = meta.get("bsi_score", 0.0)
                 bsi_info = f"<br>BSI: {bsi_score:.1f}%"
             
+            # ✅ FIX: Replace self.current_view with static text
             info_text = f"""
             <b>Scan {scan_num}/{total_scans}</b><br>
             Date: {formatted_date}<br>
-            View: {self.current_view}{bsi_info}
+            <b>View: Anterior & Posterior</b>{bsi_info}
             """
             
             self.scan_info_label.setText(info_text)
@@ -310,50 +311,60 @@ class MainWindowSpect(QMainWindow):
         if not self.timeline_widget._scans_cache or self.timeline_widget.active_scan_index < 0:
             return
         
-        scan = self.timeline_widget._scans_cache[self.timeline_widget.active_scan_index]
-        
-        # Menggunakan atribut dari timeline_widget
-        current_view = self.timeline_widget.current_view
-        
-        dlg = SegmentationEditorDialog(scan, current_view, parent=self)
-        if dlg.exec():
-            self.editor_completed.emit() # Menggunakan sinyal dari MainWindow
+        # ✅ FIX: Ask the user which view to edit
+        views = ["Anterior", "Posterior"]
+        selected_view, ok = QInputDialog.getItem(self, "Select View", 
+                                                "Which view would you like to edit?", views, 0, False)
+
+        if ok and selected_view:
+            scan = self.timeline_widget._scans_cache[self.timeline_widget.active_scan_index]
+            
+            dlg = SegmentationEditorDialog(scan, selected_view, parent=self)
+            if dlg.exec():
+                # self.editor_completed is not a standard signal, assuming you meant to connect to a refresh
+                self._on_editor_completed()
 
     def _open_hotspot_editor(self):
         """Buka editor hotspot untuk scan saat ini."""
         if not self.timeline_widget._scans_cache or self.timeline_widget.active_scan_index < 0:
             return
 
-        scan = self.timeline_widget._scans_cache[self.timeline_widget.active_scan_index]
+        # ✅ FIX: Ask the user which view to edit
+        views = ["Anterior", "Posterior"]
+        selected_view, ok = QInputDialog.getItem(self, "Select View", 
+                                                "Which view would you like to edit?", views, 0, False)
 
-        try:
-            # Menggunakan method dan atribut dari timeline_widget
-            current_view = self.timeline_widget.current_view
-            patient_id, _ = self.timeline_widget._get_patient_session_from_scan(scan)
-            
-            dicom_path = Path(scan["path"])
-            study_date = extract_study_date_from_dicom(dicom_path)
-            filename_with_date = generate_filename_stem(patient_id, study_date)
-            
-            view_normalized = current_view.lower()
-            view_short = "ant" if "ant" in view_normalized else "post"
-            
-            classification_files = {
-                'mask_path': dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png",
-                'xml_path': dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml",
-                'json_path': dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification.json"
-            }
-            
-            enhanced_scan = scan.copy()
-            enhanced_scan['classification_files'] = classification_files
-            enhanced_scan['is_classification_mode'] = True
-            
-            dlg = HotspotEditorDialog(enhanced_scan, current_view, parent=self)
-            if dlg.exec():
-                self.editor_completed.emit() # Menggunakan sinyal dari MainWindow
+        if ok and selected_view:
+            scan = self.timeline_widget._scans_cache[self.timeline_widget.active_scan_index]
 
-        except Exception as e:
-            print(f"[ERROR] Failed to open hotspot editor: {e}")
+            try:
+                patient_id, _ = self.timeline_widget._get_patient_session_from_scan(scan)
+                
+                dicom_path = Path(scan["path"])
+                study_date = extract_study_date_from_dicom(dicom_path)
+                filename_with_date = generate_filename_stem(patient_id, study_date)
+                
+                view_normalized = selected_view.lower()
+                view_short = "ant" if "ant" in view_normalized else "post"
+                
+                classification_files = {
+                    'mask_path': dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png",
+                    'xml_path': dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml",
+                    'json_path': dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification.json"
+                }
+                
+                enhanced_scan = scan.copy()
+                enhanced_scan['classification_files'] = classification_files
+                enhanced_scan['is_classification_mode'] = True
+                
+                dlg = HotspotEditorDialog(enhanced_scan, selected_view, parent=self)
+                if dlg.exec():
+                    self._on_editor_completed()
+
+            except Exception as e:
+                print(f"[ERROR] Failed to open hotspot editor: {e}")
+
+
 
     def _on_invert_changed(self, state: int):
         """Enhanced debugging for checkbox state changes"""
@@ -472,7 +483,7 @@ class MainWindowSpect(QMainWindow):
         self.timeline_widget.editor_completed.connect(self._on_editor_completed)
 
         # NOW CREATE AND CONNECT INVERT CHECKBOX (after timeline exists)
-        self.invert_checkbox = QCheckBox("Invert Original Colors")
+        self.invert_checkbox = QCheckBox("Invert Image Colors")
         self.invert_checkbox.setStyleSheet("margin-top: 8px; font-weight: bold;")
         
         # ✅ Connect the checkbox AFTER timeline widget exists
@@ -538,6 +549,11 @@ class MainWindowSpect(QMainWindow):
         zoom_buttons_layout.addWidget(zoom_out_btn)
         left_layout.addLayout(zoom_buttons_layout)
 
+        contrast_button = QPushButton("Adjust Contrast")
+        contrast_button.setStyleSheet(ZOOM_BUTTON_STYLE) # Use a style you like
+        contrast_button.clicked.connect(self._open_contrast_dialog)
+        left_layout.addWidget(contrast_button)
+
         left_layout.addStretch()
         
         main_splitter.addWidget(left_panel)
@@ -597,6 +613,47 @@ class MainWindowSpect(QMainWindow):
             print(f"[DEBUG] Timeline has layer data - Original: {self.timeline_widget.has_layer_data('Original')}")
             print(f"[DEBUG] Timeline has layer data - Segmentation: {self.timeline_widget.has_layer_data('Segmentation')}")
             print(f"[DEBUG] Timeline has layer data - Hotspot: {self.timeline_widget.has_layer_data('Hotspot')}")
+
+    def _open_contrast_dialog(self):
+        """Opens the B/C dialog after asking the user to select a view."""
+        
+        if not self.timeline_widget._scans_cache:
+            QMessageBox.warning(self, "No Scan", "Please select a patient and scan first.")
+            return
+
+        # 1. Ask the user which view to edit
+        views = ["Anterior", "Posterior"]
+        selected_view, ok = QInputDialog.getItem(self, "Select View",
+                                                "Which view would you like to adjust?", views, 0, False)
+
+        if ok and selected_view:
+            # ✅ FIX: Use the new getter method to get the initial state for the SELECTED view
+            initial_state = self.timeline_widget.get_brightness_contrast(selected_view)
+            initial_b = initial_state["brightness"]
+            initial_c = initial_state["contrast"]
+
+            dialog = ContrastDialog(self)
+            dialog.set_initial_values(initial_b, initial_c)
+
+            # Connect the live preview signal using a lambda to pass the selected view
+            preview_connection = lambda b, c: self.timeline_widget.preview_brightness_contrast(selected_view, b, c)
+            dialog.adjustment_changed.connect(preview_connection)
+            
+            result = dialog.exec()
+
+            if result == QDialog.Accepted:
+                # Apply the final values to the correct view
+                values = dialog.get_values()
+                if values:
+                    brightness, contrast = values
+                    self.timeline_widget.set_brightness_contrast(selected_view, brightness, contrast)
+            else:
+                # Revert the changes for the correct view if cancelled
+                print(f"[DEBUG] Contrast dialog for {selected_view} cancelled, reverting.")
+                self.timeline_widget.set_brightness_contrast(selected_view, initial_b, initial_c)
+
+            # Disconnect the signal to be safe
+            dialog.adjustment_changed.disconnect(preview_connection)
 
     # ✅ NEW: BSI panel event handlers
     def _on_bsi_export_requested(self, export_type: str):
@@ -879,18 +936,19 @@ class MainWindowSpect(QMainWindow):
         
         # Reset all opacity values in timeline - UPDATED with new layer
         default_opacities = {
-            "Original": 1.0,
-            "Segmentation": 0.7,
-            "Hotspot": 0.8,
+            "Image": 1.0,
+            "Segmentation": 0.35,
+            "Hotspot": 0.5,
             "HotspotBBox": 1.0
         }
         for layer, opacity in default_opacities.items():
             self.timeline_widget.set_layer_opacity(layer, opacity)
 
     def set_default_layers(self):
-        """Set default layer configuration (Original only)"""
-        self.mode_selector.set_layer_active("Original", True)
-        
+        """Set default layer configuration (Image only)"""
+        print("[DEBUG] Setting default layers: 'Image' checkbox should now be ON.") # Add this line
+        self.mode_selector.set_layer_active("Image", True) 
+            
     def get_current_layer_status(self) -> dict:
         """Get current layer status for debugging/logging"""
         return {
@@ -1228,22 +1286,48 @@ class MainWindowSpect(QMainWindow):
         # Close loading dialog
         if loading_dialog:
             loading_dialog.close()
+        
+        # Reset the layer controls to their default state for the new patient
+        self.reset_mode_selector()
+        self.set_default_layers()
 
         print(f"[DEBUG] All data loaded. Total scans: {len(scans)}")
         if scans:
+            # 1. Set the visual state of the layer controls first.
+            self.reset_mode_selector()
+            self.set_default_layers()  # This makes the "Original" checkbox appear checked.
+
+            # 2. Populate the patient info bar and create the scan buttons.
             self.patient_bar.set_patient_meta(scans[-1]["meta"])
             self._populate_scan_buttons(scans)
-            
-            # ✅ ENHANCED: Use enhanced timeline update
+
+            # 3. CRITICAL FIX: Force the timeline widget to use the default state.
+            # This directly tells the viewer what layer to display for the initial load,
+            # bypassing any potential state conflicts.
+            # Note: If you renamed "Original" to "Image", change the string below.
+            default_layers_for_display = ['Original']
+            self.timeline_widget.set_active_layers(default_layers_for_display)
+
+            # Also sync opacity settings to ensure consistency.
+            all_opacities = self.mode_selector.get_all_opacities()
+            for layer, opacity in all_opacities.items():
+                self.timeline_widget.set_layer_opacity(layer, opacity)
+
+            # 4. Now, update the UI with the scan data.
             self.update_timeline_with_scans_enhanced(scans, active_index=0)
-            
-            # Load first scan
             self._load_bsi_for_scan(scans[0], session_code)
-            
-            # Set first button as checked
+
+            # 5. Visually check the first scan button (do NOT use .click()).
             if self.scan_buttons:
                 self.scan_buttons[0].setChecked(True)
+
+            # 6. Update all info labels to reflect the new state.
+            self._update_scan_info_display()
+            self._update_edit_button_states()
+            self._update_active_layers_display()
+
         else:
+            # This part for when no scans are found remains the same.
             self.patient_bar.clear_info()
             self._populate_scan_buttons([])
             self.timeline_widget.display_timeline([])
