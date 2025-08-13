@@ -346,11 +346,24 @@ def get_classification_files(patient_folder: Path, filename_stem: str, view: str
 
 def get_quantification_files(patient_folder: Path, filename_stem: str) -> dict:
     """
-    Menyediakan path untuk file-file kuantifikasi, termasuk versi _edited.
+    ✅ UPDATED: V1.2 quantification files (separate anterior/posterior, no edited versions)
     """
     return {
-        "bsi_json_original": patient_folder / f"{filename_stem}_bsi_quantification.json",
-        "bsi_json_edited": patient_folder / f"{filename_stem}_bsi_quantification_edited.json",
+        "bsi_json_anterior": patient_folder / f"{filename_stem}_bsi_quantification_anterior.json",
+        "bsi_json_posterior": patient_folder / f"{filename_stem}_bsi_quantification_posterior.json",
+        # Remove edited support as per requirements
+    }
+
+def get_classification_files(patient_folder: Path, filename_stem: str, view: str) -> dict:
+    """
+    ✅ FIXED: Correct classification mask file naming
+    """
+    vtag = view.lower()
+    return {
+        "json_original": patient_folder / f"{filename_stem}_{vtag}_classification.json",
+        "json_edited": patient_folder / f"{filename_stem}_{vtag}_classification_edited.json",
+        "mask_original": patient_folder / f"{filename_stem}_{vtag}_classification_mask.png",  # ✅ FIXED
+        "mask_edited": patient_folder / f"{filename_stem}_{vtag}_classification_mask_edited.png",  # ✅ FIXED
     }
 
 def get_dicom_output_path(patient_id: str, session_code: str, study_date: str) -> Path:
@@ -660,3 +673,34 @@ def validate_cloud_config():
         return False, f"Missing cloud configuration: {', '.join(missing)}"
     
     return True, "Cloud configuration is valid"
+
+def get_original_image_files(patient_folder: Path, filename_stem: str) -> dict:
+    """
+    Get original PNG image file paths for both views
+    
+    Args:
+        patient_folder: Patient directory path
+        filename_stem: Filename stem ([patient_id]_[study_date])
+        
+    Returns:
+        Dictionary with original PNG file paths
+    """
+    return {
+        'anterior_png': patient_folder / f"{filename_stem}_anterior_original.png",
+        'posterior_png': patient_folder / f"{filename_stem}_posterior_original.png",
+    }
+
+def get_view_original_png(patient_folder: Path, filename_stem: str, view: str) -> Path:
+    """
+    Get original PNG file path for specific view
+    
+    Args:
+        patient_folder: Patient directory path
+        filename_stem: Filename stem ([patient_id]_[study_date])
+        view: View name (anterior/posterior)
+        
+    Returns:
+        Path to original PNG file
+    """
+    view_normalized = view.lower()
+    return patient_folder / f"{filename_stem}_{view_normalized}_original.png"

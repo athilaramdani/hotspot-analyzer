@@ -59,138 +59,177 @@ class QuantificationManager:
 
     def load_all_quantification_scores(self, patient_folder: Path, patient_id: str) -> List[Dict[str, Any]]:
         """
-        Memuat semua skor BSI untuk seorang pasien dari semua file kuantifikasi JSON.
-        ✅ FIXED: Pattern yang benar untuk mendeteksi file edited
+        ✅ UPDATED: Load V1.2 quantification scores (separate anterior/posterior files)
+        Returns combined data with anterior, posterior, and combined BSI scores
         """
         all_scores = []
         found_study_dates = set()
         
         try:
-            # ✅ FIXED: Pattern yang lebih spesifik dan benar
-            # Format file: {patient_id}_{study_date}_bsi_quantification[_edited].json
+            print(f"[BSI V1.2] Searching for V1.2 quantification files in: {patient_folder}")
+            print(f"[BSI V1.2] Patient ID: {patient_id}")
             
-            # Cari semua file BSI untuk patient ini (baik edited maupun original)
-            all_bsi_files = list(patient_folder.glob(f"{patient_id}_*_bsi_quantification*.json"))
+            # ✅ NEW: Look for separate anterior/posterior files
+            anterior_files = list(patient_folder.glob(f"{patient_id}_*_bsi_quantification_anterior.json"))
+            posterior_files = list(patient_folder.glob(f"{patient_id}_*_bsi_quantification_posterior.json"))
             
-            print(f"[BSI DEBUG] Searching in: {patient_folder}")
-            print(f"[BSI DEBUG] Patient ID: {patient_id}")
-            print(f"[BSI DEBUG] All BSI files found: {[f.name for f in all_bsi_files]}")
+            print(f"[BSI V1.2] Found anterior files: {[f.name for f in anterior_files]}")
+            print(f"[BSI V1.2] Found posterior files: {[f.name for f in posterior_files]}")
             
-            # ✅ FIXED: Pisahkan file edited dan original
-            edited_files = [f for f in all_bsi_files if "_bsi_quantification_edited.json" in f.name]
-            original_files = [f for f in all_bsi_files if f.name.endswith("_bsi_quantification.json") and "_edited" not in f.name]
+            # ✅ Create study_date -> file mapping
+            anterior_by_date = {}
+            posterior_by_date = {}
             
-            print(f"[BSI DEBUG] Edited files: {[f.name for f in edited_files]}")
-            print(f"[BSI DEBUG] Original files: {[f.name for f in original_files]}")
-            
-            # ✅ Process edited files first (higher priority)
-            for file_path in edited_files:
+            # Parse anterior files
+            for file_path in anterior_files:
                 try:
-                    # Extract study date: 130_20250628_bsi_quantification_edited.json -> 20250628
-                    filename_without_ext = file_path.stem  # 130_20250628_bsi_quantification_edited
-                    # Remove suffix
-                    filename_base = filename_without_ext.replace('_bsi_quantification_edited', '')  # 130_20250628
-                    parts = filename_base.split('_')  # ['130', '20250628']
-                    
+                    filename_base = file_path.stem.replace('_bsi_quantification_anterior', '')
+                    parts = filename_base.split('_')
                     if len(parts) >= 2:
-                        study_date = parts[1]  # 20250628
-                        
-                        # Mark this study date as processed (from edited file)
-                        found_study_dates.add(study_date)
-                        
-                        # Load and process the JSON file
-                        with open(file_path, 'r') as f:
-                            data = json.load(f)
-                        
-                        # Extract BSI data
-                        patient_info = data.get('patient_info', {})
-                        summary = data.get('summary_statistics', {})
-                        
-                        json_study_date = patient_info.get('study_date')
-                        bsi_score = summary.get('bsi_score')
-                        
-                        if json_study_date is not None and bsi_score is not None:
-                            all_scores.append({
-                                "study_date": json_study_date,
-                                "bsi_score": bsi_score,
-                                "file_source": file_path.name,
-                                "is_edited": True
-                            })
-                            print(f"[BSI] ✅ Loaded EDITED BSI data: study_date={json_study_date}, bsi_score={bsi_score:.2f} from {file_path.name}")
-                        else:
-                            print(f"[BSI] ⚠️ Missing data in edited file {file_path.name}")
-                    else:
-                        print(f"[BSI] ❌ Invalid filename format for edited file: {file_path.name}")
-                            
+                        study_date = parts[1]
+                        anterior_by_date[study_date] = file_path
                 except Exception as e:
-                    print(f"[BSI] ❌ Error processing edited file {file_path.name}: {e}")
+                    print(f"[BSI V1.2] Error parsing anterior file {file_path.name}: {e}")
+            
+            # Parse posterior files  
+            for file_path in posterior_files:
+                try:
+                    filename_base = file_path.stem.replace('_bsi_quantification_posterior', '')
+                    parts = filename_base.split('_')
+                    if len(parts) >= 2:
+                        study_date = parts[1]
+                        posterior_by_date[study_date] = file_path
+                except Exception as e:
+                    print(f"[BSI V1.2] Error parsing posterior file {file_path.name}: {e}")
+            
+            # ✅ Combine data for each study_date
+            all_study_dates = set(anterior_by_date.keys()) | set(posterior_by_date.keys())
+            
+            for study_date in all_study_dates:
+                try:
+                    ant_file = anterior_by_date.get(study_date)
+                    post_file = posterior_by_date.get(study_date)
+                    
+                    if not ant_file or not post_file:
+                        print(f"[BSI V1.2] Incomplete pair for {study_date}: ant={bool(ant_file)}, post={bool(post_file)}")
+                        continue
+                    
+                    # Load both files
+                    with open(ant_file, 'r') as f:
+                        ant_data = json.load(f)
+                        
+                    with open(post_file, 'r') as f:
+                        post_data = json.load(f)
+                    
+                    # Extract BSI scores
+                    ant_bsi = ant_data.get('summary_statistics', {}).get('bsi_score', 0.0)
+                    post_bsi = post_data.get('summary_statistics', {}).get('bsi_score', 0.0)
+                    
+                    # ✅ Calculate combined BSI using team formula
+                    combined_bsi = (ant_bsi + post_bsi) / 2
+    
+                    print(f"[BSI V1.2 DEBUG] Loaded scores - Ant: {ant_bsi}, Post: {post_bsi}, Combined: {combined_bsi}")
+                    
+                    # Add to results
+                    all_scores.append({
+                        "study_date": study_date,
+                        "anterior_bsi": ant_bsi,
+                        "posterior_bsi": post_bsi,
+                        "combined_bsi": combined_bsi,
+                        "bsi_score": combined_bsi,  # For backward compatibility
+                        "file_source": f"{ant_file.name} + {post_file.name}",
+                        "is_v2": True
+                    })
+                    
+                    found_study_dates.add(study_date)
+                    print(f"[BSI V1.2] ✅ Loaded: {study_date} - Ant:{ant_bsi:.1f}% Post:{post_bsi:.1f}% Combined:{combined_bsi:.1f}%")
+                    
+                except Exception as e:
+                    print(f"[BSI V1.2] ❌ Error processing {study_date}: {e}")
                     continue
             
-            # ✅ Process original files only if study_date not already processed
-            for file_path in original_files:
-                try:
-                    # Extract study date: 130_20250628_bsi_quantification.json -> 20250628
-                    filename_without_ext = file_path.stem  # 130_20250628_bsi_quantification
-                    # Remove suffix
-                    filename_base = filename_without_ext.replace('_bsi_quantification', '')  # 130_20250628
-                    parts = filename_base.split('_')  # ['130', '20250628']
-                    
-                    if len(parts) >= 2:
-                        study_date = parts[1]  # 20250628
-                        
-                        # ✅ Skip if we already have edited version for this study_date
-                        if study_date in found_study_dates:
-                            print(f"[BSI] Skipping original file {file_path.name} - edited version already processed for study_date {study_date}")
-                            continue
-                        
-                        # Mark this study date as processed
-                        found_study_dates.add(study_date)
-                        
-                        # Load and process the JSON file
-                        with open(file_path, 'r') as f:
-                            data = json.load(f)
-                        
-                        # Extract BSI data
-                        patient_info = data.get('patient_info', {})
-                        summary = data.get('summary_statistics', {})
-                        
-                        json_study_date = patient_info.get('study_date')
-                        bsi_score = summary.get('bsi_score')
-                        
-                        if json_study_date is not None and bsi_score is not None:
-                            all_scores.append({
-                                "study_date": json_study_date,
-                                "bsi_score": bsi_score,
-                                "file_source": file_path.name,
-                                "is_edited": False
-                            })
-                            print(f"[BSI] ✅ Loaded ORIGINAL BSI data: study_date={json_study_date}, bsi_score={bsi_score:.2f} from {file_path.name}")
-                        else:
-                            print(f"[BSI] ⚠️ Missing data in original file {file_path.name}")
-                    else:
-                        print(f"[BSI] ❌ Invalid filename format for original file: {file_path.name}")
-                            
-                except Exception as e:
-                    print(f"[BSI] ❌ Error processing original file {file_path.name}: {e}")
-                    continue
-
-            # ✅ Sort by study_date for consistent display
+            # ✅ Sort by study_date
             all_scores = sorted(all_scores, key=lambda x: x["study_date"])
             
-            print(f"[BSI] 📊 Total BSI scores loaded: {len(all_scores)} unique study dates: {list(found_study_dates)}")
+            print(f"[BSI V1.2] 📊 Total V1.2 scores loaded: {len(all_scores)} from {len(found_study_dates)} study dates")
             
-            # ✅ Debug: Show final results
+            # ✅ Debug: Show results
             for score in all_scores:
-                priority_indicator = "🟢 EDITED" if score["is_edited"] else "🔵 ORIGINAL"
-                print(f"[BSI]   {score['study_date']}: {score['bsi_score']:.1f}% ({priority_indicator}) from {score['file_source']}")
+                print(f"[BSI V1.2]   {score['study_date']}: Ant={score['anterior_bsi']:.1f}% Post={score['posterior_bsi']:.1f}% Combined={score['combined_bsi']:.1f}%")
 
         except Exception as e:
-            print(f"[BSI] ❌ Failed to load BSI scores: {e}")
+            print(f"[BSI V1.2] ❌ Failed to load V1.2 BSI scores: {e}")
             import traceback
             traceback.print_exc()
             
         return all_scores
-    
+
+    def load_quantification_results(self, patient_folder: Path, patient_id: str, study_date: str) -> Optional[Dict]:
+        """
+        ✅ UPDATED: Load V1.2 quantification results (combines anterior + posterior)
+        """
+        try:
+            filename_stem = generate_filename_stem(patient_id, study_date)
+            
+            # ✅ NEW: Look for V1.2 separate files
+            ant_path = patient_folder / f"{filename_stem}_bsi_quantification_anterior.json"
+            post_path = patient_folder / f"{filename_stem}_bsi_quantification_posterior.json"
+            
+            print(f"[BSI V1.2 LOAD] Looking for V1.2 quantification files:")
+            print(f"[BSI V1.2 LOAD]   Anterior: {ant_path} ({'✅ EXISTS' if ant_path.exists() else '❌ NOT FOUND'})")
+            print(f"[BSI V1.2 LOAD]   Posterior: {post_path} ({'✅ EXISTS' if post_path.exists() else '❌ NOT FOUND'})")
+            
+            if not (ant_path.exists() and post_path.exists()):
+                print(f"[BSI V1.2 LOAD] ❌ V1.2 files not found for {filename_stem}")
+                return None
+            
+            # Load both files
+            with open(ant_path, 'r') as f:
+                ant_results = json.load(f)
+                
+            with open(post_path, 'r') as f:
+                post_results = json.load(f)
+            
+            # ✅ Combine results for backward compatibility
+            combined_results = {
+                "patient_info": ant_results["patient_info"].copy(),
+                "anterior_results": ant_results,
+                "posterior_results": post_results,
+                "bsi_results": {
+                    # Combine region data from both views
+                    **{f"anterior_{k}": v for k, v in ant_results["bsi_results"].items()},
+                    **{f"posterior_{k}": v for k, v in post_results["bsi_results"].items()}
+                },
+                "summary_statistics": {
+                    "anterior_bsi": ant_results["summary_statistics"]["bsi_score"],
+                    "posterior_bsi": post_results["summary_statistics"]["bsi_score"],
+                    "combined_bsi": (ant_results["summary_statistics"]["bsi_score"] + post_results["summary_statistics"]["bsi_score"]) / 2,
+                    "bsi_score": (ant_results["summary_statistics"]["bsi_score"] + post_results["summary_statistics"]["bsi_score"]) / 2,
+                    "total_anterior_pixels": ant_results["summary_statistics"]["total_pixels"],
+                    "total_posterior_pixels": post_results["summary_statistics"]["total_pixels"],
+                    "total_abnormal_hotspots": ant_results["summary_statistics"]["total_malignant_pixels"] + post_results["summary_statistics"]["total_malignant_pixels"],
+                    "total_normal_hotspots": ant_results["summary_statistics"]["total_benign_pixels"] + post_results["summary_statistics"]["total_benign_pixels"],
+                    "segments_analyzed": len([k for k, v in ant_results["bsi_results"].items() if v.get("total_pixels", 0) > 0]) + len([k for k, v in post_results["bsi_results"].items() if v.get("total_pixels", 0) > 0]),
+                    "segments_with_abnormal": len([k for k, v in ant_results["bsi_results"].items() if v.get("malignant_pixels", 0) > 0]) + len([k for k, v in post_results["bsi_results"].items() if v.get("malignant_pixels", 0) > 0])
+                }
+            }
+            
+            # Update patient info to indicate V1.2
+            combined_results["patient_info"]["quantification_method"] = "BSI_v1.2_color_based_separate_views"
+            combined_results["patient_info"]["view"] = "combined_anterior_posterior"
+            
+            self.current_results = combined_results
+            self.current_patient_id = patient_id
+            self.current_study_date = study_date
+            
+            print(f"[BSI V1.2 LOAD] ✅ Successfully loaded and combined V1.2 results")
+            print(f"[BSI V1.2 LOAD] Combined BSI: {combined_results['summary_statistics']['combined_bsi']:.2f}%")
+            return combined_results
+            
+        except Exception as e:
+            print(f"[BSI V1.2 LOAD] ❌ Failed to load V1.2 quantification results: {e}")
+            return None
+        
     def _extract_study_date_from_filename(self, filename: str) -> str:
         """
         Extracts study_date from filename pattern: {patient_id}_{study_date}_quant.json
@@ -343,33 +382,51 @@ def get_quantification_status(dicom_path: Path, patient_id: str, study_date: str
         }
         
         # Check for output file
-        output_file = patient_folder / f"{filename_stem}_bsi_quantification.json"
-        
+        output_file_anterior = patient_folder / f"{filename_stem}_bsi_quantification_anterior.json"
+        output_file_posterior = patient_folder / f"{filename_stem}_bsi_quantification_posterior.json"
+        output_file_old = patient_folder / f"{filename_stem}_bsi_quantification.json"
+
+        # ✅ Quantification complete if V1.2 files exist OR old file exists
+        v2_complete = output_file_anterior.exists() and output_file_posterior.exists()
+        v1_complete = output_file_old.exists()
+        quantification_complete = v2_complete or v1_complete
+
         # Calculate status
         missing_inputs = []
         for name, path in required_files.items():
             if not path.exists():
                 missing_inputs.append(name)
-        
+
         status = {
             "patient_id": patient_id,
             "study_date": study_date,
-            "quantification_complete": output_file.exists(),
+            "quantification_complete": quantification_complete,  # ✅ FIXED
             "required_files_exist": len(missing_inputs) == 0,
             "missing_files": missing_inputs,
-            "output_file_exists": output_file.exists(),
+            "output_file_exists": quantification_complete,  # ✅ FIXED
+            "v2_files_exist": v2_complete,
+            "v1_file_exists": v1_complete,
             "can_run_quantification": len(missing_inputs) == 0
         }
-        
-        if status["quantification_complete"]:
+
+        if status["quantification_complete"]:  # ✅ NOW TRUE
             # Load and add summary info
             manager = QuantificationManager()
             results = manager.load_quantification_results(patient_folder, patient_id, study_date)
             if results:
-                summary = manager.get_bsi_summary()
-                status["bsi_score"] = summary.get("bsi_score", 0.0)
+                summary = results.get("summary_statistics", {})
+                status["anterior_bsi"] = summary.get("anterior_bsi", 0.0)      
+                status["posterior_bsi"] = summary.get("posterior_bsi", 0.0)    
+                status["combined_bsi"] = summary.get("combined_bsi", 0.0)      
+                status["bsi_score"] = summary.get("combined_bsi", 0.0)         
                 status["total_abnormal_hotspots"] = summary.get("total_abnormal_hotspots", 0)
-        
+                
+                # ✅ DEBUG: Print what we're returning
+                print(f"[BSI STATUS DEBUG] Returning status with:")
+                print(f"[BSI STATUS DEBUG]   anterior_bsi: {status['anterior_bsi']}")
+                print(f"[BSI STATUS DEBUG]   posterior_bsi: {status['posterior_bsi']}")
+                print(f"[BSI STATUS DEBUG]   combined_bsi: {status['combined_bsi']}")
+                        
         return status
         
     except Exception as e:

@@ -214,35 +214,23 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
 
 
 def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date: str) -> bool:
-    """
-    NEW: Run BSI quantification for patient using classification masks
-    
-    Args:
-        dicom_path: Path to patient's DICOM file
-        patient_id: Patient ID
-        study_date: Study date in YYYYMMDD format
-        
-    Returns:
-        True if quantification successful, False otherwise
-    """
+    """✅ UPDATED: Use V1.2 quantification algorithm"""
     try:
-        print(f"[QUANTIFICATION] Starting BSI quantification for patient {patient_id}")
-        print(f"[QUANTIFICATION] Using classification masks instead of Otsu results")
+        # Import V1.2 quantification
+        from .quantification_wrapper import run_quantification_for_patient_v2
         
-        from .quantification_wrapper import run_quantification_for_patient as quant_runner
-        result = quant_runner(dicom_path, patient_id, study_date)
+        print(f"[PROCESSING] Running V1.2 quantification for patient {patient_id}")
+        result = run_quantification_for_patient_v2(dicom_path, patient_id, study_date)
         
         if result:
-            print(f"[QUANTIFICATION] BSI quantification completed successfully")
+            print(f"[PROCESSING] ✅ V1.2 quantification completed for {patient_id}")
         else:
-            print(f"[QUANTIFICATION] BSI quantification failed")
+            print(f"[PROCESSING] ❌ V1.2 quantification failed for {patient_id}")
             
         return result
         
     except Exception as e:
-        print(f"[QUANTIFICATION ERROR] Quantification failed: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"[PROCESSING] V1.2 quantification error: {e}")
         return False
 
 

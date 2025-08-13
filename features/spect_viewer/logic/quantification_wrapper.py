@@ -1,493 +1,210 @@
-# features/spect_viewer/logic/quantification_wrapper.py - UPDATED QUANTIFICATION INTEGRATION
+# features/spect_viewer/logic/quantification_wrapper.py - UPDATED for V1.2 Algorithm
 
 import numpy as np
 import cv2
 from pathlib import Path
 import json
 from core.logger import _log
-from core.config.paths import get_classification_files, get_quantification_files # Pastikan ini di-import
+from core.config.paths import (
+    get_classification_files, 
+    get_quantification_files,
+    get_segmentation_files_with_edited
+)
 
+# Import V1.2 algorithm
+from .algorithm_quantification import (
+    calculate_pixel_bsi_v2,
+    calculate_combined_bsi_v2,
+    process_image_with_predefined_colors
+)
 
-# Quantification constants from your provided code
-DICT_SEGMENT_ID = {
-    0: "background", 
-    1: "skull", 
-    2: "cervical vertebrae", 
-    3: "thoracic vertebrae",
-    4: "rib", 
-    5: "sternum", 
-    6: "collarbone", 
-    7: "scapula", 
-    8: "humerus",
-    9: "lumbar vertebrae", 
-    10: "sacrum", 
-    11: "pelvis", 
-    12: "femur"
-}
-
-DICT_HOTSPOT_COLOR = {
-    1: (0, 255, 0),     # Normal - Green
-    2: (255, 0, 0)      # Abnormal - Red
-}
-
-DICT_SEGMENT_COLOR = {
-    0: (0, 0, 0), 
-    1: (176, 230, 13), 
-    2: (0, 151, 219), 
-    3: (126, 230, 225),
-    4: (166, 55, 167), 
-    5: (230, 157, 180), 
-    6: (167, 110, 77), 
-    7: (121, 0, 24),
-    8: (56, 65, 184), 
-    9: (230, 218, 0), 
-    10: (230, 114, 35), 
-    11: (12, 187, 62),
-    12: (230, 182, 22)
-}
-
-def load_image_as_array(path):
-    """Load image as numpy array"""
-    image = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
-    if image is None:
-        raise FileNotFoundError(f"Could not load image: {path}")
-    return image
-
-def load_colored_segmentation_as_id(path):
-    """
-    Convert colored segmentation PNG to segment ID array
-    Uses the RGB to ID mapping from DICT_SEGMENT_COLOR
-    """
-    try:
-        if path is None:
-            return None
-            
-        # Load as RGB
-        image = cv2.imread(str(path), cv2.IMREAD_COLOR)
-        if image is None:
-            _log(f"     [WARNING] Could not load colored segmentation: {path}")
-            return None
-        
-        # Convert BGR to RGB for proper color matching
-        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        
-        # Create ID array
-        id_array = np.zeros(image_rgb.shape[:2], dtype=np.uint8)
-        
-        # Map RGB colors to segment IDs
-        for segment_id, rgb_color in DICT_SEGMENT_COLOR.items():
-            # Create mask for this color
-            mask = np.all(image_rgb == rgb_color, axis=-1)
-            id_array[mask] = segment_id
-        
-        _log(f"     Converted colored segmentation to ID array: {np.unique(id_array)}")
-        return id_array
-        
-    except Exception as e:
-        _log(f"     [ERROR] Failed to convert colored segmentation: {e}")
-        return None
-
-def load_classification_mask_as_hotspot(path):
-    """
-    Convert classification mask PNG to hotspot ID array
-    Expected colors:
-    - Black (0,0,0): Background -> 0
-    - Red (255,0,0): Abnormal -> 2
-    - Cream (255,241,188): Normal -> 1
-    """
-    try:
-        if path is None:
-            return None
-            
-        # Load as RGB
-        image = cv2.imread(str(path), cv2.IMREAD_COLOR)
-        if image is None:
-            _log(f"     [WARNING] Could not load classification mask: {path}")
-            return None
-        
-        # Convert BGR to RGB for proper color matching
-        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        
-        # Create hotspot array
-        hotspot_array = np.zeros(image_rgb.shape[:2], dtype=np.uint8)
-        
-        # Map classification colors to hotspot IDs
-        # Black background -> 0 (already initialized)
-        
-        # Red (abnormal) -> 2
-        red_mask = np.all(image_rgb == [255, 0, 0], axis=-1)
-        hotspot_array[red_mask] = 2
-        
-        # Cream (normal) -> 1
-        cream_mask = np.all(image_rgb == [255, 241, 188], axis=-1)
-        hotspot_array[cream_mask] = 1
-        
-        _log(f"     Converted classification mask to hotspot array: {np.unique(hotspot_array)}")
-        return hotspot_array
-        
-    except Exception as e:
-        _log(f"     [ERROR] Failed to convert classification mask: {e}")
-        return None
-
-def calculate_BSI(image_segment_anterior, image_segment_posterior, image_hotspot_anterior, image_hotspot_posterior):
-    """
-    Calculate BSI (Bone Scan Index) from segmentation and hotspot images
-    Updated to handle None parameters (missing data)
-    """
-    result = {}
-    for segment_id in DICT_SEGMENT_ID:
-        # Initialize counts
-        count_segment = 0
-        count_hotspot_normal = 0
-        count_hotspot_abnormal = 0
-        
-        # Process anterior data if available
-        if image_segment_anterior is not None and image_hotspot_anterior is not None:
-            mask_anterior = image_segment_anterior == segment_id
-            count_segment += np.sum(mask_anterior)
-            count_hotspot_normal += np.sum(image_hotspot_anterior[mask_anterior] == 1)
-            count_hotspot_abnormal += np.sum(image_hotspot_anterior[mask_anterior] == 2)
-        
-        # Process posterior data if available
-        if image_segment_posterior is not None and image_hotspot_posterior is not None:
-            mask_posterior = image_segment_posterior == segment_id
-            count_segment += np.sum(mask_posterior)
-            count_hotspot_normal += np.sum(image_hotspot_posterior[mask_posterior] == 1)
-            count_hotspot_abnormal += np.sum(image_hotspot_posterior[mask_posterior] == 2)
-        
-        # Store results
-        result[DICT_SEGMENT_ID[segment_id]] = {
-            "total_segment_pixels": int(count_segment),
-            "hotspot_normal": int(count_hotspot_normal),
-            "percentage_normal": float(count_hotspot_normal) / count_segment if count_segment else 0.0,
-            "hotspot_abnormal": int(count_hotspot_abnormal),
-            "percentage_abnormal": float(count_hotspot_abnormal) / count_segment if count_segment else 0.0,
-        }
+def get_quantification_input_paths_v2(patient_folder: Path, filename_stem: str) -> dict:
+    """Get input file paths for V1.2 quantification (separate anterior/posterior)"""
     
-    return result
-
-def get_quantification_input_paths(patient_folder: Path, filename_stem: str) -> dict:
-    """Get input file paths for quantification, prioritizing _edited files."""
-    # Import function dari paths.py
-    from core.config.paths import get_segmentation_files_for_quantification
-    
-    # Dapatkan path untuk kedua view menggunakan fungsi dari paths.py
+    # Get classification files (for hotspot data)
     ant_clf_files = get_classification_files(patient_folder, filename_stem, "anterior")
     post_clf_files = get_classification_files(patient_folder, filename_stem, "posterior")
-    quant_files = get_quantification_files(patient_folder, filename_stem)
     
-    # ✅ NEW: Get segmentation files with edited priority
-    ant_seg_files = get_segmentation_files_for_quantification(patient_folder, filename_stem, "anterior")
-    post_seg_files = get_segmentation_files_for_quantification(patient_folder, filename_stem, "posterior")
+    # Get segmentation files (for region data) - prioritize edited
+    ant_seg_files = get_segmentation_files_with_edited(patient_folder, filename_stem, "anterior")
+    post_seg_files = get_segmentation_files_with_edited(patient_folder, filename_stem, "posterior")
     
-    # Pilih path mask yang benar (prioritaskan _edited jika ada)
+    # ✅ FIXED: Use classification_mask.png (not hotspot_colored.png)
     ant_mask_to_use = ant_clf_files['mask_edited'] if ant_clf_files['mask_edited'].exists() else ant_clf_files['mask_original']
     post_mask_to_use = post_clf_files['mask_edited'] if post_clf_files['mask_edited'].exists() else post_clf_files['mask_original']
     
-    # ✅ UPDATED: Check for any edited files (segmentation OR classification)
-    has_edited_files = (
-        ant_clf_files['mask_edited'].exists() or 
-        post_clf_files['mask_edited'].exists() or
-        ant_seg_files['colored_edited'].exists() or 
-        post_seg_files['colored_edited'].exists()
-    )
+    # ✅ Use colored segmentation (for region detection)
+    ant_seg_to_use = ant_seg_files['png_colored_edited'] if ant_seg_files['png_colored_edited'].exists() else ant_seg_files['png_colored']
+    post_seg_to_use = post_seg_files['png_colored_edited'] if post_seg_files['png_colored_edited'].exists() else post_seg_files['png_colored']
     
-    output_file = quant_files['bsi_json_edited'] if has_edited_files else quant_files['bsi_json_original']
-
     return {
-        'segment_anterior': ant_seg_files['colored_to_use'],    # ✅ PRIORITY: edited → original
-        'segment_posterior': post_seg_files['colored_to_use'],  # ✅ PRIORITY: edited → original
-        'hotspot_anterior': ant_mask_to_use,                   # ✅ Already has priority
-        'hotspot_posterior': post_mask_to_use,                 # ✅ Already has priority
-        'output_result': output_file                           # ✅ Use edited JSON if any edited files
+        # Input files
+        'segmentation_anterior': ant_seg_to_use,
+        'segmentation_posterior': post_seg_to_use,
+        'hotspot_anterior': ant_mask_to_use,
+        'hotspot_posterior': post_mask_to_use,
+        
+        # Output files (separate for each view)
+        'output_anterior': patient_folder / f"{filename_stem}_bsi_quantification_anterior.json",
+        'output_posterior': patient_folder / f"{filename_stem}_bsi_quantification_posterior.json"
     }
-    
-def check_available_files(paths):
-    """
-    ✅ FIXED: Better validation for empty XML files
-    """
+
+def check_available_files_v2(paths):
+    """Check file availability for V1.2 quantification"""
     available_paths = {}
     missing_files = []
     
-    # Check each path (except output_result)
-    for name, path in paths.items():
-        if name != 'output_result':
-            if path.exists():
-                # ✅ SPECIAL CHECK: For XML files, validate they have proper structure
-                if name.endswith('_xml') or 'xml' in name:
-                    if _validate_xml_file(path):
-                        available_paths[name] = path
-                    else:
-                        print(f"[QUANTIFICATION] XML file exists but invalid: {path}")
-                        missing_files.append(f"{name} (invalid XML)")
-                else:
-                    available_paths[name] = path
-            else:
-                missing_files.append(f"{name} ({path.name})")
+    required_files = [
+        'segmentation_anterior', 'hotspot_anterior',
+        'segmentation_posterior', 'hotspot_posterior'
+    ]
     
-    # Determine if we can proceed
-    has_anterior_pair = ('segment_anterior' in available_paths and 
+    for name in required_files:
+        path = paths[name]
+        if path.exists():
+            available_paths[name] = path
+        else:
+            missing_files.append(f"{name} ({path.name})")
+    
+    # Need both anterior and posterior pairs
+    has_anterior_pair = ('segmentation_anterior' in available_paths and 
                         'hotspot_anterior' in available_paths)
-    has_posterior_pair = ('segment_posterior' in available_paths and 
+    has_posterior_pair = ('segmentation_posterior' in available_paths and 
                          'hotspot_posterior' in available_paths)
     
-    can_proceed = has_anterior_pair or has_posterior_pair
+    can_proceed = has_anterior_pair and has_posterior_pair
     
     return available_paths, missing_files, can_proceed
 
-def _validate_xml_file(xml_path: Path) -> bool:
-    """Validate XML file has proper structure (even if empty)"""
-    try:
-        import xml.etree.ElementTree as ET
-        tree = ET.parse(xml_path)
-        root = tree.getroot()
-        
-        # Check basic structure exists
-        if root.tag != 'annotation':
-            return False
-        
-        # XML is valid even if no objects (empty is OK for quantification)
-        return True
-        
-    except Exception as e:
-        print(f"[XML VALIDATION] Error validating {xml_path}: {e}")
-        return False
-
-
-def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date: str) -> bool:
+def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_date: str) -> bool:
     """
-    Run BSI quantification for a patient using UPDATED workflow
-    Now supports partial data (anterior only, posterior only, etc.)
-    
-    Args:
-        dicom_path: Path to patient's DICOM file
-        patient_id: Patient ID
-        study_date: Study date in YYYYMMDD format
-        
-    Returns:
-        True if quantification successful, False otherwise
+    ✅ Run V1.2 BSI quantification - separate anterior/posterior processing
     """
     try:
         patient_folder = dicom_path.parent
         filename_stem = f"{patient_id}_{study_date}"
         
-        _log(f"     Starting BSI quantification for patient {patient_id}")
-        _log(f"     Using UPDATED quantification with flexible input handling")
-        _log(f"     New workflow: Segmentation + Classification -> Quantification")
+        _log(f"     Starting V1.2 BSI quantification for patient {patient_id}")
+        _log(f"     New workflow: Color-based segmentation + Separate view processing")
         
         # Get file paths
-        paths = get_quantification_input_paths(patient_folder, filename_stem)
+        paths = get_quantification_input_paths_v2(patient_folder, filename_stem)
         
         # Check available files
-        available_paths, missing_files, can_proceed = check_available_files(paths)
+        available_paths, missing_files, can_proceed = check_available_files_v2(paths)
         
         if not can_proceed:
-            _log(f"     Cannot proceed with quantification. Missing files: {', '.join(missing_files)}")
-            _log(f"     Need at least one matching segmentation-hotspot pair")
+            _log(f"     Cannot proceed with V1.2 quantification. Missing files: {', '.join(missing_files)}")
+            _log(f"     Need both anterior and posterior segmentation + classification pairs")
             return False
         
         if missing_files:
             _log(f"     [WARNING] Some files missing: {', '.join(missing_files)}")
-            _log(f"     Proceeding with available files: {list(available_paths.keys())}")
         
-        # Load files with None handling
-        _log(f"     Loading segmentation files...")
-        seg_anterior = None
-        seg_posterior = None
+        _log(f"     Processing V1.2 quantification with color-based segmentation...")
         
-        if 'segment_anterior' in available_paths:
-            seg_anterior = load_colored_segmentation_as_id(available_paths['segment_anterior'])
-            
-        if 'segment_posterior' in available_paths:
-            seg_posterior = load_colored_segmentation_as_id(available_paths['segment_posterior'])
+        # ✅ Process anterior view
+        _log(f"     Processing anterior view...")
+        anterior_results = calculate_pixel_bsi_v2(
+            str(available_paths['segmentation_anterior']),
+            str(available_paths['hotspot_anterior'])
+        )
         
-        _log(f"     Loading classification mask files...")
-        hot_anterior = None
-        hot_posterior = None
+        # ✅ Process posterior view
+        _log(f"     Processing posterior view...")
+        posterior_results = calculate_pixel_bsi_v2(
+            str(available_paths['segmentation_posterior']),
+            str(available_paths['hotspot_posterior'])
+        )
         
-        if 'hotspot_anterior' in available_paths:
-            hot_anterior = load_classification_mask_as_hotspot(available_paths['hotspot_anterior'])
-            
-        if 'hotspot_posterior' in available_paths:
-            hot_posterior = load_classification_mask_as_hotspot(available_paths['hotspot_posterior'])
-        
-        # Validate we have at least some data
-        if all(x is None for x in [seg_anterior, seg_posterior]):
-            _log(f"     [ERROR] No segmentation data could be loaded")
-            return False
-            
-        if all(x is None for x in [hot_anterior, hot_posterior]):
-            _log(f"     [ERROR] No hotspot data could be loaded")
-            return False
-        
-        _log(f"     Calculating BSI with flexible inputs...")
-        # Calculate BSI using updated function with None handling
-        bsi_result = calculate_BSI(seg_anterior, seg_posterior, hot_anterior, hot_posterior)
-        
-        # Add metadata to result
-        final_result = {
-            "patient_info": {
-                "patient_id": patient_id,
-                "study_date": study_date,
-                "filename_stem": filename_stem,
-                "quantification_method": "BSI_with_classification_masks_v2",
-                "input_files": {
-                    "segmentation_anterior": available_paths.get('segment_anterior', {}).name if 'segment_anterior' in available_paths else "Not available",
-                    "segmentation_posterior": available_paths.get('segment_posterior', {}).name if 'segment_posterior' in available_paths else "Not available",
-                    "hotspot_anterior": available_paths.get('hotspot_anterior', {}).name if 'hotspot_anterior' in available_paths else "Not available",
-                    "hotspot_posterior": available_paths.get('hotspot_posterior', {}).name if 'hotspot_posterior' in available_paths else "Not available"
-                },
-                "data_availability": {
-                    "has_anterior_data": seg_anterior is not None and hot_anterior is not None,
-                    "has_posterior_data": seg_posterior is not None and hot_posterior is not None,
-                    "missing_files": missing_files
-                }
-            },
-            "bsi_results": bsi_result,
-            "summary_statistics": calculate_summary_statistics(bsi_result)
+        # ✅ Calculate combined BSI using team-approved formula
+        _log(f"     Calculating combined BSI...")
+        combined_results = calculate_combined_bsi_v2(anterior_results, posterior_results)
+
+        # ✅ DEBUG: Log individual BSI values
+        ant_bsi_raw = sum(stats['malignant_ratio'] for stats in anterior_results['region_stats'].values())
+        post_bsi_raw = sum(stats['malignant_ratio'] for stats in posterior_results['region_stats'].values()) 
+        print(f"[BSI DEBUG] Raw anterior BSI sum: {ant_bsi_raw}")
+        print(f"[BSI DEBUG] Raw posterior BSI sum: {post_bsi_raw}")
+        print(f"[BSI DEBUG] Combined BSI: {(ant_bsi_raw + post_bsi_raw) / 2}")
+                
+        # ✅ Prepare metadata
+        base_metadata = {
+            "patient_id": patient_id,
+            "study_date": study_date,
+            "filename_stem": filename_stem,
+            "quantification_method": "BSI_v1.2_color_based_separate_views",
+            "algorithm_version": "1.2"
         }
         
-        # Save results to JSON
-        with open(paths['output_result'], 'w') as f:
-            json.dump(final_result, f, indent=2)
+        # ✅ Save anterior results
+        anterior_final = {
+            "patient_info": {
+                **base_metadata,
+                "view": "anterior",
+                "input_files": {
+                    "segmentation": available_paths['segmentation_anterior'].name,
+                    "hotspot": available_paths['hotspot_anterior'].name
+                }
+            },
+            "bsi_results": anterior_results["region_stats"],
+            "summary_statistics": {
+                "view": "anterior",
+                "bsi_score": combined_results["anterior_bsi"], 
+                "total_malignant_pixels": anterior_results["total_malignant_pixels"],
+                "total_benign_pixels": anterior_results["total_benign_pixels"],
+                "total_pixels": sum(anterior_results["region_total_pixels"].values()),
+                "malignant_percentage": combined_results["anterior_bsi"],
+                "benign_percentage": (sum(anterior_results["region_benign_pixels"].values()) / 
+                                    sum(anterior_results["region_total_pixels"].values()) * 100) if sum(anterior_results["region_total_pixels"].values()) > 0 else 0
+            }
+        }
         
-        _log(f"     BSI quantification completed")
-        _log(f"     Results saved: {paths['output_result'].name}")
-        _log(f"     Total segments analyzed: {len([k for k, v in bsi_result.items() if v['total_segment_pixels'] > 0])}")
+        # ✅ Save posterior results
+        posterior_final = {
+            "patient_info": {
+                **base_metadata,
+                "view": "posterior",
+                "input_files": {
+                    "segmentation": available_paths['segmentation_posterior'].name,
+                    "hotspot": available_paths['hotspot_posterior'].name
+                }
+            },
+            "bsi_results": posterior_results["region_stats"],
+            "summary_statistics": {
+                "view": "posterior",
+                "bsi_score": combined_results["posterior_bsi"],
+                "total_malignant_pixels": posterior_results["total_malignant_pixels"],
+                "total_benign_pixels": posterior_results["total_benign_pixels"],
+                "total_pixels": sum(posterior_results["region_total_pixels"].values()),
+                "malignant_percentage": combined_results["posterior_bsi"],
+                "benign_percentage": (sum(posterior_results["region_benign_pixels"].values()) / 
+                                    sum(posterior_results["region_total_pixels"].values()) * 100) if sum(posterior_results["region_total_pixels"].values()) > 0 else 0
+            }
+        }
         
-        # Log data availability summary
-        data_summary = final_result["patient_info"]["data_availability"]
-        _log(f"     Data availability: Anterior={data_summary['has_anterior_data']}, Posterior={data_summary['has_posterior_data']}")
+        # ✅ Write separate JSON files
+        with open(paths['output_anterior'], 'w') as f:
+            json.dump(anterior_final, f, indent=2)
+            
+        with open(paths['output_posterior'], 'w') as f:
+            json.dump(posterior_final, f, indent=2)
+        
+        _log(f"     ✅ V1.2 BSI quantification completed")
+        _log(f"     Anterior BSI: {combined_results['anterior_bsi'] * 100:.2f}%")
+        _log(f"     Posterior BSI: {combined_results['posterior_bsi'] * 100:.2f}%") 
+        _log(f"     Combined BSI: {combined_results['combined_bsi'] * 100:.2f}%")
+        _log(f"     Results saved: {paths['output_anterior'].name}, {paths['output_posterior'].name}")
         
         return True
         
     except Exception as e:
-        _log(f"     Quantification error for patient {patient_id}: {e}")
+        _log(f"     V1.2 Quantification error for patient {patient_id}: {e}")
         import traceback
         _log(f"     Full traceback: {traceback.format_exc()}")
         return False
 
-def calculate_summary_statistics(bsi_result):
-    """Calculate summary statistics from BSI results"""
-    total_segment_pixels = sum(v['total_segment_pixels'] for v in bsi_result.values())
-    total_normal_hotspots = sum(v['hotspot_normal'] for v in bsi_result.values())
-    total_abnormal_hotspots = sum(v['hotspot_abnormal'] for v in bsi_result.values())
-    
-    # Overall percentages
-    overall_normal_percentage = total_normal_hotspots / total_segment_pixels if total_segment_pixels > 0 else 0.0
-    overall_abnormal_percentage = total_abnormal_hotspots / total_segment_pixels if total_segment_pixels > 0 else 0.0
-    
-    # Count segments with findings
-    segments_with_normal = sum(1 for v in bsi_result.values() if v['hotspot_normal'] > 0)
-    segments_with_abnormal = sum(1 for v in bsi_result.values() if v['hotspot_abnormal'] > 0)
-    total_segments_analyzed = sum(1 for v in bsi_result.values() if v['total_segment_pixels'] > 0)
-    
-    return {
-        "total_segment_pixels": total_segment_pixels,
-        "total_normal_hotspots": total_normal_hotspots,
-        "total_abnormal_hotspots": total_abnormal_hotspots,
-        "overall_normal_percentage": overall_normal_percentage,
-        "overall_abnormal_percentage": overall_abnormal_percentage,
-        "segments_with_normal_hotspots": segments_with_normal,
-        "segments_with_abnormal_hotspots": segments_with_abnormal,
-        "total_segments_analyzed": total_segments_analyzed,
-        "bsi_score": overall_abnormal_percentage * 100  # BSI score as percentage
-    }
-
-def load_quantification_results(patient_folder: Path, filename_stem: str):
-    """
-    Load quantification results from JSON file
-    
-    Args:
-        patient_folder: Patient directory path
-        filename_stem: Filename stem ([patient_id]_[study_date])
-        
-    Returns:
-        Dictionary with quantification results or None if not found
-    """
-    try:
-        result_path = patient_folder / f"{filename_stem}_bsi_quantification.json"
-        
-        if not result_path.exists():
-            return None
-        
-        with open(result_path, 'r') as f:
-            results = json.load(f)
-        
-        return results
-        
-    except Exception as e:
-        _log(f"Failed to load quantification results: {e}")
-        return None
-
-def format_quantification_summary(results):
-    """
-    Format quantification results for display
-    
-    Args:
-        results: Quantification results dictionary
-        
-    Returns:
-        Formatted string for display
-    """
-    if not results:
-        return "No quantification results available"
-    
-    summary = results.get('summary_statistics', {})
-    patient_info = results.get('patient_info', {})
-    data_availability = patient_info.get('data_availability', {})
-    
-    text = f"=== BSI Quantification Results ===\n"
-    text += f"Patient: {patient_info.get('patient_id', 'Unknown')}\n"
-    text += f"Study Date: {patient_info.get('study_date', 'Unknown')}\n"
-    text += f"Method: Classification-based BSI v2\n"
-    
-    # Data availability info
-    text += f"\nData Availability:\n"
-    text += f"• Anterior Data: {'✓' if data_availability.get('has_anterior_data') else '✗'}\n"
-    text += f"• Posterior Data: {'✓' if data_availability.get('has_posterior_data') else '✗'}\n"
-    
-    if data_availability.get('missing_files'):
-        text += f"• Missing Files: {len(data_availability['missing_files'])}\n"
-    
-    text += f"\nOverall Statistics:\n"
-    text += f"• BSI Score: {summary.get('bsi_score', 0):.2f}%\n"
-    text += f"• Normal Hotspots: {summary.get('total_normal_hotspots', 0)}\n"
-    text += f"• Abnormal Hotspots: {summary.get('total_abnormal_hotspots', 0)}\n"
-    text += f"• Segments Analyzed: {summary.get('total_segments_analyzed', 0)}\n"
-    text += f"• Segments with Abnormal: {summary.get('segments_with_abnormal_hotspots', 0)}\n\n"
-    
-    # Per-segment breakdown
-    bsi_results = results.get('bsi_results', {})
-    text += f"Per-Segment Breakdown:\n"
-    
-    for segment_name, data in bsi_results.items():
-        if data['total_segment_pixels'] > 0:
-            text += f"• {segment_name}:\n"
-            text += f"  - Normal: {data['hotspot_normal']} ({data['percentage_normal']:.1f}%)\n"
-            text += f"  - Abnormal: {data['hotspot_abnormal']} ({data['percentage_abnormal']:.1f}%)\n"
-    
-    return text
-
-def get_quantification_capabilities(patient_folder: Path, filename_stem: str):
-    """
-    Check what quantification capabilities are available for a patient
-    
-    Args:
-        patient_folder: Patient directory path
-        filename_stem: Filename stem ([patient_id]_[study_date])
-        
-    Returns:
-        Dictionary with capability information
-    """
-    paths = get_quantification_input_paths(patient_folder, filename_stem)
-    available_paths, missing_files, can_proceed = check_available_files(paths)
-    
-    return {
-        "can_quantify": can_proceed,
-        "available_files": list(available_paths.keys()),
-        "missing_files": missing_files,
-        "has_anterior_pair": 'segment_anterior' in available_paths and 'hotspot_anterior' in available_paths,
-        "has_posterior_pair": 'segment_posterior' in available_paths and 'hotspot_posterior' in available_paths,
-        "partial_data_only": can_proceed and len(missing_files) > 0
-    }
+# ✅ Update the main entry point to use V1.2
+def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date: str) -> bool:
+    """Main entry point - now uses V1.2 algorithm"""
+    return run_quantification_for_patient_v2(dicom_path, patient_id, study_date)
