@@ -24,10 +24,10 @@ class ModeSelector(QWidget):
         # State variables
         self._active_layers = []  # List of currently active layers
         self._opacities = {
-            "Original": 1.0,
-            "Segmentation": 0.7,
-            "Hotspot": 0.8,
-            "HotspotBBox": 1.0  # NEW: Bounding box opacity
+            "Image": 1.0,
+            "Segmentation": 0.4,      # Updated to 40%
+            "Hotspot": 0.5,           # Updated to 50%
+            "HotspotBBox": 1.0
         }
         
         self._build_ui()
@@ -46,7 +46,7 @@ class ModeSelector(QWidget):
         
         # Create checkboxes - UPDATED with new options
         self._checkboxes = {}
-        layer_options = ["Original", "Segmentation", "Hotspot", "Hotspot BBox", "All"]
+        layer_options = ["Image", "Segmentation", "Hotspot", "Hotspot BBox", "All"]
         
         for layer in layer_options:
             checkbox = QCheckBox(layer)
@@ -102,8 +102,8 @@ class ModeSelector(QWidget):
         self._opacity_labels = {}
         
         # Create sliders for each layer - UPDATED with new layer
-        slider_layers = ["Original", "Segmentation", "Hotspot", "HotspotBBox"]
-        slider_labels = ["Original", "Segmentation", "Hotspot", "Hotspot BBox"]
+        slider_layers = ["Image", "Segmentation", "Hotspot", "HotspotBBox"]
+        slider_labels = ["Image", "Segmentation", "Hotspot", "Hotspot BBox"]
         
         for layer, display_name in zip(slider_layers, slider_labels):
             # Layer container
@@ -191,7 +191,7 @@ class ModeSelector(QWidget):
         """Handle 'All' checkbox logic"""
         if checked:
             # When All is checked, disable and uncheck all individual checkboxes
-            for layer_name in ["Original", "Segmentation", "Hotspot", "Hotspot BBox"]:
+            for layer_name in ["Image", "Segmentation", "Hotspot", "Hotspot BBox"]:
                 checkbox = self._checkboxes[layer_name]
                 checkbox.blockSignals(True)  # Prevent recursive signals
                 checkbox.setChecked(False)
@@ -199,7 +199,7 @@ class ModeSelector(QWidget):
                 checkbox.blockSignals(False)
         else:
             # When All is unchecked, re-enable individual checkboxes
-            for layer_name in ["Original", "Segmentation", "Hotspot", "Hotspot BBox"]:
+            for layer_name in ["Image", "Segmentation", "Hotspot", "Hotspot BBox"]:
                 checkbox = self._checkboxes[layer_name]
                 checkbox.setEnabled(True)
     
@@ -213,7 +213,7 @@ class ModeSelector(QWidget):
                 all_checkbox.setChecked(False)
                 all_checkbox.blockSignals(False)
                 # Re-enable all individual checkboxes
-                for layer_name in ["Original", "Segmentation", "Hotspot", "Hotspot BBox"]:
+                for layer_name in ["Image", "Segmentation", "Hotspot", "Hotspot BBox"]:
                     self._checkboxes[layer_name].setEnabled(True)
     
     def _update_active_layers(self):
@@ -222,10 +222,10 @@ class ModeSelector(QWidget):
         
         if self._checkboxes["All"].isChecked():
             # All mode - show all layers
-            self._active_layers = ["Original", "Segmentation", "Hotspot", "HotspotBBox"]
+            self._active_layers = ["Image", "Segmentation", "Hotspot", "HotspotBBox"]
         else:
             # Individual mode - show only checked layers
-            for layer in ["Original", "Segmentation", "Hotspot"]:
+            for layer in ["Image", "Segmentation", "Hotspot"]:
                 if self._checkboxes[layer].isChecked():
                     self._active_layers.append(layer)
             
@@ -240,7 +240,7 @@ class ModeSelector(QWidget):
         """Update slider enabled/disabled states"""
         # Map display layers to internal layers
         layer_mapping = {
-            "Original": "Original",
+            "Image": "Image",
             "Segmentation": "Segmentation", 
             "Hotspot": "Hotspot",
             "HotspotBBox": "HotspotBBox"
@@ -270,7 +270,7 @@ class ModeSelector(QWidget):
         
         # Map slider layer to active layer name for emission
         layer_mapping = {
-            "Original": "Original",
+            "Image": "Image",
             "Segmentation": "Segmentation",
             "Hotspot": "Hotspot", 
             "HotspotBBox": "HotspotBBox"
@@ -297,7 +297,7 @@ class ModeSelector(QWidget):
         """Programmatically set layer active state"""
         # Handle mapping from internal layer names to checkbox names
         checkbox_mapping = {
-            "Original": "Original",
+            "Image": "Image",
             "Segmentation": "Segmentation",
             "Hotspot": "Hotspot",
             "HotspotBBox": "Hotspot BBox",
@@ -326,9 +326,9 @@ class ModeSelector(QWidget):
         
         # Reset opacities
         self._opacities = {
-            "Original": 1.0,
-            "Segmentation": 0.7,
-            "Hotspot": 0.8,
+            "Image": 1.0,
+            "Segmentation": 0.4,
+            "Hotspot": 0.5,
             "HotspotBBox": 1.0
         }
         

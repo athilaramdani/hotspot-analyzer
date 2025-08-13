@@ -1,0 +1,144 @@
+{
+  "patient_info": {
+    "patient_id": "0001573732",
+    "study_date": "20250108",
+    "filename_stem": "0001573732_20250108",
+    "quantification_method": "BSI_v1.2_color_based_separate_views",
+    "algorithm_version": "1.2",
+    "view": "posterior",
+    "input_files": {
+      "segmentation": "0001573732_20250108_posterior_colored.png",
+      "hotspot": "0001573732_20250108_posterior_classification_mask.png"
+    }
+  },
+  "bsi_results": {
+    "skull": {
+      "total_pixels": 3940,
+      "malignant_pixels": 0,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.0,
+      "benign_ratio": 0.0
+    },
+    "cervical vertebrae": {
+      "total_pixels": 899,
+      "malignant_pixels": 149,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.1657397107897664,
+      "benign_ratio": 0.0
+    },
+    "thoracic vertebrae": {
+      "total_pixels": 2654,
+      "malignant_pixels": 1132,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.426525998492841,
+      "benign_ratio": 0.0
+    },
+    "rib left": {
+      "total_pixels": 4494,
+      "malignant_pixels": 180,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.04005340453938585,
+      "benign_ratio": 0.0
+    },
+    "rib right": {
+      "total_pixels": 3626,
+      "malignant_pixels": 408,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.11252068394925538,
+      "benign_ratio": 0.0
+    },
+    "sternum": {
+      "total_pixels": 0,
+      "malignant_pixels": 0,
+      "benign_pixels": 0,
+      "malignant_ratio": 0,
+      "benign_ratio": 0
+    },
+    "clavicle left": {
+      "total_pixels": 194,
+      "malignant_pixels": 0,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.0,
+      "benign_ratio": 0.0
+    },
+    "clavicle right": {
+      "total_pixels": 285,
+      "malignant_pixels": 41,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.14385964912280702,
+      "benign_ratio": 0.0
+    },
+    "scapula left": {
+      "total_pixels": 1469,
+      "malignant_pixels": 104,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.07079646017699115,
+      "benign_ratio": 0.0
+    },
+    "scapula right": {
+      "total_pixels": 1682,
+      "malignant_pixels": 152,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.09036860879904875,
+      "benign_ratio": 0.0
+    },
+    "humerus left": {
+      "total_pixels": 1366,
+      "malignant_pixels": 325,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.23792093704245973,
+      "benign_ratio": 0.0
+    },
+    "humerus right": {
+      "total_pixels": 1378,
+      "malignant_pixels": 105,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.07619738751814223,
+      "benign_ratio": 0.0
+    },
+    "lumbar vertebrae": {
+      "total_pixels": 1326,
+      "malignant_pixels": 649,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.4894419306184012,
+      "benign_ratio": 0.0
+    },
+    "sacrum": {
+      "total_pixels": 1361,
+      "malignant_pixels": 42,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.03085966201322557,
+      "benign_ratio": 0.0
+    },
+    "pelvis": {
+      "total_pixels": 5058,
+      "malignant_pixels": 1531,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.3026888098062475,
+      "benign_ratio": 0.0
+    },
+    "femur left": {
+      "total_pixels": 2286,
+      "malignant_pixels": 705,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.3083989501312336,
+      "benign_ratio": 0.0
+    },
+    "femur right": {
+      "total_pixels": 2302,
+      "malignant_pixels": 431,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.18722849695916594,
+      "benign_ratio": 0.0
+    }
+  },
+  "summary_statistics": {
+    "view": "posterior",
+    "bsi_score": 2.6826006899589716,
+    "total_malignant_pixels": 5954,
+    "total_benign_pixels": 0,
+    "total_pixels": 34320,
+    "malignant_percentage": 2.6826006899589716,
+    "benign_percentage": 0.0
+  }
+}

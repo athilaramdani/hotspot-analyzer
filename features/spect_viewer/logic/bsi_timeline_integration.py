@@ -205,7 +205,7 @@ class BSITimelineIntegration:
             
             # Check quantification status
             status = get_quantification_status(dicom_path, patient_id, study_date)
-            
+    
             return {
                 "has_quantification": status.get("quantification_complete", False),
                 "patient_id": patient_id,
@@ -215,7 +215,11 @@ class BSITimelineIntegration:
                 "total_abnormal_hotspots": status.get("total_abnormal_hotspots", 0),
                 "quantification_file_exists": status.get("output_file_exists", False),
                 "required_files_exist": status.get("required_files_exist", False),
-                "missing_files": status.get("missing_files", [])
+                "missing_files": status.get("missing_files", []),
+                # ✅ ADD: Forward BSI data dari get_quantification_status
+                "anterior_bsi": status.get("anterior_bsi", 0.0),
+                "posterior_bsi": status.get("posterior_bsi", 0.0),
+                "combined_bsi": status.get("combined_bsi", 0.0)
             }
             
         except Exception as e:
@@ -252,36 +256,30 @@ class BSITimelineIntegration:
             return None
     
     def update_scan_meta_with_bsi(self, scan_data: Dict, session_code: str = None) -> Dict:
-        """
-        Update scan metadata with BSI information for timeline display
+        # Check quantification status
+        status = self.check_quantification_status(scan_data, session_code)
         
-        Args:
-            scan_data: Timeline scan data
-            session_code: Session code
+        # Add BSI info to meta
+        if "meta" not in scan_data:
+            scan_data["meta"] = {}
+        
+        scan_data["meta"]["has_bsi"] = status.get("has_quantification", False)
+        
+        if status.get("has_quantification", False):
+            # ✅ DEBUG: Print status content
+            print(f"[BSI META DEBUG] Status keys: {list(status.keys())}")
+            print(f"[BSI META DEBUG] anterior_bsi from status: {status.get('anterior_bsi', 'NOT_FOUND')}")
+            print(f"[BSI META DEBUG] posterior_bsi from status: {status.get('posterior_bsi', 'NOT_FOUND')}")
+            print(f"[BSI META DEBUG] combined_bsi from status: {status.get('combined_bsi', 'NOT_FOUND')}")
             
-        Returns:
-            Updated scan data with BSI info
-        """
-        try:
-            # Check quantification status
-            status = self.check_quantification_status(scan_data, session_code)
+            # ✅ SEPARATE BSI per view
+            scan_data["meta"]["bsi_anterior"] = status.get("anterior_bsi", 0.0)
+            scan_data["meta"]["bsi_posterior"] = status.get("posterior_bsi", 0.0)
+            scan_data["meta"]["bsi_combined"] = status.get("combined_bsi", 0.0)
             
-            # Add BSI info to meta
-            if "meta" not in scan_data:
-                scan_data["meta"] = {}
-            
-            scan_data["meta"]["has_bsi"] = status.get("has_quantification", False)
-            
-            if status.get("has_quantification", False):
-                scan_data["meta"]["bsi_score"] = status.get("bsi_score", 0.0)
-                scan_data["meta"]["bsi_abnormal_count"] = status.get("total_abnormal_hotspots", 0)
-                scan_data["meta"]["bsi_summary"] = self.get_bsi_summary_for_display(scan_data, session_code)
-            
-            return scan_data
-            
-        except Exception as e:
-            _log(f"[BSI INTEGRATION] Error updating scan meta with BSI: {e}")
-            return scan_data
+            print(f"[BSI META DEBUG] Set meta - anterior: {scan_data['meta']['bsi_anterior']}")
+            print(f"[BSI META DEBUG] Set meta - posterior: {scan_data['meta']['bsi_posterior']}")
+        return scan_data
 
 
 # Global integration instance

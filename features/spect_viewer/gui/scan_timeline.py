@@ -128,10 +128,10 @@ class ScanTimelineWidget(QWidget):
         
         # Layer opacity settings
         self._layer_opacities = {
-            "Original": 1.0,
-            "Segmentation": 0.35,
-            "Hotspot": 0.5,           # ✅ Classification mask only
-            "HotspotBBox": 1.0        # ✅ Classification XML only
+            "Image": 1.0,
+            "Segmentation": 0.4,      # Updated to 40%
+            "Hotspot": 0.5,           # Already correct at 50%
+            "HotspotBBox": 1.0
         }
         
         # Session code for path resolution
@@ -218,36 +218,53 @@ class ScanTimelineWidget(QWidget):
             print(f"[WARN] View '{view_name}' not found in adjustments. Cannot set contrast.")
 
     def _load_original_image(self, dicom_path: Path, filename_with_date: str, view_name: str, frame_map: dict) -> Optional[Image.Image]:
-        """Load original DICOM image for the specified view"""
+        """Load original PNG image for the specified view"""
         try:
-            # Get the frame for the current view
-            # ✅ FIX: Use the capitalized view_name for the lookup
-            if view_name in frame_map:
-                frame_data = frame_map[view_name]
-            else:
-                print(f"[DEBUG] View {view_name} not found in frame_map, using first available")
-                frame_data = next(iter(frame_map.values())) if frame_map else None
+            # ✅ NEW: Load from PNG file instead of DICOM frames
+            view_normalized = view_name.lower()  # "anterior" atau "posterior"
             
-            # Convert numpy array to PIL Image
-            if isinstance(frame_data, np.ndarray):
-                # Normalize to uint8
-                if frame_data.dtype != np.uint8:
-                    frame_norm = (frame_data - frame_data.min()) / max(frame_data.max() - frame_data.min(), 1)
-                    frame_uint8 = (frame_norm * 255).astype(np.uint8)
-                else:
-                    frame_uint8 = frame_data.copy()
+            # Construct PNG filename: patient_studydate_view_original.png
+            png_filename = f"{filename_with_date}_{view_normalized}_original.png"
+            png_path = dicom_path.parent / png_filename
+            
+            print(f"[DEBUG] Looking for original PNG: {png_path}")
+            
+            if png_path.exists():
+                # Load PNG directly
+                original_image = Image.open(png_path)
                 
-                # Convert to PIL Image
-                original_image = Image.fromarray(frame_uint8, 'L')  # 'L' for grayscale
-                print(f"[DEBUG] Loaded original image: {original_image.size}, mode: {original_image.mode}")
+                # Convert to grayscale if needed
+                if original_image.mode != 'L':
+                    original_image = original_image.convert('L')
+                
+                print(f"[DEBUG] Loaded original PNG: {original_image.size}, mode: {original_image.mode}")
                 return original_image
             else:
-                print(f"[DEBUG] Invalid frame data type: {type(frame_data)}")
+                print(f"[DEBUG] Original PNG not found: {png_path}")
+                
+                # ✅ FALLBACK: Try to load from DICOM frames if PNG not available
+                if view_name in frame_map:
+                    frame_data = frame_map[view_name]
+                    if isinstance(frame_data, np.ndarray):
+                        # Normalize to uint8
+                        if frame_data.dtype != np.uint8:
+                            frame_norm = (frame_data - frame_data.min()) / max(frame_data.max() - frame_data.min(), 1)
+                            frame_uint8 = (frame_norm * 255).astype(np.uint8)
+                        else:
+                            frame_uint8 = frame_data.copy()
+                        
+                        # Convert to PIL Image
+                        original_image = Image.fromarray(frame_uint8, 'L')
+                        print(f"[DEBUG] Fallback: Loaded from DICOM frame: {original_image.size}")
+                        return original_image
+                
+                print(f"[DEBUG] No image source available for {view_name}")
                 return None
                 
         except Exception as e:
             print(f"[ERROR] Failed to load original image: {e}")
             return None
+        
     def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
         """✅ CORRECTED: Load segmentation layer if available"""
         try:
@@ -298,9 +315,9 @@ class ScanTimelineWidget(QWidget):
             classification_xml = dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml"
             
             if classification_xml.exists():
-                # Get dimensions from original image if available
-                if "Original" in layers:
-                    image_dimensions = layers["Original"].size
+                # ✅ FIX: Use "Image" instead of "Original"
+                if "Image" in layers:
+                    image_dimensions = layers["Image"].size
                     bbox_image = self._create_bbox_visualization_from_classification(classification_xml, image_dimensions)
                     if bbox_image:
                         layers["HotspotBBox"] = bbox_image
@@ -709,9 +726,22 @@ class ScanTimelineWidget(QWidget):
         # ✅ NEW: Include BSI in header
         bsi_text = ""
         if meta.get("has_bsi", False):
-            bsi_score = meta.get("bsi_score", 0.0)
+            # ✅ DEBUG: Print what's in meta
+            print(f"[BSI HEADER DEBUG] Meta keys: {list(meta.keys())}")
+            print(f"[BSI HEADER DEBUG] Current view: {self.current_view}")
+            print(f"[BSI HEADER DEBUG] has_bsi: {meta.get('has_bsi', False)}")
+            print(f"[BSI HEADER DEBUG] bsi_anterior: {meta.get('bsi_anterior', 'NOT_FOUND')}")
+            print(f"[BSI HEADER DEBUG] bsi_posterior: {meta.get('bsi_posterior', 'NOT_FOUND')}")
+            
+            if self.current_view == "Anterior":
+                bsi_score = meta.get("bsi_anterior", 0.0)  # ✅ ANTERIOR BSI
+                print(f"[BSI HEADER DEBUG] Using anterior BSI: {bsi_score}")
+            else:  # Posterior
+                bsi_score = meta.get("bsi_posterior", 0.0)   # ✅ POSTERIOR BSI
+                print(f"[BSI HEADER DEBUG] Using posterior BSI: {bsi_score}")
             bsi_text = f"<br><small>BSI: {bsi_score:.1f}</small>"
-
+        else:
+            print(f"[BSI HEADER DEBUG] No BSI data found in meta")
         hbox = QHBoxLayout()
         
         # Header info with BSI
@@ -920,7 +950,7 @@ class ScanTimelineWidget(QWidget):
                     original_image, brightness, contrast
                 )
 
-            layers["Original"] = original_image
+            layers["Image"] = original_image
         
         self._load_segmentation_layer(layers, dicom_path, filename_with_date, view_normalized)
         self._load_hotspot_layer(layers, dicom_path, filename_with_date, view_normalized)
@@ -1051,15 +1081,13 @@ class ScanTimelineWidget(QWidget):
         print(f"[DEBUG] Legacy set_image_mode called with: {mode}")
         
         if mode == "Original":
-            self.set_active_layers(["Original"])
+            self.set_active_layers(["Image"])
         elif mode == "Segmentation":
-            self.set_active_layers(["Original", "Segmentation"])
+            self.set_active_layers(["Image", "Segmentation"])
         elif mode == "Hotspot":
-            self.set_active_layers(["Original", "Hotspot"])  # ✅ Classification mask only
+            self.set_active_layers(["Image", "Hotspot"])
         elif mode == "Both":
-            self.set_active_layers(["Original", "Segmentation", "Hotspot"])  # ✅ Classification mask only
-        else:
-            self.set_active_layers([])
+            self.set_active_layers(["Image", "Segmentation", "Hotspot"])
             
     def cleanup(self):
         """Cleanup resources"""

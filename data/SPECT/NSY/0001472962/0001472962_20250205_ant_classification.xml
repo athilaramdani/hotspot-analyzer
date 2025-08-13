@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation>
+  <folder>classification_results</folder>
+  <filename>0001472962_20250205_anterior_classification.png</filename>
+  <path>F:\projek dosen\prototype riset\hotspot-analyzer\data\SPECT\NSY\0001472962\0001472962_20250205_anterior_classification.png</path>
+  <source>
+    <database>Hotspot Classification Results</database>
+  </source>
+  <size>
+    <width>256</width>
+    <height>1024</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>176</xmin>
+      <ymin>125</ymin>
+      <xmax>191</xmax>
+      <ymax>140</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "scapula", "probability_normal": 0.015113532543182373, "probability_abnormal": 0.9848864674568176, "hotspot_pixels": 197, "hotspot_mm2": 1132.451633819643} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>128</xmin>
+      <ymin>93</ymin>
+      <xmax>140</xmax>
+      <ymax>108</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "skull", "probability_normal": 0.03518509864807129, "probability_abnormal": 0.9648149013519287, "hotspot_pixels": 109, "hotspot_mm2": 626.5849141438632} -->
+  </object>
+  <object>
+    <name>Abnormal</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>129</xmin>
+      <ymin>79</ymin>
+      <xmax>140</xmax>
+      <ymax>92</ymax>
+    </bndbox>
+    <!-- Classification data: {"segment": "skull", "probability_normal": 0.016288459300994873, "probability_abnormal": 0.9837115406990051, "hotspot_pixels": 87, "hotspot_mm2": 500.11823422491847} -->
+  </object>
+</annotation>

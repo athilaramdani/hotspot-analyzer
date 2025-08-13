@@ -1,0 +1,104 @@
+{
+  "patient_info": {
+    "filename_stem": "0001619001_20250507",
+    "view": "posterior",
+    "total_hotspots": 1
+  },
+  "hotspots": [
+    {
+      "id": 0,
+      "prediction": "Normal",
+      "probability_normal": 0.8459367156028748,
+      "probability_abnormal": 0.15406326949596405,
+      "coordinates": [
+        [
+          183,
+          83
+        ],
+        [
+          184,
+          83
+        ],
+        [
+          185,
+          83
+        ],
+        [
+          186,
+          83
+        ],
+        [
+          182,
+          84
+        ],
+        [
+          183,
+          84
+        ],
+        [
+          184,
+          84
+        ],
+        [
+          185,
+          84
+        ],
+        [
+          186,
+          84
+        ],
+        [
+          187,
+          84
+        ],
+        [
+          183,
+          85
+        ],
+        [
+          184,
+          85
+        ],
+        [
+          185,
+          85
+        ],
+        [
+          186,
+          85
+        ],
+        [
+          184,
+          86
+        ],
+        [
+          185,
+          86
+        ],
+        [
+          186,
+          86
+        ],
+        [
+          185,
+          87
+        ]
+      ],
+      "segment": "scapula",
+      "bounding_box": {
+        "xmin": 76,
+        "ymin": 175,
+        "xmax": 91,
+        "ymax": 191
+      },
+      "area_measurements": {
+        "hotspot_pixels": 18,
+        "hotspot_mm2": 103.47273811550036,
+        "segment_pixels": 2869,
+        "segment_mm2": 16492.404758520584,
+        "ratio_pixels": 0.006273963053328686,
+        "ratio_mm2": 0.0062739630533286865
+      }
+    }
+  ]
+}

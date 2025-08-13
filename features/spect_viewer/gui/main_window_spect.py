@@ -295,9 +295,14 @@ class MainWindowSpect(QMainWindow):
             # Get BSI information
             bsi_info = ""
             if meta.get("has_bsi", False):
-                bsi_score = meta.get("bsi_score", 0.0)
-                bsi_info = f"<br>BSI: {bsi_score:.1f}%"
-            
+                # ✅ FIX: Use combined_bsi instead of bsi_score
+                bsi_combined = meta.get("bsi_combined", 0.0)
+                bsi_anterior = meta.get("bsi_anterior", 0.0)
+                bsi_posterior = meta.get("bsi_posterior", 0.0)
+                
+                # ✅ Show combined BSI in main window
+                bsi_info = f"<br>BSI Combined: {bsi_combined:.1f}<br>Ant: {bsi_anterior:.1f} | Post: {bsi_posterior:.1f}"
+
             # ✅ FIX: Replace self.current_view with static text
             info_text = f"""
             <b>Scan {scan_num}/{total_scans}</b><br>
@@ -775,9 +780,14 @@ class MainWindowSpect(QMainWindow):
         print(f"[DEBUG] Timeline scan selected signal received: {scan_index}")
         
         # Update scan buttons to reflect selection
-        for i, btn in enumerate(self.scan_buttons):
-            btn.setChecked(i == scan_index)
+        print(f"[DEBUG] Timeline scan selected signal received: {scan_index}")
         
+        # ✅ FIXED: Block signals to prevent recursive updates
+        for i, btn in enumerate(self.scan_buttons):
+            btn.blockSignals(True)
+            btn.setChecked(i == scan_index)
+            btn.blockSignals(False)
+            
         # ✅ NEW: Update BSI panel with selected scan data
         try:
             patient_id, session_code = self._get_current_patient_info()
@@ -885,8 +895,14 @@ class MainWindowSpect(QMainWindow):
 
     # UPDATED: Enhanced scan button click handler for checkbox system
     def _on_scan_button_clicked(self, index: int) -> None:
-        """✅ ENHANCED: Handle scan button click with proper BSI integration"""
+        """✅ FIXED: Handle scan button click with proper synchronization"""
         print(f"[DEBUG] Scan button {index + 1} clicked")
+        
+        # ✅ FIXED: Block signals to prevent lag and sync issues
+        for i, btn in enumerate(self.scan_buttons):
+            btn.blockSignals(True)
+            btn.setChecked(i == index)
+            btn.blockSignals(False)
         
         # Get current active layers and sync timeline settings
         active_layers = self.mode_selector.get_active_layers()
@@ -923,6 +939,10 @@ class MainWindowSpect(QMainWindow):
 
         # Update BSI panel with selected scan
         self._load_bsi_for_scan(selected_scan, session_code)
+    
+        # ✅ NEW: Sync BSI panel scan selection without signal loop
+        if hasattr(self, 'bsi_panel') and hasattr(self.bsi_panel, 'select_scan_by_index'):
+            self.bsi_panel.select_scan_by_index(index)
         
         print(f"[DEBUG] Displaying {len(scans)} scans in timeline with layers: {active_layers}")
         self._update_scan_info_display()
@@ -946,8 +966,8 @@ class MainWindowSpect(QMainWindow):
 
     def set_default_layers(self):
         """Set default layer configuration (Image only)"""
-        print("[DEBUG] Setting default layers: 'Image' checkbox should now be ON.") # Add this line
-        self.mode_selector.set_layer_active("Image", True) 
+        print("[DEBUG] Setting default layers: 'Image' checkbox should now be ON.")
+        self.mode_selector.set_layer_active("Image", True)
             
     def get_current_layer_status(self) -> dict:
         """Get current layer status for debugging/logging"""
@@ -968,12 +988,12 @@ class MainWindowSpect(QMainWindow):
         
         # Convert old mode to layer selections
         if mode == "Original":
-            self.mode_selector.set_layer_active("Original", True)
+            self.mode_selector.set_layer_active("Image", True)
         elif mode == "Segmentation":
-            self.mode_selector.set_layer_active("Original", True)
+            self.mode_selector.set_layer_active("Image", True)
             self.mode_selector.set_layer_active("Segmentation", True)
         elif mode == "Hotspot":
-            self.mode_selector.set_layer_active("Original", True)
+            self.mode_selector.set_layer_active("Image", True)
             self.mode_selector.set_layer_active("Hotspot", True)
         elif mode == "Both":
             self.mode_selector.set_layer_active("All", True)
@@ -1269,6 +1289,20 @@ class MainWindowSpect(QMainWindow):
                     
                     print(f"[DEBUG] Available files: {', '.join(files_status) if files_status else 'None'}")
                     
+                    # ✅ TAMBAHKAN KODE DEBUG PNG DI SINI
+                    # Debug: Check if original PNG files exist
+                    patient_folder = scan_data["path"].parent
+                    anterior_png = patient_folder / f"{filename_stem}_anterior_original.png"
+                    posterior_png = patient_folder / f"{filename_stem}_posterior_original.png"
+                    
+                    png_status = []
+                    if anterior_png.exists():
+                        png_status.append("Anterior-PNG")
+                    if posterior_png.exists():
+                        png_status.append("Posterior-PNG")
+                        
+                    print(f"[DEBUG] Available PNG files for {filename_stem}: {', '.join(png_status) if png_status else 'None'}")
+                    
                 except Exception as e:
                     print(f"[WARN] Could not check files for scan: {e}")
             
@@ -1305,7 +1339,7 @@ class MainWindowSpect(QMainWindow):
             # This directly tells the viewer what layer to display for the initial load,
             # bypassing any potential state conflicts.
             # Note: If you renamed "Original" to "Image", change the string below.
-            default_layers_for_display = ['Original']
+            default_layers_for_display = ['Image']
             self.timeline_widget.set_active_layers(default_layers_for_display)
 
             # Also sync opacity settings to ensure consistency.
