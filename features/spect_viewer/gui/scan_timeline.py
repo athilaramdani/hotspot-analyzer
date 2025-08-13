@@ -34,7 +34,9 @@ from core.utils.image_converter import (
 
 # Import for patient/session extraction from path
 from features.dicom_import.logic.dicom_loader import extract_patient_info_from_path
-from ..logic.image_inverter import invert_image_colors
+# ✅ FIXED: Import updated image inverter functions
+from ..logic.image_inverter import invert_image_colors, simple_invert_pil_image
+
 from .segmentation_editor_dialog import SegmentationEditorDialog
 from .hotspot_editor_dialog import HotspotEditorDialog
 from pydicom import dcmread
@@ -48,7 +50,6 @@ from core.gui.ui_constants import (
 
 # Import BSI integration
 from features.spect_viewer.logic.bsi_timeline_integration import get_bsi_integration
-
 
 # --------------------------- helpers -----------------------------------------
 def _array_to_pixmap(arr: np.ndarray, width: int) -> QPixmap:
@@ -145,9 +146,99 @@ class ScanTimelineWidget(QWidget):
 
         main_layout.addWidget(self.scroll_area)
 
+    def _load_original_image(self, dicom_path: Path, filename_with_date: str, view_normalized: str, frame_map: dict) -> Optional[Image.Image]:
+        """Load original DICOM image for the specified view"""
+        try:
+            # Get the frame for the current view
+            if view_normalized in frame_map:
+                frame_data = frame_map[view_normalized]
+            else:
+                print(f"[DEBUG] View {view_normalized} not found in frame_map, using first available")
+                frame_data = next(iter(frame_map.values())) if frame_map else None
+            
+            if frame_data is None:
+                print(f"[DEBUG] No frame data available for view {view_normalized}")
+                return None
+            
+            # Convert numpy array to PIL Image
+            if isinstance(frame_data, np.ndarray):
+                # Normalize to uint8
+                if frame_data.dtype != np.uint8:
+                    frame_norm = (frame_data - frame_data.min()) / max(frame_data.max() - frame_data.min(), 1)
+                    frame_uint8 = (frame_norm * 255).astype(np.uint8)
+                else:
+                    frame_uint8 = frame_data.copy()
+                
+                # Convert to PIL Image
+                original_image = Image.fromarray(frame_uint8, 'L')  # 'L' for grayscale
+                print(f"[DEBUG] Loaded original image: {original_image.size}, mode: {original_image.mode}")
+                return original_image
+            else:
+                print(f"[DEBUG] Invalid frame data type: {type(frame_data)}")
+                return None
+                
+        except Exception as e:
+            print(f"[ERROR] Failed to load original image: {e}")
+            return None
+    def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
+        """Load segmentation layer if available"""
+        try:
+            # Check for segmentation files
+            seg_files = get_segmentation_files_with_edited(dicom_path.parent, filename_with_date, view_normalized)
+            
+            if seg_files and seg_files.get('best_mask'):
+                seg_image = load_image_with_transparency(seg_files['best_mask'])
+                if seg_image:
+                    layers["Segmentation"] = seg_image
+                    print(f"[DEBUG] Loaded segmentation layer from: {seg_files['best_mask'].name}")
+            else:
+                print(f"[DEBUG] No segmentation files found for {filename_with_date}_{view_normalized}")
+                
+        except Exception as e:
+            print(f"[ERROR] Failed to load segmentation layer: {e}")
+
+    def _load_hotspot_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
+        """Load hotspot layer (classification mask) if available"""
+        try:
+            # Check for classification mask file
+            classification_mask = dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png"
+            
+            if classification_mask.exists():
+                hotspot_image = load_image_with_transparency(classification_mask)
+                if hotspot_image:
+                    layers["Hotspot"] = hotspot_image
+                    print(f"[DEBUG] Loaded hotspot layer from: {classification_mask.name}")
+            else:
+                print(f"[DEBUG] No hotspot classification mask found: {classification_mask.name}")
+                
+        except Exception as e:
+            print(f"[ERROR] Failed to load hotspot layer: {e}")
+
+    def _load_bbox_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
+        """Load bounding box layer (classification XML) if available"""
+        try:
+            # Check for classification XML file
+            view_short = "ant" if "ant" in view_normalized else "post"
+            classification_xml = dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml"
+            
+            if classification_xml.exists():
+                # Get dimensions from original image if available
+                if "Original" in layers:
+                    image_dimensions = layers["Original"].size
+                    bbox_image = self._create_bbox_visualization_from_classification(classification_xml, image_dimensions)
+                    if bbox_image:
+                        layers["HotspotBBox"] = bbox_image
+                        print(f"[DEBUG] Loaded bbox layer from: {classification_xml.name}")
+            else:
+                print(f"[DEBUG] No classification XML found: {classification_xml.name}")
+                
+        except Exception as e:
+            print(f"[ERROR] Failed to load bbox layer: {e}")
+    
     def set_invert_original(self, inverted: bool):
         """✅ OPTIMIZED: Set invert status with change detection"""
         print(f"[DEBUG] set_invert_original called: {inverted} (current: {self.invert_original})")
+        print(f"[DEBUG] Change detection: old={self.invert_original}, new={inverted}, changed={self.invert_original != inverted}")
         
         # Only rebuild if state actually changed
         if self.invert_original != inverted:
@@ -159,12 +250,12 @@ class ScanTimelineWidget(QWidget):
             
             # Clear image cache if it exists (invert affects caching)
             if hasattr(self, '_image_cache'):
-                print(f"[DEBUG] Clearing image cache due to invert change")
                 self._image_cache.clear()
+                print(f"[DEBUG] Cleared image cache due to invert change")
             
-            # Rebuild only if we have scans loaded
+            # Force rebuild if we have scans loaded
             if self._scans_cache:
-                print(f"[DEBUG] Rebuilding timeline for invert change...")
+                print(f"[DEBUG] Forcing timeline rebuild for invert change...")
                 self._rebuild()
             else:
                 print(f"[DEBUG] No scans loaded, rebuild skipped")
@@ -749,6 +840,10 @@ class ScanTimelineWidget(QWidget):
         # Load original image
         original_image = self._load_original_image(dicom_path, filename_with_date, view_normalized, frame_map)
         if original_image:
+            # Apply inversion if requested
+            if self.invert_original:
+                print(f"[DEBUG] Applying inversion to original image (invert_original={self.invert_original})")
+                original_image = simple_invert_pil_image(original_image)
             layers["Original"] = original_image
         
         # Load other layers (unchanged)

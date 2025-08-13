@@ -255,14 +255,23 @@ class MainWindowSpect(QMainWindow):
             """)
 
     def _update_edit_button_states(self):
-        """Memperbarui status tombol edit berdasarkan layer aktif di timeline."""
-        has_segmentation = self.timeline_widget.is_layer_active("Segmentation")
-        has_hotspot = self.timeline_widget.is_layer_active("Hotspot")
+        """Update edit button states based on data availability (not layer activation)"""
+        
+        # Check if we have any scan loaded
         has_scan = bool(self.timeline_widget._scans_cache)
         
-        self.seg_edit_btn.setEnabled(has_segmentation and has_scan)
-        self.hotspot_edit_btn.setEnabled(has_hotspot and has_scan)
-
+        # Check if segmentation/hotspot DATA exists (not if layers are active)
+        has_segmentation_data = self.timeline_widget.has_layer_data("Segmentation") if has_scan else False
+        has_hotspot_data = self.timeline_widget.has_layer_data("Hotspot") if has_scan else False
+        
+        # Enable buttons based on data availability, not layer activation
+        self.seg_edit_btn.setEnabled(has_segmentation_data and has_scan)
+        self.hotspot_edit_btn.setEnabled(has_hotspot_data and has_scan)
+        
+        # Debug output
+        print(f"[EDIT BUTTONS] Has scan: {has_scan}, Has seg data: {has_segmentation_data}, Has hotspot data: {has_hotspot_data}")
+        print(f"[EDIT BUTTONS] Seg button enabled: {self.seg_edit_btn.isEnabled()}, Hotspot button enabled: {self.hotspot_edit_btn.isEnabled()}")
+        
     def _update_scan_info_display(self):
         """✅ FIXED: Update scan information with BSI data"""
         if not self.timeline_widget._scans_cache or self.timeline_widget.active_scan_index < 0:
@@ -349,39 +358,39 @@ class MainWindowSpect(QMainWindow):
     def _on_invert_changed(self, state: int):
         """Enhanced debugging for checkbox state changes"""
         print(f"[DEBUG] === INVERT CHECKBOX CHANGED ===")
-        print(f"[DEBUG] Checkbox state value: {state}")
-        print(f"[DEBUG] Qt.Checked constant: {Qt.Checked}")
-        print(f"[DEBUG] Qt.Unchecked constant: {Qt.Unchecked}")
-        print(f"[DEBUG] Is checked: {state == Qt.Checked}")
+        
+        # Use the checkbox's own isChecked() method - most reliable
+        actual_checked = self.invert_checkbox.isChecked()
+        
+        print(f"[DEBUG] Checkbox state: {state}, isChecked(): {actual_checked}")
         
         # Update the flag
         old_invert = self.invert_original
-        self.invert_original = (state == Qt.Checked)
+        self.invert_original = actual_checked
         
         print(f"[DEBUG] Invert flag changed: {old_invert} -> {self.invert_original}")
         
-        # Check if timeline widget exists and is ready
+        # Call timeline method
         if hasattr(self, 'timeline_widget') and self.timeline_widget is not None:
-            print(f"[DEBUG] Timeline widget is available, calling set_invert_original({self.invert_original})")
-            
-            # Call the timeline method
+            print(f"[DEBUG] Calling timeline_widget.set_invert_original({self.invert_original})")
             self.timeline_widget.set_invert_original(self.invert_original)
-            
             print(f"[DEBUG] ✅ Timeline invert method called successfully")
         else:
-            print(f"[DEBUG] ❌ Timeline widget not available!")
-            if hasattr(self, 'timeline_widget'):
-                print(f"[DEBUG] timeline_widget exists but is None: {self.timeline_widget is None}")
-            else:
-                print(f"[DEBUG] timeline_widget attribute doesn't exist")
+            print(f"[DEBUG] ❌ Timeline widget not ready!")
 
     # Add this to the end of your _build_ui method or call it after window is shown
     def test_checkbox_connection(self):
-        print(f"[TEST] Manual checkbox test...")
+        """Test method to verify invert connection works"""
+        print(f"[TEST] Testing invert connection...")
+        print(f"[TEST] Timeline widget exists: {hasattr(self, 'timeline_widget')}")
+        print(f"[TEST] Checkbox exists: {hasattr(self, 'invert_checkbox')}")
+        
         if hasattr(self, 'invert_checkbox'):
             print(f"[TEST] Current checkbox state: {self.invert_checkbox.isChecked()}")
-            self.invert_checkbox.setChecked(True)  # This should trigger _on_invert_changed
-            print(f"[TEST] Set checkbox to True")
+            # Manually trigger the signal
+            current_state = self.invert_checkbox.isChecked()
+            self.invert_checkbox.setChecked(not current_state)
+            print(f"[TEST] Toggled checkbox to: {not current_state}")
                 
     def _build_ui(self) -> None:
         # --- Top Bar ---
@@ -577,6 +586,9 @@ class MainWindowSpect(QMainWindow):
         main_layout.addWidget(main_splitter, stretch=1)
         self.setCentralWidget(main_widget)
         self.complete_initialization_setup()
+
+        QTimer.singleShot(1000, self.test_checkbox_connection)
+        
     def debug_timeline_status(self):
         """Debug method untuk cek status timeline"""
         if hasattr(self, 'timeline_widget'):
