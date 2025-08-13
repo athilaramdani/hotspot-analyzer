@@ -1,4 +1,4 @@
-# features/spect_viewer/gui/side_panel.py - UPDATED for V1.2 with new table format
+# features/spect_viewer/gui/side_panel.py - FIXED for Single View Support
 
 from pathlib import Path
 from typing import Dict, Any, List
@@ -7,7 +7,7 @@ from datetime import datetime
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QScrollArea,
-    QTableWidget, QTableWidgetItem, QAbstractItemView, QCheckBox  # ✅ ADD QCheckBox
+    QTableWidget, QTableWidgetItem, QAbstractItemView, QCheckBox
 )
 from PySide6.QtGui import QColor
 
@@ -31,6 +31,9 @@ ACTIVE_BUTTON_STYLE = """
 """
 
 class BSISidePanel(QWidget):
+    """
+    ✅ FIXED: BSI Side Panel that supports single view quantification
+    """
     export_requested = Signal(str)
     analysis_requested = Signal()
     scan_selected = Signal(str)
@@ -59,20 +62,20 @@ class BSISidePanel(QWidget):
         self._create_title_section(content_layout)
         self.bsi_canvas = BSICanvas()
         content_layout.addWidget(self.bsi_canvas)
-        self._create_chart_controls_section(content_layout)  # ✅ NEW: Add chart controls
+        self._create_chart_controls_section(content_layout)
         content_layout.addWidget(self._create_scan_selection_section())
-        content_layout.addWidget(self._create_results_table_v2())  # ✅ MISSING: Add results table
-        content_layout.addWidget(self._create_controls_section())  # ✅ MISSING: Add controls section
+        content_layout.addWidget(self._create_results_table_v2())
+        content_layout.addWidget(self._create_controls_section())
         content_layout.addStretch()
         main_panel_layout.addWidget(scroll_area)
 
     def _on_chart_visibility_changed(self):
-        """✅ NEW: Handle chart visibility checkbox changes"""
+        """Handle chart visibility checkbox changes"""
         anterior_visible = self.anterior_checkbox.isChecked()
         posterior_visible = self.posterior_checkbox.isChecked()
         combined_visible = self.combined_checkbox.isChecked()
         
-        print(f"[BSI CHART] Visibility changed: Ant={anterior_visible}, Post={posterior_visible}, Combined={combined_visible}")
+        print(f"[BSI CHART SINGLE] Visibility changed: Ant={anterior_visible}, Post={posterior_visible}, Combined={combined_visible}")
         
         # Update chart visibility
         self.bsi_canvas.set_line_visibility(anterior_visible, posterior_visible, combined_visible)
@@ -88,8 +91,9 @@ class BSISidePanel(QWidget):
         self.patient_info_label.setStyleSheet("font-size: 11px; color: #6c757d; font-style: italic;")
         title_layout.addWidget(self.patient_info_label)
         layout.addWidget(title_frame)
+        
     def _create_chart_controls_section(self, layout):
-        """✅ NEW: Create checkbox controls for BSI chart lines"""
+        """Create checkbox controls for BSI chart lines"""
         controls_frame = QFrame()
         controls_frame.setStyleSheet("background: #f0f8ff; border: 1px solid #cce7ff; border-radius: 4px; padding: 8px; margin: 4px 0px;")
         controls_layout = QVBoxLayout(controls_frame)
@@ -102,21 +106,21 @@ class BSISidePanel(QWidget):
         # Checkboxes layout
         checkboxes_layout = QHBoxLayout()
         
-        # ✅ Anterior checkbox
+        # Anterior checkbox
         self.anterior_checkbox = QCheckBox("Anterior")
         self.anterior_checkbox.setChecked(True)
         self.anterior_checkbox.setStyleSheet("color: #ff6b6b; font-weight: bold;")
         self.anterior_checkbox.stateChanged.connect(self._on_chart_visibility_changed)
         checkboxes_layout.addWidget(self.anterior_checkbox)
         
-        # ✅ Posterior checkbox
+        # Posterior checkbox
         self.posterior_checkbox = QCheckBox("Posterior")
         self.posterior_checkbox.setChecked(True)
         self.posterior_checkbox.setStyleSheet("color: #4ecdc4; font-weight: bold;")
         self.posterior_checkbox.stateChanged.connect(self._on_chart_visibility_changed)
         checkboxes_layout.addWidget(self.posterior_checkbox)
         
-        # ✅ Combined checkbox
+        # Combined checkbox
         self.combined_checkbox = QCheckBox("Combined")
         self.combined_checkbox.setChecked(True)
         self.combined_checkbox.setStyleSheet("color: #007bff; font-weight: bold;")
@@ -126,6 +130,7 @@ class BSISidePanel(QWidget):
         checkboxes_layout.addStretch()
         controls_layout.addLayout(checkboxes_layout)
         layout.addWidget(controls_frame)
+        
     def _create_scan_selection_section(self) -> QWidget:
         section_widget = QFrame()
         section_widget.setStyleSheet("padding: 8px 0px;")
@@ -138,7 +143,7 @@ class BSISidePanel(QWidget):
         return section_widget
 
     def _create_results_table_v2(self) -> QWidget:
-        """✅ FIXED: V1.2 table format with resizable columns"""
+        """✅ FIXED: V1.2 table format with support for single view data"""
         table_container = QFrame()
         table_layout = QVBoxLayout(table_container)
         table_layout.setContentsMargins(0, 0, 0, 0)
@@ -148,7 +153,7 @@ class BSISidePanel(QWidget):
         table_title.setStyleSheet("font-size: 12px; color: #495057; font-weight: bold; margin-bottom: 8px;")
         table_layout.addWidget(table_title)
         
-        # ✅ NEW: V1.2 table structure
+        # ✅ V1.2 table structure
         self.results_table = QTableWidget()
         self.results_table.setColumnCount(5)
         self.results_table.setHorizontalHeaderLabels([
@@ -161,34 +166,32 @@ class BSISidePanel(QWidget):
         self.results_table.setAlternatingRowColors(True)
         self.results_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         
-        # ✅ FIXED: Enable user column resizing
+        # Enable user column resizing
         header = self.results_table.horizontalHeader()
-        
-        # ✅ Allow all columns to be resized by user
         header.setSectionResizeMode(header.ResizeMode.Interactive)
         
-        # ✅ Set initial column widths (user can adjust)
+        # Set initial column widths (user can adjust)
         self.results_table.setColumnWidth(0, 200)  # Region name
         self.results_table.setColumnWidth(1, 120)  # Benign Ant
         self.results_table.setColumnWidth(2, 120)  # Benign Post  
         self.results_table.setColumnWidth(3, 130)  # Malignant Ant
         self.results_table.setColumnWidth(4, 130)  # Malignant Post
         
-        # ✅ OPTIONAL: Set minimum column widths to prevent too narrow
+        # Set minimum column widths to prevent too narrow
         for col in range(5):
             header.setMinimumSectionSize(80)  # Minimum 80px per column
         
-        # ✅ Enable horizontal scrollbar when needed
+        # Enable horizontal scrollbar when needed
         from PySide6.QtWidgets import QSizePolicy
         self.results_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.results_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         
-        # ✅ OPTIONAL: Enable sorting by clicking headers
+        # Enable sorting by clicking headers
         self.results_table.setSortingEnabled(True)
         
         table_layout.addWidget(self.results_table)
         
-        # ✅ Add note about format
+        # Add note about format
         note_label = QLabel("<i>Format: pixel_count (decimal_ratio) - Data per pixel • Drag column borders to resize</i>")
         note_label.setStyleSheet("font-size: 10px; color: #6c757d; font-style: italic; margin-top: 4px;")
         table_layout.addWidget(note_label)
@@ -199,7 +202,7 @@ class BSISidePanel(QWidget):
         controls_frame = QFrame()
         controls_frame.setStyleSheet("background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; padding: 8px;")
         controls_layout = QVBoxLayout(controls_frame)
-        controls_header = QLabel("<b>Export & Actions (V1.2)</b>")
+        controls_header = QLabel("<b>Export & Actions</b>")
         controls_header.setStyleSheet("font-size: 12px; color: #495057; font-weight: bold; margin-bottom: 8px;")
         controls_layout.addWidget(controls_header)
         buttons_layout = QHBoxLayout()
@@ -219,20 +222,20 @@ class BSISidePanel(QWidget):
         return controls_frame
 
     def load_patient_data(self, patient_folder: Path, patient_id: str, study_date: str) -> bool:
-        """✅ UPDATED: Load V1.2 patient data"""
+        """✅ FIXED: Load patient data with single view support"""
         try:
-            print(f"[BSI PANEL V1.2] Loading patient data:")
-            print(f"[BSI PANEL V1.2]   Patient folder: {patient_folder}")
-            print(f"[BSI PANEL V1.2]   Patient ID: {patient_id}")
-            print(f"[BSI PANEL V1.2]   Study date: {study_date}")
+            print(f"[BSI PANEL] Loading patient data:")
+            print(f"[BSI PANEL]   Patient folder: {patient_folder}")
+            print(f"[BSI PANEL]   Patient ID: {patient_id}")
+            print(f"[BSI PANEL]   Study date: {study_date}")
             
             self.current_patient_folder = patient_folder
             self.current_patient_id = patient_id
             
-            # Load V1.2 BSI data
+            # Load BSI data (supports single view)
             self.bsi_canvas.load_bsi_data(patient_folder, patient_id, study_date)
             
-            # Load all V1.2 scans
+            # Load all scans (supports single view)
             all_scans = self.quant_manager.load_all_quantification_scores(patient_folder, patient_id)
             
             if all_scans:
@@ -244,58 +247,69 @@ class BSISidePanel(QWidget):
             else:
                 self._populate_scan_buttons([])
                 self.results_table.setRowCount(0)
-                self._update_patient_info(patient_id, "No V1.2 Scans Found")
+                self._update_patient_info(patient_id, "No Scans Found")
                 self._update_button_states(False)
             return True
             
         except Exception as e:
-            print(f"[BSI SIDE PANEL V1.2] Error loading patient data: {e}")
+            print(f"[BSI SIDE PANEL] Error loading patient data: {e}")
             self.clear_patient_data()
             return False
 
     def _populate_scan_buttons(self, all_scans: list):
-        """Populate scan selection buttons"""
+        """✅ UPDATED: Populate scan selection buttons without mode indicators"""
         for btn in self.scan_buttons:
             self.scan_buttons_layout.removeWidget(btn)
             btn.deleteLater()
         self.scan_buttons.clear()
         
         for i, scan_data in enumerate(all_scans):
+            # ✅ FIXED: Simple scan button without mode indicator
             btn = QPushButton(f"Scan {i + 1}")
             btn.clicked.connect(lambda checked, b=btn, data=scan_data: self._on_scan_selected(b, data))
+            
+            # ✅ FIXED: Use standard button style without color coding
+            btn.setStyleSheet(INACTIVE_BUTTON_STYLE)
+            
             self.scan_buttons_layout.insertWidget(self.scan_buttons_layout.count() - 1, btn)
             self.scan_buttons.append(btn)
 
     def _on_scan_selected(self, clicked_button: QPushButton, scan_data: dict, emit_signal: bool = True):
-        """✅ UPDATED: Handle scan selection for V1.2"""
+        """✅ UPDATED: Handle scan selection with clean styling"""
+        # Update button styles
         for btn in self.scan_buttons:
-            btn.setStyleSheet(INACTIVE_BUTTON_STYLE if btn is not clicked_button else ACTIVE_BUTTON_STYLE)
+            if btn is clicked_button:
+                btn.setStyleSheet(ACTIVE_BUTTON_STYLE)
+            else:
+                # ✅ FIXED: Use standard inactive style for all buttons
+                btn.setStyleSheet(INACTIVE_BUTTON_STYLE)
         
         study_date = scan_data.get("study_date")
         if not study_date: 
             return
         
         self.current_study_date = study_date
-        self._update_patient_info(self.current_patient_id, self.current_study_date)
+        processing_mode = scan_data.get('processing_mode', 'unknown')
+        self._update_patient_info(self.current_patient_id, self.current_study_date, processing_mode)
         
-        # ✅ Load V1.2 combined results
+        # Load combined results (supports single view)
         quant_results = self.quant_manager.load_quantification_results(
             self.current_patient_folder, self.current_patient_id, study_date
         )
         
         if quant_results:
-            # ✅ Extract V1.2 data structure
-            anterior_data = quant_results.get('anterior_results', {}).get('bsi_results', {})
-            posterior_data = quant_results.get('posterior_results', {}).get('bsi_results', {})
-            self._populate_results_table_v2(anterior_data, posterior_data)
+            # Extract data structure (handles single view)
+            anterior_data = quant_results.get('anterior_results', {}).get('bsi_results', {}) if quant_results.get('anterior_results') else {}
+            posterior_data = quant_results.get('posterior_results', {}).get('bsi_results', {}) if quant_results.get('posterior_results') else {}
+            self._populate_results_table_v2(anterior_data, posterior_data, processing_mode)
         
         if emit_signal:
             self.scan_selected.emit(study_date)
 
     def select_scan_by_index(self, scan_index: int):
-        """✅ NEW: Select scan by index without emitting signals (called from main window)"""
+        """Select scan by index without emitting signals (called from main window)"""
         if 0 <= scan_index < len(self.scan_buttons):
-            print(f"[BSI PANEL] Selecting scan {scan_index + 1} from main window")
+            print(f"[BSI PANEL SINGLE] Selecting scan {scan_index + 1} from main window")
             # Get scan data
             all_scans = self.quant_manager.load_all_quantification_scores(
                 self.current_patient_folder, self.current_patient_id
@@ -306,8 +320,8 @@ class BSISidePanel(QWidget):
                 # Call without emitting signal to prevent loop
                 self._on_scan_selected(self.scan_buttons[scan_index], scan_data, emit_signal=False)
             
-    def _populate_results_table_v2(self, anterior_data: dict, posterior_data: dict):
-        # ✅ REVISED: Remove total columns, add total row calculation
+    def _populate_results_table_v2(self, anterior_data: dict, posterior_data: dict, processing_mode: str = "unknown"):
+        """✅ FIXED: Populate table with single view support and proper sorting"""
         if not anterior_data and not posterior_data:
             self.results_table.setRowCount(0)
             return
@@ -317,10 +331,10 @@ class BSISidePanel(QWidget):
         all_regions.discard('background')
         
         sorted_regions = sorted(all_regions)
-        # ✅ +1 for total row
+        # +1 for total row
         self.results_table.setRowCount(len(sorted_regions) + 1)
         
-        # ✅ Initialize totals for summary row
+        # Initialize totals for summary row
         total_ant_benign = 0
         total_post_benign = 0
         total_ant_malignant = 0
@@ -331,7 +345,7 @@ class BSISidePanel(QWidget):
             ant_data = anterior_data.get(region_name, {})
             post_data = posterior_data.get(region_name, {})
             
-            # ✅ Extract values with format: pixel_count (decimal_ratio)
+            # Extract values with format: pixel_count (decimal_ratio)
             ant_benign = ant_data.get('benign_pixels', 0)
             ant_benign_ratio = ant_data.get('benign_ratio', 0.0)
             post_benign = post_data.get('benign_pixels', 0)
@@ -342,64 +356,116 @@ class BSISidePanel(QWidget):
             post_malignant = post_data.get('malignant_pixels', 0)
             post_malignant_ratio = post_data.get('malignant_ratio', 0.0)
             
-            # ✅ Add to totals
+            # Add to totals
             total_ant_benign += ant_benign
             total_post_benign += post_benign
             total_ant_malignant += ant_malignant
             total_post_malignant += post_malignant
             
-            # ✅ Create table items with new format: "count (ratio)" - NO TOTAL COLUMNS
+            # Handle N/A for single view mode
+            if processing_mode == 'single_view_anterior':
+                post_benign_text = "N/A"
+                post_malignant_text = "N/A"
+            elif processing_mode == 'single_view_posterior':
+                ant_benign_text = "N/A"
+                ant_malignant_text = "N/A"
+            else:
+                # Dual view - show all data
+                post_benign_text = f"{post_benign} ({post_benign_ratio:.3f})"
+                post_malignant_text = f"{post_malignant} ({post_malignant_ratio:.3f})"
+                ant_benign_text = f"{ant_benign} ({ant_benign_ratio:.3f})"
+                ant_malignant_text = f"{ant_malignant} ({ant_malignant_ratio:.3f})"
+            
+            # Use appropriate text format
+            if processing_mode != 'single_view_posterior':
+                ant_benign_text = f"{ant_benign} ({ant_benign_ratio:.3f})"
+                ant_malignant_text = f"{ant_malignant} ({ant_malignant_ratio:.3f})"
+            if processing_mode != 'single_view_anterior':
+                post_benign_text = f"{post_benign} ({post_benign_ratio:.3f})"
+                post_malignant_text = f"{post_malignant} ({post_malignant_ratio:.3f})"
+            
+            # Create table items
             items = [
                 QTableWidgetItem(region_name.title()),
-                QTableWidgetItem(f"{ant_benign} ({ant_benign_ratio:.3f})"),      # Benign Ant
-                QTableWidgetItem(f"{post_benign} ({post_benign_ratio:.3f})"),    # Benign Post
-                QTableWidgetItem(f"{ant_malignant} ({ant_malignant_ratio:.3f})"), # Malignant Ant
-                QTableWidgetItem(f"{post_malignant} ({post_malignant_ratio:.3f})") # Malignant Post
+                QTableWidgetItem(ant_benign_text),
+                QTableWidgetItem(post_benign_text),
+                QTableWidgetItem(ant_malignant_text),
+                QTableWidgetItem(post_malignant_text)
             ]
             
-            # ✅ Set items in table
+            # Color coding for malignant values
             for col, item in enumerate(items):
-                # Color coding for malignant values
-                if col in [3, 4] and (ant_malignant > 0 or post_malignant > 0):
-                    if col == 3 and ant_malignant > 0:
+                if col in [3, 4]:  # Malignant columns
+                    if col == 3 and ant_malignant > 0 and processing_mode != 'single_view_posterior':
                         item.setBackground(QColor(255, 200, 200))
-                    elif col == 4 and post_malignant > 0:
+                    elif col == 4 and post_malignant > 0 and processing_mode != 'single_view_anterior':
                         item.setBackground(QColor(255, 200, 200))
+                    elif item.text() == "N/A":
+                        item.setBackground(QColor(240, 240, 240))  # Gray for N/A
                 
                 self.results_table.setItem(row, col, item)
         
-        # ✅ ADD TOTAL ROW at the bottom
+        # ✅ FIXED: ADD TOTAL ROW at the bottom (handles table sorting properly)
         total_row = len(sorted_regions)
-        total_items = [
-            QTableWidgetItem("TOTAL"),
-            QTableWidgetItem(str(total_ant_benign)),
-            QTableWidgetItem(str(total_post_benign)),
-            QTableWidgetItem(str(total_ant_malignant)),
-            QTableWidgetItem(str(total_post_malignant))
-        ]
         
-        # ✅ Style total row
+        # Handle totals for single view mode
+        if processing_mode == 'single_view_anterior':
+            total_items = [
+                QTableWidgetItem("TOTAL"),
+                QTableWidgetItem(str(total_ant_benign)),
+                QTableWidgetItem("N/A"),
+                QTableWidgetItem(str(total_ant_malignant)),
+                QTableWidgetItem("N/A")
+            ]
+        elif processing_mode == 'single_view_posterior':
+            total_items = [
+                QTableWidgetItem("TOTAL"),
+                QTableWidgetItem("N/A"),
+                QTableWidgetItem(str(total_post_benign)),
+                QTableWidgetItem("N/A"),
+                QTableWidgetItem(str(total_post_malignant))
+            ]
+        else:
+            total_items = [
+                QTableWidgetItem("TOTAL"),
+                QTableWidgetItem(str(total_ant_benign)),
+                QTableWidgetItem(str(total_post_benign)),
+                QTableWidgetItem(str(total_ant_malignant)),
+                QTableWidgetItem(str(total_post_malignant))
+            ]
+        
+        # ✅ FIXED: Set custom sort role to ensure TOTAL always stays at bottom
         for col, item in enumerate(total_items):
-            item.setBackground(QColor(230, 230, 230))  # Gray background
+            if item.text() == "N/A":
+                item.setBackground(QColor(220, 220, 220))  # Darker gray for N/A in totals
+            else:
+                item.setBackground(QColor(230, 230, 230))  # Gray background
             if col == 0:
                 # Use QFont for bold instead of setStyleSheet
                 from PySide6.QtGui import QFont
                 font = QFont()
                 font.setBold(True)
                 item.setFont(font)
+                # ✅ CRITICAL: Set custom sort role to keep TOTAL at bottom
+                item.setData(Qt.UserRole, "zzz_total")  # This ensures it sorts to the bottom
+            else:
+                # For numeric columns, set a very high sort value to keep at bottom
+                item.setData(Qt.UserRole, 999999)
             self.results_table.setItem(total_row, col, item)
 
-    def _update_patient_info(self, patient_id: str, study_date: str):
-        """Update patient info display"""
+    def _update_patient_info(self, patient_id: str, study_date: str, processing_mode: str = "unknown"):
+        """✅ UPDATED: Update patient info display without processing mode"""
         try:
             formatted_date = datetime.strptime(study_date, "%Y%m%d").strftime("%b %d, %Y")
         except (ValueError, TypeError):
             formatted_date = study_date or "N/A"
-        self.patient_info_label.setText(f"Patient: {patient_id} | Study: {formatted_date} | V1.2 Analysis")
+        
+        # ✅ FIXED: Clean patient info without processing mode indicators
+        self.patient_info_label.setText(f"Patient: {patient_id} | Study: {formatted_date} | BSI Analysis")
     
     def _update_button_states(self, has_data: bool):
         """Enable/disable control buttons"""
-        # ✅ SAFETY CHECK: Only update buttons if they exist
+        # SAFETY CHECK: Only update buttons if they exist
         if hasattr(self, 'export_chart_btn'):
             self.export_chart_btn.setEnabled(has_data)
         if hasattr(self, 'export_csv_btn'):
@@ -407,17 +473,17 @@ class BSISidePanel(QWidget):
         
     def clear_patient_data(self):
         """Clear all patient data from panel"""
-        print("[BSI SIDE PANEL V1.2] Clearing all patient data...")
+        print("[BSI SIDE PANEL] Clearing all patient data...")
         self.current_patient_folder = None
         self.current_patient_id = None
         self.current_study_date = None
         self.bsi_canvas.clear_data()
         
-        # ✅ SAFETY CHECK: Only clear table if it exists
+        # SAFETY CHECK: Only clear table if it exists
         if hasattr(self, 'results_table'):
             self.results_table.setRowCount(0)
         
-        self._update_patient_info("N/A", "N/A")
+        self._update_patient_info("N/A", "N/A", "unknown")
         for btn in self.scan_buttons:
             self.scan_buttons_layout.removeWidget(btn)
             btn.deleteLater()
@@ -431,23 +497,23 @@ class BSISidePanel(QWidget):
     def refresh_current_patient(self):
         """Refresh BSI panel for current patient"""
         if self.current_patient_folder and self.current_patient_id:
-            print(f"[BSI PANEL V1.2] Refreshing data for patient {self.current_patient_id}")
+            print(f"[BSI PANEL] Refreshing data for patient {self.current_patient_id}")
             success = self.load_patient_data(
                 self.current_patient_folder, 
                 self.current_patient_id, 
                 self.current_study_date or "latest"
             )
             if success:
-                print("[BSI PANEL V1.2] ✅ Refresh successful")
+                print("[BSI PANEL] ✅ Refresh successful")
             else:
-                print("[BSI PANEL V1.2] ❌ Refresh failed")
+                print("[BSI PANEL] ❌ Refresh failed")
         else:
-            print("[BSI PANEL V1.2] No patient data to refresh")
+            print("[BSI PANEL] No patient data to refresh")
     
     def _export_csv_data_v2(self):
-        """✅ NEW: Export V1.2 CSV data with new format"""
+        """✅ UPDATED: Export CSV data with single view support"""
         if not self.current_patient_id or not self.current_study_date:
-            print("[BSI EXPORT V1.2] No patient data to export")
+            print("[BSI EXPORT] No patient data to export")
             return
             
         try:
@@ -455,10 +521,10 @@ class BSISidePanel(QWidget):
             import csv
             
             # Get save location
-            filename = f"BSI_V1.2_Results_{self.current_patient_id}_{self.current_study_date}.csv"
+            filename = f"BSI_Results_{self.current_patient_id}_{self.current_study_date}.csv"
             file_path, _ = QFileDialog.getSaveFileName(
                 self, 
-                "Export V1.2 BSI Results to CSV", 
+                "Export BSI Results to CSV", 
                 filename,
                 "CSV Files (*.csv)"
             )
@@ -466,13 +532,20 @@ class BSISidePanel(QWidget):
             if not file_path:
                 return
                 
-            # Export V1.2 table data
+            # Export table data
             with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
                 writer = csv.writer(csvfile)
                 
-                # Write header with V1.2 format
-                writer.writerow(["BSI V1.2 Quantification Results"])
+                # Write header
+                writer.writerow(["BSI Quantification Results"])
                 writer.writerow([])
+                
+                # Add processing mode info if available
+                if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
+                    summary_stats = self.quant_manager.current_results.get('summary_statistics', {})
+                    processing_mode = summary_stats.get('processing_mode', 'unknown')
+                    writer.writerow(["Processing Mode", processing_mode])
+                    writer.writerow([])
                 
                 # Write table headers
                 headers = ["Region", "Benign Ant", "Benign Post", "Malignant Ant", "Malignant Post"]
@@ -492,67 +565,110 @@ class BSISidePanel(QWidget):
                 writer.writerow(["Patient ID", self.current_patient_id])
                 writer.writerow(["Study Date", datetime.strptime(self.current_study_date, "%Y%m%d").strftime("%Y-%m-%d")])
                 writer.writerow(["Export Date", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
-                writer.writerow(["Analysis Method", "BSI V1.2 Color-based Separate Views"])
+                writer.writerow(["Analysis Method", "BSI Color-based Separate Views"])
                 writer.writerow(["Data Format", "pixel_count (decimal_ratio) - per pixel"])
                 writer.writerow(["Note", "Benign = Normal hotspots, Malignant = Abnormal hotspots"])
-                writer.writerow(["Total Row", "Sum of all regions for each column"])
+                writer.writerow(["Total Row", "Sum of all regions for each column (N/A for unavailable views)"])
                                 
-                # ✅ Add V1.2 BSI scores summary
+                # Add BSI scores summary with single view support
                 if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
                     summary_stats = self.quant_manager.current_results.get('summary_statistics', {})
                     anterior_bsi = summary_stats.get('anterior_bsi', 0.0)
                     posterior_bsi = summary_stats.get('posterior_bsi', 0.0)
                     combined_bsi = summary_stats.get('combined_bsi', 0.0)
+                    processing_mode = summary_stats.get('processing_mode', 'unknown')
                     
                     writer.writerow([])
-                    writer.writerow(["BSI V1.2 Summary"])
-                    writer.writerow(["Anterior BSI (%)", f"{anterior_bsi:.2f}%"])
-                    writer.writerow(["Posterior BSI (%)", f"{posterior_bsi:.2f}%"])
-                    writer.writerow(["Combined BSI (%)", f"{combined_bsi:.2f}%"])
-                    writer.writerow(["Formula", "Combined = (Anterior + Posterior) / 2"])
+                    writer.writerow(["BSI Summary"])
+                    
+                    if processing_mode == 'dual_view':
+                        writer.writerow(["Anterior BSI (%)", f"{anterior_bsi:.2f}%"])
+                        writer.writerow(["Posterior BSI (%)", f"{posterior_bsi:.2f}%"])
+                        writer.writerow(["Combined BSI (%)", f"{combined_bsi:.2f}%"])
+                        writer.writerow(["Formula", "Combined = (Anterior + Posterior) / 2"])
+                    elif processing_mode == 'single_view_anterior':
+                        writer.writerow(["Anterior BSI (%)", f"{anterior_bsi:.2f}%"])
+                        writer.writerow(["Posterior BSI (%)", "N/A (files not available)"])
+                        writer.writerow(["Single View BSI (%)", f"{combined_bsi:.2f}%"])
+                        writer.writerow(["Note", "Only anterior view processed"])
+                    elif processing_mode == 'single_view_posterior':
+                        writer.writerow(["Anterior BSI (%)", "N/A (files not available)"])
+                        writer.writerow(["Posterior BSI (%)", f"{posterior_bsi:.2f}%"])
+                        writer.writerow(["Single View BSI (%)", f"{combined_bsi:.2f}%"])
+                        writer.writerow(["Note", "Only posterior view processed"])
+                    else:
+                        writer.writerow(["BSI Score (%)", f"{combined_bsi:.2f}%"])
+                        writer.writerow(["Processing Mode", processing_mode])
                                     
-            print(f"[BSI EXPORT V1.2] CSV exported successfully: {file_path}")
+            print(f"[BSI EXPORT] CSV exported successfully: {file_path}")
             
         except Exception as e:
-            print(f"[BSI EXPORT V1.2] Error exporting CSV: {e}")
+            print(f"[BSI EXPORT] Error exporting CSV: {e}")
 
     def export_chart_to_file(self, file_path: Path) -> bool:
         """Export chart to file"""
         return self.bsi_canvas.export_chart(file_path)
 
     def export_report_to_file(self, file_path: Path) -> bool:
-        """Export V1.2 report to text file"""
+        """✅ UPDATED: Export V1.2 report to text file with single view support"""
         try:
             if not self.current_patient_id or not self.current_study_date:
                 return False
                 
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write("=" * 60 + "\n")
-                f.write("BSI V1.2 QUANTIFICATION REPORT\n")
+                f.write("BSI QUANTIFICATION REPORT\n")
                 f.write("=" * 60 + "\n")
                 f.write(f"Patient ID: {self.current_patient_id}\n")
                 f.write(f"Study Date: {datetime.strptime(self.current_study_date, '%Y%m%d').strftime('%Y-%m-%d')}\n")
-                f.write(f"Analysis Method: BSI V1.2 Color-based Separate Views\n")
+                f.write(f"Analysis Method: BSI Color-based Separate Views\n")
                 f.write(f"Export Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                
+                # ✅ Add processing mode info
+                if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
+                    summary_stats = self.quant_manager.current_results.get('summary_statistics', {})
+                    processing_mode = summary_stats.get('processing_mode', 'unknown')
+                    f.write(f"Processing Mode: {processing_mode}\n")
+                    
+                    if processing_mode == 'single_view_anterior':
+                        f.write("Note: Only anterior view files were available for processing\n")
+                    elif processing_mode == 'single_view_posterior':
+                        f.write("Note: Only posterior view files were available for processing\n")
+                
                 f.write("\n")
                 
-                # ✅ Add V1.2 BSI scores
+                # ✅ Add V1.2 BSI scores with single view support
                 if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
                     summary_stats = self.quant_manager.current_results.get('summary_statistics', {})
                     anterior_bsi = summary_stats.get('anterior_bsi', 0.0)
                     posterior_bsi = summary_stats.get('posterior_bsi', 0.0)
                     combined_bsi = summary_stats.get('combined_bsi', 0.0)
+                    processing_mode = summary_stats.get('processing_mode', 'unknown')
                     
                     f.write("BSI SCORES:\n")
                     f.write("-" * 30 + "\n")
-                    f.write(f"Anterior BSI: {anterior_bsi:.2f}%\n")
-                    f.write(f"Posterior BSI: {posterior_bsi:.2f}%\n")
-                    f.write(f"Combined BSI: {combined_bsi:.2f}% (Formula: (Ant+Post)/2)\n")
+                    
+                    if processing_mode == 'dual_view':
+                        f.write(f"Anterior BSI: {anterior_bsi:.2f}%\n")
+                        f.write(f"Posterior BSI: {posterior_bsi:.2f}%\n")
+                        f.write(f"Combined BSI: {combined_bsi:.2f}% (Formula: (Ant+Post)/2)\n")
+                    elif processing_mode == 'single_view_anterior':
+                        f.write(f"Anterior BSI: {anterior_bsi:.2f}%\n")
+                        f.write(f"Posterior BSI: N/A (files not available)\n")
+                        f.write(f"Single View BSI: {combined_bsi:.2f}%\n")
+                    elif processing_mode == 'single_view_posterior':
+                        f.write(f"Anterior BSI: N/A (files not available)\n")
+                        f.write(f"Posterior BSI: {posterior_bsi:.2f}%\n")
+                        f.write(f"Single View BSI: {combined_bsi:.2f}%\n")
+                    else:
+                        f.write(f"BSI Score: {combined_bsi:.2f}%\n")
+                    
                     f.write("\n")
                 
                 f.write("DETAILED QUANTIFICATION DATA:\n")
                 f.write("-" * 30 + "\n")
-                f.write("Format: pixel_count (decimal_ratio) - per pixel\n\n")
+                f.write("Format: pixel_count (decimal_ratio) - per pixel\n")
+                f.write("Note: N/A indicates data not available for that view\n\n")
                 
                 # Export table data
                 for row in range(self.results_table.rowCount()):
@@ -574,5 +690,5 @@ class BSISidePanel(QWidget):
             return True
             
         except Exception as e:
-            print(f"[BSI REPORT V1.2] Error exporting report: {e}")
+            print(f"[BSI REPORT V1.2 SINGLE] Error exporting report: {e}")
             return False

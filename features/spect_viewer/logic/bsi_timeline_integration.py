@@ -1,7 +1,8 @@
-# features/spect_viewer/logic/bsi_timeline_integration.py
+# features/spect_viewer/logic/bsi_timeline_integration.py - FIXED for Single View Support
 """
 Integration logic for BSI quantification with timeline cards
 Handles loading BSI data when patients are selected from timeline
+✅ UPDATED: Now supports single view quantification (anterior OR posterior only)
 """
 from pathlib import Path
 from typing import Dict, Optional, Any
@@ -25,6 +26,7 @@ class BSITimelineIntegration:
     """
     Integration manager for BSI quantification and timeline
     Handles patient selection and BSI data loading
+    ✅ UPDATED: Now supports single view processing
     """
     
     def __init__(self):
@@ -34,6 +36,7 @@ class BSITimelineIntegration:
     def get_patient_bsi_data(self, scan_data: Dict, session_code: str = None) -> Optional[Dict[str, Any]]:
         """
         Get BSI data for a patient from timeline scan data
+        ✅ UPDATED: Supports single view data loading
         
         Args:
             scan_data: Timeline scan data dictionary
@@ -51,16 +54,16 @@ class BSITimelineIntegration:
             patient_id, study_date = self._extract_patient_info(scan_data, session_code)
             
             if not patient_id or not study_date:
-                _log(f"[BSI INTEGRATION] Could not extract patient info from scan data")
+                _log(f"[BSI INTEGRATION SINGLE] Could not extract patient info from scan data")
                 return None
             
-            _log(f"[BSI INTEGRATION] Loading BSI data for patient {patient_id}, study {study_date}")
+            _log(f"[BSI INTEGRATION SINGLE] Loading BSI data for patient {patient_id}, study {study_date}")
             
-            # Check if quantification exists
+            # Check if quantification exists (now supports single view)
             status = get_quantification_status(dicom_path, patient_id, study_date)
             
             if not status.get("quantification_complete", False):
-                _log(f"[BSI INTEGRATION] No quantification data available for {patient_id}")
+                _log(f"[BSI INTEGRATION SINGLE] No quantification data available for {patient_id}")
                 return {
                     "patient_id": patient_id,
                     "study_date": study_date,
@@ -69,11 +72,11 @@ class BSITimelineIntegration:
                     "message": "Quantification not completed"
                 }
             
-            # Load quantification results
+            # Load quantification results (supports single view)
             results = self.quant_manager.load_quantification_results(patient_folder, patient_id, study_date)
             
             if not results:
-                _log(f"[BSI INTEGRATION] Failed to load quantification results for {patient_id}")
+                _log(f"[BSI INTEGRATION SINGLE] Failed to load quantification results for {patient_id}")
                 return {
                     "patient_id": patient_id,
                     "study_date": study_date,
@@ -82,8 +85,12 @@ class BSITimelineIntegration:
                     "message": "Failed to load quantification data"
                 }
             
-            # Get summary data
+            # Get summary data (includes processing mode info)
             summary_data = self.quant_manager.get_bsi_summary()
+            
+            # ✅ NEW: Add processing mode info
+            processing_mode = summary_data.get('processing_mode', 'unknown')
+            view_info = summary_data.get('view_info', 'unknown')
             
             bsi_data = {
                 "patient_id": patient_id,
@@ -92,16 +99,28 @@ class BSITimelineIntegration:
                 "status": "success",
                 "bsi_results": results.get('bsi_results', {}),
                 "summary_data": summary_data,
-                "raw_results": results
+                "raw_results": results,
+                "processing_mode": processing_mode,
+                "view_info": view_info
             }
             
             self.current_patient_data = bsi_data
-            _log(f"[BSI INTEGRATION] Successfully loaded BSI data for {patient_id} (BSI: {summary_data.get('bsi_score', 0):.2f}%)")
+            
+            # ✅ NEW: Log different message based on processing mode
+            combined_bsi = summary_data.get('combined_bsi', 0)
+            if processing_mode == 'dual_view':
+                _log(f"[BSI INTEGRATION SINGLE] ✅ Loaded dual-view BSI data for {patient_id} (Combined BSI: {combined_bsi:.2f})")
+            elif processing_mode == 'single_view_anterior':
+                _log(f"[BSI INTEGRATION SINGLE] ✅ Loaded anterior-only BSI data for {patient_id} (Anterior BSI: {combined_bsi:.2f})")
+            elif processing_mode == 'single_view_posterior':
+                _log(f"[BSI INTEGRATION SINGLE] ✅ Loaded posterior-only BSI data for {patient_id} (Posterior BSI: {combined_bsi:.2f})")
+            else:
+                _log(f"[BSI INTEGRATION SINGLE] ✅ Loaded BSI data for {patient_id} (BSI: {combined_bsi:.2f})")
             
             return bsi_data
             
         except Exception as e:
-            _log(f"[BSI INTEGRATION] Error loading BSI data: {e}")
+            _log(f"[BSI INTEGRATION SINGLE] Error loading BSI data: {e}")
             return {
                 "status": "error",
                 "message": f"Error loading BSI data: {str(e)}"
@@ -166,11 +185,11 @@ class BSITimelineIntegration:
                 return clean_patient_id, dicom_study_date
                 
             except Exception as e:
-                _log(f"[BSI INTEGRATION] Could not read DICOM for patient info: {e}")
+                _log(f"[BSI INTEGRATION SINGLE] Could not read DICOM for patient info: {e}")
                 return None, None
             
         except Exception as e:
-            _log(f"[BSI INTEGRATION] Error extracting patient info: {e}")
+            _log(f"[BSI INTEGRATION SINGLE] Error extracting patient info: {e}")
             return None, None
     
     def get_current_patient_data(self) -> Optional[Dict[str, Any]]:
@@ -184,13 +203,14 @@ class BSITimelineIntegration:
     def check_quantification_status(self, scan_data: Dict, session_code: str = None) -> Dict[str, Any]:
         """
         Check quantification status for a patient without loading full data
+        ✅ UPDATED: Now includes single view support information
         
         Args:
             scan_data: Timeline scan data
             session_code: Session code
             
         Returns:
-            Dictionary with status information
+            Dictionary with status information including processing mode
         """
         try:
             dicom_path = Path(scan_data["path"])
@@ -203,7 +223,7 @@ class BSITimelineIntegration:
                     "message": "Could not extract patient information"
                 }
             
-            # Check quantification status
+            # Check quantification status (now supports single view)
             status = get_quantification_status(dicom_path, patient_id, study_date)
     
             return {
@@ -219,7 +239,14 @@ class BSITimelineIntegration:
                 # ✅ ADD: Forward BSI data dari get_quantification_status
                 "anterior_bsi": status.get("anterior_bsi", 0.0),
                 "posterior_bsi": status.get("posterior_bsi", 0.0),
-                "combined_bsi": status.get("combined_bsi", 0.0)
+                "combined_bsi": status.get("combined_bsi", 0.0),
+                # ✅ NEW: Add single view support info
+                "processing_mode": status.get("processing_mode", "unknown"),
+                "v2_anterior_exists": status.get("v2_anterior_exists", False),
+                "v2_posterior_exists": status.get("v2_posterior_exists", False),
+                "has_anterior_pair": status.get("has_anterior_pair", False),
+                "has_posterior_pair": status.get("has_posterior_pair", False),
+                "can_run_quantification": status.get("can_run_quantification", False)
             }
             
         except Exception as e:
@@ -249,6 +276,7 @@ class BSITimelineIntegration:
             bsi_score = status.get("bsi_score", 0.0)
             abnormal_count = status.get("total_abnormal_hotspots", 0)
             
+            # ✅ FIXED: Clean display without mode indicators
             return f"BSI: {bsi_score:.1f}% ({abnormal_count} abnormal)"
             
         except Exception as e:
@@ -256,6 +284,13 @@ class BSITimelineIntegration:
             return None
     
     def update_scan_meta_with_bsi(self, scan_data: Dict, session_code: str = None) -> Dict:
+        """
+        ✅ UPDATED: Update scan metadata with BSI info including processing mode
+        """
+    def update_scan_meta_with_bsi(self, scan_data: Dict, session_code: str = None) -> Dict:
+        """
+        ✅ UPDATED: Update scan metadata with BSI info including processing mode
+        """
         # Check quantification status
         status = self.check_quantification_status(scan_data, session_code)
         
@@ -267,18 +302,27 @@ class BSITimelineIntegration:
         
         if status.get("has_quantification", False):
             # ✅ DEBUG: Print status content
-            print(f"[BSI META DEBUG] Status keys: {list(status.keys())}")
-            print(f"[BSI META DEBUG] anterior_bsi from status: {status.get('anterior_bsi', 'NOT_FOUND')}")
-            print(f"[BSI META DEBUG] posterior_bsi from status: {status.get('posterior_bsi', 'NOT_FOUND')}")
-            print(f"[BSI META DEBUG] combined_bsi from status: {status.get('combined_bsi', 'NOT_FOUND')}")
+            print(f"[BSI META SINGLE DEBUG] Status keys: {list(status.keys())}")
+            print(f"[BSI META SINGLE DEBUG] anterior_bsi from status: {status.get('anterior_bsi', 'NOT_FOUND')}")
+            print(f"[BSI META SINGLE DEBUG] posterior_bsi from status: {status.get('posterior_bsi', 'NOT_FOUND')}")
+            print(f"[BSI META SINGLE DEBUG] combined_bsi from status: {status.get('combined_bsi', 'NOT_FOUND')}")
+            print(f"[BSI META SINGLE DEBUG] processing_mode from status: {status.get('processing_mode', 'NOT_FOUND')}")
             
             # ✅ SEPARATE BSI per view
             scan_data["meta"]["bsi_anterior"] = status.get("anterior_bsi", 0.0)
             scan_data["meta"]["bsi_posterior"] = status.get("posterior_bsi", 0.0)
             scan_data["meta"]["bsi_combined"] = status.get("combined_bsi", 0.0)
             
-            print(f"[BSI META DEBUG] Set meta - anterior: {scan_data['meta']['bsi_anterior']}")
-            print(f"[BSI META DEBUG] Set meta - posterior: {scan_data['meta']['bsi_posterior']}")
+            # ✅ NEW: Add processing mode and view availability info
+            scan_data["meta"]["bsi_processing_mode"] = status.get("processing_mode", "unknown")
+            scan_data["meta"]["bsi_has_anterior"] = status.get("v2_anterior_exists", False)
+            scan_data["meta"]["bsi_has_posterior"] = status.get("v2_posterior_exists", False)
+            scan_data["meta"]["bsi_can_run"] = status.get("can_run_quantification", False)
+            
+            print(f"[BSI META SINGLE DEBUG] Set meta - anterior: {scan_data['meta']['bsi_anterior']}")
+            print(f"[BSI META SINGLE DEBUG] Set meta - posterior: {scan_data['meta']['bsi_posterior']}")
+            print(f"[BSI META SINGLE DEBUG] Set meta - processing_mode: {scan_data['meta']['bsi_processing_mode']}")
+            
         return scan_data
 
 
@@ -294,6 +338,7 @@ def get_bsi_integration() -> BSITimelineIntegration:
 def load_bsi_for_selected_patient(scan_data: Dict, session_code: str = None) -> Optional[Dict[str, Any]]:
     """
     Convenience function to load BSI data for selected patient
+    ✅ UPDATED: Now supports single view loading
     
     Args:
         scan_data: Timeline scan data
@@ -309,13 +354,14 @@ def load_bsi_for_selected_patient(scan_data: Dict, session_code: str = None) -> 
 def check_patient_quantification_status(scan_data: Dict, session_code: str = None) -> Dict[str, Any]:
     """
     Convenience function to check quantification status
+    ✅ UPDATED: Now includes single view support info
     
     Args:
         scan_data: Timeline scan data
         session_code: Session code
         
     Returns:
-        Status dictionary
+        Status dictionary with processing mode info
     """
     integration = get_bsi_integration()
     return integration.check_quantification_status(scan_data, session_code)
@@ -324,13 +370,14 @@ def check_patient_quantification_status(scan_data: Dict, session_code: str = Non
 def update_timeline_scans_with_bsi(scans_data: list, session_code: str = None) -> list:
     """
     Update all timeline scans with BSI information
+    ✅ UPDATED: Now includes single view processing mode info
     
     Args:
         scans_data: List of timeline scan data
         session_code: Session code
         
     Returns:
-        Updated scans data with BSI information
+        Updated scans data with BSI information including processing modes
     """
     integration = get_bsi_integration()
     

@@ -1,4 +1,4 @@
-# features/spect_viewer/gui/bsi_canvas.py - UPDATED for V1.2 with 3-line chart
+# features/spect_viewer/gui/bsi_canvas.py - FIXED for Single View Support
 
 from pathlib import Path
 from typing import Dict, Optional, Any
@@ -28,7 +28,7 @@ from core.gui.ui_constants import Colors
 
 class BSICanvas(FigureCanvas):
     """
-    ✅ UPDATED: V1.2 BSI Canvas with 3-line chart (Anterior, Posterior, Combined)
+    ✅ FIXED: V1.2 BSI Canvas with 3-line chart - SUPPORTS SINGLE VIEW
     """
     
     chart_clicked = Signal(str)
@@ -41,7 +41,7 @@ class BSICanvas(FigureCanvas):
         self.patient_folder = None
         self.patient_id = None
         
-        # ✅ NEW: Line visibility controls (default all visible)
+        # Line visibility controls (default all visible)
         self.anterior_visible = True
         self.posterior_visible = True
         self.combined_visible = True
@@ -50,7 +50,7 @@ class BSICanvas(FigureCanvas):
         self._plot_empty_chart()
         
     def load_bsi_data(self, patient_folder: Path, patient_id: str, study_date: str) -> bool:
-        """Load V1.2 BSI data and display 3-line trend chart"""
+        """✅ FIXED: Load V1.2 BSI data and display 3-line trend chart with single view support"""
         self.patient_folder = patient_folder
         self.patient_id = patient_id
         
@@ -59,7 +59,7 @@ class BSICanvas(FigureCanvas):
             return True
             
         except Exception as e:
-            print(f"[BSI CANVAS V1.2] Error loading BSI data: {e}")
+            print(f"[BSI CANVAS V1.2 SINGLE] Error loading BSI data: {e}")
             self._plot_error_chart(str(e))
             return False
     
@@ -80,7 +80,7 @@ class BSICanvas(FigureCanvas):
         ax.set_yticks([])
         for spine in ax.spines.values():
             spine.set_visible(False)
-        self.figure.suptitle('BSI Quantification Trend (V1.2)', fontsize=14, fontweight='bold', color=Colors.DARK_GRAY)
+        self.figure.suptitle('BSI Quantification Trend', fontsize=14, fontweight='bold', color=Colors.DARK_GRAY)
         self.figure.tight_layout()
         self.draw()
 
@@ -95,12 +95,12 @@ class BSICanvas(FigureCanvas):
         ax.set_yticks([])
         for spine in ax.spines.values():
             spine.set_visible(False)
-        self.figure.suptitle('BSI Quantification Trend (V1.2)', fontsize=14, fontweight='bold', color='#d32f2f')
+        self.figure.suptitle('BSI Quantification Trend', fontsize=14, fontweight='bold', color='#d32f2f')
         self.figure.tight_layout()
         self.draw()
     
     def _plot_bsi_trend_chart_v2(self):
-        """✅ NEW: Plot 3-line chart for V1.2 BSI (Anterior, Posterior, Combined)"""
+        """✅ FIXED: Plot 3-line chart for BSI with single view support"""
         if not self.patient_folder or not self.patient_id:
             self._plot_empty_chart()
             return
@@ -113,16 +113,16 @@ class BSICanvas(FigureCanvas):
             all_scores = manager.load_all_quantification_scores(self.patient_folder, self.patient_id)
 
             if not all_scores:
-                ax.text(0.5, 0.5, 'No V1.2 BSI scores found for this patient', ha='center', va='center',
+                ax.text(0.5, 0.5, 'No BSI scores found for this patient', ha='center', va='center',
                         transform=ax.transAxes, fontsize=12, color='gray')
-                self.figure.suptitle(f'BSI Trend for {self.patient_id} (V1.2)', fontsize=14, fontweight='bold')
+                self.figure.suptitle(f'BSI Trend for {self.patient_id}', fontsize=14, fontweight='bold')
                 self.figure.tight_layout()
                 self.draw()
                 return
 
             all_scores = sorted(all_scores, key=lambda x: x["study_date"])
             
-            # ✅ Prepare data for 3 lines
+            # Prepare data for 3 lines with single view support
             dates = []
             anterior_scores = []
             posterior_scores = []
@@ -132,69 +132,88 @@ class BSICanvas(FigureCanvas):
             for entry in all_scores:
                 try:
                     date_str = entry["study_date"]
-                    print(f"[DEBUG BSI V1.2] Processing date: {date_str}")
+                    processing_mode = entry.get('processing_mode', 'unknown')
+                    
+                    print(f"[DEBUG BSI] Processing date: {date_str}, mode: {processing_mode}")
                     
                     date_obj = datetime.strptime(date_str, "%Y%m%d")
                     formatted_date = date_obj.strftime("%d %b %Y")
                     
                     dates.append(date_obj)
-                    anterior_scores.append(entry.get("anterior_bsi", 0))
-                    posterior_scores.append(entry.get("posterior_bsi", 0))
-                    combined_scores.append(entry.get("combined_bsi", 0))
+                    
+                    # Handle single view data properly
+                    ant_bsi = entry.get("anterior_bsi", 0) if processing_mode != 'single_view_posterior' else None
+                    post_bsi = entry.get("posterior_bsi", 0) if processing_mode != 'single_view_anterior' else None
+                    combined_bsi = entry.get("combined_bsi", 0)
+                    
+                    anterior_scores.append(ant_bsi)
+                    posterior_scores.append(post_bsi)
+                    combined_scores.append(combined_bsi)
                     date_labels.append(formatted_date)
                     
-                    print(f"[DEBUG BSI V1.2] Added: Ant={entry.get('anterior_bsi', 0):.1f}% Post={entry.get('posterior_bsi', 0):.1f}% Combined={entry.get('combined_bsi', 0):.1f}%")
+                    print(f"[DEBUG BSI] Added: Ant={ant_bsi} Post={post_bsi} Combined={combined_bsi:.1f}%")
                     
                 except ValueError as e:
-                    print(f"[WARN] Invalid date format in V1.2 BSI data: {entry['study_date']}, skipping...")
+                    print(f"[WARN] Invalid date format in BSI data: {entry['study_date']}, skipping...")
                     continue
 
             if not dates:
-                ax.text(0.5, 0.5, 'No valid dates found in V1.2 BSI data', ha='center', va='center',
+                ax.text(0.5, 0.5, 'No valid dates found in BSI data', ha='center', va='center',
                         transform=ax.transAxes, fontsize=12, color='red')
-                self.figure.suptitle(f'BSI Trend for {self.patient_id} (V1.2)', fontsize=14, fontweight='bold')
+                self.figure.suptitle(f'BSI Trend for {self.patient_id}', fontsize=14, fontweight='bold')
                 self.figure.tight_layout()
                 self.draw()
                 return
 
-            # ✅ Plot 3 lines as requested by team
+            # Plot lines with single view support
+            
+            # Plot anterior line (only where data is available)
             if self.anterior_visible:
-                ax.plot(dates, anterior_scores, marker='o', linestyle='-', color='#ff6b6b', linewidth=2, markersize=6, label='Anterior BSI')
+                ant_dates = [d for i, d in enumerate(dates) if anterior_scores[i] is not None]
+                ant_values = [v for v in anterior_scores if v is not None]
+                if ant_dates and ant_values:
+                    ax.plot(ant_dates, ant_values, marker='o', linestyle='-', color='#ff6b6b', 
+                           linewidth=2, markersize=6, label='Anterior BSI')
+            
+            # Plot posterior line (only where data is available)
             if self.posterior_visible:
-                ax.plot(dates, posterior_scores, marker='^', linestyle='-', color='#4ecdc4', linewidth=2, markersize=6, label='Posterior BSI')
+                post_dates = [d for i, d in enumerate(dates) if posterior_scores[i] is not None]
+                post_values = [v for v in posterior_scores if v is not None]
+                if post_dates and post_values:
+                    ax.plot(post_dates, post_values, marker='^', linestyle='-', color='#4ecdc4', 
+                           linewidth=2, markersize=6, label='Posterior BSI')
+            
+            # Plot combined line (always available)
             if self.combined_visible:
-                ax.plot(dates, combined_scores, marker='s', linestyle='-', color='#007bff', linewidth=2, markersize=6, label='Combined BSI')
+                ax.plot(dates, combined_scores, marker='s', linestyle='-', color='#007bff', 
+                       linewidth=2, markersize=6, label='Combined BSI')
 
-            # ✅ Only show legend if at least one line is visible
+            # Only show legend if at least one line is visible
             if self.anterior_visible or self.posterior_visible or self.combined_visible:
-                ax.legend(loc='upper left', fontsize=9)
+                legend = ax.legend(loc='upper left', fontsize=9)
 
-            # ✅ Set axis and formatting
+            # Set axis and formatting
             ax.set_xticks(dates)
             ax.set_xticklabels(date_labels, rotation=45, ha='right')
 
-            ax.set_title(f"BSI Score Trend (V1.2 - Separate Views)", fontsize=12, fontweight='bold')
+            # ✅ FIXED: Clean title without version info
+            ax.set_title("BSI Score Trend", fontsize=12, fontweight='bold')
             ax.set_xlabel("Study Date", fontsize=10)
             ax.set_ylabel("BSI Score", fontsize=10)
             ax.grid(True, linestyle='--', alpha=0.6)
             
-            # ✅ Add legend for 3 lines
-            ax.legend(loc='upper left', fontsize=9)
-            
-            self.figure.suptitle(f'BSI Analysis for Patient: {self.patient_id} (V1.2)', fontsize=14, fontweight='bold')
+            self.figure.suptitle(f'BSI Analysis for Patient: {self.patient_id}', fontsize=14, fontweight='bold')
 
         except Exception as e:
-            print(f"[BSI CANVAS V1.2] Failed to plot BSI trend: {e}")
+            print(f"[BSI CANVAS] Failed to plot BSI trend: {e}")
             self._plot_error_chart(str(e))
             return
 
         self.figure.tight_layout()
         self.draw()
     
-    
-    
     def set_line_visibility(self, anterior_visible: bool, posterior_visible: bool, combined_visible: bool):
-        """✅ NEW: Control visibility of BSI lines"""
+        """Control visibility of BSI lines"""
         self.anterior_visible = anterior_visible
         self.posterior_visible = posterior_visible
         self.combined_visible = combined_visible
@@ -205,15 +224,15 @@ class BSICanvas(FigureCanvas):
         """Export chart to image file"""
         try:
             self.figure.savefig(str(file_path), dpi=dpi, bbox_inches='tight', facecolor='white')
-            print(f"[BSI CANVAS V1.2] Chart exported to: {file_path}")
+            print(f"[BSI CANVAS V1.2 SINGLE] Chart exported to: {file_path}")
             return True
         except Exception as e:
-            print(f"[BSI CANVAS V1.2] Export failed: {e}")
+            print(f"[BSI CANVAS V1.2 SINGLE] Export failed: {e}")
             return False
 
 class BSIInfoPanel(QWidget):
     """
-    ✅ UPDATED: Info panel for V1.2 BSI summary (shows anterior/posterior/combined)
+    ✅ FIXED: Info panel for V1.2 BSI summary with single view support
     """
     
     def __init__(self, parent: QWidget = None):
@@ -229,7 +248,7 @@ class BSIInfoPanel(QWidget):
         layout.setSpacing(8)
         
         # Title
-        title_label = QLabel("<b>BSI Summary (V1.2)</b>")
+        title_label = QLabel("<b>BSI Summary</b>")
         title_label.setStyleSheet(DIALOG_PANEL_HEADER_STYLE)
         layout.addWidget(title_label)
         
@@ -247,18 +266,37 @@ class BSIInfoPanel(QWidget):
         self.info_layout = QVBoxLayout(self.info_frame)
         self.info_layout.setContentsMargins(8, 8, 8, 8)
         
-        # ✅ V1.2 Info labels (3 BSI scores)
+        # ✅ V1.2 Info labels (3 BSI scores + processing mode)
+        self.combined_bsi_label = QLabel("Combined BSI: N/A")
         self.anterior_bsi_label = QLabel("Anterior BSI: N/A")
         self.posterior_bsi_label = QLabel("Posterior BSI: N/A")
-        self.combined_bsi_label = QLabel("Combined BSI: N/A")
+        self.processing_mode_label = QLabel("Mode: Unknown")
         self.abnormal_hotspots_label = QLabel("Total Abnormal: N/A")
         self.normal_hotspots_label = QLabel("Total Normal: N/A")
-        self.analysis_method_label = QLabel("Method: V1.2 Color-based")
+        self.analysis_method_label = QLabel("Method: Color-based")
         
-        # Style labels
+        # ✅ Make Combined BSI most prominent
+        self.combined_bsi_label.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                font-weight: bold;
+                color: #2c3e50;
+                padding: 6px;
+                margin: 4px 0px;
+                background: #f0f4ff;
+                border-radius: 3px;
+                border: 1px solid #4e73ff;
+            }
+        """)
+        
+        # Add Combined BSI at the top
+        self.info_layout.addWidget(self.combined_bsi_label)
+        
+        # Style other labels
         labels = [
             self.anterior_bsi_label,
             self.posterior_bsi_label,
+            self.processing_mode_label,
             self.abnormal_hotspots_label, 
             self.normal_hotspots_label,
             self.analysis_method_label
@@ -276,48 +314,46 @@ class BSIInfoPanel(QWidget):
             label.setWordWrap(True)
             self.info_layout.addWidget(label)
         
-        # ✅ Make Combined BSI most prominent
-        self.combined_bsi_label.setStyleSheet("""
-            QLabel {
-                font-size: 14px;
-                font-weight: bold;
-                color: #2c3e50;
-                padding: 6px;
-                margin: 4px 0px;
-                background: #f0f4ff;
-                border-radius: 3px;
-                border: 1px solid #4e73ff;
-            }
-        """)
-        
-        # Insert Combined BSI at the top
-        self.info_layout.removeWidget(self.combined_bsi_label)
-        self.info_layout.insertWidget(0, self.combined_bsi_label)
-        
         layout.addWidget(self.info_frame)
         
         # Initially show no data message
         self._show_no_data()
     
     def update_info(self, summary_data: Dict[str, Any]):
-        """✅ UPDATED: Update info panel with V1.2 BSI summary data"""
+        """✅ FIXED: Update info panel with V1.2 BSI summary data including single view support"""
         self.summary_data = summary_data
         
         if not summary_data:
             self._show_no_data()
             return
         
-        # ✅ Extract V1.2 data
+        # ✅ Extract V1.2 data with single view support
         anterior_bsi = summary_data.get('anterior_bsi', 0)
         posterior_bsi = summary_data.get('posterior_bsi', 0)
         combined_bsi = summary_data.get('combined_bsi', 0)
+        processing_mode = summary_data.get('processing_mode', 'unknown')
         total_abnormal = summary_data.get('total_abnormal_hotspots', 0)
         total_normal = summary_data.get('total_normal_hotspots', 0)
         
-        # ✅ Update labels with V1.2 data
-        self.anterior_bsi_label.setText(f"Anterior BSI: {anterior_bsi:.2f}%")
-        self.posterior_bsi_label.setText(f"Posterior BSI: {posterior_bsi:.2f}%")
+        # ✅ Update labels with V1.2 data and processing mode awareness
         self.combined_bsi_label.setText(f"Combined BSI: {combined_bsi:.2f}%")
+        
+        if processing_mode == 'dual_view':
+            self.anterior_bsi_label.setText(f"Anterior BSI: {anterior_bsi:.2f}%")
+            self.posterior_bsi_label.setText(f"Posterior BSI: {posterior_bsi:.2f}%")
+            self.processing_mode_label.setText("Mode: Dual View")
+        elif processing_mode == 'single_view_anterior':
+            self.anterior_bsi_label.setText(f"Anterior BSI: {anterior_bsi:.2f}%")
+            self.posterior_bsi_label.setText("Posterior BSI: N/A")
+            self.processing_mode_label.setText("Mode: Anterior Only")
+        elif processing_mode == 'single_view_posterior':
+            self.anterior_bsi_label.setText("Anterior BSI: N/A")
+            self.posterior_bsi_label.setText(f"Posterior BSI: {posterior_bsi:.2f}%")
+            self.processing_mode_label.setText("Mode: Posterior Only")
+        else:
+            self.anterior_bsi_label.setText(f"Anterior BSI: {anterior_bsi:.2f}%")
+            self.posterior_bsi_label.setText(f"Posterior BSI: {posterior_bsi:.2f}%")
+            self.processing_mode_label.setText(f"Mode: {processing_mode}")
         
         # ✅ Color-code combined BSI
         if combined_bsi > 5:
@@ -340,9 +376,36 @@ class BSIInfoPanel(QWidget):
             }}
         """)
         
+        # ✅ Color-code processing mode label
+        if processing_mode == 'dual_view':
+            mode_color = "#4caf50"  # Green for dual view
+        elif processing_mode in ['single_view_anterior', 'single_view_posterior']:
+            mode_color = "#ff9800"  # Orange for single view
+        else:
+            mode_color = "#6c757d"  # Gray for unknown
+        
+        self.processing_mode_label.setStyleSheet(f"""
+            QLabel {{
+                font-size: 12px;
+                font-weight: bold;
+                color: {mode_color};
+                padding: 4px;
+                margin: 2px 0px;
+            }}
+        """)
+        
         self.abnormal_hotspots_label.setText(f"Total Abnormal: {total_abnormal}")
         self.normal_hotspots_label.setText(f"Total Normal: {total_normal}")
-        self.analysis_method_label.setText("Method: V1.2 Color-based (Ant+Post)")
+        
+        # Update method label with processing mode info
+        if processing_mode == 'dual_view':
+            self.analysis_method_label.setText("Method: Color-based (Ant+Post)")
+        elif processing_mode == 'single_view_anterior':
+            self.analysis_method_label.setText("Method: Color-based (Ant only)")
+        elif processing_mode == 'single_view_posterior':
+            self.analysis_method_label.setText("Method: Color-based (Post only)")
+        else:
+            self.analysis_method_label.setText("Method: Color-based")
         
         # Show info frame
         self.info_frame.setVisible(True)
@@ -352,6 +415,7 @@ class BSIInfoPanel(QWidget):
         self.anterior_bsi_label.setText("Anterior BSI: N/A")
         self.posterior_bsi_label.setText("Posterior BSI: N/A")
         self.combined_bsi_label.setText("Combined BSI: N/A")
+        self.processing_mode_label.setText("Mode: N/A")
         
         self.combined_bsi_label.setStyleSheet("""
             QLabel {
@@ -366,9 +430,18 @@ class BSIInfoPanel(QWidget):
             }
         """)
         
+        self.processing_mode_label.setStyleSheet("""
+            QLabel {
+                font-size: 12px;
+                color: #6c757d;
+                padding: 4px;
+                margin: 2px 0px;
+            }
+        """)
+        
         self.abnormal_hotspots_label.setText("Total Abnormal: N/A")
         self.normal_hotspots_label.setText("Total Normal: N/A")
-        self.analysis_method_label.setText("Method: Select patient with V1.2 quantification")
+        self.analysis_method_label.setText("Method: Select patient with quantification")
         
         self.info_frame.setVisible(True)
     

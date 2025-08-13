@@ -1,4 +1,4 @@
-# features/spect_viewer/logic/quantification_wrapper.py - UPDATED for V1.2 Algorithm
+# features/spect_viewer/logic/quantification_wrapper.py - FIXED for Single View Support
 
 import numpy as np
 import cv2
@@ -50,7 +50,7 @@ def get_quantification_input_paths_v2(patient_folder: Path, filename_stem: str) 
     }
 
 def check_available_files_v2(paths):
-    """Check file availability for V1.2 quantification"""
+    """✅ FIXED: Check file availability for V1.2 quantification - ALLOW SINGLE VIEW"""
     available_paths = {}
     missing_files = []
     
@@ -66,69 +66,92 @@ def check_available_files_v2(paths):
         else:
             missing_files.append(f"{name} ({path.name})")
     
-    # Need both anterior and posterior pairs
+    # ✅ FIXED: Check for anterior OR posterior pair (not both required)
     has_anterior_pair = ('segmentation_anterior' in available_paths and 
                         'hotspot_anterior' in available_paths)
     has_posterior_pair = ('segmentation_posterior' in available_paths and 
                          'hotspot_posterior' in available_paths)
     
-    can_proceed = has_anterior_pair and has_posterior_pair
+    # ✅ NEW: Can proceed if we have at least ONE complete pair
+    can_proceed = has_anterior_pair or has_posterior_pair
     
-    return available_paths, missing_files, can_proceed
+    return available_paths, missing_files, can_proceed, has_anterior_pair, has_posterior_pair
 
 def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_date: str) -> bool:
     """
-    ✅ Run V1.2 BSI quantification - separate anterior/posterior processing
+    ✅ FIXED: Run V1.2 BSI quantification - SUPPORTS SINGLE VIEW (anterior OR posterior)
     """
     try:
         patient_folder = dicom_path.parent
         filename_stem = f"{patient_id}_{study_date}"
         
         _log(f"     Starting V1.2 BSI quantification for patient {patient_id}")
-        _log(f"     New workflow: Color-based segmentation + Separate view processing")
+        _log(f"     New workflow: Color-based segmentation + Single/Dual view processing")
         
         # Get file paths
         paths = get_quantification_input_paths_v2(patient_folder, filename_stem)
         
-        # Check available files
-        available_paths, missing_files, can_proceed = check_available_files_v2(paths)
+        # ✅ FIXED: Check available files with new return values
+        available_paths, missing_files, can_proceed, has_anterior_pair, has_posterior_pair = check_available_files_v2(paths)
         
         if not can_proceed:
             _log(f"     Cannot proceed with V1.2 quantification. Missing files: {', '.join(missing_files)}")
-            _log(f"     Need both anterior and posterior segmentation + classification pairs")
+            _log(f"     Need at least ONE complete pair (anterior OR posterior segmentation + classification)")
             return False
         
+        # ✅ NEW: Log what we have available
+        _log(f"     File availability check:")
+        _log(f"       Anterior pair available: {has_anterior_pair}")
+        _log(f"       Posterior pair available: {has_posterior_pair}")
+        
         if missing_files:
-            _log(f"     [WARNING] Some files missing: {', '.join(missing_files)}")
+            _log(f"     [INFO] Some files missing (but proceeding): {', '.join(missing_files)}")
         
         _log(f"     Processing V1.2 quantification with color-based segmentation...")
         
-        # ✅ Process anterior view
-        _log(f"     Processing anterior view...")
-        anterior_results = calculate_pixel_bsi_v2(
-            str(available_paths['segmentation_anterior']),
-            str(available_paths['hotspot_anterior'])
-        )
+        # ✅ NEW: Process available views only
+        anterior_results = None
+        posterior_results = None
         
-        # ✅ Process posterior view
-        _log(f"     Processing posterior view...")
-        posterior_results = calculate_pixel_bsi_v2(
-            str(available_paths['segmentation_posterior']),
-            str(available_paths['hotspot_posterior'])
-        )
+        # Process anterior view if available
+        if has_anterior_pair:
+            _log(f"     Processing anterior view...")
+            try:
+                anterior_results = calculate_pixel_bsi_v2(
+                    str(available_paths['segmentation_anterior']),
+                    str(available_paths['hotspot_anterior'])
+                )
+                _log(f"     ✅ Anterior processing completed")
+            except Exception as e:
+                _log(f"     ❌ Anterior processing failed: {e}")
+                anterior_results = None
+        else:
+            _log(f"     ⏭️ Skipping anterior view (files not available)")
         
-        # ✅ Calculate combined BSI using team-approved formula
-        _log(f"     Calculating combined BSI...")
-        combined_results = calculate_combined_bsi_v2(anterior_results, posterior_results)
-
-        # ✅ DEBUG: Log individual BSI values
-        ant_bsi_raw = sum(stats['malignant_ratio'] for stats in anterior_results['region_stats'].values())
-        post_bsi_raw = sum(stats['malignant_ratio'] for stats in posterior_results['region_stats'].values()) 
-        print(f"[BSI DEBUG] Raw anterior BSI sum: {ant_bsi_raw}")
-        print(f"[BSI DEBUG] Raw posterior BSI sum: {post_bsi_raw}")
-        print(f"[BSI DEBUG] Combined BSI: {(ant_bsi_raw + post_bsi_raw) / 2}")
-                
-        # ✅ Prepare metadata
+        # Process posterior view if available
+        if has_posterior_pair:
+            _log(f"     Processing posterior view...")
+            try:
+                posterior_results = calculate_pixel_bsi_v2(
+                    str(available_paths['segmentation_posterior']),
+                    str(available_paths['hotspot_posterior'])
+                )
+                _log(f"     ✅ Posterior processing completed")
+            except Exception as e:
+                _log(f"     ❌ Posterior processing failed: {e}")
+                posterior_results = None
+        else:
+            _log(f"     ⏭️ Skipping posterior view (files not available)")
+        
+        # ✅ Check if we got at least one result
+        if not anterior_results and not posterior_results:
+            _log(f"     ❌ No views processed successfully")
+            return False
+        
+        # ✅ NEW: Calculate combined BSI based on available data
+        _log(f"     Calculating BSI scores...")
+        
+        # Prepare base metadata
         base_metadata = {
             "patient_id": patient_id,
             "study_date": study_date,
@@ -137,65 +160,142 @@ def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_d
             "algorithm_version": "1.2"
         }
         
-        # ✅ Save anterior results
-        anterior_final = {
-            "patient_info": {
-                **base_metadata,
-                "view": "anterior",
-                "input_files": {
-                    "segmentation": available_paths['segmentation_anterior'].name,
-                    "hotspot": available_paths['hotspot_anterior'].name
-                }
-            },
-            "bsi_results": anterior_results["region_stats"],
-            "summary_statistics": {
-                "view": "anterior",
-                "bsi_score": combined_results["anterior_bsi"], 
-                "total_malignant_pixels": anterior_results["total_malignant_pixels"],
-                "total_benign_pixels": anterior_results["total_benign_pixels"],
-                "total_pixels": sum(anterior_results["region_total_pixels"].values()),
-                "malignant_percentage": combined_results["anterior_bsi"],
-                "benign_percentage": (sum(anterior_results["region_benign_pixels"].values()) / 
-                                    sum(anterior_results["region_total_pixels"].values()) * 100) if sum(anterior_results["region_total_pixels"].values()) > 0 else 0
-            }
-        }
+        # ✅ NEW: Handle different scenarios
         
-        # ✅ Save posterior results
-        posterior_final = {
-            "patient_info": {
-                **base_metadata,
-                "view": "posterior",
-                "input_files": {
-                    "segmentation": available_paths['segmentation_posterior'].name,
-                    "hotspot": available_paths['hotspot_posterior'].name
-                }
-            },
-            "bsi_results": posterior_results["region_stats"],
-            "summary_statistics": {
-                "view": "posterior",
-                "bsi_score": combined_results["posterior_bsi"],
-                "total_malignant_pixels": posterior_results["total_malignant_pixels"],
-                "total_benign_pixels": posterior_results["total_benign_pixels"],
-                "total_pixels": sum(posterior_results["region_total_pixels"].values()),
-                "malignant_percentage": combined_results["posterior_bsi"],
-                "benign_percentage": (sum(posterior_results["region_benign_pixels"].values()) / 
-                                    sum(posterior_results["region_total_pixels"].values()) * 100) if sum(posterior_results["region_total_pixels"].values()) > 0 else 0
-            }
-        }
-        
-        # ✅ Write separate JSON files
-        with open(paths['output_anterior'], 'w') as f:
-            json.dump(anterior_final, f, indent=2)
+        # Scenario 1: Both anterior and posterior available
+        if anterior_results and posterior_results:
+            _log(f"     Scenario: Both views available")
+            combined_results = calculate_combined_bsi_v2(anterior_results, posterior_results)
             
-        with open(paths['output_posterior'], 'w') as f:
-            json.dump(posterior_final, f, indent=2)
+            # Save both files
+            anterior_final = {
+                "patient_info": {
+                    **base_metadata,
+                    "view": "anterior",
+                    "processing_mode": "dual_view",
+                    "input_files": {
+                        "segmentation": available_paths['segmentation_anterior'].name,
+                        "hotspot": available_paths['hotspot_anterior'].name
+                    }
+                },
+                "bsi_results": anterior_results["region_stats"],
+                "summary_statistics": {
+                    "view": "anterior",
+                    "bsi_score": combined_results["anterior_bsi"], 
+                    "total_malignant_pixels": anterior_results["total_malignant_pixels"],
+                    "total_benign_pixels": anterior_results["total_benign_pixels"],
+                    "total_pixels": sum(anterior_results["region_total_pixels"].values()),
+                    "combined_bsi_available": True,
+                    "combined_bsi": combined_results["combined_bsi"]
+                }
+            }
+            
+            posterior_final = {
+                "patient_info": {
+                    **base_metadata,
+                    "view": "posterior",
+                    "processing_mode": "dual_view",
+                    "input_files": {
+                        "segmentation": available_paths['segmentation_posterior'].name,
+                        "hotspot": available_paths['hotspot_posterior'].name
+                    }
+                },
+                "bsi_results": posterior_results["region_stats"],
+                "summary_statistics": {
+                    "view": "posterior",
+                    "bsi_score": combined_results["posterior_bsi"],
+                    "total_malignant_pixels": posterior_results["total_malignant_pixels"],
+                    "total_benign_pixels": posterior_results["total_benign_pixels"],
+                    "total_pixels": sum(posterior_results["region_total_pixels"].values()),
+                    "combined_bsi_available": True,
+                    "combined_bsi": combined_results["combined_bsi"]
+                }
+            }
+            
+            # Write both files
+            with open(paths['output_anterior'], 'w') as f:
+                json.dump(anterior_final, f, indent=2)
+            with open(paths['output_posterior'], 'w') as f:
+                json.dump(posterior_final, f, indent=2)
+                
+            _log(f"     ✅ Dual-view BSI quantification completed")
+            _log(f"     Anterior BSI: {combined_results['anterior_bsi']:.3f}")
+            _log(f"     Posterior BSI: {combined_results['posterior_bsi']:.3f}")
+            _log(f"     Combined BSI: {combined_results['combined_bsi']:.3f}")
+            
+        # Scenario 2: Only anterior available
+        elif anterior_results and not posterior_results:
+            _log(f"     Scenario: Only anterior view available")
+            anterior_bsi = anterior_results["summary_statistics"]["bsi_score"]
+            
+            anterior_final = {
+                "patient_info": {
+                    **base_metadata,
+                    "view": "anterior",
+                    "processing_mode": "single_view_anterior",
+                    "input_files": {
+                        "segmentation": available_paths['segmentation_anterior'].name,
+                        "hotspot": available_paths['hotspot_anterior'].name
+                    }
+                },
+                "bsi_results": anterior_results["region_stats"],
+                "summary_statistics": {
+                    "view": "anterior",
+                    "bsi_score": anterior_bsi,
+                    "total_malignant_pixels": anterior_results["total_malignant_pixels"],
+                    "total_benign_pixels": anterior_results["total_benign_pixels"],
+                    "total_pixels": sum(anterior_results["region_total_pixels"].values()),
+                    "combined_bsi_available": False,
+                    "single_view_mode": True,
+                    "note": "Only anterior view processed - posterior files not available"
+                }
+            }
+            
+            # Write only anterior file
+            with open(paths['output_anterior'], 'w') as f:
+                json.dump(anterior_final, f, indent=2)
+                
+            _log(f"     ✅ Single-view (anterior) BSI quantification completed")
+            _log(f"     Anterior BSI: {anterior_bsi:.3f}")
+            _log(f"     Note: Posterior files not available")
+            
+        # Scenario 3: Only posterior available
+        elif posterior_results and not anterior_results:
+            _log(f"     Scenario: Only posterior view available")
+            posterior_bsi = posterior_results["summary_statistics"]["bsi_score"]
+            
+            posterior_final = {
+                "patient_info": {
+                    **base_metadata,
+                    "view": "posterior",
+                    "processing_mode": "single_view_posterior",
+                    "input_files": {
+                        "segmentation": available_paths['segmentation_posterior'].name,
+                        "hotspot": available_paths['hotspot_posterior'].name
+                    }
+                },
+                "bsi_results": posterior_results["region_stats"],
+                "summary_statistics": {
+                    "view": "posterior",
+                    "bsi_score": posterior_bsi,
+                    "total_malignant_pixels": posterior_results["total_malignant_pixels"],
+                    "total_benign_pixels": posterior_results["total_benign_pixels"],
+                    "total_pixels": sum(posterior_results["region_total_pixels"].values()),
+                    "combined_bsi_available": False,
+                    "single_view_mode": True,
+                    "note": "Only posterior view processed - anterior files not available"
+                }
+            }
+            
+            # Write only posterior file
+            with open(paths['output_posterior'], 'w') as f:
+                json.dump(posterior_final, f, indent=2)
+                
+            _log(f"     ✅ Single-view (posterior) BSI quantification completed")
+            _log(f"     Posterior BSI: {posterior_bsi:.3f}")
+            _log(f"     Note: Anterior files not available")
         
-        _log(f"     ✅ V1.2 BSI quantification completed")
-        _log(f"     Anterior BSI: {combined_results['anterior_bsi'] * 100:.2f}%")
-        _log(f"     Posterior BSI: {combined_results['posterior_bsi'] * 100:.2f}%") 
-        _log(f"     Combined BSI: {combined_results['combined_bsi'] * 100:.2f}%")
-        _log(f"     Results saved: {paths['output_anterior'].name}, {paths['output_posterior'].name}")
-        
+        _log(f"     Results saved to patient folder")
         return True
         
     except Exception as e:
@@ -206,5 +306,5 @@ def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_d
 
 # ✅ Update the main entry point to use V1.2
 def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date: str) -> bool:
-    """Main entry point - now uses V1.2 algorithm"""
+    """Main entry point - now uses V1.2 algorithm with single view support"""
     return run_quantification_for_patient_v2(dicom_path, patient_id, study_date)
