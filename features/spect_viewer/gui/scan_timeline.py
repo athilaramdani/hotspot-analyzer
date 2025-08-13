@@ -291,39 +291,55 @@ class ScanTimelineWidget(QWidget):
             print(f"[ERROR] Failed to load segmentation layer: {e}")
 
     def _load_hotspot_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
-        """Load hotspot layer (classification mask) if available"""
+        """Load hotspot layer (classification mask) with edited file priority"""
         try:
-            # Check for classification mask file
-            classification_mask = dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png"
+            # ✅ FIXED: Check edited file first, then fallback to original
+            classification_mask_edited = dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask_edited.png"
+            classification_mask_original = dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png"
             
-            if classification_mask.exists():
-                hotspot_image = load_image_with_transparency(classification_mask)
+            # Priority: edited file first
+            if classification_mask_edited.exists():
+                hotspot_image = load_image_with_transparency(classification_mask_edited)
                 if hotspot_image:
                     layers["Hotspot"] = hotspot_image
-                    print(f"[DEBUG] Loaded hotspot layer from: {classification_mask.name}")
-            else:
-                print(f"[DEBUG] No hotspot classification mask found: {classification_mask.name}")
+                    print(f"[DEBUG] Loaded hotspot layer from EDITED: {classification_mask_edited.name}")
+                    return
+            
+            # Fallback: original file
+            if classification_mask_original.exists():
+                hotspot_image = load_image_with_transparency(classification_mask_original)
+                if hotspot_image:
+                    layers["Hotspot"] = hotspot_image
+                    print(f"[DEBUG] Loaded hotspot layer from ORIGINAL: {classification_mask_original.name}")
+                    return
+            
+            print(f"[DEBUG] No hotspot classification mask found (checked both edited and original)")
                 
         except Exception as e:
             print(f"[ERROR] Failed to load hotspot layer: {e}")
 
     def _load_bbox_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
-        """Load bounding box layer (classification XML) if available"""
+        """Load bounding box layer (classification XML) with edited file priority"""
         try:
-            # Check for classification XML file
+            # ✅ FIXED: Check edited XML first, then fallback to original
             view_short = "ant" if "ant" in view_normalized else "post"
-            classification_xml = dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml"
+            classification_xml_edited = dicom_path.parent / f"{filename_with_date}_{view_short}_classification_edited.xml"
+            classification_xml_original = dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml"
             
-            if classification_xml.exists():
+            # Priority: edited file first
+            target_xml = classification_xml_edited if classification_xml_edited.exists() else classification_xml_original
+            
+            if target_xml.exists():
                 # ✅ FIX: Use "Image" instead of "Original"
                 if "Image" in layers:
                     image_dimensions = layers["Image"].size
-                    bbox_image = self._create_bbox_visualization_from_classification(classification_xml, image_dimensions)
+                    bbox_image = self._create_bbox_visualization_from_classification(target_xml, image_dimensions)
                     if bbox_image:
                         layers["HotspotBBox"] = bbox_image
-                        print(f"[DEBUG] Loaded bbox layer from: {classification_xml.name}")
+                        file_type = "EDITED" if target_xml == classification_xml_edited else "ORIGINAL"
+                        print(f"[DEBUG] Loaded bbox layer from {file_type}: {target_xml.name}")
             else:
-                print(f"[DEBUG] No classification XML found: {classification_xml.name}")
+                print(f"[DEBUG] No classification XML found (checked both edited and original)")
                 
         except Exception as e:
             print(f"[ERROR] Failed to load bbox layer: {e}")
