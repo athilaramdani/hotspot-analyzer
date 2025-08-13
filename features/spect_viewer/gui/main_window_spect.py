@@ -255,21 +255,24 @@ class MainWindowSpect(QMainWindow):
             """)
 
     def _update_edit_button_states(self):
-        """Update edit button states based on data availability (not layer activation)"""
+        """Update edit button states based on scan availability and potential for editing"""
         
         # Check if we have any scan loaded
-        has_scan = bool(self.timeline_widget._scans_cache)
+        has_scan = bool(self.timeline_widget._scans_cache and self.timeline_widget.active_scan_index >= 0)
         
-        # Check if segmentation/hotspot DATA exists (not if layers are active)
+        # ✅ FIXED: For segmentation - check if segmentation files exist (required for editing)
         has_segmentation_data = self.timeline_widget.has_layer_data("Segmentation") if has_scan else False
-        has_hotspot_data = self.timeline_widget.has_layer_data("Hotspot") if has_scan else False
         
-        # Enable buttons based on data availability, not layer activation
+        # ✅ FIXED: For hotspot - always allow editing if scan exists (can create hotspot files)
+        # User should be able to edit hotspot even if classification files don't exist yet
+        can_edit_hotspot = has_scan
+        
+        # Enable buttons based on editability
         self.seg_edit_btn.setEnabled(has_segmentation_data and has_scan)
-        self.hotspot_edit_btn.setEnabled(has_hotspot_data and has_scan)
+        self.hotspot_edit_btn.setEnabled(can_edit_hotspot)  # ✅ Always enabled if scan exists
         
         # Debug output
-        print(f"[EDIT BUTTONS] Has scan: {has_scan}, Has seg data: {has_segmentation_data}, Has hotspot data: {has_hotspot_data}")
+        print(f"[EDIT BUTTONS] Has scan: {has_scan}, Has seg data: {has_segmentation_data}, Can edit hotspot: {can_edit_hotspot}")
         print(f"[EDIT BUTTONS] Seg button enabled: {self.seg_edit_btn.isEnabled()}, Hotspot button enabled: {self.hotspot_edit_btn.isEnabled()}")
         
     def _update_scan_info_display(self):
