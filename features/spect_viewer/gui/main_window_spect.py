@@ -5,11 +5,11 @@ from pathlib import Path
 from functools import partial
 from typing import Dict, List
 import numpy as np
-
+from datetime import datetime
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QMainWindow, QSplitter, QPushButton,
-    QWidget, QVBoxLayout, QHBoxLayout, QDialog, QApplication, QLabel, QFileDialog, QMessageBox
+    QWidget, QVBoxLayout, QHBoxLayout, QDialog, QApplication, QLabel, QFileDialog, QMessageBox,QCheckBox, QInputDialog 
 )
 from PySide6.QtGui import QCloseEvent, QShortcut, QKeySequence
 import multiprocessing
@@ -30,10 +30,8 @@ from features.dicom_import.logic.directory_scanner import (
     get_session_patients,
     get_patient_dicom_files
 )
-
-# Import frame selector yang sudah difix
-from .frame_selector import FrameSelector
-
+from features.spect_viewer.gui.segmentation_editor_dialog import SegmentationEditorDialog
+from features.spect_viewer.gui.hotspot_editor_dialog import HotspotEditorDialog
 # ===== TAMBAHKAN IMPORT LOADING DIALOG =====
 from core.gui.loading_dialog import SPECTLoadingDialog
 # ===========================================
@@ -58,9 +56,8 @@ from .scan_timeline import ScanTimelineWidget  # UPDATED: Use modular timeline w
 
 # ✅ FIXED: Import BSISidePanel instead of SidePanel
 from .side_panel import BSISidePanel
-
+from ..logic.adjust_contrast import ContrastDialog
 from .mode_selector import ModeSelector
-from .view_selector import ViewSelector
 from features.spect_viewer.logic.processing_wrapper import run_yolo_detection_for_patient, run_hotspot_processing_in_process,run_segmentation_in_process
 
 # ✅ NEW: Import BSI integration
@@ -80,6 +77,8 @@ class MainWindowSpect(QMainWindow):
         self.session_code = session_code
         self.pool = multiprocessing.Pool(processes=1)
         self.data_root = data_root
+        self.invert_original = False
+        self._last_invert_state = False
         print(f"[DEBUG] session_code in MainWindow = {self.session_code}")
 
         # NEW: Store session-patient mapping from new structure
@@ -92,23 +91,7 @@ class MainWindowSpect(QMainWindow):
 
         self._build_ui()
         self._scan_folder()
-    def _setup_frame_selector_connections(self):
-        """✅ Setup proper connections between frame selector and timeline"""
-        
-        # ✅ Connect view_changed signal for proper view switching
-        self.view_selector.view_changed.connect(self._on_view_changed_enhanced)
-        
-        print("[MainWindow] Frame selector connections established")
-
-    def _on_view_changed_enhanced(self, view_name: str):
-        """✅ Enhanced view change handler"""
-        print(f"[MainWindow] View changed to: {view_name}")
-        
-        # Update timeline view - CRITICAL FIX
-        if hasattr(self, 'timeline_widget'):
-            self.timeline_widget.set_active_view(view_name)
-        
-        print(f"[MainWindow] ✅ View change propagated to timeline")
+    
 
     def _setup_timeline_connections(self):
         """✅ Setup timeline connections with proper view synchronization"""
@@ -195,25 +178,16 @@ class MainWindowSpect(QMainWindow):
             print(f"[MainWindow] Error in zoom reset: {e}")
 
     def _sync_view_across_components(self, view_name: str):
-        """✅ Synchronize view across all components"""
+        """"✅ Synchronize view across all components"""
         print(f"[MainWindow] Syncing view '{view_name}' across all components")
-        
+
         try:
-            # Update view selector (without triggering signal loop)
-            if hasattr(self, 'view_selector'):
-                self.view_selector.combo.blockSignals(True)
-                if view_name == "Anterior":
-                    self.view_selector.combo.setCurrentIndex(0)
-                else:
-                    self.view_selector.combo.setCurrentIndex(1)
-                self.view_selector.combo.blockSignals(False)
-            
-            # Update timeline widget - CRITICAL
+            # Hanya update timeline widget
             if hasattr(self, 'timeline_widget'):
                 self.timeline_widget.set_active_view(view_name)
-            
+
             print(f"[MainWindow] ✅ View sync completed")
-            
+
         except Exception as e:
             print(f"[MainWindow] Error syncing view: {e}")
 
@@ -242,12 +216,6 @@ class MainWindowSpect(QMainWindow):
     def complete_initialization_setup(self):
         """✅ Complete initialization sequence - CALL THIS AT END OF __init__"""
         
-        # 1. Setup frame selector connections
-        self._setup_frame_selector_connections()
-        
-        # 2. Setup timeline connections  
-        self._setup_timeline_connections()
-        
         # 3. Setup keyboard shortcuts
         self._setup_keyboard_shortcuts()
         
@@ -256,7 +224,185 @@ class MainWindowSpect(QMainWindow):
         self._sync_view_across_components(default_view)
         
         print("[MainWindow] ✅ Complete integration initialization finished")
-    
+    def _update_active_layers_display(self):
+        """Update the active layers display in control panel"""
+        if not self.timeline_widget._active_layers:
+            self.active_layers_label.setText("Active Layers: <i>None selected</i>")
+            self.active_layers_label.setStyleSheet("""
+                QLabel {
+                    font-size: 11px;
+                    color: #dc3545;
+                    padding: 8px;
+                    background: #f8d7da;
+                    border: 1px solid #f5c6cb;
+                    border-radius: 4px;
+                    margin: 5px 0px;
+                }
+            """)
+        else:
+            layers_text = ", ".join(self.timeline_widget._active_layers)
+            self.active_layers_label.setText(f"Active Layers: <b>{layers_text}</b>")
+            self.active_layers_label.setStyleSheet("""
+                QLabel {
+                    font-size: 11px;
+                    color: #155724;
+                    padding: 8px;
+                    background: #d4edda;
+                    border: 1px solid #c3e6cb;
+                    border-radius: 4px;
+                    margin: 5px 0px;
+                }
+            """)
+
+    def _update_edit_button_states(self):
+        """Update edit button states based on data availability (not layer activation)"""
+        
+        # Check if we have any scan loaded
+        has_scan = bool(self.timeline_widget._scans_cache)
+        
+        # Check if segmentation/hotspot DATA exists (not if layers are active)
+        has_segmentation_data = self.timeline_widget.has_layer_data("Segmentation") if has_scan else False
+        has_hotspot_data = self.timeline_widget.has_layer_data("Hotspot") if has_scan else False
+        
+        # Enable buttons based on data availability, not layer activation
+        self.seg_edit_btn.setEnabled(has_segmentation_data and has_scan)
+        self.hotspot_edit_btn.setEnabled(has_hotspot_data and has_scan)
+        
+        # Debug output
+        print(f"[EDIT BUTTONS] Has scan: {has_scan}, Has seg data: {has_segmentation_data}, Has hotspot data: {has_hotspot_data}")
+        print(f"[EDIT BUTTONS] Seg button enabled: {self.seg_edit_btn.isEnabled()}, Hotspot button enabled: {self.hotspot_edit_btn.isEnabled()}")
+        
+    def _update_scan_info_display(self):
+        """✅ FIXED: Update scan information with BSI data"""
+        if not self.timeline_widget._scans_cache or self.timeline_widget.active_scan_index < 0:
+            self.scan_info_label.setText("No scan selected")
+            return
+            
+        if self.timeline_widget.active_scan_index < len(self.timeline_widget._scans_cache):
+            scan = self.timeline_widget._scans_cache[self.timeline_widget.active_scan_index]
+            meta = scan["meta"]
+            
+            # Format scan info
+            scan_num = self.timeline_widget.active_scan_index + 1
+            total_scans = len(self.timeline_widget._scans_cache)
+            date = meta.get("study_date", "Unknown")
+            
+            try:
+                formatted_date = datetime.strptime(date, "%Y%m%d").strftime("%b %d, %Y")
+            except ValueError:
+                formatted_date = date
+            
+            # Get BSI information
+            bsi_info = ""
+            if meta.get("has_bsi", False):
+                bsi_score = meta.get("bsi_score", 0.0)
+                bsi_info = f"<br>BSI: {bsi_score:.1f}%"
+            
+            # ✅ FIX: Replace self.current_view with static text
+            info_text = f"""
+            <b>Scan {scan_num}/{total_scans}</b><br>
+            Date: {formatted_date}<br>
+            <b>View: Anterior & Posterior</b>{bsi_info}
+            """
+            
+            self.scan_info_label.setText(info_text)
+    def _open_segmentation_editor(self):
+        """Buka editor segmentasi untuk scan saat ini."""
+        if not self.timeline_widget._scans_cache or self.timeline_widget.active_scan_index < 0:
+            return
+        
+        # ✅ FIX: Ask the user which view to edit
+        views = ["Anterior", "Posterior"]
+        selected_view, ok = QInputDialog.getItem(self, "Select View", 
+                                                "Which view would you like to edit?", views, 0, False)
+
+        if ok and selected_view:
+            scan = self.timeline_widget._scans_cache[self.timeline_widget.active_scan_index]
+            
+            dlg = SegmentationEditorDialog(scan, selected_view, parent=self)
+            if dlg.exec():
+                # self.editor_completed is not a standard signal, assuming you meant to connect to a refresh
+                self._on_editor_completed()
+
+    def _open_hotspot_editor(self):
+        """Buka editor hotspot untuk scan saat ini."""
+        if not self.timeline_widget._scans_cache or self.timeline_widget.active_scan_index < 0:
+            return
+
+        # ✅ FIX: Ask the user which view to edit
+        views = ["Anterior", "Posterior"]
+        selected_view, ok = QInputDialog.getItem(self, "Select View", 
+                                                "Which view would you like to edit?", views, 0, False)
+
+        if ok and selected_view:
+            scan = self.timeline_widget._scans_cache[self.timeline_widget.active_scan_index]
+
+            try:
+                patient_id, _ = self.timeline_widget._get_patient_session_from_scan(scan)
+                
+                dicom_path = Path(scan["path"])
+                study_date = extract_study_date_from_dicom(dicom_path)
+                filename_with_date = generate_filename_stem(patient_id, study_date)
+                
+                view_normalized = selected_view.lower()
+                view_short = "ant" if "ant" in view_normalized else "post"
+                
+                classification_files = {
+                    'mask_path': dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png",
+                    'xml_path': dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml",
+                    'json_path': dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification.json"
+                }
+                
+                enhanced_scan = scan.copy()
+                enhanced_scan['classification_files'] = classification_files
+                enhanced_scan['is_classification_mode'] = True
+                
+                dlg = HotspotEditorDialog(enhanced_scan, selected_view, parent=self)
+                if dlg.exec():
+                    self._on_editor_completed()
+
+            except Exception as e:
+                print(f"[ERROR] Failed to open hotspot editor: {e}")
+
+
+
+    def _on_invert_changed(self, state: int):
+        """Enhanced debugging for checkbox state changes"""
+        print(f"[DEBUG] === INVERT CHECKBOX CHANGED ===")
+        
+        # Use the checkbox's own isChecked() method - most reliable
+        actual_checked = self.invert_checkbox.isChecked()
+        
+        print(f"[DEBUG] Checkbox state: {state}, isChecked(): {actual_checked}")
+        
+        # Update the flag
+        old_invert = self.invert_original
+        self.invert_original = actual_checked
+        
+        print(f"[DEBUG] Invert flag changed: {old_invert} -> {self.invert_original}")
+        
+        # Call timeline method
+        if hasattr(self, 'timeline_widget') and self.timeline_widget is not None:
+            print(f"[DEBUG] Calling timeline_widget.set_invert_original({self.invert_original})")
+            self.timeline_widget.set_invert_original(self.invert_original)
+            print(f"[DEBUG] ✅ Timeline invert method called successfully")
+        else:
+            print(f"[DEBUG] ❌ Timeline widget not ready!")
+
+    # Add this to the end of your _build_ui method or call it after window is shown
+    def test_checkbox_connection(self):
+        """Test method to verify invert connection works"""
+        print(f"[TEST] Testing invert connection...")
+        print(f"[TEST] Timeline widget exists: {hasattr(self, 'timeline_widget')}")
+        print(f"[TEST] Checkbox exists: {hasattr(self, 'invert_checkbox')}")
+        
+        if hasattr(self, 'invert_checkbox'):
+            print(f"[TEST] Current checkbox state: {self.invert_checkbox.isChecked()}")
+            # Manually trigger the signal
+            current_state = self.invert_checkbox.isChecked()
+            self.invert_checkbox.setChecked(not current_state)
+            print(f"[TEST] Toggled checkbox to: {not current_state}")
+                
     def _build_ui(self) -> None:
         # --- Top Bar ---
         top_actions = QWidget()
@@ -277,14 +423,9 @@ class MainWindowSpect(QMainWindow):
         rescan_btn = QPushButton("Rescan Folder")
         rescan_btn.setStyleSheet(SUCCESS_BUTTON_STYLE)
         rescan_btn.clicked.connect(self._scan_folder)
-        
-        # View selector (keep on top bar)
-        self.view_selector = ViewSelector()
-        self.view_selector.view_changed.connect(self._set_view)
-
+        # Menambahkan tombol-tombol penting ke layout
         top_layout.addWidget(import_btn)
         top_layout.addWidget(rescan_btn)
-        top_layout.addWidget(self.view_selector)
 
         # Logout button
         logout_btn = QPushButton("Logout")
@@ -298,18 +439,6 @@ class MainWindowSpect(QMainWindow):
         self.scan_button_container = QHBoxLayout()
         view_button_layout.addLayout(self.scan_button_container)
         view_button_layout.addStretch()
-        
-        zoom_in_btn = QPushButton("Zoom In")
-        zoom_in_btn.clicked.connect(self.zoom_in)
-        zoom_out_btn = QPushButton("Zoom Out")
-        zoom_out_btn.clicked.connect(self.zoom_out)
-        
-        # Styling untuk zoom buttons
-        zoom_in_btn.setStyleSheet(ZOOM_BUTTON_STYLE)
-        zoom_out_btn.setStyleSheet(ZOOM_BUTTON_STYLE)
-        
-        view_button_layout.addWidget(zoom_in_btn)
-        view_button_layout.addWidget(zoom_out_btn)
 
         # --- Main Splitter (RESIZABLE LAYOUT: Mode Selector | Timeline | BSI Panel) ---
         main_splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -338,17 +467,12 @@ class MainWindowSpect(QMainWindow):
         
         # NEW: Enhanced mode selector with checkboxes
         self.mode_selector = ModeSelector()
-        
         # Connect NEW signals for checkbox-based mode selector
         self.mode_selector.layers_changed.connect(self._on_layers_changed)
         self.mode_selector.opacity_changed.connect(self._set_layer_opacity)
-        
         left_layout.addWidget(self.mode_selector)
-        left_layout.addStretch()
-        
-        main_splitter.addWidget(left_panel)
 
-        # Di _build_ui(), setelah membuat timeline widget
+        # CREATE TIMELINE WIDGET FIRST (before invert checkbox)
         self.timeline_widget = ScanTimelineWidget()
         self.timeline_widget.set_session_code(self.session_code)
 
@@ -357,8 +481,84 @@ class MainWindowSpect(QMainWindow):
 
         # ✅ NEW: Connect editor completion signals to refresh BSI panel
         self.timeline_widget.editor_completed.connect(self._on_editor_completed)
-        # These signals will be emitted when editors successfully save
+
+        # NOW CREATE AND CONNECT INVERT CHECKBOX (after timeline exists)
+        self.invert_checkbox = QCheckBox("Invert Image Colors")
+        self.invert_checkbox.setStyleSheet("margin-top: 8px; font-weight: bold;")
         
+        # ✅ Connect the checkbox AFTER timeline widget exists
+        print(f"[DEBUG] Connecting invert checkbox...")
+        self.invert_checkbox.stateChanged.connect(self._on_invert_changed)
+        
+        # ✅ Test the connection immediately
+        print(f"[DEBUG] Testing checkbox connection...")
+        print(f"[DEBUG] Timeline widget exists: {hasattr(self, 'timeline_widget')}")
+        if hasattr(self, 'timeline_widget'):
+            print(f"[DEBUG] Timeline widget type: {type(self.timeline_widget)}")
+        
+        left_layout.addWidget(self.invert_checkbox)
+        print(f"[DEBUG] Invert checkbox created and connected")
+
+        # 3. Label Info Layer Aktif (PINDAHAN)
+        self.active_layers_label = QLabel("Active Layers: None")
+        self.active_layers_label.setWordWrap(True)
+        left_layout.addWidget(self.active_layers_label)
+
+        # 4. Tombol Edit (PINDAHAN)
+        self.seg_edit_btn = QPushButton("Edit Segmentation")
+        self.seg_edit_btn.clicked.connect(self._open_segmentation_editor)
+        self.seg_edit_btn.setStyleSheet(SUCCESS_BUTTON_STYLE + """
+            QPushButton:disabled {
+                background-color: #d3d3d3;
+                color: #888;
+                border-color: #aaa;
+            }
+        """)
+
+        self.hotspot_edit_btn = QPushButton("Edit Hotspot")
+        self.hotspot_edit_btn.clicked.connect(self._open_hotspot_editor)
+        self.hotspot_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
+            QPushButton:disabled {
+                background-color: #d3d3d3;
+                color: #888;
+                border-color: #aaa;
+            }
+        """)
+
+        edit_layout = QHBoxLayout()
+        edit_layout.addWidget(self.seg_edit_btn)
+        edit_layout.addWidget(self.hotspot_edit_btn)
+        left_layout.addLayout(edit_layout)
+
+        # 5. Label Info Scan (PINDAHAN)
+        self.scan_info_label = QLabel("No scan selected")
+        self.scan_info_label.setWordWrap(True)
+        left_layout.addWidget(self.scan_info_label)
+    
+        # Layout horizontal untuk tombol zoom
+        zoom_buttons_layout = QHBoxLayout()
+        zoom_in_btn = QPushButton("Zoom In")
+        zoom_in_btn.clicked.connect(self.zoom_in)
+        zoom_in_btn.setStyleSheet(ZOOM_BUTTON_STYLE)
+
+        zoom_out_btn = QPushButton("Zoom Out")
+        zoom_out_btn.clicked.connect(self.zoom_out)
+        zoom_out_btn.setStyleSheet(ZOOM_BUTTON_STYLE)
+
+        zoom_buttons_layout.addWidget(zoom_in_btn)
+        zoom_buttons_layout.addWidget(zoom_out_btn)
+        left_layout.addLayout(zoom_buttons_layout)
+
+        contrast_button = QPushButton("Adjust Contrast")
+        contrast_button.setStyleSheet(ZOOM_BUTTON_STYLE) # Use a style you like
+        contrast_button.clicked.connect(self._open_contrast_dialog)
+        left_layout.addWidget(contrast_button)
+
+        left_layout.addStretch()
+        
+        main_splitter.addWidget(left_panel)
+
+        # Add timeline widget to splitter (it's already created above)
         main_splitter.addWidget(self.timeline_widget)
 
         # ✅ FIXED: RIGHT PANEL: BSI Side Panel instead of old SidePanel
@@ -402,6 +602,9 @@ class MainWindowSpect(QMainWindow):
         main_layout.addWidget(main_splitter, stretch=1)
         self.setCentralWidget(main_widget)
         self.complete_initialization_setup()
+
+        QTimer.singleShot(1000, self.test_checkbox_connection)
+        
     def debug_timeline_status(self):
         """Debug method untuk cek status timeline"""
         if hasattr(self, 'timeline_widget'):
@@ -410,6 +613,47 @@ class MainWindowSpect(QMainWindow):
             print(f"[DEBUG] Timeline has layer data - Original: {self.timeline_widget.has_layer_data('Original')}")
             print(f"[DEBUG] Timeline has layer data - Segmentation: {self.timeline_widget.has_layer_data('Segmentation')}")
             print(f"[DEBUG] Timeline has layer data - Hotspot: {self.timeline_widget.has_layer_data('Hotspot')}")
+
+    def _open_contrast_dialog(self):
+        """Opens the B/C dialog after asking the user to select a view."""
+        
+        if not self.timeline_widget._scans_cache:
+            QMessageBox.warning(self, "No Scan", "Please select a patient and scan first.")
+            return
+
+        # 1. Ask the user which view to edit
+        views = ["Anterior", "Posterior"]
+        selected_view, ok = QInputDialog.getItem(self, "Select View",
+                                                "Which view would you like to adjust?", views, 0, False)
+
+        if ok and selected_view:
+            # ✅ FIX: Use the new getter method to get the initial state for the SELECTED view
+            initial_state = self.timeline_widget.get_brightness_contrast(selected_view)
+            initial_b = initial_state["brightness"]
+            initial_c = initial_state["contrast"]
+
+            dialog = ContrastDialog(self)
+            dialog.set_initial_values(initial_b, initial_c)
+
+            # Connect the live preview signal using a lambda to pass the selected view
+            preview_connection = lambda b, c: self.timeline_widget.preview_brightness_contrast(selected_view, b, c)
+            dialog.adjustment_changed.connect(preview_connection)
+            
+            result = dialog.exec()
+
+            if result == QDialog.Accepted:
+                # Apply the final values to the correct view
+                values = dialog.get_values()
+                if values:
+                    brightness, contrast = values
+                    self.timeline_widget.set_brightness_contrast(selected_view, brightness, contrast)
+            else:
+                # Revert the changes for the correct view if cancelled
+                print(f"[DEBUG] Contrast dialog for {selected_view} cancelled, reverting.")
+                self.timeline_widget.set_brightness_contrast(selected_view, initial_b, initial_c)
+
+            # Disconnect the signal to be safe
+            dialog.adjustment_changed.disconnect(preview_connection)
 
     # ✅ NEW: BSI panel event handlers
     def _on_bsi_export_requested(self, export_type: str):
@@ -555,6 +799,9 @@ class MainWindowSpect(QMainWindow):
                 
         except (IndexError, AttributeError) as e:
             print(f"[DEBUG] Failed to update BSI panel: {e}")
+        
+        self._update_scan_info_display()
+        self._update_edit_button_states()
 
     def _on_editor_completed(self):
         """Handle editor completion - refresh BSI panel and timeline"""
@@ -627,16 +874,14 @@ class MainWindowSpect(QMainWindow):
         
         # Update timeline with new layer selection
         self.timeline_widget.set_active_layers(active_layers)
+        self._update_active_layers_display()
+        self._update_edit_button_states()
 
     def _set_layer_opacity(self, layer: str, opacity: float) -> None:
         """Handle layer opacity changes from mode selector"""
         print(f"[DEBUG] Setting {layer} opacity to {opacity:.2f}")
         self.timeline_widget.set_layer_opacity(layer, opacity)
 
-    def _set_view(self, v: str) -> None:
-        """Set active view"""
-        print(f"[DEBUG] Setting view to: {v}")
-        self.timeline_widget.set_active_view(v)
 
     # UPDATED: Enhanced scan button click handler for checkbox system
     def _on_scan_button_clicked(self, index: int) -> None:
@@ -680,6 +925,8 @@ class MainWindowSpect(QMainWindow):
         self._load_bsi_for_scan(selected_scan, session_code)
         
         print(f"[DEBUG] Displaying {len(scans)} scans in timeline with layers: {active_layers}")
+        self._update_scan_info_display()
+        self._update_edit_button_states()
 
     # UPDATED: Remove old _set_mode method, add layer management methods
     def reset_mode_selector(self):
@@ -689,18 +936,19 @@ class MainWindowSpect(QMainWindow):
         
         # Reset all opacity values in timeline - UPDATED with new layer
         default_opacities = {
-            "Original": 1.0,
-            "Segmentation": 0.7,
-            "Hotspot": 0.8,
+            "Image": 1.0,
+            "Segmentation": 0.35,
+            "Hotspot": 0.5,
             "HotspotBBox": 1.0
         }
         for layer, opacity in default_opacities.items():
             self.timeline_widget.set_layer_opacity(layer, opacity)
 
     def set_default_layers(self):
-        """Set default layer configuration (Original only)"""
-        self.mode_selector.set_layer_active("Original", True)
-        
+        """Set default layer configuration (Image only)"""
+        print("[DEBUG] Setting default layers: 'Image' checkbox should now be ON.") # Add this line
+        self.mode_selector.set_layer_active("Image", True) 
+            
     def get_current_layer_status(self) -> dict:
         """Get current layer status for debugging/logging"""
         return {
@@ -1038,22 +1286,48 @@ class MainWindowSpect(QMainWindow):
         # Close loading dialog
         if loading_dialog:
             loading_dialog.close()
+        
+        # Reset the layer controls to their default state for the new patient
+        self.reset_mode_selector()
+        self.set_default_layers()
 
         print(f"[DEBUG] All data loaded. Total scans: {len(scans)}")
         if scans:
+            # 1. Set the visual state of the layer controls first.
+            self.reset_mode_selector()
+            self.set_default_layers()  # This makes the "Original" checkbox appear checked.
+
+            # 2. Populate the patient info bar and create the scan buttons.
             self.patient_bar.set_patient_meta(scans[-1]["meta"])
             self._populate_scan_buttons(scans)
-            
-            # ✅ ENHANCED: Use enhanced timeline update
+
+            # 3. CRITICAL FIX: Force the timeline widget to use the default state.
+            # This directly tells the viewer what layer to display for the initial load,
+            # bypassing any potential state conflicts.
+            # Note: If you renamed "Original" to "Image", change the string below.
+            default_layers_for_display = ['Original']
+            self.timeline_widget.set_active_layers(default_layers_for_display)
+
+            # Also sync opacity settings to ensure consistency.
+            all_opacities = self.mode_selector.get_all_opacities()
+            for layer, opacity in all_opacities.items():
+                self.timeline_widget.set_layer_opacity(layer, opacity)
+
+            # 4. Now, update the UI with the scan data.
             self.update_timeline_with_scans_enhanced(scans, active_index=0)
-            
-            # Load first scan
             self._load_bsi_for_scan(scans[0], session_code)
-            
-            # Set first button as checked
+
+            # 5. Visually check the first scan button (do NOT use .click()).
             if self.scan_buttons:
                 self.scan_buttons[0].setChecked(True)
+
+            # 6. Update all info labels to reflect the new state.
+            self._update_scan_info_display()
+            self._update_edit_button_states()
+            self._update_active_layers_display()
+
         else:
+            # This part for when no scans are found remains the same.
             self.patient_bar.clear_info()
             self._populate_scan_buttons([])
             self.timeline_widget.display_timeline([])

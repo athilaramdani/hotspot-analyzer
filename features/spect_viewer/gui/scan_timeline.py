@@ -34,6 +34,9 @@ from core.utils.image_converter import (
 
 # Import for patient/session extraction from path
 from features.dicom_import.logic.dicom_loader import extract_patient_info_from_path
+# ✅ FIXED: Import updated image inverter functions
+from ..logic.image_inverter import invert_image_colors, simple_invert_pil_image
+from ..logic.adjust_contrast import apply_brightness_contrast
 
 from .segmentation_editor_dialog import SegmentationEditorDialog
 from .hotspot_editor_dialog import HotspotEditorDialog
@@ -48,7 +51,6 @@ from core.gui.ui_constants import (
 
 # Import BSI integration
 from features.spect_viewer.logic.bsi_timeline_integration import get_bsi_integration
-
 
 # --------------------------- helpers -----------------------------------------
 def _array_to_pixmap(arr: np.ndarray, width: int) -> QPixmap:
@@ -116,12 +118,19 @@ class ScanTimelineWidget(QWidget):
         self.active_scan_index = 0
         self._zoom_factor = 1.0
         self.card_width = 350
+        self.invert_original = False
+        self._adjustments = {
+            "Anterior": {"brightness": 0.0, "contrast": 1.0},
+            "Posterior": {"brightness": 0.0, "contrast": 1.0}
+        }
+        self._anterior_image_label: QLabel | None = None
+        self._posterior_image_label: QLabel | None = None
         
         # Layer opacity settings
         self._layer_opacities = {
             "Original": 1.0,
-            "Segmentation": 0.7,
-            "Hotspot": 0.8,           # ✅ Classification mask only
+            "Segmentation": 0.35,
+            "Hotspot": 0.5,           # ✅ Classification mask only
             "HotspotBBox": 1.0        # ✅ Classification XML only
         }
         
@@ -135,43 +144,249 @@ class ScanTimelineWidget(QWidget):
         self._setup_keyboard_shortcuts()
 
     def _build_ui(self):
-        """Build the resizable UI layout with FIXED scrolling"""
+        """Build the UI which is now just the scrollable timeline area."""
         main_layout = QHBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
-        
-        # Create main splitter for resizable layout
-        self.main_splitter = QSplitter(Qt.Horizontal)
-        
-        # ✅ FIXED: LEFT SIDE - Scrollable timeline area with BOTH axes
-        self._setup_timeline_scroll_area()
-        
-        # RIGHT SIDE: Layer control panel (resizable)
-        self.control_panel = self._create_control_panel()
-        
-        # Add to splitter
-        self.main_splitter.addWidget(self.scroll_area)
-        self.main_splitter.addWidget(self.control_panel)
-        
-        # Set initial splitter sizes: Timeline | Controls
-        self.main_splitter.setStretchFactor(0, 3)  # Timeline gets 75%
-        self.main_splitter.setStretchFactor(1, 1)  # Controls get 25%
-        self.main_splitter.setSizes([800, 200])    # Initial pixel sizes
-        
-        # Enable splitter handle styling
-        self.main_splitter.setStyleSheet("""
-            QSplitter::handle {
-                background-color: #e9ecef;
-                width: 3px;
-                margin: 2px;
-                border-radius: 1px;
-            }
-            QSplitter::handle:hover {
-                background-color: #4e73ff;
-            }
-        """)
-        
-        main_layout.addWidget(self.main_splitter)
 
+        # Setup the scroll area directly
+        self._setup_timeline_scroll_area()
+
+        main_layout.addWidget(self.scroll_area)
+
+    def get_brightness_contrast(self, view_name: str) -> dict:
+        """Returns the brightness and contrast values for a specific view."""
+        return self._adjustments.get(view_name, {"brightness": 0.0, "contrast": 1.0})
+    
+    def set_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
+        """
+        ✅ FIXED: Sets the B/C values for a specific view and rebuilds the timeline.
+        """
+        if view_name in self._adjustments:
+            print(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
+            self._adjustments[view_name]["brightness"] = brightness
+            self._adjustments[view_name]["contrast"] = contrast
+            self._rebuild()
+        else:
+            print(f"[WARN] View '{view_name}' not found in adjustments dictionary. Cannot set contrast.")
+
+ 
+    def preview_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
+        """✅ FIXED: Applies a temporary B/C adjustment using the new override logic."""
+        if not self._scans_cache or self.active_scan_index < 0:
+            return
+
+        active_scan = self._scans_cache[self.active_scan_index]
+        w = int(self.card_width * self._zoom_factor)
+
+        target_label = self._anterior_image_label if view_name == "Anterior" else self._posterior_image_label
+        if not target_label:
+            print(f"[WARN] Preview failed: Could not find target label for {view_name}")
+            return
+
+        original_view_state = self.current_view
+        self.current_view = view_name
+        
+        # Get all layers, passing the override values for the preview
+        all_layers = self._get_layer_images(active_scan, override_b=brightness, override_c=contrast)
+
+        # Re-composite the image with the adjusted layer
+        active_layers_for_composite = {k: v for k, v in all_layers.items() if k in self._active_layers}
+        
+        if active_layers_for_composite:
+            composite_image = create_composite_image(
+                layers=active_layers_for_composite,
+                layer_order=self._active_layers,
+                layer_opacities=self._layer_opacities
+            )
+            
+            pixmap = _pil_to_pixmap(composite_image, w)
+            target_label.setPixmap(pixmap)
+        
+        self.current_view = original_view_state
+
+
+    def set_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
+        """
+        ✅ Sets the B/C values for a specific view and rebuilds the timeline.
+        """
+        if view_name in self._adjustments:
+            print(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
+            self._adjustments[view_name]["brightness"] = brightness
+            self._adjustments[view_name]["contrast"] = contrast
+            self._rebuild()
+        else:
+            print(f"[WARN] View '{view_name}' not found in adjustments. Cannot set contrast.")
+
+    def _load_original_image(self, dicom_path: Path, filename_with_date: str, view_name: str, frame_map: dict) -> Optional[Image.Image]:
+        """Load original DICOM image for the specified view"""
+        try:
+            # Get the frame for the current view
+            # ✅ FIX: Use the capitalized view_name for the lookup
+            if view_name in frame_map:
+                frame_data = frame_map[view_name]
+            else:
+                print(f"[DEBUG] View {view_name} not found in frame_map, using first available")
+                frame_data = next(iter(frame_map.values())) if frame_map else None
+            
+            # Convert numpy array to PIL Image
+            if isinstance(frame_data, np.ndarray):
+                # Normalize to uint8
+                if frame_data.dtype != np.uint8:
+                    frame_norm = (frame_data - frame_data.min()) / max(frame_data.max() - frame_data.min(), 1)
+                    frame_uint8 = (frame_norm * 255).astype(np.uint8)
+                else:
+                    frame_uint8 = frame_data.copy()
+                
+                # Convert to PIL Image
+                original_image = Image.fromarray(frame_uint8, 'L')  # 'L' for grayscale
+                print(f"[DEBUG] Loaded original image: {original_image.size}, mode: {original_image.mode}")
+                return original_image
+            else:
+                print(f"[DEBUG] Invalid frame data type: {type(frame_data)}")
+                return None
+                
+        except Exception as e:
+            print(f"[ERROR] Failed to load original image: {e}")
+            return None
+    def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
+        """✅ CORRECTED: Load segmentation layer if available"""
+        try:
+            seg_files = get_segmentation_files_with_edited(dicom_path.parent, filename_with_date, view_normalized)
+            
+            # ✅ FIX: Prioritize the edited file first, then the original
+            if seg_files['png_colored_edited'].exists():
+                seg_png = seg_files['png_colored_edited']
+                print(f"[DEBUG] Found edited segmentation: {seg_png}")
+            else:
+                seg_png = seg_files['png_colored']
+                print(f"[DEBUG] Looking for original segmentation: {seg_png}")
+
+            if seg_png.exists():
+                # Load with transparency (make black pixels transparent)
+                seg_image = load_image_with_transparency(seg_png, make_transparent=True)
+                if seg_image:
+                    layers["Segmentation"] = seg_image
+                    print(f"[DEBUG] Loaded segmentation with transparency: {seg_png}")
+            else:
+                print(f"[WARN] Segmentation file not found: {seg_png}")
+                
+        except Exception as e:
+            print(f"[ERROR] Failed to load segmentation layer: {e}")
+
+    def _load_hotspot_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
+        """Load hotspot layer (classification mask) if available"""
+        try:
+            # Check for classification mask file
+            classification_mask = dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png"
+            
+            if classification_mask.exists():
+                hotspot_image = load_image_with_transparency(classification_mask)
+                if hotspot_image:
+                    layers["Hotspot"] = hotspot_image
+                    print(f"[DEBUG] Loaded hotspot layer from: {classification_mask.name}")
+            else:
+                print(f"[DEBUG] No hotspot classification mask found: {classification_mask.name}")
+                
+        except Exception as e:
+            print(f"[ERROR] Failed to load hotspot layer: {e}")
+
+    def _load_bbox_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
+        """Load bounding box layer (classification XML) if available"""
+        try:
+            # Check for classification XML file
+            view_short = "ant" if "ant" in view_normalized else "post"
+            classification_xml = dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml"
+            
+            if classification_xml.exists():
+                # Get dimensions from original image if available
+                if "Original" in layers:
+                    image_dimensions = layers["Original"].size
+                    bbox_image = self._create_bbox_visualization_from_classification(classification_xml, image_dimensions)
+                    if bbox_image:
+                        layers["HotspotBBox"] = bbox_image
+                        print(f"[DEBUG] Loaded bbox layer from: {classification_xml.name}")
+            else:
+                print(f"[DEBUG] No classification XML found: {classification_xml.name}")
+                
+        except Exception as e:
+            print(f"[ERROR] Failed to load bbox layer: {e}")
+    
+    def set_invert_original(self, inverted: bool):
+        """✅ OPTIMIZED: Set invert status with change detection"""
+        print(f"[DEBUG] set_invert_original called: {inverted} (current: {self.invert_original})")
+        print(f"[DEBUG] Change detection: old={self.invert_original}, new={inverted}, changed={self.invert_original != inverted}")
+        
+        # Only rebuild if state actually changed
+        if self.invert_original != inverted:
+            old_state = self.invert_original
+            self.invert_original = inverted
+            self._last_invert_state = inverted
+            
+            print(f"[DEBUG] Invert state changed: {old_state} → {inverted}")
+            
+            # Clear image cache if it exists (invert affects caching)
+            if hasattr(self, '_image_cache'):
+                self._image_cache.clear()
+                print(f"[DEBUG] Cleared image cache due to invert change")
+            
+            # Force rebuild if we have scans loaded
+            if self._scans_cache:
+                print(f"[DEBUG] Forcing timeline rebuild for invert change...")
+                self._rebuild()
+            else:
+                print(f"[DEBUG] No scans loaded, rebuild skipped")
+        else:
+            print(f"[DEBUG] Invert state unchanged, skipping rebuild")
+        
+    def _update_edit_button_states(self):
+        """Update edit button enabled/disabled states and styling"""
+        has_segmentation = "Segmentation" in self.timeline_widget._active_layers
+        has_hotspot = "Hotspot" in self._active_layers
+        has_scan = bool(self.timeline_widget._scans_cache)
+        
+        # Segmentation edit button
+        if has_segmentation and has_scan:
+            self.seg_edit_btn.setEnabled(True)
+            self.seg_edit_btn.setStyleSheet(SUCCESS_BUTTON_STYLE + """
+                QPushButton {
+                    font-size: 11px;
+                    padding: 6px 8px;
+                    margin: 2px 0px;
+                }
+            """)
+        else:
+            self.seg_edit_btn.setEnabled(False)
+            self.seg_edit_btn.setStyleSheet(GRAY_BUTTON_STYLE + """
+                QPushButton {
+                    font-size: 11px;
+                    padding: 6px 8px;
+                    margin: 2px 0px;
+                    opacity: 0.6;
+                }
+            """)
+        
+        # ✅ FIXED: Hotspot edit button - require both hotspot layer AND scan
+        if has_hotspot and has_scan:
+            self.hotspot_edit_btn.setEnabled(True)
+            self.hotspot_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
+                QPushButton {
+                    font-size: 11px;
+                    padding: 6px 8px;
+                    margin: 2px 0px;
+                }
+            """)
+        else:
+            self.hotspot_edit_btn.setEnabled(False)
+            self.hotspot_edit_btn.setStyleSheet(GRAY_BUTTON_STYLE + """
+                QPushButton {
+                    font-size: 11px;
+                    padding: 6px 8px;
+                    margin: 2px 0px;
+                    opacity: 0.6;
+                }
+            """)
+        
+        
     def _setup_timeline_scroll_area(self):
         """✅ FIXED: Setup scrollable timeline area with BOTH horizontal and vertical scrolling"""
         self.scroll_area = QScrollArea()
@@ -340,117 +555,7 @@ class ScanTimelineWidget(QWidget):
         
         return panel
 
-    def _update_active_layers_display(self):
-        """Update the active layers display in control panel"""
-        if not self._active_layers:
-            self.active_layers_label.setText("Active Layers: <i>None selected</i>")
-            self.active_layers_label.setStyleSheet("""
-                QLabel {
-                    font-size: 11px;
-                    color: #dc3545;
-                    padding: 8px;
-                    background: #f8d7da;
-                    border: 1px solid #f5c6cb;
-                    border-radius: 4px;
-                    margin: 5px 0px;
-                }
-            """)
-        else:
-            layers_text = ", ".join(self._active_layers)
-            self.active_layers_label.setText(f"Active Layers: <b>{layers_text}</b>")
-            self.active_layers_label.setStyleSheet("""
-                QLabel {
-                    font-size: 11px;
-                    color: #155724;
-                    padding: 8px;
-                    background: #d4edda;
-                    border: 1px solid #c3e6cb;
-                    border-radius: 4px;
-                    margin: 5px 0px;
-                }
-            """)
-
-    def _update_edit_button_states(self):
-        """Update edit button enabled/disabled states and styling"""
-        has_segmentation = "Segmentation" in self._active_layers
-        has_hotspot = "Hotspot" in self._active_layers
-        has_scan = bool(self._scans_cache)
-        
-        # Segmentation edit button
-        if has_segmentation and has_scan:
-            self.seg_edit_btn.setEnabled(True)
-            self.seg_edit_btn.setStyleSheet(SUCCESS_BUTTON_STYLE + """
-                QPushButton {
-                    font-size: 11px;
-                    padding: 6px 8px;
-                    margin: 2px 0px;
-                }
-            """)
-        else:
-            self.seg_edit_btn.setEnabled(False)
-            self.seg_edit_btn.setStyleSheet(GRAY_BUTTON_STYLE + """
-                QPushButton {
-                    font-size: 11px;
-                    padding: 6px 8px;
-                    margin: 2px 0px;
-                    opacity: 0.6;
-                }
-            """)
-        
-        # ✅ FIXED: Hotspot edit button - require both hotspot layer AND scan
-        if has_hotspot and has_scan:
-            self.hotspot_edit_btn.setEnabled(True)
-            self.hotspot_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
-                QPushButton {
-                    font-size: 11px;
-                    padding: 6px 8px;
-                    margin: 2px 0px;
-                }
-            """)
-        else:
-            self.hotspot_edit_btn.setEnabled(False)
-            self.hotspot_edit_btn.setStyleSheet(GRAY_BUTTON_STYLE + """
-                QPushButton {
-                    font-size: 11px;
-                    padding: 6px 8px;
-                    margin: 2px 0px;
-                    opacity: 0.6;
-                }
-            """)
-
-    def _update_scan_info_display(self):
-        """✅ FIXED: Update scan information with BSI data"""
-        if not self._scans_cache or self.active_scan_index < 0:
-            self.scan_info_label.setText("No scan selected")
-            return
-            
-        if self.active_scan_index < len(self._scans_cache):
-            scan = self._scans_cache[self.active_scan_index]
-            meta = scan["meta"]
-            
-            # Format scan info
-            scan_num = self.active_scan_index + 1
-            total_scans = len(self._scans_cache)
-            date = meta.get("study_date", "Unknown")
-            
-            try:
-                formatted_date = datetime.strptime(date, "%Y%m%d").strftime("%b %d, %Y")
-            except ValueError:
-                formatted_date = date
-            
-            # ✅ NEW: Get BSI information
-            bsi_info = ""
-            if meta.get("has_bsi", False):
-                bsi_score = meta.get("bsi_score", 0.0)
-                bsi_info = f"<br>BSI: {bsi_score:.1f}%"
-            
-            info_text = f"""
-            <b>Scan {scan_num}/{total_scans}</b><br>
-            Date: {formatted_date}<br>
-            View: {self.current_view}{bsi_info}
-            """
-            
-            self.scan_info_label.setText(info_text)
+    
 
     # ------------------------------------------------------ zoom
     def zoom_in(self):  
@@ -473,41 +578,37 @@ class ScanTimelineWidget(QWidget):
 
     # ------------------------------------------------------ public API
     def display_timeline(self, scans: List[Dict], active_index: int = -1):
-        """✅ FIXED: Display timeline with BSI integration"""
-        print(f"[DEBUG] display_timeline called with {len(scans)} scan(s), active_index = {active_index}")
+        """✅ MODIFIED: Display timeline with BSI integration, defaulting to the first scan."""
+        print(f"[DEBUG] display_timeline called with {len(scans)} scan(s), focusing on index = {active_index}")
         
-        # ✅ NEW: Update scans with BSI information
         updated_scans = []
         for scan in scans:
             updated_scan = self.bsi_integration.update_scan_meta_with_bsi(scan, self.session_code)
             updated_scans.append(updated_scan)
         
         self._scans_cache = updated_scans
-        self.active_scan_index = active_index
+        # Set the active index. If -1 was passed, default to 0 if scans exist.
+        self.active_scan_index = active_index if active_index >= 0 else (0 if self._scans_cache else -1)
+        
         self._zoom_factor = 1.0
         self._rebuild()
-        self._update_scan_info_display()
-        self._update_edit_button_states()
+        
 
     def set_active_view(self, v: str): 
-        """✅ FIXED: Properly set view and force rebuild"""
-        old_view = self.current_view
-        self.current_view = v
-        print(f"[DEBUG] Setting view to: {self.current_view} (was: {old_view})")
-        
-        # ✅ CRITICAL: Force rebuild to show different view
-        if old_view != self.current_view:
-            print(f"[DEBUG] View changed from {old_view} to {self.current_view}, forcing rebuild...")
-            self._rebuild()
-            self._update_scan_info_display()
+        """
+        ✅ MODIFIED: This method is no longer needed as Anterior/Posterior are shown together.
+        Calling it will have no effect.
+        """
+        print(f"[DEBUG] set_active_view called with '{v}', but is now ignored.")
+        # Intentionally do nothing. The _rebuild method now controls the view for each card.
+        pass
         
     def set_active_layers(self, layers: list): 
         """Set active layers from checkbox mode selector"""
         self._active_layers = layers.copy()
         print(f"[DEBUG] Timeline active layers set to: {self._active_layers}")
         self._rebuild()
-        self._update_active_layers_display()
-        self._update_edit_button_states()
+      
     
     def set_session_code(self, session_code: str):
         """Set session code for path resolution"""
@@ -562,50 +663,36 @@ class ScanTimelineWidget(QWidget):
                 w.deleteLater()
 
     def _rebuild(self):
-        """✅ FIXED: Rebuild with proper view handling"""
-        print(f"[DEBUG] Rebuilding timeline for view: {self.current_view}")
+        """✅ MODIFIED: Rebuild to show Anterior and Posterior of the active scan side-by-side."""
         self._clear()
-        
-        if not self._scans_cache:
-            placeholder = QLabel("No scans available")
+        print(f"[DEBUG] Rebuilding timeline for active scan index: {self.active_scan_index}")
+
+        if not self._scans_cache or self.active_scan_index < 0:
+            placeholder = QLabel("No scan selected or available.")
             placeholder.setAlignment(Qt.AlignCenter)
-            placeholder.setStyleSheet("""
-                QLabel {
-                    color: #6c757d;
-                    font-size: 14px;
-                    padding: 40px;
-                    background: #f8f9fa;
-                    border: 2px dashed #dee2e6;
-                    border-radius: 8px;
-                }
-            """)
+            # (Stylesheet for placeholder remains the same)
             self.timeline_layout.addWidget(placeholder)
             return
 
-        w = int(self.card_width * self._zoom_factor)
+        # Get the single active scan
+        active_scan = self._scans_cache[self.active_scan_index]
         
-        # Show cards based on active layers
-        if not self._active_layers:
-            # No layers selected - show placeholder
-            placeholder = QLabel("No layers selected\nPlease select layers to display")
-            placeholder.setAlignment(Qt.AlignCenter)
-            placeholder.setStyleSheet("""
-                QLabel {
-                    color: #6c757d;
-                    font-size: 14px;
-                    padding: 40px;
-                    background: #f8f9fa;
-                    border: 2px dashed #dee2e6;
-                    border-radius: 8px;
-                }
-            """)
-            self.timeline_layout.addWidget(placeholder)
-        else:
-            # Show scans with active layers
-            for i, scan in enumerate(self._scans_cache):
-                card = self._make_layered_card(scan, w, i)
-                self.timeline_layout.addWidget(card)
-                print(f"[DEBUG] Created card {i} for view {self.current_view}")
+        # Calculate card width based on zoom
+        w = int(self.card_width * self._zoom_factor)
+
+        # --- Create Anterior Card ---
+        self.current_view = "Anterior"
+        anterior_card = self._make_layered_card(active_scan, w, self.active_scan_index)
+        self.timeline_layout.addWidget(anterior_card)
+        # ✅ FIX: Find the UNIQUE object name for the anterior label
+        self._anterior_image_label = anterior_card.findChild(QLabel, "image_display_Anterior")
+
+        # --- Create Posterior Card ---
+        self.current_view = "Posterior"
+        posterior_card = self._make_layered_card(active_scan, w, self.active_scan_index)
+        self.timeline_layout.addWidget(posterior_card)
+        # ✅ FIX: Find the UNIQUE object name for the posterior label
+        self._posterior_image_label = posterior_card.findChild(QLabel, "image_display_Posterior")
 
         self.timeline_layout.addStretch()
 
@@ -623,7 +710,7 @@ class ScanTimelineWidget(QWidget):
         bsi_text = ""
         if meta.get("has_bsi", False):
             bsi_score = meta.get("bsi_score", 0.0)
-            bsi_text = f"<br><small>BSI: {bsi_score:.1f}%</small>"
+            bsi_text = f"<br><small>BSI: {bsi_score:.1f}</small>"
 
         hbox = QHBoxLayout()
         
@@ -661,8 +748,7 @@ class ScanTimelineWidget(QWidget):
         """Handle scan selection and emit signal to parent"""
         print(f"[DEBUG] Timeline scan selected: {idx}")
         self.active_scan_index = idx
-        self._update_scan_info_display()
-        self._update_edit_button_states()
+        
         
         # Emit signal to parent (MainWindow) to sync with scan buttons
         self.scan_selected.emit(idx)
@@ -796,161 +882,50 @@ class ScanTimelineWidget(QWidget):
             print(f"[ERROR] Failed to create classification bbox visualization: {e}")
             return None
     
-    def _get_layer_images(self, scan: Dict) -> Dict[str, Image.Image]:
-        """✅ FIXED: Get layer images - CLASSIFICATION ONLY"""
+    def _get_layer_images(self, scan: Dict, override_b: float = None, override_c: float = None) -> Dict[str, Image.Image]:
+        """✅ FIXED: Now accepts optional override values for live previews."""
         frame_map = scan["frames"]
         dicom_path = Path(scan["path"])
-        filename = dicom_path.stem
-        
-        # ✅ PINDAHKAN KE AWAL: Extract study date and create filename
+
         try:
             study_date = extract_study_date_from_dicom(dicom_path)
-            patient_id, session_code = self._get_patient_session_from_scan(scan)
+            patient_id, _ = self._get_patient_session_from_scan(scan)
             filename_with_date = generate_filename_stem(patient_id, study_date)
-            print(f"[DEBUG] Using filename stem with study date: {filename_with_date}")
-        except Exception as e:
-            print(f"[WARN] Could not extract study date, using original filename: {e}")
-            study_date = None
-            filename_with_date = filename
+        except Exception:
+            filename_with_date = dicom_path.stem
 
         layers = {}
-        
-        # ✅ Layer 1: Original - load from PNG file (not DICOM)
         view_normalized = self.current_view.lower()
-        original_png_path = dicom_path.parent / f"{filename_with_date}_{view_normalized}_original.png"  # ✅ Sekarang sudah terdefinisi
-
-        if original_png_path.exists():
-            try:
-                original_image = Image.open(original_png_path).convert("RGBA")
-                layers["Original"] = original_image
-                print(f"[DEBUG] Loaded Original layer from PNG: {original_png_path}")
-            except Exception as e:
-                print(f"[WARN] Failed to load original PNG: {e}")
-                # Fallback to DICOM if PNG not found
-                if self.current_view in frame_map:
-                    original_arr = frame_map[self.current_view]
-                    original_normalized = ((original_arr - original_arr.min()) / max(1, np.ptp(original_arr)) * 255).astype(np.uint8)
-                    original_image = Image.fromarray(original_normalized).convert("RGBA")
-                    layers["Original"] = original_image
-                    print(f"[DEBUG] Fallback: Loaded Original layer from DICOM for {self.current_view}")
-        else:
-            print(f"[WARN] Original PNG not found: {original_png_path}")
-            # Fallback to DICOM if PNG not found
-            if self.current_view in frame_map:
-                original_arr = frame_map[self.current_view]
-                original_normalized = ((original_arr - original_arr.min()) / max(1, np.ptp(original_arr)) * 255).astype(np.uint8)
-                original_image = Image.fromarray(original_normalized).convert("RGBA")
-                layers["Original"] = original_image
-                print(f"[DEBUG] Fallback: Loaded Original layer from DICOM for {self.current_view}")
         
-        # Layer 2: Segmentation - with transparency processing
+        original_image = self._load_original_image(dicom_path, filename_with_date, self.current_view, frame_map)
         
-        seg_files = get_segmentation_files_with_edited(dicom_path.parent, filename_with_date, self.current_view)
-        
-        # Prioritize edited files
-        if seg_files['png_colored_edited'].exists():
-            seg_png = seg_files['png_colored_edited']
-            print(f"[DEBUG] Found edited segmentation: {seg_png}")
-        else:
-            seg_png = seg_files['png_colored']
-            print(f"[DEBUG] Found original segmentation: {seg_png}")
-        
-        if seg_png.exists():
-            try:
-                # Load with transparency (make black pixels transparent)
-                seg_image = load_image_with_transparency(seg_png, make_transparent=True)
-                layers["Segmentation"] = seg_image
-                print(f"[DEBUG] Loaded segmentation with transparency: {seg_png}")
-            except Exception as e:
-                print(f"[WARN] Failed to load segmentation image: {e}")
-        else:
-            print(f"[WARN] Segmentation file not found: {seg_png}")
-        
-        # ✅ Layer 3: Hotspot - CLASSIFICATION MASKS ONLY
-        view_normalized = self.current_view.lower()
-
-        # ✅ FIXED: Check edited classification mask first
-        classification_mask_edited = dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask_edited.png"
-        classification_mask_original = dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png"
-
-        print(f"[DEBUG] Looking for CLASSIFICATION masks:")
-        print(f"[DEBUG]   Edited: {classification_mask_edited}")
-        print(f"[DEBUG]   Original: {classification_mask_original}")
-
-        # Priority: edited first, then original
-        if classification_mask_edited.exists():
-            classification_path = classification_mask_edited
-            print(f"[DEBUG] ✅ Using EDITED classification mask")
-        elif classification_mask_original.exists():
-            classification_path = classification_mask_original
-            print(f"[DEBUG] ✅ Using ORIGINAL classification mask")
-        else:
-            classification_path = None
-            print(f"[DEBUG] ❌ No classification mask found")
-
-        if classification_path:
-            try:
-                classification_image = load_image_with_transparency(classification_path, make_transparent=True)
-                layers["Hotspot"] = classification_image
-                print(f"[DEBUG] ✅ Loaded CLASSIFICATION MASK as Hotspot layer: {classification_path.name}")
-            except Exception as e:
-                print(f"[WARN] Failed to load classification mask: {e}")
-        
-        # ✅ Layer 4: HotspotBBox - CLASSIFICATION XML ONLY
-        try:
-            # Determine view for XML files (use short names: ant/post)
-            view_short = "ant" if "ant" in self.current_view.lower() else "post"
+        if original_image:
+            if self.invert_original:
+                original_image = simple_invert_pil_image(original_image)
             
-            # ✅ FIXED: Priority for edited XML files
-            classification_xml_edited = dicom_path.parent / f"{filename_with_date}_{view_short}_classification_edited.xml"
-            classification_xml_original = dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml"
-            
-            # Choose edited first, then original
-            if classification_xml_edited.exists():
-                classification_xml_path = classification_xml_edited
-                print(f"[DEBUG] ✅ Using EDITED classification XML for bbox: {classification_xml_edited}")
-            elif classification_xml_original.exists():
-                classification_xml_path = classification_xml_original
-                print(f"[DEBUG] ✅ Using ORIGINAL classification XML for bbox: {classification_xml_original}")
+            # Determine which brightness/contrast values to use
+            if override_b is not None and override_c is not None:
+                # Use preview values if they were passed in
+                brightness, contrast = override_b, override_c
             else:
-                classification_xml_path = None
-                print(f"[DEBUG] ❌ No classification XML found for bbox")
-            
-            if classification_xml_path:
-                # ✅ Get dimensions from Original PNG instead of DICOM array
-                if "Original" in layers:
-                    # Use already loaded Original layer
-                    original_pil = layers["Original"]
-                    original_dimensions = original_pil.size  # (width, height)
-                else:
-                    # Load Original PNG to get dimensions
-                    original_png_path = dicom_path.parent / f"{filename_with_date}_{view_normalized}_original.png"
-                    if original_png_path.exists():
-                        original_pil = Image.open(original_png_path)
-                        original_dimensions = original_pil.size  # (width, height)
-                    else:
-                        # Fallback: use DICOM if PNG not available
-                        if self.current_view in frame_map:
-                            original_arr_fallback = frame_map[self.current_view]
-                            original_dimensions = (original_arr_fallback.shape[1], original_arr_fallback.shape[0])  # (width, height)
-                        else:
-                            print(f"[ERROR] Cannot get dimensions for bbox visualization")
-                            print(f"[DEBUG] Skipping HotspotBBox layer - no dimensions available")
-                
-                # Create bounding box visualization from CLASSIFICATION XML
-                bbox_image = self._create_bbox_visualization_from_classification(classification_xml_path, original_dimensions)  # ✅ Pass dimensions instead of array
-                if bbox_image:
-                    layers["HotspotBBox"] = bbox_image
-                    print(f"[DEBUG] ✅ Created HotspotBBox from CLASSIFICATION XML: {classification_xml_path}")
-                else:
-                    print(f"[DEBUG] ❌ Failed to create bbox visualization from CLASSIFICATION XML: {classification_xml_path}")
-            else:
-                print(f"[DEBUG] ❌ CLASSIFICATION XML not found: {classification_xml_path}")
-                print(f"[DEBUG] ❌ NO FALLBACK - Classification results only!")
-        except Exception as e:
-            print(f"[WARN] Error loading CLASSIFICATION HotspotBBox: {e}")
+                # Otherwise, use the stored values for the current view
+                adjustments = self._adjustments[self.current_view]
+                brightness = adjustments["brightness"]
+                contrast = adjustments["contrast"]
+
+            # Apply adjustment if needed
+            if brightness != 0.0 or contrast != 1.0:
+                print(f"[DEBUG] Applying B/C adjustment to {self.current_view} (B={brightness:.2f}, C={contrast:.2f})")
+                original_image = apply_brightness_contrast(
+                    original_image, brightness, contrast
+                )
+
+            layers["Original"] = original_image
         
-        print(f"[DEBUG] Total CLASSIFICATION layers loaded for {self.current_view}: {list(layers.keys())}")
+        self._load_segmentation_layer(layers, dicom_path, filename_with_date, view_normalized)
+        self._load_hotspot_layer(layers, dicom_path, filename_with_date, view_normalized)
+        self._load_bbox_layer(layers, dicom_path, filename_with_date, view_normalized)
+        
         return layers
     
     def _make_layered_card(self, scan: Dict, w: int, idx: int) -> QFrame:
@@ -985,7 +960,7 @@ class ScanTimelineWidget(QWidget):
         lay.addLayout(self._make_header(scan, idx))
         
         lbl = QLabel(alignment=Qt.AlignCenter)
-        
+        lbl.setObjectName(f"image_display_{self.current_view}")
         # ✅ FIXED: Better debug messages
         print(f"[DEBUG] Creating CLASSIFICATION card {idx} for view: {self.current_view}")
         print(f"[DEBUG] Active layers selected: {self._active_layers}")
@@ -1069,72 +1044,6 @@ class ScanTimelineWidget(QWidget):
         lay.addWidget(status_label)
         
         return card
-    
-    # ------------------------------------------------------ editor dialogs
-    def _open_segmentation_editor(self):
-        """Open segmentation editor for current scan"""
-        if not self._scans_cache or self.active_scan_index < 0 or self.active_scan_index >= len(self._scans_cache):
-            print("[DEBUG] No valid scan selected for segmentation editing")
-            return
-            
-        scan = self._scans_cache[self.active_scan_index]
-        print(f"[DEBUG] Opening segmentation editor for scan {self.active_scan_index + 1}")
-        
-        dlg = SegmentationEditorDialog(scan, self.current_view, parent=self)
-        if dlg.exec():
-            print("[DEBUG] Segmentation editor completed, refreshing timeline")
-            self._rebuild()
-            # ✅ NEW: Emit signal to main window for BSI refresh
-            self.editor_completed.emit()
-        
-    def _open_hotspot_editor(self):
-        """✅ FIXED: Open hotspot editor - ALLOW MANUAL EDITING EVEN WITHOUT CLASSIFICATION FILES"""
-        if not self._scans_cache or self.active_scan_index < 0 or self.active_scan_index >= len(self._scans_cache):
-            print("[DEBUG] No valid scan selected for hotspot editing")
-            return
-        
-        # ✅ FIXED: Get scan from cache
-        scan = self._scans_cache[self.active_scan_index]
-        
-        try:
-            dicom_path = Path(scan["path"])
-            study_date = extract_study_date_from_dicom(dicom_path)
-            patient_id, session_code = self._get_patient_session_from_scan(scan)
-            filename_with_date = generate_filename_stem(patient_id, study_date)
-            
-            # Get classification files (for reference, but don't require them)
-            view_normalized = self.current_view.lower()
-            view_short = "ant" if "ant" in self.current_view.lower() else "post"
-            
-            classification_files = {
-                'mask_path': dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png",
-                'xml_path': dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml",
-                'json_path': dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification.json"
-            }
-            
-            print(f"[DEBUG] CLASSIFICATION files for editor:")
-            for key, path in classification_files.items():
-                exists = "✅" if path.exists() else "❌"
-                print(f"[DEBUG]   {key}: {exists} {path}")
-            
-            # ✅ REMOVED: Don't check if files exist - allow manual editing from scratch
-            print(f"[DEBUG] Opening hotspot editor for manual editing (classification files optional)")
-            
-            # Create enhanced scan data with classification paths (optional)
-            enhanced_scan = scan.copy()
-            enhanced_scan['classification_files'] = classification_files
-            enhanced_scan['is_classification_mode'] = True  # Flag for editor
-            
-            # ✅ FIXED: Open hotspot editor regardless of file existence
-            dlg = HotspotEditorDialog(enhanced_scan, self.current_view, parent=self)
-            if dlg.exec():
-                print("[DEBUG] Hotspot editor completed, refreshing timeline")
-                self._rebuild()
-                # ✅ NEW: Emit signal to main window for BSI refresh
-                self.editor_completed.emit()
-
-        except Exception as e:
-            print(f"[ERROR] Failed to open hotspot editor: {e}")
     
     # ------------------------------------------------------ backward compatibility
     def set_image_mode(self, mode: str):

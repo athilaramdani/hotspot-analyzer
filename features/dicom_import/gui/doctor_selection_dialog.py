@@ -13,10 +13,10 @@ from core.config.sessions import (
 
 class DoctorSelectionDialog(QDialog):
     """
-    Dialog pemilihan pasien *dan* jenis modalitas (SPECT / PET).
+    Dialog pemilihan pasien *dan* jenis modalitas (Planar / PET).
     Setelah OK ditekan, atribut:
         • self.selected_doctor_id
-        • self.selected_modality        (string "SPECT" | "PET")
+        • self.selected_modality        (string "Planar" | "PET")
     akan terisi.
     """
     def __init__(self, parent=None):
@@ -73,7 +73,7 @@ class DoctorSelectionDialog(QDialog):
                         self.doctor_combo.setCurrentIndex(index)
                 
                 # Set modality combo
-                modality = last_session.get("modality", "SPECT")
+                modality = last_session.get("modality", "Planar")
                 modality_index = self.modality_combo.findText(modality)
                 if modality_index >= 0:
                     self.modality_combo.setCurrentIndex(modality_index)

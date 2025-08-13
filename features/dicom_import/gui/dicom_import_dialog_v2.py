@@ -10,6 +10,7 @@ FIXES:
 from __future__ import annotations
 from pathlib import Path
 from typing import List, Optional, Dict
+import os
 
 from PySide6.QtCore import Signal, QCoreApplication, QTimer, QThread
 from PySide6.QtWidgets import (
