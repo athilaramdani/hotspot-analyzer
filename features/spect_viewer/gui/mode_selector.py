@@ -46,7 +46,7 @@ class ModeSelector(QWidget):
         
         # Create checkboxes - UPDATED with new options
         self._checkboxes = {}
-        layer_options = ["Image", "Segmentation", "Hotspot", "Hotspot BBox", "All"]
+        layer_options = ["Image", "Segmentation", "Hotspot", "All"]  # Removed Hotspot BBox
         
         for layer in layer_options:
             checkbox = QCheckBox(layer)
@@ -102,8 +102,8 @@ class ModeSelector(QWidget):
         self._opacity_labels = {}
         
         # Create sliders for each layer - UPDATED with new layer
-        slider_layers = ["Image", "Segmentation", "Hotspot", "HotspotBBox"]
-        slider_labels = ["Image", "Segmentation", "Hotspot", "Hotspot BBox"]
+        slider_layers = ["Image", "Segmentation", "Hotspot"]  # Removed HotspotBBox
+        slider_labels = ["Image", "Segmentation", "Hotspot"]  # Removed Hotspot BBox
         
         for layer, display_name in zip(slider_layers, slider_labels):
             # Layer container
@@ -191,7 +191,7 @@ class ModeSelector(QWidget):
         """Handle 'All' checkbox logic"""
         if checked:
             # When All is checked, disable and uncheck all individual checkboxes
-            for layer_name in ["Image", "Segmentation", "Hotspot", "Hotspot BBox"]:
+            for layer_name in ["Image", "Segmentation", "Hotspot"]:  # Removed Hotspot BBox
                 checkbox = self._checkboxes[layer_name]
                 checkbox.blockSignals(True)  # Prevent recursive signals
                 checkbox.setChecked(False)
@@ -199,7 +199,7 @@ class ModeSelector(QWidget):
                 checkbox.blockSignals(False)
         else:
             # When All is unchecked, re-enable individual checkboxes
-            for layer_name in ["Image", "Segmentation", "Hotspot", "Hotspot BBox"]:
+            for layer_name in ["Image", "Segmentation", "Hotspot"]:  # Removed Hotspot BBox
                 checkbox = self._checkboxes[layer_name]
                 checkbox.setEnabled(True)
     
@@ -213,7 +213,7 @@ class ModeSelector(QWidget):
                 all_checkbox.setChecked(False)
                 all_checkbox.blockSignals(False)
                 # Re-enable all individual checkboxes
-                for layer_name in ["Image", "Segmentation", "Hotspot", "Hotspot BBox"]:
+                for layer_name in ["Image", "Segmentation", "Hotspot"]:  # Removed Hotspot BBox
                     self._checkboxes[layer_name].setEnabled(True)
     
     def _update_active_layers(self):
@@ -228,10 +228,7 @@ class ModeSelector(QWidget):
             for layer in ["Image", "Segmentation", "Hotspot"]:
                 if self._checkboxes[layer].isChecked():
                     self._active_layers.append(layer)
-            
-            # Handle "Hotspot BBox" mapping to "HotspotBBox"
-            if self._checkboxes["Hotspot BBox"].isChecked():
-                self._active_layers.append("HotspotBBox")
+
         
         print(f"[DEBUG] Active layers: {self._active_layers}")
         self.layers_changed.emit(self._active_layers)

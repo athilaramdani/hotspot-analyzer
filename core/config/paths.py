@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 from typing import Optional, Dict, List
 import pydicom
 from datetime import datetime
+from PIL import Image  # ✅ TAMBAHAN
+import numpy as np     # ✅ TAMBAHAN
 
 # Load environment variables
 load_dotenv()
@@ -231,23 +233,23 @@ def get_planar_original_files(patient_folder: Path, original_dicom_name: str = N
     return files
 
 def get_planar_segmentation_files(patient_folder: Path, view: str, with_priority: bool = True):
-    """
-    Get segmentation file paths for planar data with timestamp priority
-    
-    Args:
-        patient_folder: Patient directory path
-        view: View name (ant/post)
-        with_priority: Whether to check for latest timestamp version
-        
-    Returns:
-        Dictionary with file paths using new naming convention
-    """
     vtag = "ant" if view.lower() in ["anterior", "ant"] else "post"
     
-    base_files = {
+    # ✅ PERBAIKAN: Cek apakah patient_folder adalah study_date directory
+    study_date_files = {
         'segmentation_png': patient_folder / f"{vtag}_segm.png",
         'mask_png': patient_folder / f"{vtag}_mask.png"
     }
+    
+    # Jika file ada di study_date directory, gunakan itu
+    if study_date_files['segmentation_png'].exists():
+        base_files = study_date_files
+    else:
+        # ✅ FALLBACK: Cari di level patient
+        base_files = {
+            'segmentation_png': patient_folder.parent / f"{vtag}_segm.png" if len(patient_folder.name) == 8 and patient_folder.name.isdigit() else patient_folder / f"{vtag}_segm.png",
+            'mask_png': patient_folder.parent / f"{vtag}_mask.png" if len(patient_folder.name) == 8 and patient_folder.name.isdigit() else patient_folder / f"{vtag}_mask.png"
+        }
     
     if with_priority:
         # Check for latest timestamp version
@@ -258,32 +260,32 @@ def get_planar_segmentation_files(patient_folder: Path, view: str, with_priority
     return base_files
 
 def get_planar_hotspot_files(patient_folder: Path, view: str, with_priority: bool = True):
-    """
-    Get hotspot file paths for planar data with timestamp priority
-    
-    Args:
-        patient_folder: Patient directory path
-        view: View name (ant/post)
-        with_priority: Whether to check for latest timestamp version
-        
-    Returns:
-        Dictionary with hotspot file paths using new naming convention
-    """
     vtag = "ant" if view.lower() in ["anterior", "ant"] else "post"
     
-    base_files = {
-        # YOLO detection files
+    # ✅ PERBAIKAN: Cek apakah patient_folder adalah study_date directory
+    study_date_files = {
         'yolo_xml': patient_folder / f"{vtag}_hotspot_yolo.xml",
-        
-        # Otsu processing files
-        'otsu_colored': patient_folder / f"{vtag}_hotspot_otsu_colored.png",         # 100% hotspot
-        'otsu_colored_blend': patient_folder / f"{vtag}_hotspot_otsu_colored_blend.png",  # 50/50 blend
-        'otsu_grayscale': patient_folder / f"{vtag}_hotspot_otsu_grayscale.png",    # Used for classification input
-        
-        # Classification files (main ones used in UI)
+        'otsu_colored': patient_folder / f"{vtag}_hotspot_otsu_colored.png",
+        'otsu_colored_blend': patient_folder / f"{vtag}_hotspot_otsu_colored_blend.png",
+        'otsu_grayscale': patient_folder / f"{vtag}_hotspot_otsu_grayscale.png",
         'classification_xml': patient_folder / f"{vtag}_hotspot_classification.xml",
         'classification_png': patient_folder / f"{vtag}_hotspot_classification.png"
     }
+    
+    # Jika file classification ada di study_date directory, gunakan itu
+    if study_date_files['classification_png'].exists():
+        base_files = study_date_files
+    else:
+        # ✅ FALLBACK: Cari di level patient
+        parent_dir = patient_folder.parent if len(patient_folder.name) == 8 and patient_folder.name.isdigit() else patient_folder
+        base_files = {
+            'yolo_xml': parent_dir / f"{vtag}_hotspot_yolo.xml",
+            'otsu_colored': parent_dir / f"{vtag}_hotspot_otsu_colored.png",
+            'otsu_colored_blend': parent_dir / f"{vtag}_hotspot_otsu_colored_blend.png",
+            'otsu_grayscale': parent_dir / f"{vtag}_hotspot_otsu_grayscale.png",
+            'classification_xml': parent_dir / f"{vtag}_hotspot_classification.xml",
+            'classification_png': parent_dir / f"{vtag}_hotspot_classification.png"
+        }
     
     if with_priority:
         # Check for latest timestamp versions of editable files
@@ -297,6 +299,74 @@ def get_planar_hotspot_files(patient_folder: Path, view: str, with_priority: boo
                 base_files['classification_xml'] = latest_classification_xml
     
     return base_files
+
+def load_original_image_from_path(dicom_path: Path, view_name: str, frame_map: dict = None) -> Optional[Image.Image]:
+    """
+    Load original PNG image for the specified view using NEW structure with study_date support
+    
+    Args:
+        dicom_path: Path to DICOM file
+        view_name: View name (Anterior/Posterior or ant/post)
+        frame_map: Dictionary containing frame data as fallback
+        
+    Returns:
+        PIL Image object or None if not found
+    """
+    try:
+        from PIL import Image
+        import numpy as np
+        
+        view_short = "ant" if view_name.lower() in ["anterior", "ant"] else "post"
+        png_filename = f"{view_short}_original.png"
+        
+        # ✅ PERBAIKAN: Cari di direktori study_date dulu (dimana DICOM berada)
+        study_date_dir = dicom_path.parent
+        png_path = study_date_dir / png_filename
+        
+        print(f"[DEBUG] Looking for original PNG in study_date dir: {png_path}")
+        
+        if png_path.exists():
+            # Found in study_date directory
+            original_image = Image.open(png_path)
+            if original_image.mode != 'L':
+                original_image = original_image.convert('L')
+            print(f"[DEBUG] Loaded original PNG from study_date dir: {original_image.size}")
+            return original_image
+        
+        # ✅ FALLBACK: Cari di parent direktori (patient level)
+        patient_dir = study_date_dir.parent
+        png_path_fallback = patient_dir / png_filename
+        print(f"[DEBUG] Fallback: Looking in patient dir: {png_path_fallback}")
+        
+        if png_path_fallback.exists():
+            original_image = Image.open(png_path_fallback)
+            if original_image.mode != 'L':
+                original_image = original_image.convert('L')
+            print(f"[DEBUG] Loaded original PNG from patient dir: {original_image.size}")
+            return original_image
+        
+        # ✅ FALLBACK: Load from DICOM frames if PNG not available
+        if frame_map and view_name in frame_map:
+            frame_data = frame_map[view_name]
+            if isinstance(frame_data, np.ndarray):
+                # Normalize to uint8
+                if frame_data.dtype != np.uint8:
+                    frame_norm = (frame_data - frame_data.min()) / max(frame_data.max() - frame_data.min(), 1)
+                    frame_uint8 = (frame_norm * 255).astype(np.uint8)
+                else:
+                    frame_uint8 = frame_data.copy()
+                
+                # Convert to PIL Image
+                original_image = Image.fromarray(frame_uint8, 'L')
+                print(f"[DEBUG] Fallback: Loaded from DICOM frame: {original_image.size}")
+                return original_image
+        
+        print(f"[DEBUG] No image source available for {view_name}")
+        return None
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to load original image: {e}")
+        return None
 
 def get_planar_quantification_files(patient_folder: Path):
     """
