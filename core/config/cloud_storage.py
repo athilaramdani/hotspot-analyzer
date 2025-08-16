@@ -9,11 +9,23 @@ from typing import Optional, List, Tuple
 from botocore.exceptions import ClientError, NoCredentialsError
 from datetime import datetime
 
+# Import cloud storage configurations from archive
+from .paths_archive import (
+    B2_KEY_ID,
+    B2_APPLICATION_KEY, 
+    B2_BUCKET_NAME,
+    B2_ENDPOINT,
+    is_cloud_enabled,
+    get_cloud_path,
+    get_local_path_from_cloud,
+    get_cloud_spect_path,
+    get_cloud_pet_path
+)
+
+# Import current paths that are still needed
 from .paths import (
-    B2_KEY_ID, B2_APPLICATION_KEY, B2_BUCKET_NAME, B2_ENDPOINT,
-    is_cloud_enabled, get_cloud_path, get_local_path_from_cloud,
-    PROJECT_ROOT, get_cloud_spect_path, get_cloud_pet_path,
-    SPECT_DATA_PATH, PET_DATA_PATH
+    PROJECT_ROOT,
+    PLANAR_DATA_PATH
 )
 
 # Setup logging
@@ -297,12 +309,12 @@ class CloudStorageManager:
         try:
             if modality.upper() == "SPECT":
                 if patient_id:
-                    from .paths import get_patient_spect_path
-                    local_folder = get_patient_spect_path(patient_id, session_code)
+                    from .paths import get_patient_planar_path
+                    local_folder = get_patient_planar_path(patient_id, session_code)
                     cloud_prefix = get_cloud_spect_path(session_code, patient_id)
                 else:
-                    from .paths import get_session_spect_path
-                    local_folder = get_session_spect_path(session_code)
+                    from .paths import get_session_planar_path
+                    local_folder = get_session_planar_path(session_code)
                     cloud_prefix = get_cloud_spect_path(session_code)
             else:  # PET
                 if patient_id:
@@ -347,11 +359,11 @@ class CloudStorageManager:
             
             if modality.upper() == "SPECT":
                 if patient_id:
-                    from .paths import get_patient_spect_path
-                    local_folder = get_patient_spect_path(patient_id, session_code)
+                    from .paths import get_patient_planar_path
+                    local_folder = get_patient_planar_path(patient_id, session_code)
                 else:
-                    from .paths import get_session_spect_path
-                    local_folder = get_session_spect_path(session_code)
+                    from .paths import get_session_planar_path
+                    local_folder = get_session_planar_path(session_code)
             else:
                 return (0, 0)  # PET not implemented yet
             

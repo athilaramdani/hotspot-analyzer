@@ -17,7 +17,7 @@ from typing  import Dict, List, Tuple
 import pydicom
 
 # Use centralized path configuration
-from core.config.paths import SPECT_DATA_PATH, get_patient_spect_path, get_session_spect_path
+from core.config.paths import PLANAR_DATA_PATH, get_patient_planar_path, get_session_planar_path
 
 # ✅ REMOVED: _UID_SC constant and _is_primary() function
 # No more filtering - read all DICOM files
@@ -103,7 +103,7 @@ def scan_spect_directory_new_structure(directory: Path = None) -> Dict[str, Dict
     Returns: {SessionCode: {PatientID: [file_paths]}}
     """
     if directory is None:
-        directory = SPECT_DATA_PATH
+        directory = PLANAR_DATA_PATH
     
     session_patient_map: Dict[str, Dict[str, List[Path]]] = {}
     
@@ -164,7 +164,7 @@ def get_session_patients(session_code: str) -> Dict[str, List[Path]]:
     ✅ FIXED: Get all patients and their files for a specific session - NO FILTERING
     Returns: {PatientID: [file_paths]}
     """
-    session_path = get_session_spect_path(session_code)
+    session_path = get_session_planar_path(session_code)
     
     if not session_path.exists():
         print(f"Session directory tidak ditemukan: {session_path}")
@@ -201,11 +201,11 @@ def get_all_sessions() -> List[str]:
     Get list of all available session codes
     Returns: [session_code1, session_code2, ...]
     """
-    if not SPECT_DATA_PATH.exists():
+    if not PLANAR_DATA_PATH.exists():
         return []
     
     sessions = []
-    for item in SPECT_DATA_PATH.iterdir():
+    for item in PLANAR_DATA_PATH.iterdir():
         if item.is_dir():
             # Check if this is a session directory (contains patient subdirectories)
             has_patients = any(subitem.is_dir() for subitem in item.iterdir())
@@ -219,7 +219,7 @@ def get_patient_files(session_code: str, patient_id: str) -> List[Path]:
     Get all files for a specific patient in a session
     Returns: [file_path1, file_path2, ...]
     """
-    patient_path = get_patient_spect_path(patient_id, session_code)
+    patient_path = get_patient_planar_path(patient_id, session_code)
     
     if not patient_path.exists():
         return []
@@ -243,7 +243,7 @@ def get_patient_dicom_files(session_code: str, patient_id: str, primary_only: bo
     Returns:
         List of DICOM file paths
     """
-    patient_path = get_patient_spect_path(patient_id, session_code)
+    patient_path = get_patient_planar_path(patient_id, session_code)
     
     if not patient_path.exists():
         return []
@@ -282,7 +282,7 @@ def validate_directory_structure() -> bool:
     Returns True if structure is valid
     """
     try:
-        if not SPECT_DATA_PATH.exists():
+        if not PLANAR_DATA_PATH.exists():
             print("❌ SPECT data directory does not exist")
             return False
         
@@ -295,7 +295,7 @@ def validate_directory_structure() -> bool:
         
         # Check each session
         for session in sessions:
-            session_path = get_session_spect_path(session)
+            session_path = get_session_planar_path(session)
             patients = get_session_patients(session)
             print(f"  📁 {session}: {len(patients)} patients")
             
@@ -328,3 +328,7 @@ def scan_dicom_directory_legacy(directory: Path) -> Dict[str, List[Path]]:
             legacy_format[key] = files
     
     return legacy_format
+
+def scan_planar_directory_new_structure(planar_data_path):
+    """Alias for PLANAR scanning - same logic as SPECT"""
+    return scan_spect_directory_new_structure(planar_data_path)

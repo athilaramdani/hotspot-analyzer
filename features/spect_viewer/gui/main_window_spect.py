@@ -16,9 +16,9 @@ import multiprocessing
 
 # Import NEW config paths and session management
 from core.config.paths import (
-    get_session_spect_path,
-    get_patient_spect_path,
-    SPECT_DATA_PATH,
+    get_session_planar_path,
+    get_patient_planar_path,
+    PLANAR_DATA_PATH,
     generate_filename_stem,
     extract_study_date_from_dicom
 )
@@ -26,7 +26,7 @@ from core.config.sessions import get_current_session
 
 # Import NEW directory scanner for new structure
 from features.dicom_import.logic.directory_scanner import (
-    scan_spect_directory_new_structure,
+    scan_planar_directory_new_structure,
     get_session_patients,
     get_patient_dicom_files
 )
@@ -1133,7 +1133,7 @@ class MainWindowSpect(QMainWindow):
         id_combo.clear()
         
         # Use NEW directory scanner for new structure
-        all_sessions_map = scan_spect_directory_new_structure(SPECT_DATA_PATH)
+        all_sessions_map = scan_planar_directory_new_structure(PLANAR_DATA_PATH)
         print(f"[DEBUG] Found {len(all_sessions_map)} total sessions: {list(all_sessions_map.keys())}")
         
         # FIXED: Only use current session if specified

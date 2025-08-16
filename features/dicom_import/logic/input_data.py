@@ -22,9 +22,9 @@ from core.gui.ui_constants import truncate_text
 
 # Use new directory structure from paths.py with study date support
 from core.config.paths import (
-    get_patient_spect_path, 
-    get_session_spect_path,
-    SPECT_DATA_PATH,
+    get_patient_planar_path, 
+    get_session_planar_path,
+    PLANAR_DATA_PATH,
     is_cloud_enabled,
     extract_study_date_from_dicom,
     generate_filename_stem,
@@ -148,7 +148,7 @@ def _process_one_with_assignments(
     filename_stem = generate_filename_stem(pid, study_date)
     _log(f"  Filename stem: {filename_stem}")
     
-    dest_dir = get_patient_spect_path(pid, session_code)
+    dest_dir = get_patient_planar_path(pid, session_code)
     dest_dir.mkdir(parents=True, exist_ok=True)
     
     # Create destination path with new naming convention
@@ -393,7 +393,7 @@ def process_files_with_assignments(
     if data_root:
         session_root = Path(data_root) / "SPECT" / session_code
     else:
-        session_root = get_session_spect_path(session_code)
+        session_root = get_session_planar_path(session_code)
     
     session_root.mkdir(parents=True, exist_ok=True)
     
@@ -486,7 +486,7 @@ def process_files(
     if data_root:
         session_root = Path(data_root) / "SPECT" / session_code
     else:
-        session_root = get_session_spect_path(session_code)
+        session_root = get_session_planar_path(session_code)
     
     session_root.mkdir(parents=True, exist_ok=True)
     

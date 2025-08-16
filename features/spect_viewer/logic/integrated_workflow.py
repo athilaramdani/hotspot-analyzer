@@ -7,7 +7,7 @@ from core.logger import _log
 from core.config.paths import (
     extract_study_date_from_dicom,
     generate_filename_stem,
-    get_patient_spect_path
+    get_patient_planar_path
 )
 
 class SPECTAnalysisWorkflow:

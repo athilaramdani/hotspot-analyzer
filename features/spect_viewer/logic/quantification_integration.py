@@ -5,7 +5,7 @@ import json
 from typing import List,Dict, Any, Optional
 from core.logger import _log
 from core.config.paths import (
-    get_patient_spect_path,
+    get_patient_planar_path,
     extract_study_date_from_dicom,
     generate_filename_stem
 )

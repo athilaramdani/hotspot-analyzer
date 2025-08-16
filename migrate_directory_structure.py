@@ -14,7 +14,7 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from core.config.paths import SPECT_DATA_PATH, get_patient_spect_path, get_session_spect_path
+from core.config.paths import PLANAR_DATA_PATH, get_patient_planar_path, get_session_planar_path
 from core.config.cloud_storage import sync_spect_data, cloud_storage
 
 def migrate_directory_structure(dry_run: bool = True):
@@ -26,11 +26,11 @@ def migrate_directory_structure(dry_run: bool = True):
     """
     print("🔄 Directory Structure Migration")
     print("=" * 50)
-    print(f"Source: {SPECT_DATA_PATH}")
+    print(f"Source: {PLANAR_DATA_PATH}")
     print(f"Mode: {'DRY RUN' if dry_run else 'ACTUAL MIGRATION'}")
     print()
     
-    if not SPECT_DATA_PATH.exists():
+    if not PLANAR_DATA_PATH.exists():
         print("❌ SPECT data directory does not exist")
         return
     
@@ -38,7 +38,7 @@ def migrate_directory_structure(dry_run: bool = True):
     old_directories = []
     new_directories = []
     
-    for item in SPECT_DATA_PATH.iterdir():
+    for item in PLANAR_DATA_PATH.iterdir():
         if item.is_dir():
             if "_" in item.name:
                 # Check if it's old format by looking for patient_id_session_code pattern
@@ -69,7 +69,7 @@ def migrate_directory_structure(dry_run: bool = True):
             session_code = "_".join(parts[1:])  # Handle multi-part session codes
             
             # Create new path
-            new_path = get_patient_spect_path(patient_id, session_code)
+            new_path = get_patient_planar_path(patient_id, session_code)
             
             print(f"📦 {old_dir.name}")
             print(f"  Patient ID: {patient_id}")
@@ -171,7 +171,7 @@ def backup_before_migration():
     """Create backup before migration"""
     print("💾 Creating backup before migration...")
     
-    backup_dir = SPECT_DATA_PATH.parent / "SPECT_backup"
+    backup_dir = PLANAR_DATA_PATH.parent / "SPECT_backup"
     
     if backup_dir.exists():
         print(f"⚠️  Backup directory already exists: {backup_dir}")
@@ -182,7 +182,7 @@ def backup_before_migration():
         shutil.rmtree(backup_dir)
     
     try:
-        shutil.copytree(SPECT_DATA_PATH, backup_dir)
+        shutil.copytree(PLANAR_DATA_PATH, backup_dir)
         print(f"✅ Backup created: {backup_dir}")
         return True
     except Exception as e:

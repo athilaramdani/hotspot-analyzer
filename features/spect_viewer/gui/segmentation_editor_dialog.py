@@ -31,8 +31,8 @@ from pydicom.uid import ExplicitVRLittleEndian, SecondaryCaptureImageStorage, ge
 
 # Import NEW config paths and cloud storage
 from core.config.paths import (
-    get_segmentation_files_with_edited,
-    get_patient_spect_path,
+    get_planar_segmentation_files,
+    get_planar_files_complete,
     generate_filename_stem,          # ← BARU
     extract_study_date_from_dicom    # ← BARU
 )
@@ -809,7 +809,7 @@ class SegmentationEditorDialog(QDialog):
         
         # Use NEW function for edited files support with study date
         filename_stem_with_date = generate_filename_stem(self.patient_id, self.study_date)
-        self.seg_files = get_segmentation_files_with_edited(dicom_path.parent, filename_stem_with_date, view)
+        self.seg_files = get_planar_segmentation_files(dicom_path.parent, filename_stem_with_date, view)
         
         # Store paths - prioritize edited versions if they exist
         self._png_mask = self.seg_files['png_mask_edited'] if self.seg_files['png_mask_edited'].exists() else self.seg_files['png_mask']
