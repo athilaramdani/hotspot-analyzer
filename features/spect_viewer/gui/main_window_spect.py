@@ -14,13 +14,18 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QCloseEvent, QShortcut, QKeySequence
 import multiprocessing
 
+from datetime import datetime
+from core.config.paths import PLANAR_DATA_PATH, generate_edit_date, generate_edit_timestamp
+from ..logic.image_inverter import  simple_invert_pil_image 
+
 # Import NEW config paths and session management
 from core.config.paths import (
     get_session_planar_path,
     get_patient_planar_path,
     PLANAR_DATA_PATH,
     generate_filename_stem,
-    extract_study_date_from_dicom
+    extract_study_date_from_dicom,
+    get_planar_workflow_files
 )
 from core.config.sessions import get_current_session
 
@@ -337,40 +342,51 @@ class MainWindowSpect(QMainWindow):
         if not self.timeline_widget._scans_cache or self.timeline_widget.active_scan_index < 0:
             return
 
-        # ✅ FIX: Ask the user which view to edit
         views = ["Anterior", "Posterior"]
-        selected_view, ok = QInputDialog.getItem(self, "Select View", 
+        selected_view, ok = QInputDialog.getItem(self, "Select View",
                                                 "Which view would you like to edit?", views, 0, False)
 
         if ok and selected_view:
             scan = self.timeline_widget._scans_cache[self.timeline_widget.active_scan_index]
+            view_key = selected_view.lower()
+
+            # ✅ NEW ROBUST LOGIC - MIRRORS THE TIMELINE'S BEHAVIOR
+            # ===================================================================
+            # If the frame data is missing from the dictionary, load it from the PNG
+            if view_key not in scan['frames']:
+                print(f"⚠️ Frame data for '{view_key}' is missing. Attempting to load from original PNG...")
+                try:
+                    # Use the timeline's own loading function to get the correct image
+                    image_pil = self.timeline_widget._load_original_image(
+                        dicom_path=Path(scan['path']),
+                        filename_with_date=None, # Not needed for new file naming
+                        view_name=selected_view,
+                        frame_map={} # Pass empty map to force PNG loading
+                    )
+                    
+                    if image_pil:
+                        # If successful, add the loaded data back into the scan object
+                        scan['frames'][view_key] = np.array(image_pil)
+                        print(f"✅ Successfully loaded '{view_key}' from PNG into scan object.")
+                    else:
+                        raise FileNotFoundError("Original PNG could not be loaded.")
+                        
+                except Exception as e:
+                    QMessageBox.critical(self, "Image Load Failed", 
+                                        f"Could not load image data for '{selected_view}' from any source.\n\nError: {e}")
+                    return
+            # ===================================================================
 
             try:
-                patient_id, _ = self.timeline_widget._get_patient_session_from_scan(scan)
-                
-                dicom_path = Path(scan["path"])
-                study_date = extract_study_date_from_dicom(dicom_path)
-                filename_with_date = generate_filename_stem(patient_id, study_date)
-                
-                view_normalized = selected_view.lower()
-                view_short = "ant" if "ant" in view_normalized else "post"
-                
-                classification_files = {
-                    'mask_path': dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png",
-                    'xml_path': dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml",
-                    'json_path': dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification.json"
-                }
-                
-                enhanced_scan = scan.copy()
-                enhanced_scan['classification_files'] = classification_files
-                enhanced_scan['is_classification_mode'] = True
-                
-                dlg = HotspotEditorDialog(enhanced_scan, selected_view, parent=self)
+                dlg = HotspotEditorDialog(scan, selected_view, parent=self)
                 if dlg.exec():
                     self._on_editor_completed()
 
             except Exception as e:
-                print(f"[ERROR] Failed to open hotspot editor: {e}")
+                print(f"[ERROR] Failed to create HotspotEditorDialog: {e}")
+                import traceback
+                traceback.print_exc()
+                QMessageBox.critical(self, "Editor Error", f"Could not open the hotspot editor.\n\nError: {e}")
 
 
 
@@ -1250,14 +1266,19 @@ class MainWindowSpect(QMainWindow):
                     frames, meta = load_frames_and_metadata(dicom_file)
                     scan_data = {"meta": meta, "frames": frames, "path": dicom_file}
                     
-                    # ✅ ALL PROCESSING ALREADY DONE DURING IMPORT
-                    # Just add placeholders for hotspot data - will be loaded when needed
-                    scan_data["hotspot_frames"] = scan_data["frames"]  # Placeholder
-                    scan_data["hotspot_frames_ant"] = scan_data["frames"]  # Placeholder  
-                    scan_data["hotspot_frames_post"] = scan_data["frames"]  # Placeholder
-                    
+                    # ✅ ENRICH THE SCAN OBJECT HERE
+                    # =========================================================================
+                    patient_folder = dicom_file.parent
+                    # Get all workflow files for BOTH views using your new paths.py function
+                    scan_data['workflow_files'] = get_planar_workflow_files(
+                        patient_folder=patient_folder,
+                        original_dicom_name=dicom_file.name,
+                        with_priority=True # Always get the latest edited versions
+                    )
+                    # =========================================================================
+
                     initial_scans.append(scan_data)
-                    print(f"[DEBUG] Processed DICOM: {dicom_file.name}")
+                    print(f"[DEBUG] Enriched scan data for: {dicom_file.name}")
                     
                     loading_dialog.update_loading_step(f"Loading scan {len(initial_scans)}...", 50 + (len(initial_scans) * 30 // len(dicom_files)))
                     QApplication.processEvents()
