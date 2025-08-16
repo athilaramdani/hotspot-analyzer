@@ -156,8 +156,7 @@ def load_frames_and_metadata_with_assignments(
             normalized_labels.append(label)
             print(f"   ⚠️  Non-standard view name: {label}")
     
-    frames = {lbl: arr[i] for i, lbl in enumerate(normalized_labels)}
-
+    frames = {lbl.lower(): arr[i] for i, lbl in enumerate(normalized_labels)}
     # Enhanced metadata extraction with study date
     meta = {
         "patient_id":    getattr(ds, "PatientID", ""),
