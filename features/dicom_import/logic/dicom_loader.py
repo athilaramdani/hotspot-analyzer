@@ -318,47 +318,46 @@ def cleanup_temp_png_files(uid: str = None, study_date: str = None):
         print(f"Warning: PNG cleanup failed: {e}")
 
 
-def extract_patient_info_from_path(dicom_path: Path) -> Tuple[str, str]:
+def extract_patient_info_from_path(dicom_path: Path) -> tuple[str, str]:
     """
-    Extract patient ID and session code from DICOM file path
-    Based on new directory structure: data/SPECT/[session_code]/[patient_id]/file.dcm
-    
-    Args:
-        dicom_path: Path to DICOM file
-        
-    Returns:
-        Tuple of (patient_id, session_code)
+    Extract patient ID and session code from DICOM path
+    Expected structure: data/PLANAR/[session_code]/[patient_id]/[study_date]/file.dcm
     """
     try:
-        # Navigate up the path to find structure
         parts = dicom_path.parts
         
-        # Look for SPECT in path
-        spect_index = None
+        # Find PLANAR directory index
+        planar_index = None
         for i, part in enumerate(parts):
-            if part == "SPECT":
-                spect_index = i
+            if part == "PLANAR":
+                planar_index = i
                 break
         
-        if spect_index is not None and len(parts) > spect_index + 2:
-            # Structure: .../SPECT/[session_code]/[patient_id]/file.dcm
-            session_code = parts[spect_index + 1]
-            patient_id = parts[spect_index + 2]
+        if planar_index is not None and len(parts) > planar_index + 3:
+            # Structure: .../PLANAR/[session]/[patient]/[study_date]/file.dcm
+            session_code = parts[planar_index + 1]    # ATL
+            patient_id = parts[planar_index + 2]      # 5001  ✅ INI YANG BENAR
+            study_date = parts[planar_index + 3]      # 20250115
+            
+            print(f"[DEBUG] Path extraction: session={session_code}, patient={patient_id}, study_date={study_date}")
             return patient_id, session_code
         
-        # Fallback: try to extract from filename or parent directory
-        parent_name = dicom_path.parent.name
-        if "_" in parent_name:
-            # Old structure compatibility
-            parts = parent_name.split("_")
-            if len(parts) >= 2:
-                return parts[0], "_".join(parts[1:])
+        # Fallback untuk struktur lama
+        if planar_index is not None and len(parts) > planar_index + 1:
+            folder_name = parts[planar_index + 1]
+            if "_" in folder_name:
+                parts_old = folder_name.split("_")
+                if len(parts_old) >= 2:
+                    patient_id = parts_old[0]
+                    session_code = "_".join(parts_old[1:])
+                    return patient_id, session_code
         
-        return parent_name, "UNKNOWN"
-        
-    except Exception:
+        print(f"[WARN] Could not extract patient info from path: {dicom_path}")
         return "UNKNOWN", "UNKNOWN"
-
+        
+    except Exception as e:
+        print(f"[ERROR] Error extracting patient info: {e}")
+        return "UNKNOWN", "UNKNOWN"
 
 def extract_study_date_from_dicom(dicom_path: Path) -> str:
     """

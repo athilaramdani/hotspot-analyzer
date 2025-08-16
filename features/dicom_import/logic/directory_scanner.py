@@ -226,27 +226,28 @@ def get_patient_files(session_code: str, patient_id: str) -> List[Path]:
     return sorted(files)
 
 def get_patient_dicom_files(session_code: str, patient_id: str, primary_only: bool = True) -> List[Path]:
-    """
-    ✅ FIXED: Get DICOM files for a specific patient - NO FILTERING
-    
-    Args:
-        session_code: Session code (NSY, ATL, NBL, etc.)
-        patient_id: Patient ID
-        primary_only: IGNORED - all DICOM files returned
-        
-    Returns:
-        List of DICOM file paths
-    """
     patient_path = get_patient_planar_path(session_code, patient_id)
     
     if not patient_path.exists():
         return []
     
     dicom_files = []
+    
+    # ✅ TAMBAHAN: Cari DICOM files di subdirektori study_date juga
+    for item in patient_path.iterdir():
+        if item.is_dir() and len(item.name) == 8 and item.name.isdigit():
+            # Ini adalah direktori study_date (YYYYMMDD)
+            for dicom_file in item.glob("*.dcm"):
+                try:
+                    ds = pydicom.dcmread(dicom_file, stop_before_pixels=True)
+                    dicom_files.append(dicom_file)
+                except Exception as e:
+                    print(f"[WARN] Tidak bisa baca {dicom_file}: {e}")
+                    continue
+    
+    # Cari juga di level patient langsung (backward compatibility)
     for dicom_file in patient_path.glob("*.dcm"):
         try:
-            # ✅ REMOVED: _is_primary() check
-            # Return ALL DICOM files regardless of primary_only parameter
             ds = pydicom.dcmread(dicom_file, stop_before_pixels=True)
             dicom_files.append(dicom_file)
         except Exception as e:

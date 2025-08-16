@@ -21,7 +21,8 @@ from core.config.paths import (
     generate_filename_stem,
     get_planar_hotspot_files,
     get_planar_segmentation_files,
-    get_patient_planar_path
+    get_patient_planar_path,
+    load_original_image_from_path  # ✅ TAMBAHAN
 )
 
 # Import legacy functions from archive if needed
@@ -138,7 +139,7 @@ class ScanTimelineWidget(QWidget):
             "Image": 1.0,
             "Segmentation": 0.4,      # Updated to 40%
             "Hotspot": 0.5,           # Already correct at 50%
-            "HotspotBBox": 1.0
+            "HotspotBBox": 1.0        # Hidden from UI but still loaded
         }
         
         # Session code for path resolution
@@ -224,60 +225,16 @@ class ScanTimelineWidget(QWidget):
         else:
             print(f"[WARN] View '{view_name}' not found in adjustments. Cannot set contrast.")
 
-    def _load_original_image(self, dicom_path: Path, filename_with_date: str, view_name: str, frame_map: dict) -> Optional[Image.Image]:
-        """Load original PNG image for the specified view using NEW structure"""
+    
+    def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None):
+        """Load segmentation layer using study_date folder"""
         try:
-            # Use NEW structure naming: ant_original.png / post_original.png
-            view_short = "ant" if view_name.lower() in ["anterior", "ant"] else "post"
-            
-            # NEW structure: ant_original.png or post_original.png
-            png_filename = f"{view_short}_original.png"
-            png_path = dicom_path.parent / png_filename
-            
-            print(f"[DEBUG] Looking for original PNG (NEW structure): {png_path}")
-            
-            if png_path.exists():
-                # Load PNG directly
-                original_image = Image.open(png_path)
+            if study_date_folder is None:
+                study_date_folder = dicom_path.parent
                 
-                # Convert to grayscale if needed
-                if original_image.mode != 'L':
-                    original_image = original_image.convert('L')
-                
-                print(f"[DEBUG] Loaded original PNG: {original_image.size}, mode: {original_image.mode}")
-                return original_image
-            else:
-                print(f"[DEBUG] Original PNG not found (NEW structure): {png_path}")
-                
-                # ✅ FALLBACK: Try to load from DICOM frames if PNG not available
-                if view_name in frame_map:
-                    frame_data = frame_map[view_name]
-                    if isinstance(frame_data, np.ndarray):
-                        # Normalize to uint8
-                        if frame_data.dtype != np.uint8:
-                            frame_norm = (frame_data - frame_data.min()) / max(frame_data.max() - frame_data.min(), 1)
-                            frame_uint8 = (frame_norm * 255).astype(np.uint8)
-                        else:
-                            frame_uint8 = frame_data.copy()
-                        
-                        # Convert to PIL Image
-                        original_image = Image.fromarray(frame_uint8, 'L')
-                        print(f"[DEBUG] Fallback: Loaded from DICOM frame: {original_image.size}")
-                        return original_image
-                
-                print(f"[DEBUG] No image source available for {view_name}")
-                return None
-                
-        except Exception as e:
-            print(f"[ERROR] Failed to load original image: {e}")
-            return None
-        
-    def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
-        """Load segmentation layer using NEW structure"""
-        try:
             view_short = "ant" if view_normalized in ["anterior", "ant"] else "post"
-            seg_files = get_planar_segmentation_files(dicom_path.parent, view_short, with_priority=True)
-            
+            seg_files = get_planar_segmentation_files(study_date_folder, view_short, with_priority=True)
+                
             seg_png = seg_files['segmentation_png']
             print(f"[DEBUG] Looking for segmentation (NEW structure): {seg_png}")
 
@@ -293,11 +250,14 @@ class ScanTimelineWidget(QWidget):
         except Exception as e:
             print(f"[ERROR] Failed to load segmentation layer: {e}")
 
-    def _load_hotspot_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
-        """Load hotspot layer using NEW structure"""
+    def _load_hotspot_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None):
+        """Load hotspot layer using study_date folder"""
         try:
+            if study_date_folder is None:
+                study_date_folder = dicom_path.parent
+                
             view_short = "ant" if view_normalized in ["anterior", "ant"] else "post"
-            hotspot_files = get_planar_hotspot_files(dicom_path.parent, view_short, with_priority=True)
+            hotspot_files = get_planar_hotspot_files(study_date_folder, view_short, with_priority=True)
             
             classification_png = hotspot_files['classification_png']
             print(f"[DEBUG] Looking for hotspot classification (NEW structure): {classification_png}")
@@ -313,11 +273,14 @@ class ScanTimelineWidget(QWidget):
         except Exception as e:
             print(f"[ERROR] Failed to load hotspot layer: {e}")
 
-    def _load_bbox_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
-        """Load bounding box layer using NEW structure"""
+    def _load_bbox_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None):
+        """Load bounding box layer using study_date folder"""
         try:
+            if study_date_folder is None:
+                study_date_folder = dicom_path.parent
+                
             view_short = "ant" if view_normalized in ["anterior", "ant"] else "post"
-            hotspot_files = get_planar_hotspot_files(dicom_path.parent, view_short, with_priority=True)
+            hotspot_files = get_planar_hotspot_files(study_date_folder, view_short, with_priority=True)
             
             classification_xml = hotspot_files['classification_xml']
             print(f"[DEBUG] Looking for classification XML (NEW structure): {classification_xml}")
@@ -668,6 +631,10 @@ class ScanTimelineWidget(QWidget):
         if not self._scans_cache:
             return False
         
+        # HotspotBBox is hidden from UI
+        if layer == "HotspotBBox":
+            return False
+        
         try:
             # Check if any scan has data for this layer
             for scan in self._scans_cache:
@@ -799,11 +766,30 @@ class ScanTimelineWidget(QWidget):
             dicom_path = Path(scan["path"])
             patient_id, session_code = extract_patient_info_from_path(dicom_path)
             
+            # ✅ TAMBAHAN: Debug dan validasi
+            print(f"[DEBUG] Extracted patient info - ID: {patient_id}, Session: {session_code}")
+            print(f"[DEBUG] Original path: {dicom_path}")
+            
+            # ✅ VALIDASI: Pastikan patient_id bukan study_date (8 digit angka)
+            if len(patient_id) == 8 and patient_id.isdigit():
+                print(f"[WARN] Patient ID looks like study_date: {patient_id}")
+                # Coba ekstrak ulang dengan manual parsing
+                parts = dicom_path.parts
+                planar_index = None
+                for i, part in enumerate(parts):
+                    if part == "PLANAR":
+                        planar_index = i
+                        break
+                
+                if planar_index is not None and len(parts) > planar_index + 2:
+                    session_code = parts[planar_index + 1]  # ATL
+                    patient_id = parts[planar_index + 2]    # 5001
+                    print(f"[DEBUG] Manual extraction - ID: {patient_id}, Session: {session_code}")
+            
             # Fallback to session from widget if extraction fails
             if session_code == "UNKNOWN" and self.session_code:
                 session_code = self.session_code
                 
-            print(f"[DEBUG] Extracted from {dicom_path}: patient={patient_id}, session={session_code}")
             return patient_id, session_code
         except Exception as e:
             print(f"[WARN] Failed to extract patient/session from scan: {e}")
@@ -920,21 +906,52 @@ class ScanTimelineWidget(QWidget):
             return None
     
     def _get_layer_images(self, scan: Dict, override_b: float = None, override_c: float = None) -> Dict[str, Image.Image]:
-        """✅ FIXED: Now accepts optional override values for live previews."""
         frame_map = scan["frames"]
         dicom_path = Path(scan["path"])
 
+        # ✅ TAMBAHAN: Debug print
+        print(f"[DEBUG] DICOM path: {dicom_path}")
+        print(f"[DEBUG] Current view: {self.current_view}")
+
         try:
             study_date = extract_study_date_from_dicom(dicom_path)
-            patient_id, _ = self._get_patient_session_from_scan(scan)
+            patient_id, session_code = self._get_patient_session_from_scan(scan)
             filename_with_date = generate_filename_stem(patient_id, study_date)
-        except Exception:
+            
+            # ✅ PERBAIKAN: Dapatkan path yang benar untuk study_date
+            if session_code and session_code != "UNKNOWN":
+                # ✅ VALIDASI: Jika patient_id adalah study_date, gunakan path dari DICOM
+                if len(patient_id) == 8 and patient_id.isdigit():
+                    print(f"[DEBUG] Patient ID is study_date, using DICOM path directly")
+                    study_date_folder = dicom_path.parent  # langsung gunakan folder dimana DICOM berada
+                else:
+                    study_date_folder = get_patient_planar_path(session_code, patient_id, study_date)
+            else:
+                study_date_folder = dicom_path.parent
+
+            # ✅ TAMBAHAN: Validasi path exists
+            if not study_date_folder.exists():
+                print(f"[WARN] Study date folder does not exist: {study_date_folder}")
+                print(f"[DEBUG] Fallback to DICOM parent: {dicom_path.parent}")
+                study_date_folder = dicom_path.parent
+                        
+            # ✅ TAMBAHAN: Debug print
+            print(f"[DEBUG] Study date: {study_date}")
+            print(f"[DEBUG] Patient ID: {patient_id}")
+            print(f"[DEBUG] Session code: {session_code}")
+            print(f"[DEBUG] Study date folder: {study_date_folder}")
+                
+        except Exception as e:
+            print(f"[DEBUG] Exception in path extraction: {e}")
             filename_with_date = dicom_path.stem
+            study_date_folder = dicom_path.parent
+            print(f"[DEBUG] Fallback study_date_folder: {study_date_folder}")
 
         layers = {}
         view_normalized = self.current_view.lower()
         
-        original_image = self._load_original_image(dicom_path, filename_with_date, self.current_view, frame_map)
+        # ✅ GANTI: Gunakan fungsi dari paths.py
+        original_image = load_original_image_from_path(dicom_path, self.current_view, frame_map)
         
         if original_image:
             if self.invert_original:
@@ -942,10 +959,8 @@ class ScanTimelineWidget(QWidget):
             
             # Determine which brightness/contrast values to use
             if override_b is not None and override_c is not None:
-                # Use preview values if they were passed in
                 brightness, contrast = override_b, override_c
             else:
-                # Otherwise, use the stored values for the current view
                 adjustments = self._adjustments[self.current_view]
                 brightness = adjustments["brightness"]
                 contrast = adjustments["contrast"]
@@ -959,12 +974,13 @@ class ScanTimelineWidget(QWidget):
 
             layers["Image"] = original_image
         
-        self._load_segmentation_layer(layers, dicom_path, filename_with_date, view_normalized)
-        self._load_hotspot_layer(layers, dicom_path, filename_with_date, view_normalized)
-        self._load_bbox_layer(layers, dicom_path, filename_with_date, view_normalized)
+        # ✅ GUNAKAN study_date_folder yang benar
+        self._load_segmentation_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder)
+        self._load_hotspot_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder)  
+        self._load_bbox_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder)
         
         return layers
-    
+        
     def _make_layered_card(self, scan: Dict, w: int, idx: int) -> QFrame:
         """✅ FIXED: Create card with proper view-specific layered display"""
         card = QFrame()
@@ -1008,6 +1024,11 @@ class ScanTimelineWidget(QWidget):
         # Apply opacity to individual layers before compositing
         active_layer_images = {}
         for layer_name in self._active_layers:
+            # Skip HotspotBBox even if somehow it gets into active_layers
+            if layer_name == "HotspotBBox":
+                print(f"[DEBUG] 🚫 Skipping HotspotBBox layer (hidden from UI)")
+                continue
+                
             if layer_name in all_layers:
                 layer_image = all_layers[layer_name]
                 layer_opacity = self._layer_opacities.get(layer_name, 1.0)
@@ -1020,7 +1041,7 @@ class ScanTimelineWidget(QWidget):
                 print(f"[DEBUG] ✅ Added CLASSIFICATION {layer_name} to card {idx} (opacity: {layer_opacity:.2f})")
             else:
                 print(f"[DEBUG] ❌ Layer {layer_name} not found in CLASSIFICATION files for card {idx}")
-        
+                
         if not active_layer_images:
             lbl.setText(f"No classification data available\nfor {self.current_view}")
             lbl.setStyleSheet("color:#888; font-size: 12px; padding: 20px;")
