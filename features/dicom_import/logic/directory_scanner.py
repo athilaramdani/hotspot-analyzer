@@ -213,7 +213,7 @@ def get_patient_files(session_code: str, patient_id: str) -> List[Path]:
     Get all files for a specific patient in a session
     Returns: [file_path1, file_path2, ...]
     """
-    patient_path = get_patient_planar_path(patient_id, session_code)
+    patient_path = get_patient_planar_path(session_code, patient_id)
     
     if not patient_path.exists():
         return []
@@ -237,7 +237,7 @@ def get_patient_dicom_files(session_code: str, patient_id: str, primary_only: bo
     Returns:
         List of DICOM file paths
     """
-    patient_path = get_patient_planar_path(patient_id, session_code)
+    patient_path = get_patient_planar_path(session_code, patient_id)
     
     if not patient_path.exists():
         return []
