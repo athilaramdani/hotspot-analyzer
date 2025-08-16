@@ -4,6 +4,7 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit
 from datetime import datetime
 from .searchable_combobox import SearchableComboBox
+from core.gui.ui_constants import PATIENT_INFO_FIELD_STYLE, PATIENT_INFO_LABEL_STYLE
 
 class PatientInfoBar(QWidget):
     def __init__(self, parent=None):
@@ -22,44 +23,61 @@ class PatientInfoBar(QWidget):
         # Inisialisasi QLineEdit
         self.name_edit = QLineEdit(readOnly=True)
         self.birth_edit = QLineEdit(readOnly=True)
+        self.age_edit = QLineEdit(readOnly=True)          # ✅ NEW
         self.sex_edit = QLineEdit(readOnly=True)
+        self.weight_edit = QLineEdit(readOnly=True)       # ✅ NEW
+        self.height_edit = QLineEdit(readOnly=True)       # ✅ NEW
         self.study_edit = QLineEdit(readOnly=True)
 
-        widgets = [self.name_edit, self.birth_edit, self.sex_edit, self.study_edit]
+        widgets = [self.name_edit, self.birth_edit, self.age_edit, self.sex_edit, 
+                  self.weight_edit, self.height_edit, self.study_edit]
         for w in widgets:
             w.setFont(normal_font)
+            w.setStyleSheet(PATIENT_INFO_FIELD_STYLE)  # ✅ NEW
 
-        # Set minimum width for Name to ensure consistent alignment and space
-        self.name_edit.setMinimumWidth(250)
-        # Menambahkan minimum width untuk QLineEdit lainnya jika diperlukan untuk konsistensi
-        self.birth_edit.setMinimumWidth(150) # Contoh: memberi ruang untuk tanggal
-        self.sex_edit.setMinimumWidth(80)    # Contoh: memberi ruang untuk 'Male'/'Female'
-        self.study_edit.setMinimumWidth(150) # Contoh: memberi ruang untuk tanggal
+        # Set minimum width for consistent alignment
+        self.name_edit.setMinimumWidth(200)      # Reduced to make room
+        self.birth_edit.setMinimumWidth(100)     # Reduced 
+        self.age_edit.setMinimumWidth(60)        # ✅ NEW - for age display
+        self.sex_edit.setMinimumWidth(60)        # Reduced
+        self.weight_edit.setMinimumWidth(70)     # ✅ NEW - for weight (kg)
+        self.height_edit.setMinimumWidth(70)     # ✅ NEW - for height (m)
+        self.study_edit.setMinimumWidth(100)     # Reduced
 
-        # Membuat label
+        # Membuat label - Enhanced layout with more info
+        # Row 0: Patient ID | Name | Age | Sex
         self._create_label("Patient ID:", 0, 0)
         self._create_label("Name:", 0, 2)
+        self._create_label("Age:", 0, 4)          # ✅ NEW
+        self._create_label("Sex:", 0, 6)
+        
+        # Row 1: Birth Date | Weight | Height | Study Date
         self._create_label("Birth Date:", 1, 0)
-        self._create_label("Sex:", 1, 2)
-        self._create_label("Study Date:", 1, 4)
+        self._create_label("Weight:", 1, 2)       # ✅ NEW
+        self._create_label("Height:", 1, 4)       # ✅ NEW  
+        self._create_label("Study Date:", 1, 6)
 
-        # Menambahkan QLineEdit ke layout
-        # Perhatikan penempatan kolom:
-        # Patient ID di (0,1), Name di (0,3)
-        # Birth Date di (1,1), Sex di (1,3), Study Date di (1,5)
+        # Menambahkan QLineEdit ke layout - Enhanced grid
+        # Row 0: Patient ID(0,1) | Name(0,3) | Age(0,5) | Sex(0,7)
         self.grid_layout.addWidget(self.name_edit, 0, 3)
+        self.grid_layout.addWidget(self.age_edit, 0, 5)      # ✅ NEW
+        self.grid_layout.addWidget(self.sex_edit, 0, 7)
+        
+        # Row 1: Birth Date(1,1) | Weight(1,3) | Height(1,5) | Study Date(1,7) 
         self.grid_layout.addWidget(self.birth_edit, 1, 1)
-        self.grid_layout.addWidget(self.sex_edit, 1, 3)
-        self.grid_layout.addWidget(self.study_edit, 1, 5)
+        self.grid_layout.addWidget(self.weight_edit, 1, 3)   # ✅ NEW
+        self.grid_layout.addWidget(self.height_edit, 1, 5)   # ✅ NEW
+        self.grid_layout.addWidget(self.study_edit, 1, 7)
 
         # Memberikan 'stretch' ke kolom terakhir untuk mengisi ruang kosong
-        # Ini akan mendorong elemen ke kiri dan memberi ruang ekstra di kanan
-        self.grid_layout.setColumnStretch(6, 1)
+        # Updated for new 8-column layout
+        self.grid_layout.setColumnStretch(8, 1)  # ✅ UPDATED
 
     def _create_label(self, text, row, col):
         l = QLabel(text, self)
         l.setFont(self.bold_font)
         l.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        l.setStyleSheet(PATIENT_INFO_LABEL_STYLE)  # ✅ NEW
         self.grid_layout.addWidget(l, row, col)
 
     def set_id_combobox(self, combobox: SearchableComboBox):
@@ -94,11 +112,40 @@ class PatientInfoBar(QWidget):
         self.name_edit.setText(formatted_name)
         self.sex_edit.setText(meta.get("patient_sex", "N/A"))
 
+        # ✅ ENHANCED: Birth date with age calculation
         birth_date_str = meta.get("patient_birth_date", "")
         try:
-            self.birth_edit.setText(datetime.strptime(birth_date_str, "%Y%m%d").strftime("%d-%m-%Y"))
+            birth_date = datetime.strptime(birth_date_str, "%Y%m%d")
+            self.birth_edit.setText(birth_date.strftime("%d-%m-%Y"))
+            
+            # Calculate age
+            today = datetime.now()
+            age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+            self.age_edit.setText(f"{age}Y")
         except (ValueError, TypeError):
             self.birth_edit.setText(birth_date_str or "N/A")
+            self.age_edit.setText("N/A")
+
+        # ✅ NEW: Weight and Height
+        weight = meta.get("patient_weight", "")
+        if weight:
+            try:
+                weight_val = float(weight)
+                self.weight_edit.setText(f"{weight_val:.0f} kg")
+            except (ValueError, TypeError):
+                self.weight_edit.setText("N/A")
+        else:
+            self.weight_edit.setText("N/A")
+
+        height = meta.get("patient_size", "")  # Note: DICOM uses PatientSize
+        if height:
+            try:
+                height_val = float(height)
+                self.height_edit.setText(f"{height_val:.2f} m")
+            except (ValueError, TypeError):
+                self.height_edit.setText("N/A")
+        else:
+            self.height_edit.setText("N/A")
 
         study_date_str = meta.get("study_date", "")
         try:
@@ -176,7 +223,10 @@ class PatientInfoBar(QWidget):
             self.id_edit.setText("N/A")
         self.name_edit.setText("N/A")
         self.birth_edit.setText("N/A")
+        self.age_edit.setText("N/A")          # ✅ NEW
         self.sex_edit.setText("N/A")
+        self.weight_edit.setText("N/A")       # ✅ NEW
+        self.height_edit.setText("N/A")       # ✅ NEW
         self.study_edit.setText("N/A")
 
     def clear(self):

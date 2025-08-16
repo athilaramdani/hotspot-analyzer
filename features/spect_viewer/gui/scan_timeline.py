@@ -689,7 +689,7 @@ class ScanTimelineWidget(QWidget):
 
     # ------------------------------------------------------ card builders
     def _make_header(self, scan: Dict, idx: int) -> QHBoxLayout:
-        """✅ FIXED: Header with BSI information"""
+        """✅ FIXED: Header with BSI per frame information (no combined)"""
         meta = scan["meta"]
         date_raw = meta.get("study_date", "")
         try:   
@@ -697,28 +697,30 @@ class ScanTimelineWidget(QWidget):
         except ValueError: 
             hdr = "Unknown"
         
-        # ✅ NEW: Include BSI in header
+        # ✅ UPDATED: BSI per frame only (no combined)
         bsi_text = ""
         if meta.get("has_bsi", False):
-            # ✅ DEBUG: Print what's in meta
             print(f"[BSI HEADER DEBUG] Meta keys: {list(meta.keys())}")
             print(f"[BSI HEADER DEBUG] Current view: {self.current_view}")
             print(f"[BSI HEADER DEBUG] has_bsi: {meta.get('has_bsi', False)}")
-            print(f"[BSI HEADER DEBUG] bsi_anterior: {meta.get('bsi_anterior', 'NOT_FOUND')}")
-            print(f"[BSI HEADER DEBUG] bsi_posterior: {meta.get('bsi_posterior', 'NOT_FOUND')}")
             
             if self.current_view == "Anterior":
-                bsi_score = meta.get("bsi_anterior", 0.0)  # ✅ ANTERIOR BSI
+                bsi_score = meta.get("bsi_anterior", 0.0)
+                color = "#ff6b6b"  # Red for anterior
                 print(f"[BSI HEADER DEBUG] Using anterior BSI: {bsi_score}")
             else:  # Posterior
-                bsi_score = meta.get("bsi_posterior", 0.0)   # ✅ POSTERIOR BSI
+                bsi_score = meta.get("bsi_posterior", 0.0)
+                color = "#4ecdc4"  # Teal for posterior
                 print(f"[BSI HEADER DEBUG] Using posterior BSI: {bsi_score}")
-            bsi_text = f"<br><small>BSI: {bsi_score:.1f}</small>"
+            
+            # ✅ UPDATED: Show per-frame BSI with color coding
+            bsi_text = f"<br><small style='color: {color}; font-weight: bold;'>{self.current_view} BSI: {bsi_score:.1f}%</small>"
         else:
             print(f"[BSI HEADER DEBUG] No BSI data found in meta")
+        
         hbox = QHBoxLayout()
         
-        # Header info with BSI
+        # ✅ UPDATED: Header info with per-frame BSI
         header_label = QLabel(f"<b>{hdr}</b>{bsi_text}")
         header_label.setStyleSheet("font-size: 11px;")
         hbox.addWidget(header_label)
