@@ -51,8 +51,8 @@ class BaseBrightnessContrastPad(QWidget):
         w, h = self.width(), self.height()
         x = max(0, min(w, x))
         y = max(0, min(h, y))
-        self._b = (x / w) * 2.0 - 1.0            # -1 to +1
-        self._c = 0.5 + (1.0 - y / h) * 1.5      # 2.0 (top) to 0.5 (bottom)
+        self._b = (x / w) * 2.0 - 1.0        # -1 to +1
+        self._c = 0.5 + (1.0 - y / h) * 1.5  # 2.0 (top) to 0.5 (bottom)
         self._emit()
         self.update()
 
@@ -85,7 +85,7 @@ class BaseBrightnessContrastPad(QWidget):
         grad_h.setColorAt(0.5, QColor("#808080"))
         grad_h.setColorAt(1.0, QColor("#c0c0c0"))
 
-        grad_v = QLinearGradient(0, 0, 0, self.height())      # contrast
+        grad_v = QLinearGradient(0, 0, 0, self.height())     # contrast
         grad_v.setColorAt(0.0, QColor("#ffffff"))
         grad_v.setColorAt(0.5, QColor("#808080"))
         grad_v.setColorAt(1.0, QColor("#404040"))
@@ -101,8 +101,8 @@ class BaseBrightnessContrastPad(QWidget):
 
         # Main lines
         p.setPen(QPen(QColor(255, 255, 255, 80), 1))
-        p.drawLine(center_x, 0, center_x, self.height())   # B = 0
-        p.drawLine(0, center_y, self.width(), center_y)    # C = 1
+        p.drawLine(center_x, 0, center_x, self.height())  # B = 0
+        p.drawLine(0, center_y, self.width(), center_y)   # C = 1
 
         # Quarter lines
         p.setPen(QPen(QColor(255, 255, 255, 40), 1))
@@ -185,10 +185,12 @@ class BaseOpacitySlider(QWidget):
         
         layout = QVBoxLayout(self)
         layout.setSpacing(3)
+        layout.setContentsMargins(0,0,0,0)
         
         # Label
-        self.label = QLabel(label_text)
-        layout.addWidget(self.label)
+        if label_text:
+            self.label = QLabel(label_text)
+            layout.addWidget(self.label)
         
         # Slider row with +/- buttons
         slider_row = QHBoxLayout()
@@ -199,12 +201,11 @@ class BaseOpacitySlider(QWidget):
         
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setRange(0, 100)
-        self.slider.setValue(initial_value)
         
         self.btn_plus = QPushButton("+")
         self.btn_plus.setFixedSize(30, 22)
         
-        self.lbl_value = QLabel(f"{initial_value} %")
+        self.lbl_value = QLabel()
         self.lbl_value.setFixedWidth(35)
         self.lbl_value.setAlignment(Qt.AlignRight)
         
@@ -215,7 +216,8 @@ class BaseOpacitySlider(QWidget):
         
         layout.addLayout(slider_row)
         
-        # Connect signals
+        # Set initial value and connect signals
+        self.setValue(initial_value)
         self.slider.valueChanged.connect(self._on_value_changed)
         self.btn_minus.clicked.connect(lambda: self._adjust_value(-5))
         self.btn_plus.clicked.connect(lambda: self._adjust_value(5))
@@ -226,11 +228,12 @@ class BaseOpacitySlider(QWidget):
 
     def _adjust_value(self, step: int):
         current = self.slider.value()
-        new_value = max(0, min(100, current + step))
+        new_value = max(self.slider.minimum(), min(self.slider.maximum(), current + step))
         self.slider.setValue(new_value)
 
     def setValue(self, value: int):
         self.slider.setValue(value)
+        self.lbl_value.setText(f"{value} %")
 
     def value(self) -> int:
         return self.slider.value()
@@ -252,6 +255,7 @@ class BaseCanvas(QGraphicsView):
         self.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
         self.setDragMode(QGraphicsView.NoDrag)
         self.setCursor(QCursor(Qt.CrossCursor))
+        self.setMouseTracking(True)
 
         # Scene setup
         self._scene = QGraphicsScene(self)
@@ -269,16 +273,23 @@ class BaseCanvas(QGraphicsView):
         self._scene.addItem(self._item_gray)
 
         # Mask layer (to be implemented by subclasses)
+        # Mask layer - create a default transparent mask item
         self._mask_arr = mask.astype(np.uint8)
-        self._item_mask = None  # Subclasses must create this
+        # Create an empty mask item that subclasses can override
+        empty_mask = QImage(self._img_width, self._img_height, QImage.Format_RGBA8888)
+        empty_mask.fill(Qt.transparent)
+        self._item_mask = QGraphicsPixmapItem(QPixmap.fromImage(empty_mask))
+        self._item_mask.setOpacity(1.0)
+        self._scene.addItem(self._item_mask)
 
         # Drawing state
         self._cur_label = 1
-        self._brush_radius = 5
+        self._brush_radius = 1
         self._eraser = False
         self._show_all = False
         self._drawing = False
         self._pan_mode = False
+        
         # Brush cursor state
         self._mouse_pos = QPointF()
         self._show_brush_cursor = True
@@ -334,29 +345,21 @@ class BaseCanvas(QGraphicsView):
         self._brush_radius = max(1, radius)
         self.viewport().update()
         
-    def get_brush_radius(self) -> int:
-        """Get current brush radius."""
-        return self._brush_radius
-    
-    def set_brush_cursor_visible(self, visible: bool):
-        """Toggle brush cursor visibility."""
-        self._show_brush_cursor = visible
-        self.viewport().update()
-
     def _get_brush_targets(self, x: int, y: int) -> List[Tuple[int, int]]:
         """Get list of pixel coordinates affected by brush using radius."""
         h, w = self._mask_arr.shape
         
-        if self._brush_radius <= 1:
-            return [(x, y)]
+        if self._brush_radius == 1:
+            return [(x, y)] if (0 <= x < w and 0 <= y < h) else []
         
         targets = []
         radius_sq = self._brush_radius * self._brush_radius
         
-        for dy in range(-self._brush_radius, self._brush_radius + 1):
-            for dx in range(-self._brush_radius, self._brush_radius + 1):
+        # Iterate over bounding box of the circle
+        for dy in range(-self._brush_radius + 1, self._brush_radius):
+            for dx in range(-self._brush_radius + 1, self._brush_radius):
                 # Use proper circular distance calculation
-                if dx*dx + dy*dy <= radius_sq:
+                if dx*dx + dy*dy < radius_sq:
                     px, py = x + dx, y + dy
                     if 0 <= px < w and 0 <= py < h:
                         targets.append((px, py))
@@ -380,6 +383,7 @@ class BaseCanvas(QGraphicsView):
     def set_zoom(self, zoom_factor: float):
         """Set zoom to specific factor."""
         current_zoom = self.transform().m11()
+        if current_zoom == 0: return # Avoid division by zero
         scale_factor = zoom_factor / current_zoom
         self._zoom_factor = zoom_factor
         self.scale(scale_factor, scale_factor)
@@ -401,65 +405,53 @@ class BaseCanvas(QGraphicsView):
 
     # Common coordinate handling
     def _get_pixel_coordinates(self, scene_pos: QPointF) -> Tuple[int, int]:
-        """Convert scene position to pixel coordinates."""
+        """Convert scene position to pixel coordinates with correct rounding."""
         x = max(0, min(self._img_width - 1, int(scene_pos.x() + 0.5)))
         y = max(0, min(self._img_height - 1, int(scene_pos.y() + 0.5)))
         return x, y
-
-    def _get_brush_targets(self, x: int, y: int) -> List[Tuple[int, int]]:
-        """Get list of pixel coordinates affected by brush."""
-        h, w = self._mask_arr.shape
-        
-        if self._brush_sz == 1:
-            return [(x, y)]
-        
-        targets = []
-        radius = self._brush_sz
-        for dy in range(-radius, radius + 1):
-            for dx in range(-radius, radius + 1):
-                if dx*dx + dy*dy <= radius*radius:
-                    px, py = x + dx, y + dy
-                    if 0 <= px < w and 0 <= py < h:
-                        targets.append((px, py))
-        return targets
 
     # Mouse events
     def mousePressEvent(self, ev):
         if ev.button() == Qt.LeftButton and not self._pan_mode:
             self._drawing = True
             scene_pos = self.mapToScene(ev.position().toPoint())
-            self._mouse_pos = scene_pos
             self._apply_brush(scene_pos)
             ev.accept()
         elif ev.button() == Qt.MiddleButton:
             self._pan_mode = True
             self.setDragMode(QGraphicsView.ScrollHandDrag)
             self.setCursor(QCursor(Qt.OpenHandCursor))
-            super().mousePressEvent(ev)
+            # Manually trigger the drag mode
+            fake_press = ev
+            super().mousePressEvent(fake_press)
         else:
             super().mousePressEvent(ev)
 
     def mouseMoveEvent(self, ev):
         scene_pos = self.mapToScene(ev.position().toPoint())
         self._mouse_pos = scene_pos
-        if self._drawing and ev.buttons() & Qt.LeftButton and not self._pan_mode:
-            scene_pos = self.mapToScene(ev.position().toPoint())
+        
+        if self._drawing and (ev.buttons() & Qt.LeftButton) and not self._pan_mode:
+            self._apply_brush(scene_pos)
             ev.accept()
+        elif self._pan_mode:
+             super().mouseMoveEvent(ev)
         else:
+            self.viewport().update() # Update to draw brush cursor
             super().mouseMoveEvent(ev)
-        #update cursor display
-        if self._drawing and not self._pan_mode:
-            self.viewport().update()
 
     def mouseReleaseEvent(self, ev):
         if ev.button() == Qt.LeftButton and self._drawing:
             self._save_current_state()
             self._drawing = False
-        elif ev.button() == Qt.MiddleButton:
+            ev.accept()
+        elif ev.button() == Qt.MiddleButton and self._pan_mode:
             self._pan_mode = False
             self.setDragMode(QGraphicsView.NoDrag)
             self.setCursor(QCursor(Qt.CrossCursor))
-        super().mouseReleaseEvent(ev)
+            super().mouseReleaseEvent(ev)
+        else:
+            super().mouseReleaseEvent(ev)
     
     def enterEvent(self, ev):
         """Show brush cursor when mouse enters."""
@@ -484,103 +476,75 @@ class BaseCanvas(QGraphicsView):
         else:
             super().wheelEvent(ev)
 
-    # Grid overlay
+    # Grid and Cursor overlay
     def drawForeground(self, painter: QPainter, rect: QRectF):
-        if self._zoom_factor < 2.0:
-            return
-        else:
+        # Draw Grid
+        if self._zoom_factor >= 2.0:
             step = 1 if self._zoom_factor >= 4.0 else max(1, int(10 / self._zoom_factor))
             alpha = min(100, int(20 * self._zoom_factor)) if step == 1 else 40
             
             pen = QPen(QColor(100, 100, 100, alpha))
-            pen.setWidth(0)
+            pen.setWidth(0) # Cosmetic pen (always 1 pixel on screen)
             painter.setPen(pen)
             
             visible_rect = self.mapToScene(self.viewport().rect()).boundingRect()
             
             left = math.floor(visible_rect.left() / step) * step
             top = math.floor(visible_rect.top() / step) * step
-            right = math.ceil(visible_rect.right() / step) * step
-            bottom = math.ceil(visible_rect.bottom() / step) * step
             
-            # Vertical lines
+            # Draw vertical lines
             x = left
-            while x <= right:
+            while x <= visible_rect.right():
                 if 0 <= x <= self._img_width:
-                    painter.drawLine(x, max(0, top), x, min(self._img_height, bottom))
+                    painter.drawLine(QPointF(x, visible_rect.top()), QPointF(x, visible_rect.bottom()))
                 x += step
             
-            # Horizontal lines
+            # Draw horizontal lines
             y = top
-            while y <= bottom:
+            while y <= visible_rect.bottom():
                 if 0 <= y <= self._img_height:
-                    painter.drawLine(max(0, left), y, min(self._img_width, right), y)
+                    painter.drawLine(QPointF(visible_rect.left(), y), QPointF(visible_rect.right(), y))
                 y += step
         
-        if (self._show_brush_cursor and self._drawing and not self._pan_mode and not self._drawing and self._brush_radius >0):
+        # Draw Brush Cursor
+        if self._show_brush_cursor and not self._pan_mode and not self._drawing:
             self._draw_brush_cursor(painter)
            
     def _draw_brush_cursor(self, painter: QPainter):
         """Draw circular brush cursor at mouse position."""
-        # Get mouse position in scene coordinates
         cursor_center = self._mouse_pos
         
-        # Check if cursor is within image bounds
-        if (cursor_center.x() < 0 or cursor_center.x() >= self._img_width or
-            cursor_center.y() < 0 or cursor_center.y() >= self._img_height):
+        # Check if cursor is within image bounds for drawing
+        if not (0 <= cursor_center.x() < self._img_width and 0 <= cursor_center.y() < self._img_height):
             return
         
-        # Calculate cursor appearance based on zoom and brush size
-        cursor_radius = self._brush_radius
+        painter.save()
+        painter.setRenderHint(QPainter.Antialiasing)
         
-        # Set up cursor appearance
+        # Pen width should be cosmetic (1 pixel wide on screen regardless of zoom)
+        pen_width = 1.0 / self._zoom_factor
+        
         if self._eraser:
-            # Eraser cursor: red circle with crosshatch pattern
-            pen_color = QColor(255, 100, 100, 180)  # Semi-transparent red
-            brush_color = QColor(255, 100, 100, 30)
+            pen_color = QColor(255, 100, 100, 200)
+            brush_color = QColor(255, 100, 100, 50)
         else:
-            # Paint cursor: blue circle
-            pen_color = QColor(100, 150, 255, 180)  # Semi-transparent blue
-            brush_color = QColor(100, 150, 255, 30)
+            pen_color = QColor(100, 150, 255, 200)
+            brush_color = QColor(100, 150, 255, 50)
         
-        # Draw outer circle
-        painter.setPen(QPen(pen_color, 1))
-        painter.setBrush(QColor(brush_color))
+        pen = QPen(pen_color, pen_width)
+        painter.setPen(pen)
+        painter.setBrush(brush_color)
         
-        cursor_rect = QRectF(
-            cursor_center.x() - cursor_radius,
-            cursor_center.y() - cursor_radius,
-            cursor_radius * 2,
-            cursor_radius * 2
-        )
-        painter.drawEllipse(cursor_rect)
+        # Draw circle with radius in scene units
+        radius = self._brush_radius - 0.5 if self._brush_radius > 1 else 0.5
+        painter.drawEllipse(cursor_center, radius, radius)
         
-        # Draw center crosshair for precision
-        painter.setPen(QPen(pen_color, 1))
-        crosshair_size = min(3, cursor_radius // 2)
-        painter.drawLine(
-            cursor_center.x() - crosshair_size, cursor_center.y(),
-            cursor_center.x() + crosshair_size, cursor_center.y()
-        )
-        painter.drawLine(
-            cursor_center.x(), cursor_center.y() - crosshair_size,
-            cursor_center.x(), cursor_center.y() + crosshair_size
-        )
+        # Draw center crosshair
+        crosshair_size = min(3 * pen_width, radius / 2)
+        painter.drawLine(cursor_center + QPointF(-crosshair_size, 0), cursor_center + QPointF(crosshair_size, 0))
+        painter.drawLine(cursor_center + QPointF(0, -crosshair_size), cursor_center + QPointF(0, crosshair_size))
         
-        # Add special pattern for eraser
-        if self._eraser and cursor_radius > 3:
-            painter.setPen(QPen(QColor(255, 0, 0, 120), 1))
-            # Draw diagonal crosshatch pattern
-            for i in range(-cursor_radius, cursor_radius, 3):
-                # Diagonal lines
-                painter.drawLine(
-                    cursor_center.x() + i, cursor_center.y() - cursor_radius,
-                    cursor_center.x() + i + cursor_radius, cursor_center.y()
-                )
-                painter.drawLine(
-                    cursor_center.x() + i, cursor_center.y() + cursor_radius,
-                    cursor_center.x() + i - cursor_radius, cursor_center.y()
-                )
+        painter.restore()
 
     # History methods (to be implemented by subclasses)
     def _save_current_state(self):
@@ -594,9 +558,10 @@ class BaseCanvas(QGraphicsView):
     def redo(self, label_id: int):
         """Redo operation - to be implemented by subclasses."""
         pass
-    
+
+
 class BaseBrushSizeControl(QWidget):
-    """Reusable brush size control with slider and +/- buttons, matching zoom slider style."""
+    """Reusable brush size control with slider and +/- buttons."""
     radiusChanged = Signal(int)  # Emits radius value
     
     def __init__(self, label_text: str = "Brush Size", 
@@ -606,12 +571,12 @@ class BaseBrushSizeControl(QWidget):
         
         layout = QVBoxLayout(self)
         layout.setSpacing(3)
+        layout.setContentsMargins(0,0,0,0)
         
-        # Label
-        self.label = QLabel(label_text)
-        layout.addWidget(self.label)
+        if label_text:
+            self.label = QLabel(label_text)
+            layout.addWidget(self.label)
         
-        # Slider row with +/- buttons
         slider_row = QHBoxLayout()
         slider_row.setSpacing(3)
         
@@ -620,12 +585,11 @@ class BaseBrushSizeControl(QWidget):
         
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setRange(min_radius, max_radius)
-        self.slider.setValue(initial_radius)
         
         self.btn_plus = QPushButton("+")
         self.btn_plus.setFixedSize(30, 22)
         
-        self.lbl_value = QLabel(f"{initial_radius}px")
+        self.lbl_value = QLabel()
         self.lbl_value.setFixedWidth(35)
         self.lbl_value.setAlignment(Qt.AlignRight)
         
@@ -636,13 +600,13 @@ class BaseBrushSizeControl(QWidget):
         
         layout.addLayout(slider_row)
         
-        # Connect signals
+        self.setValue(initial_radius)
         self.slider.valueChanged.connect(self._on_value_changed)
         self.btn_minus.clicked.connect(lambda: self._adjust_value(-1))
         self.btn_plus.clicked.connect(lambda: self._adjust_value(1))
 
     def _on_value_changed(self, value: int):
-        self.lbl_value.setText(f"{value}px")
+        self.lbl_value.setText(f"{value} px")
         self.radiusChanged.emit(value)
 
     def _adjust_value(self, step: int):
@@ -652,13 +616,14 @@ class BaseBrushSizeControl(QWidget):
 
     def setValue(self, value: int):
         self.slider.setValue(value)
+        self.lbl_value.setText(f"{value} px")
 
     def value(self) -> int:
         return self.slider.value()
 
     def setRange(self, min_radius: int, max_radius: int):
         self.slider.setRange(min_radius, max_radius)
-        
+
 class BaseEditorDialog(QDialog):
     """Base dialog with common infrastructure for editors."""
 
@@ -687,7 +652,7 @@ class BaseEditorDialog(QDialog):
     def _create_toolbar(self):
         """Create left toolbar - to be implemented by subclasses."""
         self.toolbar_widget = QWidget()
-        self.toolbar_widget.setMaximumWidth(250)
+        self.toolbar_widget.setMaximumWidth(300)
         self.toolbar_layout = QVBoxLayout(self.toolbar_widget)
         self.main_layout.addWidget(self.toolbar_widget)
 
@@ -700,34 +665,11 @@ class BaseEditorDialog(QDialog):
         """Connect signals - to be implemented by subclasses."""
         pass
 
-    def _create_opacity_panel(self, opacity_configs: List[Tuple[str, int]]) -> QWidget:
-        """Create a panel with multiple opacity sliders.
-        
-        Args:
-            opacity_configs: List of (label, initial_value) tuples
-        """
-        panel = QWidget()
-        layout = QVBoxLayout(panel)
-        
-        self.opacity_sliders = {}
-        for label, initial_value in opacity_configs:
-            slider = BaseOpacitySlider(label, initial_value)
-            self.opacity_sliders[label] = slider
-            layout.addWidget(slider)
-        
-        return panel
-
-    def _adjust_slider(self, slider: QSlider, step: int):
-        """Helper to adjust slider value by step."""
-        current = slider.value()
-        new_value = max(slider.minimum(), min(slider.maximum(), current + step))
-        slider.setValue(new_value)
-
     def _create_info_panel(self) -> QFrame:
         """Create info display panel."""
         info_frame = QFrame()
-        info_frame.setFrameStyle(QFrame.Box)
-        info_frame.setMaximumHeight(60)
+        info_frame.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
+        info_frame.setMaximumHeight(40)
         info_layout = QHBoxLayout(info_frame)
         
         self.lbl_image_info = QLabel("Image: 0×0")
@@ -789,7 +731,6 @@ class BaseEditorDialog(QDialog):
         lay.addWidget(QLabel("Drag crosshair – X = brightness, Y = contrast"))
         lay.addWidget(pad, 0, Qt.AlignCenter)
         
-        # Reference labels
         ref_layout = QHBoxLayout()
         ref_layout.addWidget(QLabel("Dark"))
         ref_layout.addStretch()
@@ -811,31 +752,7 @@ class BaseEditorDialog(QDialog):
 
         dlg.exec()
 
-    def _save_sc_dicom(self, img: np.ndarray, path: Path, desc: str):
-        """Save as Secondary Capture DICOM."""
-        rgb = img.ndim == 3
-        rows, cols = img.shape[:2]
-        meta = pydicom.Dataset()
-        meta.MediaStorageSOPClassUID = SecondaryCaptureImageStorage
-        meta.MediaStorageSOPInstanceUID = generate_uid()
-        meta.TransferSyntaxUID = ExplicitVRLittleEndian
-
-        ds = pydicom.FileDataset(str(path), {}, file_meta=meta, preamble=b"\0"*128)
-        ds.Modality = "OT"
-        ds.SeriesInstanceUID = generate_uid()
-        ds.SeriesDescription = desc
-        ds.Rows, ds.Columns = rows, cols
-        ds.SamplesPerPixel = 3 if rgb else 1
-        ds.PhotometricInterpretation = "RGB" if rgb else "MONOCHROME2"
-        ds.BitsAllocated = ds.BitsStored = 8
-        ds.HighBit = 7
-        if rgb: 
-            ds.PlanarConfiguration = 0
-        ds.PixelRepresentation = 0
-        ds.PixelData = img.astype(np.uint8).tobytes()
-        ds.save_as(path, write_like_original=False)
-
-    def _start_save_process(self, save_thread_class, *args):
+    def _start_save_process(self, save_thread_instance):
         """Start threaded save process with loading dialog."""
         if self._is_saving:
             QMessageBox.warning(self, "Save in Progress", "Please wait for current save to complete.")
@@ -844,10 +761,9 @@ class BaseEditorDialog(QDialog):
         self._is_saving = True
         
         # Disable save button
-        for widget in self.findChildren(QPushButton):
-            if widget.text() == "Save":
-                widget.setEnabled(False)
-                widget.setText("Saving...")
+        if hasattr(self, 'btn_save'):
+            self.btn_save.setEnabled(False)
+            self.btn_save.setText("Saving...")
         
         # Create loading dialog
         self._loading_dialog = LoadingDialog(
@@ -859,8 +775,8 @@ class BaseEditorDialog(QDialog):
         )
         self._loading_dialog.show()
         
-        # Create and start save thread
-        self._save_thread = save_thread_class(*args)
+        # Start save thread
+        self._save_thread = save_thread_instance
         self._save_thread.progress_updated.connect(self._on_save_progress)
         self._save_thread.save_completed.connect(self._on_save_completed)
         self._save_thread.start()
@@ -880,10 +796,9 @@ class BaseEditorDialog(QDialog):
         self._is_saving = False
         
         # Re-enable save button
-        for widget in self.findChildren(QPushButton):
-            if "Saving..." in widget.text():
-                widget.setEnabled(True)
-                widget.setText("Save")
+        if hasattr(self, 'btn_save'):
+            self.btn_save.setEnabled(True)
+            self.btn_save.setText("Save")
         
         # Show result
         if success:
@@ -907,14 +822,20 @@ class BaseSaveThread(QThread):
         super().__init__()
     
     def run(self):
-        """Save process - to be implemented by subclasses."""
+        """Save process - calls the implementation in the subclass."""
+        success_msg = "Save completed successfully!"
         try:
-            self._perform_save()
-            self.save_completed.emit(True, "Save completed successfully!")
+            # _perform_save can return a more specific success message
+            result_msg = self._perform_save()
+            if isinstance(result_msg, str):
+                success_msg = result_msg
+            self.save_completed.emit(True, success_msg)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             error_msg = f"Save failed: {str(e)}"
             self.save_completed.emit(False, error_msg)
     
-    def _perform_save(self):
+    def _perform_save(self) -> Optional[str]:
         """Actual save logic - to be implemented by subclasses."""
         raise NotImplementedError("Subclasses must implement _perform_save")

@@ -39,23 +39,28 @@ class HotspotCanvas(BaseCanvas):
     """Canvas with hotspot-specific functionality including segmentation validation."""
 
     def __init__(self, orig: np.ndarray, mask: np.ndarray, parent=None):
-        # ✅ FIX: Call parent constructor with correct arguments
-        # BaseCanvas expects: (orig, mask, parent=None)
-        super().__init__(orig, mask, parent)
-        
-        # Set the hotspot-specific palette after initialization
-        self._palette = _HOTSPOT_PALLETTE
-        
-        # --- HotspotCanvas-specific attributes ---
-        self._bg_alpha = 0.0  # Background opacity
-
-        # Segmentation layer for validation
+        # Initialize required attributes before parent call
+        self._bg_alpha = 0.0
         self._segmentation_arr = None
         self._item_segmentation = None
-
-        # The BaseCanvas creates the self._item_mask, now we just need to
-        # draw the initial image on it using our specific colorizer.
-        self._refresh_mask()
+        
+        # Call parent constructor first
+        super().__init__(orig, mask, parent)
+        
+        # Initialize layers AFTER parent constructor
+        self._layers = {
+            0: np.zeros_like(mask, dtype=np.uint8),  # Background
+            1: (mask == 1).astype(np.uint8),         # Abnormal
+            2: (mask == 2).astype(np.uint8)          # Normal
+        }
+        
+        # Set the hotspot-specific palette
+        self._palette = _HOTSPOT_PALLETTE
+        
+        # Create mask display
+        self._mask_img = self._mask_to_qimage(show_all=True, label=1)
+        self._item_mask = QGraphicsPixmapItem(QPixmap.fromImage(self._mask_img))
+        self._scene.addItem(self._item_mask)
 
     def _init_history(self):
         """Initialize history for hotspot layers."""
@@ -78,16 +83,24 @@ class HotspotCanvas(BaseCanvas):
                 self._save_layer_state(label_id)
 
     def _save_layer_state(self, label_id: int):
-        """Save state for specific layer."""
-        # ✅ FIX: Add safety checks
+        """Save state for specific label - adapted for hotspot canvas."""
+        # ✅ FIX: Ensure _layer_history exists
         if not hasattr(self, '_layer_history'):
-            self._init_history()
-            
-        if label_id not in self._layers:
-            return
-            
+            self._layer_history = {}
+        
+        # ✅ FIX: Ensure the label_id exists in _layer_history
+        if label_id not in self._layer_history:
+            self._layer_history[label_id] = {'undo': [], 'redo': []}
+        
         history = self._layer_history[label_id]
-        state = self._layers[label_id].copy()
+        
+        # Check if this canvas uses layers
+        if hasattr(self, '_layers') and label_id in self._layers:
+            # Use layer-based saving
+            state = self._layers[label_id].copy()
+        else:
+            # Fallback to mask-based saving
+            state = self._mask_arr.copy()
         
         if len(history['undo']) >= self._max_history:
             history['undo'].pop(0)
@@ -100,6 +113,15 @@ class HotspotCanvas(BaseCanvas):
         # ✅ FIX: Check if _cur_label is valid
         if hasattr(self, '_cur_label') and self._cur_label is not None:
             self._save_layer_state(self._cur_label)
+
+    def set_brush_cursor_visible(self, visible: bool):
+        """Set brush cursor visibility."""
+        self._brush_cursor_visible = getattr(self, '_brush_cursor_visible', True)
+        if visible != self._brush_cursor_visible:
+            self._brush_cursor_visible = visible
+            # Update cursor if it exists
+            if hasattr(self, '_update_cursor'):
+                self._update_cursor()
 
     def set_segmentation_layer(self, segmentation_path: Path) -> bool:
         """Load and set segmentation layer for validation."""
@@ -400,27 +422,29 @@ class HotspotSaveThread(BaseSaveThread):
         self._initialize_save_paths()
 
     def _initialize_save_paths(self):
-        """Initialize the save paths with date-based directory structure."""
+        """Initialize the save paths with proper session handling."""
         from datetime import datetime
         
-        # Get current date in YYYY-MM-DD format
-        current_date = datetime.now().strftime("%Y%m%d")  # YYYYMMDD format to match your structure
+        # Get current edit date in YYYYMMDD format
+        edit_date = datetime.now().strftime("%Y%m%d")
         
         # Determine session code to use
         session_code = self._get_session_code()
         if session_code is None:  # User cancelled session selection
             return
         
-        # ✅ NEW: Special handling for ALL session
+        # Check if this is the special ALL session case
         if self.current_session == "ALL":
-            # For ALL session: ALL/PatientID/YYYYMMDD/DoctorCode/YYYYMMDD/filename_timestamp.png
-            patient_dir = self.session_path / "ALL" / self.patient_id / current_date
-            doctor_date_dir = patient_dir / session_code / current_date
-            save_dir = doctor_date_dir
+            # Special ALL workspace structure: ALL/PatientID/StudyDate/DoctorCode/EditDate/
+            patient_dir = self.session_path / "ALL" / self.patient_id / self.study_date
+            doctor_dir = patient_dir / session_code
+            save_dir = doctor_dir / edit_date
+            print(f"[SAVE] ALL session - saving to: ALL/{self.patient_id}/{self.study_date}/{session_code}/{edit_date}/")
         else:
-            # For regular sessions: SessionCode/PatientID/YYYYMMDD/filename_timestamp.png
-            patient_dir = self.session_path / session_code / self.patient_id
-            save_dir = patient_dir / current_date
+            # Regular session structure: SessionCode/PatientID/StudyDate/EditDate/
+            patient_dir = self.session_path / self.current_session / self.patient_id / self.study_date
+            save_dir = patient_dir / edit_date
+            print(f"[SAVE] Regular session - saving to: {self.current_session}/{self.patient_id}/{self.study_date}/{edit_date}/")
         
         # Create directories if they don't exist
         save_dir.mkdir(parents=True, exist_ok=True)
@@ -433,7 +457,6 @@ class HotspotSaveThread(BaseSaveThread):
         self.classification_mask_edited = save_dir / f"{base_filename}.png"
         self.xml_edited = save_dir / f"{base_filename}.xml"
         
-        print(f"[SAVE] Saving to: {save_dir}")
         print(f"[SAVE] Files: {base_filename}.png, {base_filename}.xml")
 
     def _get_session_code(self) -> Optional[str]:

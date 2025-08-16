@@ -77,6 +77,15 @@ EDITABLE_FILES = [
     "post_hotspot_classification.png"
 ]
 
+def get_classification_files(patient_folder: Path, filename_stem: str, view: str) -> Dict[str, Path]:
+    """Get classification file paths for hotspot detection."""
+    view_short = view.lower()[:3]  # "anterior" -> "ant", "posterior" -> "pos"
+    
+    return {
+        'png': patient_folder / f"{filename_stem}_{view_short}_hotspot_classification.png",
+        'xml': patient_folder / f"{filename_stem}_{view_short}_hotspot_classification.xml"
+    }
+
 def ensure_directories():
     """
     Ensure all necessary directories exist

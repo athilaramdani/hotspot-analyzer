@@ -7,6 +7,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict
 import numpy as np
+import json
 from PIL import Image
 
 from PySide6.QtCore import Qt
@@ -204,16 +205,9 @@ class HotspotEditorDialog(BaseEditorDialog):
         self.toolbar_layout.addWidget(self.zoom_slider)
         
         # ✅ SIMPLIFIED: Hotspot Layer Opacity - Using same base component
-        self.hotspot_opacity = BaseOpacitySlider("Hotspot Layer", 30)
-        self.hotspot_opacity.slider.setRange(0, 100)
-        self.hotspot_opacity.setValue(30)
-        self.toolbar_layout.addWidget(self.hotspot_opacity)
-        
-        # ✅ SIMPLIFIED: Segmentation Opacity - Using same base component  
-        self.segmentation_opacity = BaseOpacitySlider("Segmentation", 10)
-        self.segmentation_opacity.slider.setRange(0, 100)
-        self.segmentation_opacity.setValue(10)
-        self.toolbar_layout.addWidget(self.segmentation_opacity)
+        # Use the same opacity panel as segmentation editor
+        self.opacity_panel = HotspotOpacityPanel()
+        self.toolbar_layout.addWidget(self.opacity_panel)
         
         # Contrast button
         btn_contrast = QPushButton("Contrast…")
@@ -414,19 +408,13 @@ class HotspotEditorDialog(BaseEditorDialog):
         self.original_canvas.set_gray_opacity(1.0)
 
         # ✅ SIMPLIFIED: Connect opacity sliders using same pattern as zoom
-        def update_hotspot_opacity(value):
-            self.hotspot_opacity.lbl_value.setText(f"{value}%")
-            self.canvas.set_mask_opacity(value / 100.0)
-
-        def update_segmentation_opacity(value):
-            self.segmentation_opacity.lbl_value.setText(f"{value}%")
-            if hasattr(self.canvas, 'set_segmentation_opacity'):
-                self.canvas.set_segmentation_opacity(value / 100.0)
-            if hasattr(self.original_canvas, 'set_segmentation_opacity'):
-                self.original_canvas.set_segmentation_opacity(value / 100.0)
-
-        self.hotspot_opacity.valueChanged.connect(update_hotspot_opacity)
-        self.segmentation_opacity.valueChanged.connect(update_segmentation_opacity)
+        # Connect opacity panel to both canvases
+        self.opacity_panel.connect_to_canvas(self.canvas)
+        # Also connect to original canvas for segmentation opacity
+        self.opacity_panel.segmentation_opacity.valueChanged.connect(
+            lambda v: self.original_canvas.set_segmentation_opacity(v / 100.0) 
+            if hasattr(self.original_canvas, 'set_segmentation_opacity') else None
+        )
         
         # Contrast and invert
         self.btn_contrast.clicked.connect(self._open_contrast_popup)
@@ -468,6 +456,98 @@ class HotspotEditorDialog(BaseEditorDialog):
         self.original_canvas.wheelEvent = sync_original_wheel
         self.canvas.wheelEvent = sync_editor_wheel
 
+    def _show_session_selector_dialog(self):
+        """Show session selector dialog reading from doctor_tags.json."""
+        import json
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem
+        from PySide6.QtCore import Qt
+        
+        try:
+            # Load doctor tags from config file
+            config_path = Path("C:/hotspot/hotspot-analyzer/config/doctor_tags.json")
+            if not config_path.exists():
+                print(f"Config file not found: {config_path}")
+                return "NSY"  # Fallback to default
+            
+            with open(config_path, 'r') as f:
+                config_data = json.load(f)
+            
+            # Filter out "ALL" and get available tags
+            available_tags = [tag for tag in config_data.get("doctor_tags", []) if tag.get("code") != "ALL"]
+            
+            if not available_tags:
+                print("No available doctor tags found")
+                return "NSY"  # Fallback to default
+            
+            # Create dialog
+            dialog = QDialog(self)
+            dialog.setWindowTitle("Select Session Code")
+            dialog.setModal(True)
+            dialog.resize(400, 300)
+            
+            layout = QVBoxLayout(dialog)
+            
+            layout.addWidget(QLabel("Select doctor code for saving hotspot classification:"))
+            
+            # Create list widget
+            list_widget = QListWidget()
+            for tag in available_tags:
+                item = QListWidgetItem()
+                
+                # Create widget for each item
+                item_widget = QWidget()
+                item_layout = QHBoxLayout(item_widget)
+                
+                # Color indicator
+                color_label = QLabel()
+                color_label.setFixedSize(20, 20)
+                color_label.setStyleSheet(f"background-color: {tag.get('color', '#000000')}; border: 1px solid #ccc;")
+                
+                # Code and name
+                text_label = QLabel(f"{tag.get('code', 'N/A')} - {tag.get('name', 'Unknown')}")
+                
+                item_layout.addWidget(color_label)
+                item_layout.addWidget(text_label)
+                item_layout.addStretch()
+                
+                item.setSizeHint(item_widget.sizeHint())
+                list_widget.addItem(item)
+                list_widget.setItemWidget(item, item_widget)
+                
+                # Store the code in the item data
+                item.setData(Qt.UserRole, tag.get('code'))
+            
+            # Select first item by default
+            if list_widget.count() > 0:
+                list_widget.setCurrentRow(0)
+            
+            layout.addWidget(list_widget)
+            
+            # Buttons
+            button_layout = QHBoxLayout()
+            ok_button = QPushButton("OK")
+            cancel_button = QPushButton("Cancel")
+            
+            ok_button.clicked.connect(dialog.accept)
+            cancel_button.clicked.connect(dialog.reject)
+            
+            button_layout.addStretch()
+            button_layout.addWidget(ok_button)
+            button_layout.addWidget(cancel_button)
+            layout.addLayout(button_layout)
+            
+            # Show dialog
+            if dialog.exec() == QDialog.Accepted:
+                current_item = list_widget.currentItem()
+                if current_item:
+                    return current_item.data(Qt.UserRole)
+            
+            return None  # User cancelled
+            
+        except Exception as e:
+            print(f"Error showing session selection dialog: {e}")
+            return "NSY"  # Fallback to default
+        
     def _change_label(self, idx: int):
         """Handle palette selection."""
         self.btn_brush.setChecked(True)
@@ -573,23 +653,29 @@ class HotspotEditorDialog(BaseEditorDialog):
 
     def _save_all(self):
         """Save hotspot classification data with session selection."""
-        # Get current session from the dialog's stored session_code
-        current_session = getattr(self, 'session_code', 'ALL')
+        # Use the same session handling as segmentation editor
+        if self.session_code == "ALL":
+            session_choice = self._show_session_selector_dialog()
+            if not session_choice:
+                return  # User cancelled
+            current_session = session_choice
+        else:
+            current_session = self.session_code
         
         # Disable save button during save operation
         self.btn_save.setEnabled(False)
         
         try:
-            # Create and start save thread with corrected method call
+            # Create and start save thread with current session
             self.save_thread = HotspotSaveThread(
                 canvas=self.canvas,
-                session_path=self._get_session_base_path(),  # ✅ FIXED: Added underscore prefix
+                session_path=self._get_session_base_path(),
                 patient_id=self.patient_id,
                 view_short=self.view_short,
                 filename_stem=self.filename_stem,
                 dicom_path=self.dicom_path,
                 study_date=self.study_date,
-                current_session=current_session
+                current_session=self.session_code  # Pass the original session_code to the thread
             )
             
             # Connect signals - only connect to signals that exist

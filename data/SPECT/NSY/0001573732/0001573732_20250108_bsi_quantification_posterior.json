@@ -6,6 +6,7 @@
     "quantification_method": "BSI_v1.2_color_based_separate_views",
     "algorithm_version": "1.2",
     "view": "posterior",
+    "processing_mode": "dual_view",
     "input_files": {
       "segmentation": "0001573732_20250108_posterior_colored.png",
       "hotspot": "0001573732_20250108_posterior_classification_mask.png"
@@ -138,7 +139,7 @@
     "total_malignant_pixels": 5954,
     "total_benign_pixels": 0,
     "total_pixels": 34320,
-    "malignant_percentage": 2.6826006899589716,
-    "benign_percentage": 0.0
+    "combined_bsi_available": true,
+    "combined_bsi": 2.526141461048579
   }
 }

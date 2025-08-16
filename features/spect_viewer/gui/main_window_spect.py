@@ -345,23 +345,58 @@ class MainWindowSpect(QMainWindow):
             """
             
             self.scan_info_label.setText(info_text)
+            
     def _open_segmentation_editor(self):
         """Buka editor segmentasi untuk scan saat ini."""
         if not self.timeline_widget._scans_cache or self.timeline_widget.active_scan_index < 0:
             return
         
-        # ✅ FIX: Ask the user which view to edit
+        # Ask the user which view to edit
         views = ["Anterior", "Posterior"]
         selected_view, ok = QInputDialog.getItem(self, "Select View", 
-                                                "Which view would you like to edit?", views, 0, False)
+                                                 "Which view would you like to edit?", views, 0, False)
 
         if ok and selected_view:
             scan = self.timeline_widget._scans_cache[self.timeline_widget.active_scan_index]
-            
-            dlg = SegmentationEditorDialog(scan, selected_view, parent=self)
-            if dlg.exec():
-                # self.editor_completed is not a standard signal, assuming you meant to connect to a refresh
-                self._on_editor_completed()
+            view_key = selected_view.lower()
+
+            # <<< START of ADDED ROBUST LOGIC
+            # ===================================================================
+            # If the frame data is missing from the dictionary, load it from the PNG
+            if view_key not in scan['frames']:
+                print(f"⚠️ Frame data for '{view_key}' is missing. Attempting to load from original PNG...")
+                try:
+                    # Use the timeline's own loading function to get the correct image
+                    image_pil = self.timeline_widget._load_original_image(
+                        dicom_path=Path(scan['path']),
+                        filename_with_date=None, 
+                        view_name=selected_view,
+                        frame_map={} # Pass empty map to force PNG loading
+                    )
+                    
+                    if image_pil:
+                        # If successful, add the loaded data back into the scan object
+                        scan['frames'][view_key] = np.array(image_pil)
+                        print(f"✅ Successfully loaded '{view_key}' from PNG into scan object.")
+                    else:
+                        raise FileNotFoundError("Original PNG could not be loaded.")
+                        
+                except Exception as e:
+                    QMessageBox.critical(self, "Image Load Failed", 
+                                         f"Could not load image data for '{selected_view}' from any source.\n\nError: {e}")
+                    return
+            # ===================================================================
+            # <<< END of ADDED ROBUST LOGIC
+
+            try:
+                dlg = SegmentationEditorDialog(scan, selected_view, parent=self)
+                if dlg.exec():
+                    self._on_editor_completed()
+            except Exception as e:
+                print(f"[ERROR] Failed to create SegmentationEditorDialog: {e}")
+                import traceback
+                traceback.print_exc()
+                QMessageBox.critical(self, "Editor Error", f"Could not open the segmentation editor.\n\nError: {e}")
 
     def _open_hotspot_editor(self):
         """Buka editor hotspot untuk scan saat ini."""

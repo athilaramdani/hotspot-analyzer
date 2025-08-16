@@ -1,17 +1,19 @@
-# features/spect_viewer/gui/segmentation_editor_dialog.py - Refactored with modular components
+# features/spect_viewer/gui/segmentation_editor_dialog.py - Simplified saving like hotspot editor
 """
 Segmentation editor dialog using modular components.
-Significantly reduced code through inheritance and composition.
+Fixed mask loading logic and simplified saving to match hotspot editor pattern.
 """
 from __future__ import annotations
 from pathlib import Path
 from typing import Dict
 import numpy as np
 from PIL import Image
+import datetime
+import json
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget
+    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFrame
 )
 from PySide6.QtGui import QGuiApplication
 
@@ -32,59 +34,80 @@ from .editor_components import (
     SegmentationOpacityPanel,
     SegmentationPalette,
     SegmentationToolPanel,
-    SegmentationSaveThread,
-    BaseOpacitySlider
+    SegmentationSaveThread
 )
+
+# Import colorizer for mask processing
+from features.spect_viewer.logic.colorizer import label_mask_to_rgb, _PALETTE
 
 
 class SegmentationEditorDialog(BaseEditorDialog):
     """Segmentation editor dialog using modular components."""
     
     def __init__(self, scan: Dict, view: str, parent=None):
-        # Initialize data first
-        self._setup_data_paths(scan, view)
-        self._load_images_and_masks(scan, view)
+        self.scan_data = scan
+        self.view = view
         
-        # Initialize base dialog
+        # Setup paths and load data before initializing the UI
+        self._setup_data_paths()
+        self._load_images_and_masks()
+        
         super().__init__(f"Manual Edit – {view}", parent)
 
-    def _setup_data_paths(self, scan: Dict, view: str):
-        """Setup file paths for segmentation editing."""
-        dicom_path = scan["path"]
-        filename_stem = dicom_path.stem
-        
-        # Extract patient and session info from path
-        self.patient_id, self.session_code = extract_patient_info_from_path(dicom_path)
-        print(f"[DEBUG] Extracted - Patient ID: {self.patient_id}, Session: {self.session_code}")
-        
-        # Extract study date for proper naming
+    def _setup_data_paths(self):
+        """Set up all necessary file paths for segmentation data."""
+        self.dicom_path = self.scan_data["path"]
+        patient_folder = self.dicom_path.parent
+
+        # Extract patient info
+        self.patient_id, self.session_code = extract_patient_info_from_path(self.dicom_path)
         try:
-            self.study_date = extract_study_date_from_dicom(dicom_path)
-            print(f"[DEBUG] Extracted study date: {self.study_date}")
-        except Exception as e:
-            print(f"[WARN] Could not extract study date: {e}")
+            self.study_date = extract_study_date_from_dicom(self.dicom_path)
+        except Exception:
             from datetime import datetime
             self.study_date = datetime.now().strftime("%Y%m%d")
-        
-        # Validate session info
+
         self._validate_session_info()
-        
-        # Use function for edited files support with study date
+
+        # ✅ CORRECTED: Use proper filename stem with study date
         filename_stem_with_date = generate_filename_stem(self.patient_id, self.study_date)
-        self.seg_files = get_planar_segmentation_files(dicom_path.parent, filename_stem_with_date, view)
+        self.seg_files = get_planar_segmentation_files(patient_folder, filename_stem_with_date, self.view)
         
-        # Store paths - prioritize edited versions if they exist
-        self.png_mask = self.seg_files['png_mask_edited'] if self.seg_files['png_mask_edited'].exists() else self.seg_files['png_mask']
-        self.png_color = self.seg_files['png_colored_edited'] if self.seg_files['png_colored_edited'].exists() else self.seg_files['png_colored']
+        # ✅ FIX: Correct the paths based on actual view
+        # The get_planar_segmentation_files() function seems to be returning wrong paths
+        # Let's fix them based on the actual view
+        view_short = self.view.lower()[:3]  # "anterior" -> "ant", "posterior" -> "pos"
         
-        # Store for saving
-        self.dicom_path = Path(dicom_path)
-        self.filename_stem_with_date = filename_stem_with_date
-        self.view_normalized = view.lower()
+        # Create corrected paths
+        corrected_seg_files = {}
+        for key, path in self.seg_files.items():
+            if path:
+                # Replace the view part in the filename
+                filename = path.name
+                if 'post_' in filename and view_short == 'ant':
+                    # Replace post_ with ant_
+                    new_filename = filename.replace('post_', 'ant_')
+                    corrected_seg_files[key] = path.parent / new_filename
+                elif 'ant_' in filename and view_short == 'pos':
+                    # Replace ant_ with post_
+                    new_filename = filename.replace('ant_', 'post_')
+                    corrected_seg_files[key] = path.parent / new_filename
+                else:
+                    corrected_seg_files[key] = path
+            else:
+                corrected_seg_files[key] = path
+        
+        self.seg_files = corrected_seg_files
+        
+        # Debug: Print available keys and actual paths
+        print(f"DEBUG: Available seg_files keys: {list(self.seg_files.keys())}")
+        for key, path in self.seg_files.items():
+            exists = path.exists() if path else False
+            print(f"  {key}: {path} (exists: {exists})")
 
     def _validate_session_info(self):
         """Validate session and patient info."""
-        if not self.session_code or self.session_code == "UNKNOWN":
+        if not getattr(self, 'session_code', None) or self.session_code == "UNKNOWN":
             from PySide6.QtWidgets import QMessageBox
             QMessageBox.warning(
                 self, 
@@ -93,7 +116,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
                 "Files will be saved locally but may not sync to cloud properly."
             )
         
-        if not self.patient_id or self.patient_id == "UNKNOWN":
+        if not getattr(self, 'patient_id', None) or self.patient_id == "UNKNOWN":
             from PySide6.QtWidgets import QMessageBox
             QMessageBox.warning(
                 self,
@@ -102,13 +125,18 @@ class SegmentationEditorDialog(BaseEditorDialog):
                 "Files will be saved locally but may not sync to cloud properly."
             )
 
-    def _load_images_and_masks(self, scan: Dict, view: str):
-        """Load original image and segmentation mask."""
-        # Load original image (prefer PNG over DICOM)
-        orig_png_path = self.dicom_path.parent / f"{self.filename_stem_with_date}_{self.view_normalized}_original.png"
+    def _load_images_and_masks(self):
+        """Load original image and segmentation mask with corrected logic."""
+        # ✅ CORRECTED: Load original PNG with proper naming
+        filename_stem_with_date = generate_filename_stem(self.patient_id, self.study_date)
+        patient_folder = self.dicom_path.parent
+        view_normalized = self.view.lower()
+        
+        # Look for original PNG file
+        orig_png_path = patient_folder / f"{filename_stem_with_date}_{view_normalized}_original.png"
         
         print(f"Looking for original PNG: {orig_png_path}")
-
+        
         if orig_png_path.exists():
             try:
                 self.orig_arr = np.array(Image.open(orig_png_path).convert('L'))
@@ -116,71 +144,144 @@ class SegmentationEditorDialog(BaseEditorDialog):
                 self.has_orig_png = True
             except Exception as e:
                 print(f"✗ Failed to load PNG {orig_png_path}: {e}")
-                self.orig_arr = scan["frames"][view]
+                self._load_from_scan_frames()
                 self.has_orig_png = False
         else:
             print(f"✗ Original PNG not found: {orig_png_path}")
-            if view in scan["frames"]:
-                self.orig_arr = scan["frames"][view]
-                self.has_orig_png = False
-            else:
-                available_views = list(scan["frames"].keys())
-                raise KeyError(f"View '{view}' not found in frames: {available_views}. PNG also not available.")
-        
-        # Load mask from PNG if available, or create empty mask
-        if self.png_color.exists():
-            self.mask_arr = self._load_mask_from_png()
-            # Ensure mask has same dimensions as original image
-            if self.mask_arr.shape != self.orig_arr.shape:
-                print(f"⚠️ WARNING: Mask shape {self.mask_arr.shape} != original shape {self.orig_arr.shape}")
-                print("🔄 Resizing mask to match original image...")
-                from PIL import Image as PILImage
-                mask_pil = PILImage.fromarray(self.mask_arr)
-                mask_resized = mask_pil.resize((self.orig_arr.shape[1], self.orig_arr.shape[0]), PILImage.NEAREST)
-                self.mask_arr = np.array(mask_resized)
-                print(f"✅ Mask resized to: {self.mask_arr.shape}")
-        else:
-            self.mask_arr = np.zeros_like(self.orig_arr, np.uint8)
-            print(f"✅ Created empty mask with shape: {self.mask_arr.shape}")
+            self._load_from_scan_frames()
+            self.has_orig_png = False
 
-    def _load_mask_from_png(self) -> np.ndarray:
-        """Load mask from PNG colored with prioritized edited version."""
-        # Try edited version first
-        if self.seg_files['png_colored_edited'].exists():
-            png_path = self.seg_files['png_colored_edited']
-            print(f"✓ Loading edited mask from: {png_path}")
-        elif self.seg_files['png_colored'].exists():
-            png_path = self.seg_files['png_colored']
-            print(f"✓ Loading original mask from: {png_path}")
-        else:
-            print(f"✗ No mask files found, creating empty mask")
-            return np.zeros((1024, 256), np.uint8)
+        # ✅ CORRECTED: Load mask with proper priority and path handling
+        self.mask_arr = self._load_mask_from_available_sources()
+
+        # Ensure mask has same dimensions as original image
+        if self.mask_arr.shape != self.orig_arr.shape:
+            print(f"⚠️ WARNING: Mask shape {self.mask_arr.shape} != original shape {self.orig_arr.shape}")
+            print("🔄 Resizing mask to match original image...")
+            mask_pil = Image.fromarray(self.mask_arr)
+            mask_resized = mask_pil.resize((self.orig_arr.shape[1], self.orig_arr.shape[0]), Image.NEAREST)
+            self.mask_arr = np.array(mask_resized)
+            print(f"✅ Mask resized to: {self.mask_arr.shape}")
+
+        print(f"✅ Final mask loaded with shape: {self.mask_arr.shape}, unique values: {np.unique(self.mask_arr)}")
+
+    def _load_from_scan_frames(self):
+        """Load from scan frames with case-insensitive matching."""
+        def find_matching_view(target_view: str, available_views: list) -> str:
+            """Find matching view name, handling case differences."""
+            target_lower = target_view.lower()
+            for available_view in available_views:
+                if available_view.lower() == target_lower:
+                    return available_view
+            return None
         
+        # Try case-insensitive matching
+        matching_view = find_matching_view(self.view, list(self.scan_data["frames"].keys()))
+        if matching_view:
+            self.orig_arr = self.scan_data["frames"][matching_view]
+            print(f"✓ Using scan frame '{matching_view}' for view '{self.view}'")
+        else:
+            available_views = list(self.scan_data["frames"].keys())
+            raise KeyError(f"View '{self.view}' not found in frames: {available_views}")
+
+    def _load_mask_from_available_sources(self) -> np.ndarray:
+        """✅ FIXED: Load mask from available files with safe key access."""
+        print(f"DEBUG: Looking for mask files for view '{self.view}'")
+        
+        # Define possible key mappings based on your actual file structure
+        possible_keys = [
+            'segmentation_png',  # Your actual key name
+            'mask_png',          # Your actual key name  
+            'png_colored_edited',
+            'colored_edited', 
+            'png_colored',
+            'colored',
+            'png_segm',
+            'segm'
+        ]
+        
+        # Try to find existing colored/segmentation files
+        for key in possible_keys:
+            if key in self.seg_files:
+                path = self.seg_files[key]
+                print(f"  Checking key '{key}': {path}")
+                if path and path.exists():
+                    print(f"✅ Loading mask from: {path}")
+                    
+                    # Handle different file types
+                    if key in ['segmentation_png', 'mask_png']:
+                        # These might be grayscale masks, try both colored and grayscale loading
+                        mask = self._load_mask_from_file(path)
+                    else:
+                        # These are colored masks
+                        mask = self._load_mask_from_colored_png(path)
+                    
+                    if mask is not None:
+                        # Check if the loaded mask is empty
+                        if np.all(mask == 0):
+                            print(f"⚠️ WARNING: Loaded mask file '{path.name}' is all black (empty).")
+                        else:
+                            print(f"✅ Loaded mask with {len(np.unique(mask))} unique values: {np.unique(mask)}")
+                        return mask
+                else:
+                    print(f"  Key '{key}' path does not exist: {path}")
+        
+        print(f"❌ No valid segmentation file found. Creating empty mask.")
+        return np.zeros_like(self.orig_arr, dtype=np.uint8)
+
+    def _load_mask_from_file(self, png_path: Path) -> np.ndarray:
+        """✅ NEW: Load mask from file, handling both colored and grayscale formats."""
         try:
-            from features.spect_viewer.logic.colorizer import _PALETTE
-            rgb = np.array(Image.open(png_path).convert("RGB"))
-            mask = np.zeros(rgb.shape[:2], np.uint8)
-            for lbl, col in enumerate(_PALETTE):
-                mask[(rgb == col).all(-1)] = lbl
-            print(f"✓ Loaded mask shape: {mask.shape}")
-            return mask
+            img = Image.open(png_path)
+            
+            # Check if image is colored (RGB/RGBA) or grayscale
+            if img.mode in ['RGB', 'RGBA']:
+                print(f"  Loading as colored mask from: {png_path.name}")
+                return self._load_mask_from_colored_png(png_path)
+            else:
+                # Load as grayscale mask
+                print(f"  Loading as grayscale mask from: {png_path.name}")
+                mask = np.array(img.convert('L'))
+                print(f"✓ Loaded grayscale mask with unique values: {np.unique(mask)}")
+                return mask
+                
         except Exception as e:
             print(f"✗ Failed to load mask from {png_path}: {e}")
-            return np.zeros((1024, 256), np.uint8)
+            return np.zeros((self.orig_arr.shape[0], self.orig_arr.shape[1]), np.uint8)
+
+    def _load_mask_from_colored_png(self, png_path: Path) -> np.ndarray:
+        """✅ CORRECTED: Load mask from colored PNG file using proper palette."""
+        try:
+            rgb = np.array(Image.open(png_path).convert("RGB"))
+            mask = np.zeros(rgb.shape[:2], np.uint8)
+            
+            # Use the correct palette from colorizer
+            for lbl, col in enumerate(_PALETTE):
+                matches = (rgb == col).all(-1)
+                mask[matches] = lbl
+                if matches.any():
+                    print(f"  Found {matches.sum()} pixels for label {lbl} (color {col})")
+            
+            print(f"✓ Loaded colored mask with {len(np.unique(mask))} unique labels: {np.unique(mask)}")
+            return mask
+            
+        except Exception as e:
+            print(f"✗ Failed to load colored mask from {png_path}: {e}")
+            return np.zeros((self.orig_arr.shape[0], self.orig_arr.shape[1]), np.uint8)
 
     def _create_toolbar(self):
-        """Create segmentation-specific toolbar."""
+        """✅ MODULAR: Create segmentation-specific toolbar using modular components."""
         super()._create_toolbar()
         
-        # Palette
+        # Palette component
         self.palette = SegmentationPalette()
         self.toolbar_layout.addWidget(self.palette)
         
-        # Tool panel
+        # Tool panel component
         self.tool_panel = SegmentationToolPanel()
         self.toolbar_layout.addWidget(self.tool_panel)
         
-        # Opacity panel
+        # Opacity panel component
         self.opacity_panel = SegmentationOpacityPanel()
         self.toolbar_layout.addWidget(self.opacity_panel)
         
@@ -207,15 +308,29 @@ class SegmentationEditorDialog(BaseEditorDialog):
     def _create_instructions_label(self) -> QLabel:
         """Create instructions with current data info."""
         # Determine data sources
-        data_source = "Original PNG loaded" if self.has_orig_png else "DICOM frames used"
+        data_source = "Original PNG loaded" if getattr(self, 'has_orig_png', False) else "DICOM frames used"
         
-        # Check if we're loading edited or original mask
-        if self.seg_files['png_colored_edited'].exists():
-            mask_status = "Edited mask loaded"
-        elif self.seg_files['png_colored'].exists():
-            mask_status = "Original mask loaded"
+        # ✅ FIXED: Safe check for mask status with proper key handling
+        mask_status = "New mask created"  # Default
+        
+        # Check for edited versions first
+        edited_keys = ['segmentation_png', 'mask_png', 'png_colored_edited', 'colored_edited']
+        for key in edited_keys:
+            if key in self.seg_files and self.seg_files[key].exists():
+                if 'edited' in key or key in ['segmentation_png', 'mask_png']:
+                    mask_status = "Edited mask loaded"
+                    break
         else:
-            mask_status = "New mask created"
+            # Check for original versions
+            original_keys = ['png_colored', 'colored', 'png_segm', 'segm']
+            for key in original_keys:
+                if key in self.seg_files and self.seg_files[key].exists():
+                    mask_status = "Original mask loaded"
+                    break
+
+        session_code = getattr(self, 'session_code', 'Unknown')
+        patient_id = getattr(self, 'patient_id', 'Unknown')
+        study_date = getattr(self, 'study_date', 'Unknown')
 
         instructions = QLabel(
             "<b>Controls:</b><br>"
@@ -228,9 +343,9 @@ class SegmentationEditorDialog(BaseEditorDialog):
             f"<b>Data Info:</b><br>"
             f"• Image: {data_source}<br>"
             f"• Mask: {mask_status}<br>"
-            f"• Session: {self.session_code}<br>"
-            f"• Patient: {self.patient_id}<br>"
-            f"• Study Date: {self.study_date}<br>"
+            f"• Session: {session_code}<br>"
+            f"• Patient: {patient_id}<br>"
+            f"• Study Date: {study_date}<br>"
             f"• Size: {self.orig_arr.shape[1]}×{self.orig_arr.shape[0]}<br>"
         )
         instructions.setWordWrap(True)
@@ -238,34 +353,67 @@ class SegmentationEditorDialog(BaseEditorDialog):
         return instructions
 
     def _create_main_area(self):
-        """Create main canvas area."""
+        """✅ MODULAR: Create main canvas area using modular components."""
         super()._create_main_area()
         
         # Info panel
         info_frame = self._create_info_panel()
         self.main_area_layout.addWidget(info_frame)
         
-        # Main canvas
+        # Main canvas - using modular SegmentationCanvas
         self.canvas = SegmentationCanvas(self.orig_arr, self.mask_arr)
         self.canvas.set_info_callback(self._update_info_display)
         self.main_area_layout.addWidget(self.canvas)
 
+    def _create_info_panel(self) -> QFrame:
+        """Create info display panel."""
+        info_frame = QFrame()
+        info_frame.setFrameStyle(QFrame.Box)
+        info_frame.setMaximumHeight(60)
+        info_layout = QHBoxLayout(info_frame)
+        
+        self.lbl_image_info = QLabel("Image: 0×0")
+        self.lbl_zoom_info = QLabel("Zoom: 1.0x")
+        self.lbl_grid_info = QLabel("Grid: Off")
+        
+        info_layout.addWidget(QLabel("<b>Info:</b>"))
+        info_layout.addWidget(self.lbl_image_info)
+        info_layout.addWidget(QLabel("|"))
+        info_layout.addWidget(self.lbl_zoom_info)
+        info_layout.addWidget(QLabel("|"))
+        info_layout.addWidget(self.lbl_grid_info)
+        info_layout.addStretch()
+        
+        return info_frame
+
+    def _update_info_display(self, width: int, height: int, zoom: float, grid_size: int):
+        """Update the info display."""
+        self.lbl_image_info.setText(f"Image: {width}×{height}")
+        self.lbl_zoom_info.setText(f"Zoom: {zoom:.1f}x")
+        if zoom >= 2.0:
+            if grid_size == 1:
+                self.lbl_grid_info.setText("Grid: 1px")
+            else:
+                self.lbl_grid_info.setText(f"Grid: {grid_size}px")
+        else:
+            self.lbl_grid_info.setText("Grid: Off")
+
     def _connect_signals(self):
-        """Connect UI signals to functionality."""
-        # Palette
+        """✅ MODULAR: Connect UI signals using modular components."""
+        # Palette signals
         self.palette.currentRowChanged.connect(self._change_label)
         
-        # Tool panel
+        # Tool panel signals
         self.tool_panel.connect_to_canvas(self.canvas)
         self.tool_panel.connect_undo_redo(self._perform_undo, self._perform_redo)
         
-        # Opacity panel  
+        # Opacity panel signals
         self.opacity_panel.connect_to_canvas(self.canvas)
         
-        # Contrast
+        # Contrast button
         self.btn_contrast.clicked.connect(self._open_contrast_popup)
         
-        # Save/Cancel
+        # Save/Cancel buttons
         self.btn_save.clicked.connect(self._save_all)
         self.btn_cancel.clicked.connect(self.reject)
 
@@ -285,16 +433,169 @@ class SegmentationEditorDialog(BaseEditorDialog):
         current_label = self.palette.list_palette.currentRow()
         self.canvas.redo(current_label)
 
+    def _open_contrast_popup(self):
+        """Open contrast adjustment popup."""
+        # This would use a modular contrast component if available
+        # For now, placeholder implementation
+        pass
+
     def _save_all(self):
-        """Save using threaded process."""
-        save_thread = SegmentationSaveThread(
-            self.canvas,
-            {
-                'png_mask_edited': self.seg_files['png_mask_edited'],
-                'png_colored_edited': self.seg_files['png_colored_edited']
-            },
-            self.patient_id,
-            self.session_code,
-            self.study_date
-        )
-        self._start_save_process(SegmentationSaveThread, save_thread)
+        """Save segmentation data using same method as hotspot editor."""
+        # Use the same session handling as hotspot editor
+        if self.session_code == "ALL":
+            session_choice = self._show_session_selector_dialog()
+            if not session_choice:
+                return  # User cancelled
+            current_session = session_choice
+        else:
+            current_session = self.session_code
+        
+        # Disable save button during save operation
+        self.btn_save.setEnabled(False)
+        
+        try:
+            # Create and start save thread with current session
+            self.save_thread = SegmentationSaveThread(
+                canvas=self.canvas,
+                session_path=self._get_session_base_path(),
+                patient_id=self.patient_id,
+                view_short=self.view.lower()[:3],  # "anterior" -> "ant", "posterior" -> "pos"
+                filename_stem=generate_filename_stem(self.patient_id, self.study_date),
+                dicom_path=self.dicom_path,
+                study_date=self.study_date,
+                current_session=self.session_code  # Pass the original session_code to the thread
+            )
+            
+            # Connect signals - only connect to signals that exist
+            # Connect signals - only connect to signals that exist
+            if hasattr(self.save_thread, 'progress_updated'):
+                self.save_thread.progress_updated.connect(self._update_progress)
+
+            if hasattr(self.save_thread, 'save_completed'):
+                self.save_thread.save_completed.connect(self._on_save_completed)
+
+            # Start the thread
+            self.save_thread.start()
+            
+        except Exception as e:
+            # Re-enable save button if there's an error during setup
+            self.btn_save.setEnabled(True)
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.critical(self, "Save Error", f"Failed to start save operation: {str(e)}")
+
+    def _get_session_base_path(self) -> Path:
+        """Get the base session path for saving files."""
+        # Navigate to PLANAR directory from current file location
+        patient_folder = self.dicom_path.parent
+        # Go up to PLANAR level: study_date -> patient -> session -> PLANAR
+        return patient_folder.parent.parent.parent
+
+    def _show_session_selector_dialog(self):
+        """Show session selector dialog reading from doctor_tags.json."""
+        import json
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem
+        from PySide6.QtCore import Qt
+        
+        try:
+            # Load doctor tags from config file
+            config_path = Path("C:/hotspot/hotspot-analyzer/config/doctor_tags.json")
+            if not config_path.exists():
+                print(f"Config file not found: {config_path}")
+                return "NSY"  # Fallback to default
+            
+            with open(config_path, 'r') as f:
+                config_data = json.load(f)
+            
+            # Filter out "ALL" and get available tags
+            available_tags = [tag for tag in config_data.get("doctor_tags", []) if tag.get("code") != "ALL"]
+            
+            if not available_tags:
+                print("No available doctor tags found")
+                return "NSY"  # Fallback to default
+            
+            # Create dialog
+            dialog = QDialog(self)
+            dialog.setWindowTitle("Select Session Code")
+            dialog.setModal(True)
+            dialog.resize(400, 300)
+            
+            layout = QVBoxLayout(dialog)
+            
+            layout.addWidget(QLabel("Select doctor code for saving edited segmentation:"))
+            
+            # Create list widget
+            list_widget = QListWidget()
+            for tag in available_tags:
+                item = QListWidgetItem()
+                
+                # Create widget for each item
+                item_widget = QWidget()
+                item_layout = QHBoxLayout(item_widget)
+                
+                # Color indicator
+                color_label = QLabel()
+                color_label.setFixedSize(20, 20)
+                color_label.setStyleSheet(f"background-color: {tag.get('color', '#000000')}; border: 1px solid #ccc;")
+                
+                # Code and name
+                text_label = QLabel(f"{tag.get('code', 'N/A')} - {tag.get('name', 'Unknown')}")
+                
+                item_layout.addWidget(color_label)
+                item_layout.addWidget(text_label)
+                item_layout.addStretch()
+                
+                item.setSizeHint(item_widget.sizeHint())
+                list_widget.addItem(item)
+                list_widget.setItemWidget(item, item_widget)
+                
+                # Store the code in the item data
+                item.setData(Qt.UserRole, tag.get('code'))
+            
+            # Select first item by default
+            if list_widget.count() > 0:
+                list_widget.setCurrentRow(0)
+            
+            layout.addWidget(list_widget)
+            
+            # Buttons
+            button_layout = QHBoxLayout()
+            ok_button = QPushButton("OK")
+            cancel_button = QPushButton("Cancel")
+            
+            ok_button.clicked.connect(dialog.accept)
+            cancel_button.clicked.connect(dialog.reject)
+            
+            button_layout.addStretch()
+            button_layout.addWidget(ok_button)
+            button_layout.addWidget(cancel_button)
+            layout.addLayout(button_layout)
+            
+            # Show dialog
+            if dialog.exec() == QDialog.Accepted:
+                current_item = list_widget.currentItem()
+                if current_item:
+                    return current_item.data(Qt.UserRole)
+            
+            return None  # User cancelled
+            
+        except Exception as e:
+            print(f"Error showing session selection dialog: {e}")
+            return "NSY"  # Fallback to default
+
+    def _update_progress(self, value: int, message: str):
+        """Update progress - simplified like hotspot editor."""
+        print(f"Save progress: {value}% - {message}")
+
+    def _on_save_completed(self, success: bool, message: str):
+        """Handle save completion."""
+        from PySide6.QtWidgets import QMessageBox
+        
+        # Re-enable save button
+        self.btn_save.setEnabled(True)
+        
+        if success:
+            QMessageBox.information(self, "Save Complete", message)
+            # Close dialog on success
+            self.accept()
+        else:
+            QMessageBox.critical(self, "Save Error", message)
