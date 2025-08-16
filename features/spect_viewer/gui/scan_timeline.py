@@ -118,11 +118,25 @@ class ScanTimelineWidget(QWidget):
     
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
-
         # State variables
-        self.current_view = "Anterior"  # ✅ FIXED: Track current view properly
+        self.current_view = "Anterior"
         self._active_layers = []
         self._scans_cache: List[Dict] = []
+        
+        # ✅ NEW: Track image labels for smooth zoom
+        self._image_labels: List[QLabel] = []
+        self._original_pixmaps: List[QPixmap] = []  # Store original size pixmaps
+        
+        # ✅ NEW: Layer caching system
+        self._layer_image_cache = {}  # Format: "scan_path_view_layer" -> PIL_Image
+        self._cache_stats = {"hits": 0, "misses": 0}  # Performance tracking
+
+        # ✅ NEW: Smart update tracking
+        self._previous_layers = []  # Track previous active layers
+        self._previous_opacities = {}  # Track previous opacities
+        self._previous_scan_index = -1  # Track previous scan
+        self._last_update_type = "full"  # Track last update type
+
         self.active_scan_index = 0
         self._zoom_factor = 1.0
         self.card_width = 350
@@ -151,6 +165,206 @@ class ScanTimelineWidget(QWidget):
         self._build_ui()
         self._setup_keyboard_shortcuts()
 
+    def _generate_cache_key(self, scan_path: str, view: str, layer: str) -> str:
+        """✅ IMPROVED: Generate unique cache key including invert state"""
+        invert_suffix = "_inverted" if self.invert_original else "_normal"
+        return f"{scan_path}_{view}_{layer}{invert_suffix}"
+
+    def _clear_layer_cache(self):
+        """✅ NEW: Clear layer cache (memory management)"""
+        cache_size = len(self._layer_image_cache)
+        self._layer_image_cache.clear()
+        print(f"[CACHE] Cleared layer cache ({cache_size} entries)")
+        self._cache_stats = {"hits": 0, "misses": 0}
+
+    def _print_cache_stats(self):
+        """✅ NEW: Print cache performance statistics"""
+        total = self._cache_stats["hits"] + self._cache_stats["misses"]
+        if total > 0:
+            hit_rate = (self._cache_stats["hits"] / total) * 100
+            print(f"[CACHE STATS] Hits: {self._cache_stats['hits']}, Misses: {self._cache_stats['misses']}, Hit Rate: {hit_rate:.1f}%")
+
+    def _get_cached_layers(self, scan_path: str, view: str) -> Dict[str, Image.Image]:
+        """✅ NEW: Retrieve cached layers for a scan and view"""
+        cached_layers = {}
+        layers_to_check = ["Image", "Segmentation", "Hotspot", "HotspotBBox"]
+        
+        print(f"[CACHE DEBUG] Checking {len(layers_to_check)} layers in cache")
+        print(f"[CACHE DEBUG] Current cache size: {len(self._layer_image_cache)} entries")
+        
+        for layer in layers_to_check:
+            cache_key = self._generate_cache_key(scan_path, view, layer)
+            print(f"[CACHE DEBUG] Looking for key: {cache_key}")
+            
+            if cache_key in self._layer_image_cache:
+                cached_layers[layer] = self._layer_image_cache[cache_key]
+                self._cache_stats["hits"] += 1
+                print(f"[CACHE DEBUG] Found {layer} in cache")
+            else:
+                print(f"[CACHE DEBUG] {layer} not in cache")
+                self._cache_stats["misses"] += 1
+                # ✅ CHANGED: Don't return None immediately, try to get partial cache
+        
+        # ✅ IMPROVED: Return partial cache if available
+        if cached_layers:
+            print(f"[CACHE PARTIAL] Returning {len(cached_layers)} cached layers: {list(cached_layers.keys())}")
+            return cached_layers
+        else:
+            print(f"[CACHE EMPTY] No layers found in cache")
+            return None
+        
+        return cached_layers if cached_layers else None
+
+    def _cache_layer_image(self, scan_path: str, view: str, layer: str, image: Image.Image):
+        """✅ NEW: Cache a layer image"""
+        cache_key = self._generate_cache_key(scan_path, view, layer)
+        self._layer_image_cache[cache_key] = image.copy()  # Store copy to avoid reference issues
+        print(f"[CACHE] Cached {layer} for {view}")
+    
+    def _detect_changes(self, new_layers: list, new_opacities: dict, new_scan_index: int) -> dict:
+        """✅ NEW: Detect what changed since last update"""
+        changes = {
+            "type": "none",
+            "layers_added": [],
+            "layers_removed": [],
+            "opacities_changed": [],
+            "scan_changed": False,
+            "full_rebuild_needed": False
+        }
+        
+        # Check scan change
+        if new_scan_index != self._previous_scan_index:
+            changes["scan_changed"] = True
+            changes["type"] = "scan"
+            changes["full_rebuild_needed"] = True
+            print(f"[SMART UPDATE] Scan changed: {self._previous_scan_index} -> {new_scan_index}")
+            return changes
+        
+        # Check layer changes
+        old_layers_set = set(self._previous_layers)
+        new_layers_set = set(new_layers)
+        
+        changes["layers_added"] = list(new_layers_set - old_layers_set)
+        changes["layers_removed"] = list(old_layers_set - new_layers_set)
+        
+        # Check opacity changes
+        for layer in new_layers_set:
+            old_opacity = self._previous_opacities.get(layer, 1.0)
+            new_opacity = new_opacities.get(layer, 1.0)
+            if abs(old_opacity - new_opacity) > 0.01:  # Threshold for change detection
+                changes["opacities_changed"].append(layer)
+        
+        # Determine change type
+        if changes["layers_added"] or changes["layers_removed"]:
+            changes["type"] = "layers"
+            changes["full_rebuild_needed"] = True  # Layer composition change needs rebuild
+        elif changes["opacities_changed"]:
+            changes["type"] = "opacity"
+            changes["full_rebuild_needed"] = False  # Opacity can be updated smartly
+        
+        print(f"[SMART UPDATE] Change type: {changes['type']}")
+        if changes["layers_added"]:
+            print(f"[SMART UPDATE] Layers added: {changes['layers_added']}")
+        if changes["layers_removed"]:
+            print(f"[SMART UPDATE] Layers removed: {changes['layers_removed']}")
+        if changes["opacities_changed"]:
+            print(f"[SMART UPDATE] Opacities changed: {changes['opacities_changed']}")
+        
+        return changes
+
+    def _update_state_tracking(self, layers: list, opacities: dict, scan_index: int, update_type: str):
+        """✅ NEW: Update state tracking after changes"""
+        self._previous_layers = layers.copy()
+        self._previous_opacities = opacities.copy()
+        self._previous_scan_index = scan_index
+        self._last_update_type = update_type
+        print(f"[SMART UPDATE] State updated - Type: {update_type}")
+
+    def _smart_opacity_update(self, opacity_changes: list):
+        """✅ NEW: Update only opacity without rebuilding"""
+        if not self._image_labels:
+            print(f"[SMART UPDATE] No image labels for opacity update, falling back to rebuild")
+            return False
+        
+        print(f"[SMART UPDATE] Applying opacity-only update for: {opacity_changes}")
+        
+        try:
+            # Get current scan and layers
+            if not self._scans_cache or self.active_scan_index < 0:
+                return False
+                
+            active_scan = self._scans_cache[self.active_scan_index]
+            
+            # Update both Anterior and Posterior cards
+            for view in ["Anterior", "Posterior"]:
+                self.current_view = view
+                
+                # Get cached layers
+                scan_path_str = str(active_scan["path"])
+                cached_layers = self._get_cached_layers(scan_path_str, view)
+                
+                if not cached_layers:
+                    print(f"[SMART UPDATE] No cached layers for {view}, fallback to rebuild")
+                    return False
+                
+                # Apply new opacities and create composite
+                active_layer_images = {}
+                for layer_name in self._active_layers:
+                    if layer_name == "HotspotBBox":
+                        continue
+                        
+                    if layer_name in cached_layers:
+                        layer_image = cached_layers[layer_name]
+                        layer_opacity = self._layer_opacities.get(layer_name, 1.0)
+                        
+                        # Apply opacity to the layer
+                        if layer_opacity < 1.0:
+                            layer_image = apply_opacity_to_image(layer_image, layer_opacity)
+                        
+                        active_layer_images[layer_name] = layer_image
+                
+                if active_layer_images:
+                    # Create new composite
+                    uniform_opacities = {layer: 1.0 for layer in active_layer_images.keys()}
+                    composite_image = create_composite_image(
+                        layers=active_layer_images,
+                        layer_order=self._active_layers,
+                        layer_opacities=uniform_opacities
+                    )
+                    
+                    # Convert composite to displayable format
+                    if composite_image.mode == 'RGBA':
+                        background = Image.new('RGB', composite_image.size, (255, 255, 255))
+                        display_image = Image.alpha_composite(background.convert('RGBA'), composite_image)
+                        display_image = display_image.convert('RGB')
+                    else:
+                        display_image = composite_image
+                    
+                    # Find and update the corresponding image label
+                    target_label = self._anterior_image_label if view == "Anterior" else self._posterior_image_label
+                    if target_label:
+                        w = int(self.card_width * self._zoom_factor)
+                        pixmap = _pil_to_pixmap(display_image, w)
+                        target_label.setPixmap(pixmap)
+                        
+                        # Update the cached pixmap for zoom
+                        label_index = None
+                        for i, label in enumerate(self._image_labels):
+                            if label == target_label:
+                                label_index = i
+                                break
+                        
+                        if label_index is not None and label_index < len(self._original_pixmaps):
+                            self._original_pixmaps[label_index] = pixmap
+                        
+                        print(f"[SMART UPDATE] Updated {view} composite without rebuild")
+            
+            return True
+            
+        except Exception as e:
+            print(f"[SMART UPDATE ERROR] Opacity update failed: {e}")
+            return False
+    
     def _build_ui(self):
         """Build the UI which is now just the scrollable timeline area."""
         main_layout = QHBoxLayout(self)
@@ -167,12 +381,16 @@ class ScanTimelineWidget(QWidget):
     
     def set_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
         """
-        ✅ FIXED: Sets the B/C values for a specific view and rebuilds the timeline.
+        ✅ Sets the B/C values for a specific view and rebuilds the timeline.
         """
         if view_name in self._adjustments:
             print(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
             self._adjustments[view_name]["brightness"] = brightness
             self._adjustments[view_name]["contrast"] = contrast
+            
+            # ✅ NEW: Clear cache since B/C affects images
+            self._clear_layer_cache()
+            
             self._rebuild()
         else:
             print(f"[WARN] View '{view_name}' not found in adjustments dictionary. Cannot set contrast.")
@@ -301,20 +519,15 @@ class ScanTimelineWidget(QWidget):
     def set_invert_original(self, inverted: bool):
         """✅ OPTIMIZED: Set invert status with change detection"""
         print(f"[DEBUG] set_invert_original called: {inverted} (current: {self.invert_original})")
-        print(f"[DEBUG] Change detection: old={self.invert_original}, new={inverted}, changed={self.invert_original != inverted}")
         
         # Only rebuild if state actually changed
         if self.invert_original != inverted:
             old_state = self.invert_original
             self.invert_original = inverted
-            self._last_invert_state = inverted
             
-            print(f"[DEBUG] Invert state changed: {old_state} → {inverted}")
-            
-            # Clear image cache if it exists (invert affects caching)
-            if hasattr(self, '_image_cache'):
-                self._image_cache.clear()
-                print(f"[DEBUG] Cleared image cache due to invert change")
+            # ✅ UPDATED: Clear layer cache since invert affects all images
+            self._clear_layer_cache()
+            print(f"[DEBUG] Cleared layer cache due to invert change")
             
             # Force rebuild if we have scans loaded
             if self._scans_cache:
@@ -546,22 +759,46 @@ class ScanTimelineWidget(QWidget):
 
     # ------------------------------------------------------ zoom
     def zoom_in(self):  
-        """✅ FIXED: Zoom in with better increment"""
-        self._zoom_factor *= 1.15  # Smaller increment for smoother zoom
+        """✅ OPTIMIZED: Smooth zoom in using Qt scaling"""
+        self._zoom_factor *= 1.15
         print(f"[DEBUG] Timeline zoom in: {self._zoom_factor:.2f}")
-        self._rebuild()
+        self._update_zoom_smooth()
         
     def zoom_out(self): 
-        """✅ FIXED: Zoom out with better increment"""
-        self._zoom_factor *= 0.87  # Smaller decrement for smoother zoom
+        """✅ OPTIMIZED: Smooth zoom out using Qt scaling"""
+        self._zoom_factor *= 0.87
         print(f"[DEBUG] Timeline zoom out: {self._zoom_factor:.2f}")
-        self._rebuild()
+        self._update_zoom_smooth()
 
     def zoom_reset(self):
-        """✅ NEW: Reset zoom to default"""
+        """✅ OPTIMIZED: Reset zoom using Qt scaling"""
         self._zoom_factor = 1.0
         print(f"[DEBUG] Timeline zoom reset: {self._zoom_factor:.2f}")
-        self._rebuild()
+        self._update_zoom_smooth()
+
+    def _update_zoom_smooth(self):
+        """✅ NEW: Update zoom using Qt's native scaling (no rebuild)"""
+        if not self._original_pixmaps or not self._image_labels:
+            print(f"[DEBUG] No cached pixmaps, falling back to rebuild")
+            self._rebuild()
+            return
+        
+        print(f"[DEBUG] Smooth zoom update for {len(self._image_labels)} labels")
+        
+        for i, (label, original_pixmap) in enumerate(zip(self._image_labels, self._original_pixmaps)):
+            if original_pixmap and not original_pixmap.isNull():
+                # Calculate new width based on zoom factor
+                original_width = original_pixmap.width()
+                new_width = int(original_width * self._zoom_factor)
+                
+                # Scale from original pixmap (better quality)
+                scaled_pixmap = original_pixmap.scaledToWidth(
+                    new_width, 
+                    Qt.SmoothTransformation
+                )
+                
+                label.setPixmap(scaled_pixmap)
+                print(f"[DEBUG] Scaled label {i}: {original_width} -> {new_width}")
 
     # ------------------------------------------------------ public API
     def display_timeline(self, scans: List[Dict], active_index: int = -1):
@@ -591,22 +828,70 @@ class ScanTimelineWidget(QWidget):
         pass
         
     def set_active_layers(self, layers: list): 
-        """Set active layers from checkbox mode selector"""
-        self._active_layers = layers.copy()
+        """✅ SMART: Set active layers with smart update detection"""
+        new_layers = layers.copy()
+        
+        # Detect changes
+        changes = self._detect_changes(
+            new_layers=new_layers,
+            new_opacities=self._layer_opacities,
+            new_scan_index=self.active_scan_index
+        )
+        
+        # Update active layers
+        self._active_layers = new_layers
         print(f"[DEBUG] Timeline active layers set to: {self._active_layers}")
-        self._rebuild()
-      
+        
+        # Apply appropriate update strategy
+        if changes["type"] == "none":
+            print(f"[SMART UPDATE] No changes detected, skipping update")
+            return
+        elif changes["full_rebuild_needed"]:
+            print(f"[SMART UPDATE] Full rebuild required for change type: {changes['type']}")
+            self._rebuild()
+        else:
+            print(f"[SMART UPDATE] Attempting smart update for change type: {changes['type']}")
+            self._rebuild()  # For now, always rebuild for layer changes
+        
+        # Update state tracking
+        self._update_state_tracking(new_layers, self._layer_opacities, self.active_scan_index, changes["type"])
+    
     
     def set_session_code(self, session_code: str):
         """Set session code for path resolution"""
         self.session_code = session_code
     
     def set_layer_opacity(self, layer: str, opacity: float):
-        """Set opacity for a specific layer"""
+        """✅ SMART: Set opacity with smart update detection"""
+        old_opacity = self._layer_opacities.get(layer, 1.0)
         self._layer_opacities[layer] = opacity
         print(f"[DEBUG] Set {layer} opacity to {opacity:.2f}")
-        # Trigger rebuild to apply new opacity
+        
+        # Detect changes
+        changes = self._detect_changes(
+            new_layers=self._active_layers,
+            new_opacities=self._layer_opacities,
+            new_scan_index=self.active_scan_index
+        )
+        
+        # Apply appropriate update strategy
+        if changes["type"] == "opacity" and not changes["full_rebuild_needed"]:
+            print(f"[SMART UPDATE] Attempting smart opacity update")
+            success = self._smart_opacity_update(changes["opacities_changed"])
+            if success:
+                print(f"[SMART UPDATE] ✅ Smart opacity update successful")
+                # Update state tracking
+                self._update_state_tracking(self._active_layers, self._layer_opacities, self.active_scan_index, "opacity")
+                return
+            else:
+                print(f"[SMART UPDATE] ❌ Smart opacity update failed, falling back to rebuild")
+        
+        # Fallback to full rebuild
+        print(f"[SMART UPDATE] Using full rebuild for opacity change")
         self._rebuild()
+        
+        # Update state tracking
+        self._update_state_tracking(self._active_layers, self._layer_opacities, self.active_scan_index, "rebuild")
     
     def get_layer_opacity(self, layer: str) -> float:
         """Get opacity for a specific layer"""
@@ -648,11 +933,41 @@ class ScanTimelineWidget(QWidget):
 
     # ------------------------------------------------------ rebuild
     def _clear(self):
+        # ✅ NEW: Clear zoom cache
+        self._image_labels.clear()
+        self._original_pixmaps.clear()
+        
+        # ✅ NEW: Print cache stats before clearing
+        self._print_cache_stats()
+        
         while self.timeline_layout.count():
             w = self.timeline_layout.takeAt(0).widget()
             if w: 
                 w.deleteLater()
+    
+    def _validate_zoom_cache(self) -> bool:
+        """✅ NEW: Validate if zoom cache is still valid"""
+        if len(self._image_labels) != len(self._original_pixmaps):
+            return False
+        
+        if not self._scans_cache:
+            return False
+            
+        # Check if number of labels matches expected scan count * 2 (anterior + posterior)
+        expected_labels = len(self._scans_cache) if self._scans_cache else 0
+        if self.active_scan_index >= 0:
+            expected_labels = 2  # Only anterior + posterior for active scan
+        
+        return len(self._image_labels) == expected_labels
 
+    def _force_rebuild_if_needed(self):
+        """✅ NEW: Force rebuild if cache is invalid"""
+        if not self._validate_zoom_cache():
+            print(f"[DEBUG] Cache invalid, forcing rebuild")
+            self._rebuild()
+            return True
+        return False
+    
     def _rebuild(self):
         """✅ MODIFIED: Rebuild to show Anterior and Posterior of the active scan side-by-side."""
         self._clear()
@@ -686,6 +1001,9 @@ class ScanTimelineWidget(QWidget):
         self._posterior_image_label = posterior_card.findChild(QLabel, "image_display_Posterior")
 
         self.timeline_layout.addStretch()
+
+        # ✅ NEW: Update state tracking after rebuild
+        self._update_state_tracking(self._active_layers, self._layer_opacities, self.active_scan_index, "full")
 
     # ------------------------------------------------------ card builders
     def _make_header(self, scan: Dict, idx: int) -> QHBoxLayout:
@@ -910,10 +1228,27 @@ class ScanTimelineWidget(QWidget):
     def _get_layer_images(self, scan: Dict, override_b: float = None, override_c: float = None) -> Dict[str, Image.Image]:
         frame_map = scan["frames"]
         dicom_path = Path(scan["path"])
+        scan_path_str = str(dicom_path)
 
         # ✅ TAMBAHAN: Debug print
         print(f"[DEBUG] DICOM path: {dicom_path}")
         print(f"[DEBUG] Current view: {self.current_view}")
+        
+        # ✅ NEW: Check cache first for non-adjusted images
+        use_cache = (override_b is None and override_c is None)  # Remove invert check
+        invert_suffix = "_inverted" if self.invert_original else "_normal"
+        print(f"[CACHE DEBUG] use_cache={use_cache}, override_b={override_b}, override_c={override_c}, invert={self.invert_original}")
+
+        if use_cache:
+            print(f"[CACHE DEBUG] Checking cache for scan: {scan_path_str}, view: {self.current_view}, invert: {self.invert_original}")
+            cached_layers = self._get_cached_layers(scan_path_str, self.current_view)
+            if cached_layers:
+                print(f"[CACHE HIT] Using cached layers for {self.current_view}: {list(cached_layers.keys())}")
+                return cached_layers
+            else:
+                print(f"[CACHE MISS] No cached layers found for {self.current_view}")
+        else:
+            print(f"[CACHE SKIP] Skipping cache due to adjustments")
 
         try:
             study_date = extract_study_date_from_dicom(dicom_path)
@@ -980,7 +1315,17 @@ class ScanTimelineWidget(QWidget):
         self._load_segmentation_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder)
         self._load_hotspot_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder)  
         self._load_bbox_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder)
-        
+
+        # ✅ NEW: Cache loaded layers if not using overrides
+        if use_cache and layers:
+            print(f"[CACHE STORE] Storing {len(layers)} layers in cache")
+            for layer_name, layer_image in layers.items():
+                self._cache_layer_image(scan_path_str, self.current_view, layer_name, layer_image)
+                print(f"[CACHE STORE] Cached {layer_name} for {self.current_view}")
+            print(f"[CACHE STORE] Cache now has {len(self._layer_image_cache)} total entries")
+        else:
+            print(f"[CACHE STORE] Not caching: use_cache={use_cache}, layers_count={len(layers) if layers else 0}")
+
         return layers
         
     def _make_layered_card(self, scan: Dict, w: int, idx: int) -> QFrame:
@@ -1068,7 +1413,13 @@ class ScanTimelineWidget(QWidget):
                 else:
                     display_image = composite_image
                 
-                lbl.setPixmap(_pil_to_pixmap(display_image, w))
+                # Create pixmap and cache it
+                pixmap = _pil_to_pixmap(display_image, w)
+                lbl.setPixmap(pixmap)
+
+                # ✅ NEW: Cache label and original pixmap for smooth zoom
+                self._image_labels.append(lbl)
+                self._original_pixmaps.append(pixmap)
                 
                 # Create tooltip with layer info
                 tooltip_parts = []
