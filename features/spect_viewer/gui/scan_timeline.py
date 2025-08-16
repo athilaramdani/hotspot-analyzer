@@ -20,7 +20,8 @@ from core.config.paths import (
     extract_study_date_from_dicom,
     generate_filename_stem,
     get_planar_hotspot_files,
-    get_planar_segmentation_files
+    get_planar_segmentation_files,
+    get_patient_planar_path
 )
 
 # Import legacy functions from archive if needed
@@ -224,16 +225,16 @@ class ScanTimelineWidget(QWidget):
             print(f"[WARN] View '{view_name}' not found in adjustments. Cannot set contrast.")
 
     def _load_original_image(self, dicom_path: Path, filename_with_date: str, view_name: str, frame_map: dict) -> Optional[Image.Image]:
-        """Load original PNG image for the specified view"""
+        """Load original PNG image for the specified view using NEW structure"""
         try:
-            # ✅ NEW: Load from PNG file instead of DICOM frames
-            view_normalized = view_name.lower()  # "anterior" atau "posterior"
+            # Use NEW structure naming: ant_original.png / post_original.png
+            view_short = "ant" if view_name.lower() in ["anterior", "ant"] else "post"
             
-            # Construct PNG filename: patient_studydate_view_original.png
-            png_filename = f"{filename_with_date}_{view_normalized}_original.png"
+            # NEW structure: ant_original.png or post_original.png
+            png_filename = f"{view_short}_original.png"
             png_path = dicom_path.parent / png_filename
             
-            print(f"[DEBUG] Looking for original PNG: {png_path}")
+            print(f"[DEBUG] Looking for original PNG (NEW structure): {png_path}")
             
             if png_path.exists():
                 # Load PNG directly
@@ -246,7 +247,7 @@ class ScanTimelineWidget(QWidget):
                 print(f"[DEBUG] Loaded original PNG: {original_image.size}, mode: {original_image.mode}")
                 return original_image
             else:
-                print(f"[DEBUG] Original PNG not found: {png_path}")
+                print(f"[DEBUG] Original PNG not found (NEW structure): {png_path}")
                 
                 # ✅ FALLBACK: Try to load from DICOM frames if PNG not available
                 if view_name in frame_map:
@@ -272,17 +273,13 @@ class ScanTimelineWidget(QWidget):
             return None
         
     def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
-        """✅ CORRECTED: Load segmentation layer if available"""
+        """Load segmentation layer using NEW structure"""
         try:
-            seg_files = get_planar_segmentation_files(dicom_path.parent, filename_with_date, view_normalized)
+            view_short = "ant" if view_normalized in ["anterior", "ant"] else "post"
+            seg_files = get_planar_segmentation_files(dicom_path.parent, view_short, with_priority=True)
             
-            # ✅ FIX: Prioritize the edited file first, then the original
-            if seg_files['png_colored_edited'].exists():
-                seg_png = seg_files['png_colored_edited']
-                print(f"[DEBUG] Found edited segmentation: {seg_png}")
-            else:
-                seg_png = seg_files['png_colored']
-                print(f"[DEBUG] Looking for original segmentation: {seg_png}")
+            seg_png = seg_files['segmentation_png']
+            print(f"[DEBUG] Looking for segmentation (NEW structure): {seg_png}")
 
             if seg_png.exists():
                 # Load with transparency (make black pixels transparent)
@@ -297,55 +294,43 @@ class ScanTimelineWidget(QWidget):
             print(f"[ERROR] Failed to load segmentation layer: {e}")
 
     def _load_hotspot_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
-        """Load hotspot layer (classification mask) with edited file priority"""
+        """Load hotspot layer using NEW structure"""
         try:
-            # ✅ FIXED: Check edited file first, then fallback to original
-            classification_mask_edited = dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask_edited.png"
-            classification_mask_original = dicom_path.parent / f"{filename_with_date}_{view_normalized}_classification_mask.png"
+            view_short = "ant" if view_normalized in ["anterior", "ant"] else "post"
+            hotspot_files = get_planar_hotspot_files(dicom_path.parent, view_short, with_priority=True)
             
-            # Priority: edited file first
-            if classification_mask_edited.exists():
-                hotspot_image = load_image_with_transparency(classification_mask_edited)
+            classification_png = hotspot_files['classification_png']
+            print(f"[DEBUG] Looking for hotspot classification (NEW structure): {classification_png}")
+            
+            if classification_png.exists():
+                hotspot_image = load_image_with_transparency(classification_png)
                 if hotspot_image:
                     layers["Hotspot"] = hotspot_image
-                    print(f"[DEBUG] Loaded hotspot layer from EDITED: {classification_mask_edited.name}")
-                    return
-            
-            # Fallback: original file
-            if classification_mask_original.exists():
-                hotspot_image = load_image_with_transparency(classification_mask_original)
-                if hotspot_image:
-                    layers["Hotspot"] = hotspot_image
-                    print(f"[DEBUG] Loaded hotspot layer from ORIGINAL: {classification_mask_original.name}")
-                    return
-            
-            print(f"[DEBUG] No hotspot classification mask found (checked both edited and original)")
+                    print(f"[DEBUG] Loaded hotspot layer: {classification_png}")
+            else:
+                print(f"[DEBUG] No hotspot classification found: {classification_png}")
                 
         except Exception as e:
             print(f"[ERROR] Failed to load hotspot layer: {e}")
 
     def _load_bbox_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
-        """Load bounding box layer (classification XML) with edited file priority"""
+        """Load bounding box layer using NEW structure"""
         try:
-            # ✅ FIXED: Check edited XML first, then fallback to original
-            view_short = "ant" if "ant" in view_normalized else "post"
-            classification_xml_edited = dicom_path.parent / f"{filename_with_date}_{view_short}_classification_edited.xml"
-            classification_xml_original = dicom_path.parent / f"{filename_with_date}_{view_short}_classification.xml"
+            view_short = "ant" if view_normalized in ["anterior", "ant"] else "post"
+            hotspot_files = get_planar_hotspot_files(dicom_path.parent, view_short, with_priority=True)
             
-            # Priority: edited file first
-            target_xml = classification_xml_edited if classification_xml_edited.exists() else classification_xml_original
+            classification_xml = hotspot_files['classification_xml']
+            print(f"[DEBUG] Looking for classification XML (NEW structure): {classification_xml}")
             
-            if target_xml.exists():
-                # ✅ FIX: Use "Image" instead of "Original"
+            if classification_xml.exists():
                 if "Image" in layers:
                     image_dimensions = layers["Image"].size
-                    bbox_image = self._create_bbox_visualization_from_classification(target_xml, image_dimensions)
+                    bbox_image = self._create_bbox_visualization_from_classification(classification_xml, image_dimensions)
                     if bbox_image:
                         layers["HotspotBBox"] = bbox_image
-                        file_type = "EDITED" if target_xml == classification_xml_edited else "ORIGINAL"
-                        print(f"[DEBUG] Loaded bbox layer from {file_type}: {target_xml.name}")
+                        print(f"[DEBUG] Loaded bbox layer: {classification_xml}")
             else:
-                print(f"[DEBUG] No classification XML found (checked both edited and original)")
+                print(f"[DEBUG] No classification XML found: {classification_xml}")
                 
         except Exception as e:
             print(f"[ERROR] Failed to load bbox layer: {e}")
@@ -811,7 +796,7 @@ class ScanTimelineWidget(QWidget):
     def _get_patient_session_from_scan(self, scan: Dict) -> tuple[str, str]:
         """Extract patient ID and session code from scan path using NEW structure"""
         try:
-            dicom_path = scan["path"]
+            dicom_path = Path(scan["path"])
             patient_id, session_code = extract_patient_info_from_path(dicom_path)
             
             # Fallback to session from widget if extraction fails
