@@ -32,12 +32,12 @@ from skimage import measure
 
 from PySide6.QtCore import Qt, QRectF, QPointF, Signal, QThread
 from PySide6.QtGui import (
-    QPixmap, QImage, QPainter, QColor, QPen, QWheelEvent, QCursor, QLinearGradient
+    QPixmap, QImage, QPainter, QColor, QPen, QWheelEvent, QCursor, QLinearGradient, 
 )
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
     QPushButton, QSlider, QWidget, QMessageBox, QGraphicsView, QGraphicsScene,
-    QGraphicsPixmapItem, QStyleOptionGraphicsItem, QFrame
+    QGraphicsPixmapItem, QStyleOptionGraphicsItem, QFrame, QCheckBox
 )
 
 import pydicom
@@ -234,10 +234,18 @@ class _Canvas(QGraphicsView):
 
     def __init__(self, orig: np.ndarray, mask: np.ndarray, parent=None):
         super().__init__(parent)
-        self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
+        
+        # FIXED: Remove HighQualityAntialiasing - it doesn't exist in PySide6
+        self.setRenderHints(
+            QPainter.Antialiasing | 
+            QPainter.SmoothPixmapTransform | 
+            QPainter.TextAntialiasing
+            # QPainter.HighQualityAntialiasing  # REMOVED - not available in PySide6
+        )
+        
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
-        
+
         # Default mode: drawing (no drag)
         self.setDragMode(QGraphicsView.NoDrag)
         self.setCursor(QCursor(Qt.CrossCursor))
@@ -469,11 +477,11 @@ class _Canvas(QGraphicsView):
     # -------- ndarray <-> QImage helpers
     @staticmethod
     def _nd_gray_to_qimage(arr: np.ndarray) -> QImage:
-        arr_f = (arr - arr.min()) / max(1, arr.ptp()) * 255.0
+        arr_f = (arr - arr.min()) / max(1, np.ptp(arr)) * 255.0
         u8 = arr_f.astype(np.uint8)
         h, w = u8.shape
         return QImage(u8.data, w, h, w, QImage.Format_Grayscale8).copy()
-
+    
     def _mask_to_qimage(self, *, show_all: bool, label: int) -> QImage:
         rgb = label_mask_to_hotspot_rgb(self._mask_arr)      # (H, W, 3)
         h, w, _ = rgb.shape
@@ -959,13 +967,14 @@ class SaveThread(QThread):
             #                     f"Terjadi error saat menjalankan kuantifikasi:\n{error}")
             return False
     # ================================================================= Dialog
+# ================================================================= Dialog
 class HotspotEditorDialog(QDialog):
     def __init__(self, scan: Dict, view: str, parent=None):
         super().__init__(parent, Qt.Window)
         from PySide6.QtGui import QGuiApplication
         self.setWindowTitle(f"Hotspot Editor – {view}")
         geom = QGuiApplication.primaryScreen().availableGeometry()
-        self.resize(int(geom.width()*0.9), int(geom.height()*0.9))
+        self.resize(int(geom.width()*0.95), int(geom.height()*0.9))  # Make wider for side-by-side
 
         # ----- FIXED: Use consistent naming convention
         base = Path(scan["path"]).with_suffix("")
@@ -1077,147 +1086,210 @@ class HotspotEditorDialog(QDialog):
             orig_png_arr = orig_arr
             print(f"✓ Using DICOM frame data for {view}")
 
+        # Store original non-inverted image for toggle functionality
+        self._original_image_data = orig_png_arr.copy()
+        
+        # Apply default inversion (checkbox starts checked)
+        from features.spect_viewer.logic.image_inverter import simple_invert_image
+        orig_png_arr = simple_invert_image(orig_png_arr)
+        print(f"✓ Applied default image inversion")
+
         print(f"✓ DEBUG Original image range: min={orig_png_arr.min()}, max={orig_png_arr.max()}, shape={orig_png_arr.shape}")
 
-        # ================= UI =================
-        root = QHBoxLayout(self)
+        # Store original mask for reference view
+        self._original_mask_arr = mask_arr.copy() if mask_arr is not None else np.zeros_like(orig_arr, np.uint8)
 
-        # ---- left toolbar
-        bar = QVBoxLayout(); root.addLayout(bar, 0)
-        bar.addWidget(QLabel("<b>Palette / Layers</b>"))
+        # ================= SIDE-BY-SIDE UI LAYOUT =================
+        # Main container
+        main_layout = QHBoxLayout(self)
+        main_layout.setSpacing(5)
+
+        # ---- LEFT SIDE: Toolbar ----
+        toolbar_widget = QWidget()
+        toolbar_widget.setMaximumWidth(250)  # Fixed width for toolbar
+        toolbar_layout = QVBoxLayout(toolbar_widget)
+        
+        # Palette section
+        toolbar_layout.addWidget(QLabel("<b>Palette / Layers</b>"))
         self.list_palette = QListWidget()
         for rgb, (nm, desc) in zip(_HOTSPOT_PALLETTE, _LABEL_INFO):
             item = QListWidgetItem()
-            w    = QWidget(); h = QHBoxLayout(w)
-            box  = QLabel(); box.setFixedSize(22,22)
+            w = QWidget()
+            h = QHBoxLayout(w)
+            box = QLabel()
+            box.setFixedSize(22, 22)
             box.setStyleSheet(f"background:rgb({rgb[0]},{rgb[1]},{rgb[2]});"
                               "border:1px solid #000;")
-            h.addWidget(box); h.addWidget(QLabel(nm)); h.addWidget(QLabel(f"({desc})")); h.addStretch()
+            h.addWidget(box)
+            h.addWidget(QLabel(nm))
+            h.addWidget(QLabel(f"({desc})"))
+            h.addStretch()
             item.setSizeHint(w.sizeHint())
             self.list_palette.addItem(item)
             self.list_palette.setItemWidget(item, w)
         self.list_palette.setCurrentRow(1)
-        bar.addWidget(self.list_palette, 1)
+        toolbar_layout.addWidget(self.list_palette, 1)
 
-        row = QHBoxLayout()
-        self.btn_brush   = QPushButton("Brush");  self.btn_brush.setCheckable(True); self.btn_brush.setChecked(True)
-        self.btn_eraser  = QPushButton("Eraser"); self.btn_eraser.setCheckable(True)
-        self.btn_showall = QPushButton("Show All"); self.btn_showall.setCheckable(True)
-        row.addWidget(self.btn_brush); row.addWidget(self.btn_eraser); row.addWidget(self.btn_showall)
-        bar.addLayout(row)
+        # Tool buttons
+        tool_row = QHBoxLayout()
+        self.btn_brush = QPushButton("Brush")
+        self.btn_brush.setCheckable(True)
+        self.btn_brush.setChecked(True)
+        self.btn_eraser = QPushButton("Eraser")
+        self.btn_eraser.setCheckable(True)
+        self.btn_showall = QPushButton("Show All")
+        self.btn_showall.setCheckable(True)
+        tool_row.addWidget(self.btn_brush)
+        tool_row.addWidget(self.btn_eraser)
+        tool_row.addWidget(self.btn_showall)
+        toolbar_layout.addLayout(tool_row)
 
-        # Tambahkan tombol undo/redo
-        btn_row = QHBoxLayout()
+        # Undo/Redo buttons
+        undo_row = QHBoxLayout()
         self.btn_undo = QPushButton("Undo")
         self.btn_redo = QPushButton("Redo")
-        btn_row.addWidget(self.btn_undo)
-        btn_row.addWidget(self.btn_redo)
-        bar.addLayout(btn_row)
+        undo_row.addWidget(self.btn_undo)
+        undo_row.addWidget(self.btn_redo)
+        toolbar_layout.addLayout(undo_row)
 
-        # ===== BRUSH SIZE SLIDER DENGAN TOMBOL +/- =====
-        bar.addWidget(QLabel("Brush Size (pixels)"))
-        self.slider_size = QSlider(Qt.Horizontal); self.slider_size.setRange(1,15); self.slider_size.setValue(1)
-        self.lbl_size = QLabel("1px"); self.lbl_size.setFixedWidth(35); self.lbl_size.setAlignment(Qt.AlignRight)
-        self.btn_size_minus = QPushButton("-"); self.btn_size_minus.setFixedSize(30, 22)
-        self.btn_size_plus = QPushButton("+"); self.btn_size_plus.setFixedSize(30, 22)
+        # Brush Size
+        toolbar_layout.addWidget(QLabel("Brush Size (pixels)"))
+        self.slider_size = QSlider(Qt.Horizontal)
+        self.slider_size.setRange(1, 15)
+        self.slider_size.setValue(1)
+        self.lbl_size = QLabel("1px")
+        self.lbl_size.setFixedWidth(35)
+        self.lbl_size.setAlignment(Qt.AlignRight)
+        self.btn_size_minus = QPushButton("-")
+        self.btn_size_minus.setFixedSize(30, 22)
+        self.btn_size_plus = QPushButton("+")
+        self.btn_size_plus.setFixedSize(30, 22)
         size_row = QHBoxLayout()
         size_row.setSpacing(3)
         size_row.addWidget(self.btn_size_minus)
         size_row.addWidget(self.slider_size, 1)
         size_row.addWidget(self.btn_size_plus)
         size_row.addWidget(self.lbl_size)
-        bar.addLayout(size_row)
+        toolbar_layout.addLayout(size_row)
 
-        # ===== ZOOM SLIDER DENGAN TOMBOL +/- =====
-        bar.addWidget(QLabel("Zoom"))
-        self.slider_zoom = QSlider(Qt.Horizontal); self.slider_zoom.setRange(1,1000); self.slider_zoom.setValue(10)
-        self.lbl_zoom = QLabel("1.0x"); self.lbl_zoom.setFixedWidth(35); self.lbl_zoom.setAlignment(Qt.AlignRight)
-        self.btn_zoom_minus = QPushButton("-"); self.btn_zoom_minus.setFixedSize(30, 22)
-        self.btn_zoom_plus = QPushButton("+"); self.btn_zoom_plus.setFixedSize(30, 22)
+        # Zoom
+        toolbar_layout.addWidget(QLabel("Zoom"))
+        self.slider_zoom = QSlider(Qt.Horizontal)
+        self.slider_zoom.setRange(1, 1000)
+        self.slider_zoom.setValue(10)
+        self.lbl_zoom = QLabel("1.0x")
+        self.lbl_zoom.setFixedWidth(35)
+        self.lbl_zoom.setAlignment(Qt.AlignRight)
+        self.btn_zoom_minus = QPushButton("-")
+        self.btn_zoom_minus.setFixedSize(30, 22)
+        self.btn_zoom_plus = QPushButton("+")
+        self.btn_zoom_plus.setFixedSize(30, 22)
         zoom_row = QHBoxLayout()
         zoom_row.setSpacing(3)
         zoom_row.addWidget(self.btn_zoom_minus)
         zoom_row.addWidget(self.slider_zoom, 1)
         zoom_row.addWidget(self.btn_zoom_plus)
         zoom_row.addWidget(self.lbl_zoom)
-        bar.addLayout(zoom_row)
-        
-        # ===== ORIGINAL OPACITY SLIDER DENGAN TOMBOL +/- =====
-        bar.addWidget(QLabel("Original Opacity"))
+        toolbar_layout.addLayout(zoom_row)
+
+        # Original Opacity
+        toolbar_layout.addWidget(QLabel("Original Opacity"))
         self.slider_gray = QSlider(Qt.Horizontal)
         self.slider_gray.setRange(0, 100)
-        self.slider_gray.setValue(50)           # default 50 %
-        self.lbl_gray = QLabel("50 %"); self.lbl_gray.setFixedWidth(35); self.lbl_gray.setAlignment(Qt.AlignRight)
-        self.btn_gray_minus = QPushButton("-"); self.btn_gray_minus.setFixedSize(30, 22)
-        self.btn_gray_plus = QPushButton("+"); self.btn_gray_plus.setFixedSize(30, 22)
-        g_row = QHBoxLayout()
-        g_row.setSpacing(3)
-        g_row.addWidget(self.btn_gray_minus)
-        g_row.addWidget(self.slider_gray, 1)
-        g_row.addWidget(self.btn_gray_plus)
-        g_row.addWidget(self.lbl_gray)
-        bar.addLayout(g_row)
+        self.slider_gray.setValue(50)
+        self.lbl_gray = QLabel("50 %")
+        self.lbl_gray.setFixedWidth(35)
+        self.lbl_gray.setAlignment(Qt.AlignRight)
+        self.btn_gray_minus = QPushButton("-")
+        self.btn_gray_minus.setFixedSize(30, 22)
+        self.btn_gray_plus = QPushButton("+")
+        self.btn_gray_plus.setFixedSize(30, 22)
+        gray_row = QHBoxLayout()
+        gray_row.setSpacing(3)
+        gray_row.addWidget(self.btn_gray_minus)
+        gray_row.addWidget(self.slider_gray, 1)
+        gray_row.addWidget(self.btn_gray_plus)
+        gray_row.addWidget(self.lbl_gray)
+        toolbar_layout.addLayout(gray_row)
 
-        # ===== MASK OPACITY SLIDER DENGAN TOMBOL +/- =====
-        bar.addWidget(QLabel("Mask Opacity"))
+        # Mask Opacity
+        toolbar_layout.addWidget(QLabel("Mask Opacity"))
         self.slider_mask = QSlider(Qt.Horizontal)
         self.slider_mask.setRange(0, 100)
-        self.slider_mask.setValue(100)          # default 100 %
-        self.lbl_mask = QLabel("100 %"); self.lbl_mask.setFixedWidth(35); self.lbl_mask.setAlignment(Qt.AlignRight)
-        self.btn_mask_minus = QPushButton("-"); self.btn_mask_minus.setFixedSize(30, 22)
-        self.btn_mask_plus = QPushButton("+"); self.btn_mask_plus.setFixedSize(30, 22)
-        m_row = QHBoxLayout()
-        m_row.setSpacing(3)
-        m_row.addWidget(self.btn_mask_minus)
-        m_row.addWidget(self.slider_mask, 1)
-        m_row.addWidget(self.btn_mask_plus)
-        m_row.addWidget(self.lbl_mask)
-        bar.addLayout(m_row)
+        self.slider_mask.setValue(100)
+        self.lbl_mask = QLabel("100 %")
+        self.lbl_mask.setFixedWidth(35)
+        self.lbl_mask.setAlignment(Qt.AlignRight)
+        self.btn_mask_minus = QPushButton("-")
+        self.btn_mask_minus.setFixedSize(30, 22)
+        self.btn_mask_plus = QPushButton("+")
+        self.btn_mask_plus.setFixedSize(30, 22)
+        mask_row = QHBoxLayout()
+        mask_row.setSpacing(3)
+        mask_row.addWidget(self.btn_mask_minus)
+        mask_row.addWidget(self.slider_mask, 1)
+        mask_row.addWidget(self.btn_mask_plus)
+        mask_row.addWidget(self.lbl_mask)
+        toolbar_layout.addLayout(mask_row)
 
-        # ===== BACKGROUND OPACITY SLIDER DENGAN TOMBOL +/- =====
-        bar.addWidget(QLabel("BG Opacity"))
+        # BG Opacity
+        toolbar_layout.addWidget(QLabel("BG Opacity"))
         self.slider_bg = QSlider(Qt.Horizontal)
         self.slider_bg.setRange(0, 100)
-        self.slider_bg.setValue(0)           # start invisible
-        self.lbl_bg = QLabel("0 %"); self.lbl_bg.setFixedWidth(35); self.lbl_bg.setAlignment(Qt.AlignRight)
-        self.btn_bg_minus = QPushButton("-"); self.btn_bg_minus.setFixedSize(30, 22)
-        self.btn_bg_plus = QPushButton("+"); self.btn_bg_plus.setFixedSize(30, 22)
+        self.slider_bg.setValue(0)
+        self.lbl_bg = QLabel("0 %")
+        self.lbl_bg.setFixedWidth(35)
+        self.lbl_bg.setAlignment(Qt.AlignRight)
+        self.btn_bg_minus = QPushButton("-")
+        self.btn_bg_minus.setFixedSize(30, 22)
+        self.btn_bg_plus = QPushButton("+")
+        self.btn_bg_plus.setFixedSize(30, 22)
         bg_row = QHBoxLayout()
         bg_row.setSpacing(3)
         bg_row.addWidget(self.btn_bg_minus)
         bg_row.addWidget(self.slider_bg, 1)
         bg_row.addWidget(self.btn_bg_plus)
         bg_row.addWidget(self.lbl_bg)
-        bar.addLayout(bg_row)
-        
-        # ===== SEGMENTATION OPACITY SLIDER DENGAN TOMBOL +/- =====
-        bar.addWidget(QLabel("Segmentation Opacity"))
+        toolbar_layout.addLayout(bg_row)
+
+        # Segmentation Opacity
+        toolbar_layout.addWidget(QLabel("Segmentation Opacity"))
         self.slider_seg = QSlider(Qt.Horizontal)
         self.slider_seg.setRange(0, 100)
-        self.slider_seg.setValue(30)           # default 30 %
-        self.lbl_seg = QLabel("30 %"); self.lbl_seg.setFixedWidth(35); self.lbl_seg.setAlignment(Qt.AlignRight)
-        self.btn_seg_minus = QPushButton("-"); self.btn_seg_minus.setFixedSize(30, 22)
-        self.btn_seg_plus = QPushButton("+"); self.btn_seg_plus.setFixedSize(30, 22)
+        self.slider_seg.setValue(30)
+        self.lbl_seg = QLabel("30 %")
+        self.lbl_seg.setFixedWidth(35)
+        self.lbl_seg.setAlignment(Qt.AlignRight)
+        self.btn_seg_minus = QPushButton("-")
+        self.btn_seg_minus.setFixedSize(30, 22)
+        self.btn_seg_plus = QPushButton("+")
+        self.btn_seg_plus.setFixedSize(30, 22)
         seg_row = QHBoxLayout()
         seg_row.setSpacing(3)
         seg_row.addWidget(self.btn_seg_minus)
         seg_row.addWidget(self.slider_seg, 1)
         seg_row.addWidget(self.btn_seg_plus)
         seg_row.addWidget(self.lbl_seg)
-        bar.addLayout(seg_row)
-        
-        # --- Contrast button ---
+        toolbar_layout.addLayout(seg_row)
+
+        # Contrast button
         btn_contrast = QPushButton("Contrast…")
-        bar.addWidget(btn_contrast)
+        toolbar_layout.addWidget(btn_contrast)
+
+        # Invert Image checkbox (following main window pattern)
+        self.invert_checkbox = QCheckBox("Invert Image Colors")
+        self.invert_checkbox.setChecked(True)  # Default to inverted (checked)
+        self.invert_checkbox.setStyleSheet("margin-top: 8px; font-weight: bold;")
+        toolbar_layout.addWidget(self.invert_checkbox)
 
         # Setup segmentation layer status
         if self._segmentation_path.exists():
             segmentation_status = f"Segmentation loaded: {self._segmentation_path.name}"
         else:
             segmentation_status = f"No segmentation found: {self._segmentation_path.name}"
-            self.slider_seg.setEnabled(False)  # Disable slider if no segmentation
+            self.slider_seg.setEnabled(False)
 
-        # Instructions dengan info yang lebih jelas
+        # Instructions and data info
         data_source = "Original PNG loaded" if self._has_orig_png else "DICOM frames used"
         if mask_arr is not None and np.any(mask_arr):
             if self._xml_loaded_from_edited:
@@ -1228,7 +1300,7 @@ class HotspotEditorDialog(QDialog):
                 mask_status = "Existing mask loaded"
         else:
             mask_status = "New mask created"
-        
+
         instructions = QLabel(
             "<b>Controls:</b><br>"
             "• Left click/drag: Paint<br>"
@@ -1247,15 +1319,50 @@ class HotspotEditorDialog(QDialog):
         )
         instructions.setWordWrap(True)
         instructions.setStyleSheet("QLabel { background: #f0f0f0; padding: 8px; border-radius: 4px; }")
-        bar.addWidget(instructions)
+        toolbar_layout.addWidget(instructions)
 
-        btn_save, btn_cancel = QPushButton("Save"), QPushButton("Cancel")
-        bar.addWidget(btn_save); bar.addWidget(btn_cancel)
-        bar.addStretch()
+        # Save/Cancel buttons
+        btn_save = QPushButton("Save")
+        btn_cancel = QPushButton("Cancel")
+        toolbar_layout.addWidget(btn_save)
+        toolbar_layout.addWidget(btn_cancel)
+        toolbar_layout.addStretch()
 
-        # ---- right side: canvas + info
-        right_layout = QVBoxLayout()
-        root.addLayout(right_layout, 1)
+        # Add toolbar to main layout
+        main_layout.addWidget(toolbar_widget)
+
+        # ---- MIDDLE: Original Scan Image (READ-ONLY with zoom sync) ----
+        scan_layout = QVBoxLayout()
+        
+        # Header for scan image
+        scan_header = QLabel("Scan Image")
+        scan_header.setAlignment(Qt.AlignCenter)
+        scan_header.setStyleSheet("QLabel { background: #e0e0e0; padding: 5px; font-weight: bold; }")
+        scan_layout.addWidget(scan_header)
+
+        # Original scan canvas (READ-ONLY but with zoom interaction)
+        self.original_canvas = _Canvas(orig_png_arr, np.zeros_like(orig_png_arr, np.uint8))
+        # Don't disable completely - we want zoom interaction but no painting
+        self.original_canvas._painting_disabled = True  # Custom flag to disable painting only
+        self.original_canvas.setStyleSheet("QGraphicsView { border: 1px solid #888; }")
+        
+        # Setup original canvas with segmentation if available
+        if self._segmentation_path.exists():
+            self.original_canvas.set_segmentation_layer(self._segmentation_path)
+        
+        scan_layout.addWidget(self.original_canvas)
+        
+        # Add scan layout to main layout
+        main_layout.addLayout(scan_layout)
+
+        # ---- RIGHT: Hotspot Editor (EDITABLE) ----
+        editor_layout = QVBoxLayout()
+        
+        # Header for editor
+        editor_header = QLabel("Hotspot Editor")
+        editor_header.setAlignment(Qt.AlignCenter)
+        editor_header.setStyleSheet("QLabel { background: #d0f0d0; padding: 5px; font-weight: bold; }")
+        editor_layout.addWidget(editor_header)
 
         # Info panel
         info_frame = QFrame()
@@ -1272,11 +1379,12 @@ class HotspotEditorDialog(QDialog):
         info_layout.addWidget(QLabel("|"))
         info_layout.addWidget(self.lbl_grid_info)
         info_layout.addStretch()
-        right_layout.addWidget(info_frame)
+        editor_layout.addWidget(info_frame)
 
-        # Canvas
-        self.canvas = _Canvas(orig_png_arr, mask_arr)
+        # Main editing canvas (EDITABLE)
+        self.canvas = _Canvas(orig_png_arr, mask_arr)  # ← ENABLED FOR EDITING
         self.canvas.set_info_callback(self._update_info_display)
+        self.canvas.setStyleSheet("QGraphicsView { border: 1px solid #4a90e2; }")
         
         # Setup segmentation layer
         if self._segmentation_path.exists():
@@ -1288,9 +1396,17 @@ class HotspotEditorDialog(QDialog):
         else:
             print(f"✗ No segmentation found: {self._segmentation_path.name}")
         
-        right_layout.addWidget(self.canvas)
+        editor_layout.addWidget(self.canvas)
+        
+        # Add editor layout to main layout
+        main_layout.addLayout(editor_layout)
 
-        # ===== SIGNALS =====
+        # Set layout proportions: Toolbar(fixed) : Scan(50%) : Editor(50%)
+        main_layout.setStretchFactor(main_layout.itemAt(0).widget(), 0)  # Toolbar - fixed
+        main_layout.setStretchFactor(main_layout.itemAt(1).layout(), 2)  # Scan - flexible
+        main_layout.setStretchFactor(main_layout.itemAt(2).layout(), 2)  # Editor - flexible
+
+        # ===== CONNECT ALL SIGNALS =====
         self.list_palette.currentRowChanged.connect(self._change_label)
         self.slider_size.valueChanged.connect(self._size_changed)
         self.slider_zoom.valueChanged.connect(self._zoom_slider_changed)
@@ -1302,39 +1418,77 @@ class HotspotEditorDialog(QDialog):
         self.slider_bg.valueChanged.connect(self._bg_alpha_changed)
         self.slider_seg.valueChanged.connect(self._seg_alpha_changed)
         btn_contrast.clicked.connect(self._open_contrast_popup)
+        self.invert_checkbox.stateChanged.connect(self._on_invert_changed)
         btn_save.clicked.connect(self._save_all)
         btn_cancel.clicked.connect(self.reject)
         self.btn_undo.clicked.connect(self._perform_undo)
         self.btn_redo.clicked.connect(self._perform_redo)
 
-        # Brush size buttons
+        # All the +/- button connections
         self.btn_size_minus.clicked.connect(lambda: self._adjust_slider(self.slider_size, -1))
         self.btn_size_plus.clicked.connect(lambda: self._adjust_slider(self.slider_size, 1))
-        
-        # Zoom buttons
         self.btn_zoom_minus.clicked.connect(lambda: self._adjust_slider(self.slider_zoom, -5))
         self.btn_zoom_plus.clicked.connect(lambda: self._adjust_slider(self.slider_zoom, 5))
-        
-        # Original opacity buttons
         self.btn_gray_minus.clicked.connect(lambda: self._adjust_slider(self.slider_gray, -5))
         self.btn_gray_plus.clicked.connect(lambda: self._adjust_slider(self.slider_gray, 5))
-        
-        # Mask opacity buttons
         self.btn_mask_minus.clicked.connect(lambda: self._adjust_slider(self.slider_mask, -5))
         self.btn_mask_plus.clicked.connect(lambda: self._adjust_slider(self.slider_mask, 5))
-        
-        # Background opacity buttons
         self.btn_bg_minus.clicked.connect(lambda: self._adjust_slider(self.slider_bg, -5))
         self.btn_bg_plus.clicked.connect(lambda: self._adjust_slider(self.slider_bg, 5))
-        
-        # Segmentation opacity controls
         self.btn_seg_minus.clicked.connect(lambda: self._adjust_slider(self.slider_seg, -5))
         self.btn_seg_plus.clicked.connect(lambda: self._adjust_slider(self.slider_seg, 5))
         
+        # Set up zoom synchronization between canvases
+        self._sync_zoom_in_progress = False  # Prevent infinite loop
+        self._setup_zoom_sync()
         
         self._save_thread = None
         self._loading_dialog = None
         self._is_saving = False
+
+    def _setup_zoom_sync(self):
+        """Setup bidirectional zoom synchronization between original and editor canvases"""
+        # Override wheel events for both canvases to enable sync
+        original_wheel_event = self.original_canvas.wheelEvent
+        editor_wheel_event = self.canvas.wheelEvent
+        
+        def sync_original_wheel(event):
+            if not self._sync_zoom_in_progress and event.modifiers() & Qt.ControlModifier:
+                self._sync_zoom_in_progress = True
+                # Apply zoom to original canvas
+                original_wheel_event(event)
+                # Sync to editor canvas
+                current_zoom = self.original_canvas._zoom_factor
+                self.canvas.set_zoom(current_zoom)
+                # Update slider
+                slider_value = int(current_zoom * 10)
+                self.slider_zoom.setValue(slider_value)
+                self.lbl_zoom.setText(f"{current_zoom:.1f}x")
+                self._sync_zoom_in_progress = False
+            elif not (event.modifiers() & Qt.ControlModifier):
+                # Pass through non-zoom wheel events
+                original_wheel_event(event)
+        
+        def sync_editor_wheel(event):
+            if not self._sync_zoom_in_progress and event.modifiers() & Qt.ControlModifier:
+                self._sync_zoom_in_progress = True
+                # Apply zoom to editor canvas
+                editor_wheel_event(event)
+                # Sync to original canvas
+                current_zoom = self.canvas._zoom_factor
+                self.original_canvas.set_zoom(current_zoom)
+                # Update slider
+                slider_value = int(current_zoom * 10)
+                self.slider_zoom.setValue(slider_value)
+                self.lbl_zoom.setText(f"{current_zoom:.1f}x")
+                self._sync_zoom_in_progress = False
+            elif not (event.modifiers() & Qt.ControlModifier):
+                # Pass through non-zoom wheel events
+                editor_wheel_event(event)
+        
+        # Replace wheel event handlers
+        self.original_canvas.wheelEvent = sync_original_wheel
+        self.canvas.wheelEvent = sync_editor_wheel
 
     def _load_from_xml(self, xml_path: Path, orig_arr: np.ndarray, filename_stem: str, 
                        view_short: str, base_dir: Path) -> np.ndarray:
@@ -1434,44 +1588,57 @@ class HotspotEditorDialog(QDialog):
             self.lbl_size.setText(f"{area_pixels}px")
             
     def _zoom_slider_changed(self, val: int):
-        """Handle zoom slider change"""
-        zoom_factor = val / 10.0   # 0.1 – 100.0x
+        """Handle zoom slider change with bidirectional synchronization"""
+        if self._sync_zoom_in_progress:
+            return  # Prevent feedback loop
+            
+        self._sync_zoom_in_progress = True
+        zoom_factor = val / 10.0
+        
+        # Apply zoom to both canvases
         self.canvas.set_zoom(zoom_factor)
+        self.original_canvas.set_zoom(zoom_factor)
         self.lbl_zoom.setText(f"{zoom_factor:.1f}x")
+        
+        self._sync_zoom_in_progress = False
 
-    # -- new handlers: update opacity label + kirim ke canvas ----
+    # -- Opacity handlers: update opacity label + send to EDITABLE canvas only ----
     def _gray_alpha_changed(self, val: int):
         alpha = val / 100.0
-        self.canvas.set_gray_opacity(alpha)
+        self.canvas.set_gray_opacity(alpha)  # Only affects editable canvas
+        self.original_canvas.set_gray_opacity(alpha)  # Sync with original view
         self.lbl_gray.setText(f"{val} %")
 
     def _mask_alpha_changed(self, val: int):
         alpha = val / 100.0
-        self.canvas.set_mask_opacity(alpha)
+        self.canvas.set_mask_opacity(alpha)  # Only affects editable canvas
         self.lbl_mask.setText(f"{val} %")
 
     def _bg_alpha_changed(self, val: int):
         a = val / 100.0
-        self.canvas.set_bg_opacity(a)
+        self.canvas.set_bg_opacity(a)  # Only affects editable canvas
         self.lbl_bg.setText(f"{val} %")
 
     def _seg_alpha_changed(self, val: int):
         """Handle segmentation opacity change."""
         alpha = val / 100.0
-        self.canvas.set_segmentation_opacity(alpha)
+        self.canvas.set_segmentation_opacity(alpha)  # Only affects editable canvas
+        self.original_canvas.set_segmentation_opacity(alpha)  # Sync with original view
         self.lbl_seg.setText(f"{val} %")
         
     # ---------- contrast mini-popup ------------------------------
     def _open_contrast_popup(self):
-        dlg = QDialog(self); dlg.setWindowTitle("Brightness / Contrast")
-        dlg.setFixedSize(300, 400)  # TAMBAHKAN: Fixed size untuk konsistensi
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Brightness / Contrast")
+        dlg.setFixedSize(300, 400)
         lay = QVBoxLayout(dlg)
 
         pad = _BCPad()
         lbl = QLabel("B 0.00  C 1.00")
         lay.addWidget(QLabel("Drag crosshair – X = brightness, Y = contrast"))
         lay.addWidget(pad, 0, Qt.AlignCenter)
-        # TAMBAHKAN: Labels untuk reference
+        
+        # Labels for reference
         ref_layout = QHBoxLayout()
         ref_layout.addWidget(QLabel("Dark"))
         ref_layout.addStretch()
@@ -1480,7 +1647,7 @@ class HotspotEditorDialog(QDialog):
         ref_layout.addWidget(QLabel("Bright"))
         lay.addLayout(ref_layout)
 
-        # Labels untuk contrast (vertikal)
+        # Labels for contrast (vertical)
         contrast_info = QLabel("↑ High Contrast\n↓ Low Contrast")
         contrast_info.setAlignment(Qt.AlignCenter)
         lay.addWidget(contrast_info)
@@ -1488,26 +1655,88 @@ class HotspotEditorDialog(QDialog):
 
         def _on_change(b, c):
             lbl.setText(f"B {b:+.2f}   C {c:.2f}")
-            self.canvas.set_bc(b, c)
+            self.canvas.set_bc(b, c)  # Only affects editable canvas
+            self.original_canvas.set_bc(b, c)  # Sync with original view
         pad.valueChanged.connect(_on_change)
 
         dlg.exec()
 
-    # ---------- palette & tools
+    def _on_invert_changed(self, state: int):
+        """Handle image inversion toggle for both canvases following main window pattern"""
+        from features.spect_viewer.logic.image_inverter import simple_invert_image
+        
+        print(f"[DEBUG] === INVERT CHECKBOX CHANGED ===")
+        
+        actual_checked = self.invert_checkbox.isChecked()
+        
+        print(f"[DEBUG] Checkbox state: {state}, isChecked(): {actual_checked}")
+        
+        try:
+            if actual_checked:
+                inverted_data = simple_invert_image(self._original_image_data)
+                print("✓ Applied image inversion (checked)")
+            else:
+                inverted_data = self._original_image_data.copy()
+                print("✓ Removed image inversion (unchecked)")
+            
+            # This call will now work correctly
+            self._update_canvas_images(inverted_data)
+            
+        except Exception as e:
+            print(f"✗ Error during image inversion: {e}")
+            self.invert_checkbox.setChecked(not actual_checked)
+
+    def _update_canvas_images(self, new_image_data: np.ndarray):
+            """Update both canvases with new image data - FIXED VERSION"""
+            try:
+                if new_image_data.dtype != np.uint8:
+                    normalized_data = ((new_image_data - new_image_data.min()) /
+                                    max(1, np.ptp(new_image_data)) * 255).astype(np.uint8)
+                else:
+                    normalized_data = new_image_data.copy()
+
+                self.original_canvas._orig_base = normalized_data.copy()
+                self.canvas._orig_base = normalized_data.copy()
+
+                h, w = normalized_data.shape
+                q_image = QImage(normalized_data.data, w, h, w, QImage.Format_Grayscale8)
+                pixmap = QPixmap.fromImage(q_image.copy())
+
+                self.original_canvas._item_gray.setPixmap(pixmap)
+                self.canvas._item_gray.setPixmap(pixmap)
+
+                current_brightness = getattr(self, '_current_brightness', 0.0)
+                current_contrast = getattr(self, '_current_contrast', 1.0)
+
+                if current_brightness != 0.0 or current_contrast != 1.0:
+                    self.canvas.set_bc(current_brightness, current_contrast)
+                    self.original_canvas.set_bc(current_brightness, current_contrast)
+
+                self.original_canvas.viewport().update()
+                self.canvas.viewport().update()
+                
+                print("✓ Successfully updated both canvas images with new inversion state")
+                
+            except Exception as e:
+                print(f"✗ Error updating canvas images: {e}")
+                import traceback
+                traceback.print_exc()
+
+    # ---------- palette & tools (only affect editable canvas)
     def _select_brush(self):
         self.btn_eraser.setChecked(False)
-        self.canvas.set_label(self.list_palette.currentRow())
+        self.canvas.set_label(self.list_palette.currentRow())  # Only affects editable canvas
     
     def _select_eraser(self):
         self.btn_brush.setChecked(False)
-        self.canvas.set_eraser()
+        self.canvas.set_eraser()  # Only affects editable canvas
     
     def _change_label(self, idx: int):
-        self.btn_brush.setChecked(True); self.btn_eraser.setChecked(False)
-        self.canvas.set_label(idx)
+        self.btn_brush.setChecked(True)
+        self.btn_eraser.setChecked(False)
+        self.canvas.set_label(idx)  # Only affects editable canvas
 
-    # ---------- FIXED: I/O helpers dengan error handling yang lebih baik
-    
+    # ---------- I/O helpers
     def _load_mask_from_classification_png(self, classification_path: Path) -> np.ndarray:
         """Load mask from classification PNG file."""
         try:
@@ -1555,7 +1784,7 @@ class HotspotEditorDialog(QDialog):
         ds.save_as(path, write_like_original=False)
 
     def _save_xml_with_backup(self, mask: np.ndarray):
-        """✅ FIXED: Always generate XML even if no annotations found"""
+        """Always generate XML even if no annotations found"""
         try:
             print(f"[DEBUG-XML] Starting XML save for {self._patient_id}")
             print(f"[DEBUG-XML] View: {self._view_short}, Filename stem: {self._filename_stem}")
@@ -1567,22 +1796,21 @@ class HotspotEditorDialog(QDialog):
             bounding_boxes = mask_to_bounding_boxes(mask, segmentation_arr, min_area=10)
             print(f"[DEBUG-XML] Generated {len(bounding_boxes)} bounding boxes")
             
-            # ✅ ALWAYS SAVE XML - even if empty
+            # Always save XML - even if empty
             if not bounding_boxes:
                 print("✓ Saving empty XML (no annotations found - but file will exist)")
-                # Create minimal valid XML structure for quantification
                 bounding_boxes = []  # Empty but valid list
             
             # Get image dimensions
             img_height, img_width = mask.shape
             
-            # Generate XML content - ALWAYS generate, even if empty
+            # Generate XML content - always generate, even if empty
             xml_content = create_xml_from_bboxes(
                 bounding_boxes, img_width, img_height, 
                 self._patient_id, self._view_short, self._filename_stem
             )
             
-            # ✅ ALWAYS SAVE XML FILE - even empty ones
+            # Always save XML file - even empty ones
             save_xml_file(xml_content, self._xml_edited)
             print(f"✓ Saved XML to: {self._xml_edited}")
             
@@ -1603,7 +1831,7 @@ class HotspotEditorDialog(QDialog):
             abnormal_count = len([b for b in bounding_boxes if b['label'] == 'abnormal'])
             normal_count = len([b for b in bounding_boxes if b['label'] == 'normal'])
             
-            # ✅ BETTER MESSAGE for empty case
+            # Better message for empty case
             if bbox_count == 0:
                 bbox_stats = "No annotations (empty but valid for quantification)"
             else:
@@ -1621,28 +1849,26 @@ class HotspotEditorDialog(QDialog):
     
     def _trigger_quantification(self):
         """
-        MODIFIED: Memicu alur analisis lengkap: Klasifikasi DULU, BARU Kuantifikasi.
+        Modified: Trigger complete analysis pipeline: Classification FIRST, then Quantification.
         """
         try:
-            # Cukup satu kali import di awal
             from features.spect_viewer.logic.processing_wrapper import (
                 run_classification_for_patient,
                 run_quantification_for_patient
             )
 
-            # --- LANGKAH 1: Jalankan ulang Klasifikasi ---
+            # Step 1: Run classification again
             import inspect
             try:
                 path_file = inspect.getfile(run_classification_for_patient)
                 print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                print(f"!!! DEBUG: Fungsi 'run_classification_for_patient' dimuat dari:")
+                print(f"!!! DEBUG: Function 'run_classification_for_patient' loaded from:")
                 print(f"!!! {path_file}")
                 print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             except TypeError:
-                print("!!! DEBUG: Tidak bisa menemukan path file untuk 'run_classification_for_patient'.")
-            # =================================================
+                print("!!! DEBUG: Cannot find file path for 'run_classification_for_patient'.")
 
-            print("[SAVE-PIPELINE] Memicu Klasifikasi ulang (dari editor)...")
+            print("[SAVE-PIPELINE] Triggering classification re-run (from editor)...")
             clf_success = run_classification_for_patient(
                 self._dicom_path,
                 self._patient_id,
@@ -1650,17 +1876,17 @@ class HotspotEditorDialog(QDialog):
                 source_is_editor=True
             )
 
-            # --- LANGKAH 2: PERIKSA HASIL KLASIFIKASI ---
+            # Step 2: Check classification results
             if not clf_success:
-                print("[SAVE-PIPELINE] Klasifikasi ulang gagal. Proses kuantifikasi dibatalkan.")
-                QMessageBox.warning(self, "Analisis Gagal", 
-                                    "Proses klasifikasi ulang gagal. Kuantifikasi tidak dijalankan.")
+                print("[SAVE-PIPELINE] Classification re-run failed. Quantification process cancelled.")
+                QMessageBox.warning(self, "Analysis Failed", 
+                                    "Classification re-run failed. Quantification not executed.")
                 return False
 
-            print("[SAVE-PIPELINE] Klasifikasi ulang berhasil.")
+            print("[SAVE-PIPELINE] Classification re-run successful.")
 
-            # --- LANGKAH 3: Jalankan ulang Kuantifikasi (HANYA JIKA KLASIFIKASI SUKSES) ---
-            print("[SAVE-PIPELINE] Memicu Kuantifikasi ulang...")
+            # Step 3: Run quantification (only if classification successful)
+            print("[SAVE-PIPELINE] Triggering quantification re-run...")
             quant_success = run_quantification_for_patient(
                 self._dicom_path,
                 self._patient_id,
@@ -1668,20 +1894,20 @@ class HotspotEditorDialog(QDialog):
             )
             
             if quant_success:
-                print("[SAVE-PIPELINE] Kuantifikasi ulang berhasil.")
+                print("[SAVE-PIPELINE] Quantification re-run successful.")
             else:
-                print("[SAVE-PIPELINE] Kuantifikasi ulang gagal.")
-                QMessageBox.warning(self, "Analisis Gagal", 
-                                    "Proses kuantifikasi ulang gagal setelah klasifikasi berhasil.")
+                print("[SAVE-PIPELINE] Quantification re-run failed.")
+                QMessageBox.warning(self, "Analysis Failed", 
+                                    "Quantification re-run failed after successful classification.")
 
             return quant_success
 
         except Exception as e:
-            print(f"[SAVE-PIPELINE ERROR] Gagal menjalankan analisis lanjutan: {e}")
+            print(f"[SAVE-PIPELINE ERROR] Failed to run advanced analysis: {e}")
             import traceback
             traceback.print_exc()
-            QMessageBox.critical(self, "Error Kritis", 
-                                f"Terjadi error saat menjalankan analisis lanjutan:\n{e}")
+            QMessageBox.critical(self, "Critical Error", 
+                                f"Error occurred during advanced analysis:\n{e}")
             return False
         
     def _save_all(self):
@@ -1711,7 +1937,7 @@ class HotspotEditorDialog(QDialog):
         
         # Create save thread
         self._save_thread = SaveThread(
-            self.canvas,
+            self.canvas,  # Only save from editable canvas
             self._classification_mask_edited,
             self._xml_edited,
             self._patient_id,
@@ -1748,7 +1974,7 @@ class HotspotEditorDialog(QDialog):
                 widget.setEnabled(True)
                 widget.setText("Save")
         
-        # ✅ SEKARANG AMAN: Panggil QMessageBox dari main thread
+        # Safe to call QMessageBox from main thread
         if success:
             QMessageBox.information(self, "Success", message)
             self.accept()
