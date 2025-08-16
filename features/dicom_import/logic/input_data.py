@@ -121,17 +121,14 @@ def _process_one_with_assignments(
     src: Path, 
     session_code: str,
     view_assignments: Optional[Dict[int, str]] = None,
-    background_assignments: Optional[Dict[int, Dict[str, str]]] = None  # TAMBAHAN BARU
+    background_assignments: Optional[Dict[int, Dict[str, str]]] = None
 ) -> Path:
     """
     ✅ FIXED: Process single DICOM without any modification - only copy and generate outputs
-    
-    Args:
-        src: Source DICOM path
-        session_code: Session code
-        view_assignments: Dict {frame_index: view_name} atau None untuk auto-detect
     """
     _log(f"\n=== Processing {truncate_text(src.name, 40)} ===")
+    _log(f"  >> [DEBUG] Input session_code: {session_code}")
+    _log(f"  >> [DEBUG] Source path: {src}")
 
     # Read patient info and study date from ORIGINAL DICOM
     _log("  >> Reading DICOM metadata...")
@@ -151,7 +148,7 @@ def _process_one_with_assignments(
     filename_stem = generate_filename_stem(pid, study_date)
     _log(f"  Filename stem: {filename_stem}")
     
-    dest_dir = get_patient_planar_path(pid, session_code)
+    dest_dir = get_patient_planar_path(session_code, pid)
     dest_dir.mkdir(parents=True, exist_ok=True)
     
     # Create destination path with new naming convention
@@ -163,6 +160,10 @@ def _process_one_with_assignments(
         copy2(src, dest_path)
     _log(f"  Copied ORIGINAL → {truncate_text(str(dest_path), 60)}")
 
+    # ✅ DEBUG: Verify correct path structure
+    _log(f"  >> Target directory: {dest_dir}")
+    _log(f"  >> Session: {session_code}, Patient: {pid}")
+    
     # ✅ CRITICAL: Load ORIGINAL DICOM for processing WITHOUT MODIFICATION
     _log("  >> Loading ORIGINAL DICOM frames with view assignments...")
     
@@ -415,7 +416,7 @@ def process_files_with_assignments(
     
     _log(f"## Starting batch import with view assignments: {total} file(s)")
     _log(f"## Session code: {session_code}")
-    _log(f"## Target directory: data/SPECT/{session_code}/[patient_id]/")
+    _log(f"## Target directory: data/PLANAR/{session_code}/[patient_id]/")
     _log(f"## ✅ DICOM PROTECTION: Original DICOM files will NOT be modified")
     _log(f"## ✅ OUTPUT ONLY: PNG/XML files for analysis results")
     if background_assignments:
