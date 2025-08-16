@@ -17,10 +17,16 @@ from PySide6.QtWidgets import (
 
 # Import NEW config paths for edited files support
 from core.config.paths import (
-    get_hotspot_files, 
-    get_segmentation_files_with_edited,
     extract_study_date_from_dicom,
-    generate_filename_stem
+    generate_filename_stem,
+    get_planar_hotspot_files,
+    get_planar_segmentation_files
+)
+
+# Import legacy functions from archive if needed
+from core.config.paths_archive import (
+    get_hotspot_files,
+    get_segmentation_files_with_edited
 )
 
 # Import NEW transparency utilities
@@ -268,7 +274,7 @@ class ScanTimelineWidget(QWidget):
     def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str):
         """✅ CORRECTED: Load segmentation layer if available"""
         try:
-            seg_files = get_segmentation_files_with_edited(dicom_path.parent, filename_with_date, view_normalized)
+            seg_files = get_planar_segmentation_files(dicom_path.parent, filename_with_date, view_normalized)
             
             # ✅ FIX: Prioritize the edited file first, then the original
             if seg_files['png_colored_edited'].exists():
