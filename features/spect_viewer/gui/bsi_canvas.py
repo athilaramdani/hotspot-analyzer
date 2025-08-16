@@ -165,7 +165,7 @@ class BSICanvas(FigureCanvas):
                     combined_scores.append(combined_bsi)
                     date_labels.append(formatted_date)
                     
-                    print(f"[DEBUG BSI CANVAS] Added: Ant={ant_bsi} Post={post_bsi} Combined={combined_bsi:.1f}%")
+                    print(f"[DEBUG BSI CANVAS] Added: Ant={ant_bsi} Post={post_bsi}")
                     
                 except Exception as e:
                     print(f"[WARN] Error processing BSI entry: {e}")
@@ -187,7 +187,7 @@ class BSICanvas(FigureCanvas):
                 ant_values = [v for v in anterior_scores if v is not None]
                 if ant_dates and ant_values:
                     ax.plot(ant_dates, ant_values, marker='o', linestyle='-', color='#ff6b6b', 
-                        linewidth=2, markersize=6, label='Anterior BSI')
+                        linewidth=2, markersize=6, label='Anterior BSI (raw)')
             
             # Plot posterior line (only where data is available)
             if self.posterior_visible:
@@ -195,7 +195,7 @@ class BSICanvas(FigureCanvas):
                 post_values = [v for v in posterior_scores if v is not None]
                 if post_dates and post_values:
                     ax.plot(post_dates, post_values, marker='^', linestyle='-', color='#4ecdc4', 
-                        linewidth=2, markersize=6, label='Posterior BSI')
+                        linewidth=2, markersize=6, label='Posterior BSI (raw)')
 
             # Only show legend if at least one line is visible
             if self.anterior_visible or self.posterior_visible:
