@@ -144,6 +144,7 @@ class MainWindowSpect(QMainWindow):
         """Safe zoom in with error handling"""
         try:
             if hasattr(self, 'timeline_widget') and hasattr(self.timeline_widget, 'zoom_in'):
+                # ✅ OPTIMIZED: Now uses smooth scaling instead of rebuild
                 self.timeline_widget.zoom_in()
             else:
                 print("[MainWindow] Timeline widget or zoom_in method not available")
