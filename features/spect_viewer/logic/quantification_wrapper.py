@@ -19,35 +19,78 @@ from .algorithm_quantification import (
 )
 
 def get_quantification_input_paths_v2(patient_folder: Path, filename_stem: str) -> dict:
-    """Get input file paths for V1.2 quantification (separate anterior/posterior)"""
+    """Get input file paths for V1.2 quantification with debugging"""
+    
+    print(f"\n🔧 [DEBUG WRAPPER GANTENG] ===================")
+    print(f"🔧 [DEBUG WRAPPER] Getting quantification input paths:")
+    print(f"🔧 [DEBUG WRAPPER]   Patient folder: {patient_folder}")
+    print(f"🔧 [DEBUG WRAPPER]   Filename stem: {filename_stem}")
+    print(f"🔧 [DEBUG WRAPPER]   Folder exists: {patient_folder.exists()}")
     
     # Get classification files (for hotspot data)
-    ant_clf_files = get_classification_files(patient_folder, filename_stem, "anterior")
-    post_clf_files = get_classification_files(patient_folder, filename_stem, "posterior")
-    
-    # Get segmentation files (for region data) - prioritize edited
-    ant_seg_files = get_segmentation_files_with_edited(patient_folder, filename_stem, "anterior")
-    post_seg_files = get_segmentation_files_with_edited(patient_folder, filename_stem, "posterior")
-    
-    # ✅ FIXED: Use classification_mask.png (not hotspot_colored.png)
-    ant_mask_to_use = ant_clf_files['mask_edited'] if ant_clf_files['mask_edited'].exists() else ant_clf_files['mask_original']
-    post_mask_to_use = post_clf_files['mask_edited'] if post_clf_files['mask_edited'].exists() else post_clf_files['mask_original']
-    
-    # ✅ Use colored segmentation (for region detection)
-    ant_seg_to_use = ant_seg_files['png_colored_edited'] if ant_seg_files['png_colored_edited'].exists() else ant_seg_files['png_colored']
-    post_seg_to_use = post_seg_files['png_colored_edited'] if post_seg_files['png_colored_edited'].exists() else post_seg_files['png_colored']
-    
-    return {
-        # Input files
-        'segmentation_anterior': ant_seg_to_use,
-        'segmentation_posterior': post_seg_to_use,
-        'hotspot_anterior': ant_mask_to_use,
-        'hotspot_posterior': post_mask_to_use,
+    try:
+        from core.config.paths import get_classification_files, get_segmentation_files_with_edited, get_planar_quantification_files
         
-        # Output files (separate for each view)
-        'output_anterior': patient_folder / f"{filename_stem}_bsi_quantification_anterior.json",
-        'output_posterior': patient_folder / f"{filename_stem}_bsi_quantification_posterior.json"
-    }
+        ant_clf_files = get_classification_files(patient_folder, filename_stem, "anterior")
+        post_clf_files = get_classification_files(patient_folder, filename_stem, "posterior")
+        
+        print(f"🔧 [DEBUG WRAPPER] Classification files:")
+        print(f"🔧 [DEBUG WRAPPER]   Anterior mask: {ant_clf_files['mask_original'].exists()}")
+        print(f"🔧 [DEBUG WRAPPER]   Posterior mask: {post_clf_files['mask_original'].exists()}")
+        
+        # Get segmentation files (for region data) - prioritize edited
+        ant_seg_files = get_segmentation_files_with_edited(patient_folder, filename_stem, "anterior")
+        post_seg_files = get_segmentation_files_with_edited(patient_folder, filename_stem, "posterior")
+        
+        print(f"🔧 [DEBUG WRAPPER] Segmentation files:")
+        print(f"🔧 [DEBUG WRAPPER]   Anterior seg: {ant_seg_files['png_colored'].exists()}")
+        print(f"🔧 [DEBUG WRAPPER]   Posterior seg: {post_seg_files['png_colored'].exists()}")
+        
+        # Use classification_mask.png (not hotspot_colored.png)
+        ant_mask_to_use = ant_clf_files['mask_edited'] if ant_clf_files['mask_edited'] and ant_clf_files['mask_edited'].exists() else ant_clf_files['mask_original']
+        post_mask_to_use = post_clf_files['mask_edited'] if post_clf_files['mask_edited'] and post_clf_files['mask_edited'].exists() else post_clf_files['mask_original']
+        
+        # Use colored segmentation (for region detection)
+        ant_seg_to_use = ant_seg_files['png_colored_edited'] if ant_seg_files['png_colored_edited'] and ant_seg_files['png_colored_edited'].exists() else ant_seg_files['png_colored']
+        post_seg_to_use = post_seg_files['png_colored_edited'] if post_seg_files['png_colored_edited'] and post_seg_files['png_colored_edited'].exists() else post_seg_files['png_colored']
+        
+        # Get output paths using new structure
+        quant_files = get_planar_quantification_files(patient_folder)
+        
+        paths = {
+            # Input files
+            'segmentation_anterior': ant_seg_to_use,
+            'segmentation_posterior': post_seg_to_use,
+            'hotspot_anterior': ant_mask_to_use,
+            'hotspot_posterior': post_mask_to_use,
+            
+            # ✅ UPDATED: Output files using correct short naming (ant/post)
+            'output_anterior': quant_files['bsi_json_ant'],
+            'output_posterior': quant_files['bsi_json_post']
+        }
+        
+        print(f"🔧 [DEBUG WRAPPER] Final paths:")
+        for key, value in paths.items():
+            exists = value.exists() if hasattr(value, 'exists') else False
+            print(f"🔧 [DEBUG WRAPPER]   {key}: {value} (exists: {exists})")
+        
+        return paths
+        
+    except Exception as e:
+        print(f"🔧 [DEBUG WRAPPER] ❌ Error getting paths: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Fallback to old method
+        print(f"🔧 [DEBUG WRAPPER] Using fallback method...")
+        return {
+            'segmentation_anterior': patient_folder / f"ant_segm.png",
+            'segmentation_posterior': patient_folder / f"post_segm.png", 
+            'hotspot_anterior': patient_folder / f"ant_hotspot_classification.png",
+            'hotspot_posterior': patient_folder / f"post_hotspot_classification.png",
+            'output_anterior': patient_folder / f"{filename_stem}_bsi_quantification_anterior.json",
+            'output_posterior': patient_folder / f"{filename_stem}_bsi_quantification_posterior.json"
+        }
 
 def check_available_files_v2(paths):
     """✅ FIXED: Check file availability for V1.2 quantification - ALLOW SINGLE VIEW"""

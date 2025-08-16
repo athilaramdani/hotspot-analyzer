@@ -128,68 +128,55 @@ class BSITimelineIntegration:
     
     def _extract_patient_info(self, scan_data: Dict, session_code: str = None) -> tuple[str, str]:
         """
-        Extract patient ID and study date from scan data
-        
-        Args:
-            scan_data: Timeline scan data
-            session_code: Session code
-            
-        Returns:
-            Tuple of (patient_id, study_date)
+        ✅ FIXED: Extract patient ID and study date using existing infrastructure
         """
         try:
             dicom_path = Path(scan_data["path"])
+            print(f"[BSI EXTRACT INFO] Extracting from path: {dicom_path}")
             
-            # Method 1: Extract from path structure
-            if session_code:
-                # NEW structure: data/SPECT/[session_code]/[patient_id]/file.dcm
-                parts = dicom_path.parts
-                spect_index = None
-                for i, part in enumerate(parts):
-                    if part == "SPECT":
-                        spect_index = i
-                        break
-                
-                if spect_index and len(parts) > spect_index + 2:
-                    path_session = parts[spect_index + 1]
-                    path_patient = parts[spect_index + 2]
+            # ✅ REUSE: Use existing path extraction logic
+            from core.config.paths import extract_study_date_from_dicom
+            
+            # Method 1: Extract study date from DICOM
+            study_date = extract_study_date_from_dicom(dicom_path)
+            print(f"[BSI EXTRACT INFO] Extracted study_date from DICOM: {study_date}")
+            
+            # Method 2: Extract patient ID from path structure
+            patient_id = None
+            
+            # Check if we're in study_date folder structure
+            if len(dicom_path.parent.name) == 8 and dicom_path.parent.name.isdigit():
+                # Structure: .../patient_id/study_date/file.dcm
+                patient_id = dicom_path.parent.parent.name
+                print(f"[BSI EXTRACT INFO] Extracted patient_id from study_date structure: {patient_id}")
+            else:
+                # Structure: .../patient_id/file.dcm
+                patient_id = dicom_path.parent.name
+                print(f"[BSI EXTRACT INFO] Extracted patient_id from direct structure: {patient_id}")
+            
+            # Method 3: Fallback to DICOM content if path extraction fails
+            if not patient_id or len(patient_id) == 8 and patient_id.isdigit():
+                try:
+                    import pydicom
+                    ds = pydicom.dcmread(dicom_path, stop_before_pixels=True)
+                    dicom_patient_id = str(ds.get("PatientID", ""))
                     
-                    if path_session == session_code:
-                        patient_id = path_patient
+                    # Clean patient ID (remove session code if present)
+                    if "_" in dicom_patient_id and session_code:
+                        patient_id = dicom_patient_id.split("_")[0]
+                    else:
+                        patient_id = dicom_patient_id
                         
-                        # Extract study date from DICOM
-                        study_date = extract_study_date_from_dicom(dicom_path)
-                        return patient_id, study_date
+                    print(f"[BSI EXTRACT INFO] Fallback patient_id from DICOM: {patient_id}")
+                    
+                except Exception as e:
+                    print(f"[BSI EXTRACT INFO] Could not read DICOM for patient info: {e}")
             
-            # Method 2: Extract from meta data
-            meta = scan_data.get("meta", {})
-            patient_id = meta.get("patient_id")
-            study_date = meta.get("study_date")
-            
-            if patient_id and study_date:
-                return patient_id, study_date
-            
-            # Method 3: Extract from DICOM file directly
-            try:
-                import pydicom
-                ds = pydicom.dcmread(dicom_path, stop_before_pixels=True)
-                dicom_patient_id = str(ds.get("PatientID", ""))
-                dicom_study_date = extract_study_date_from_dicom(dicom_path)
-                
-                # Clean patient ID (remove session code if present)
-                if "_" in dicom_patient_id and session_code:
-                    clean_patient_id = dicom_patient_id.split("_")[0]
-                else:
-                    clean_patient_id = dicom_patient_id
-                
-                return clean_patient_id, dicom_study_date
-                
-            except Exception as e:
-                _log(f"[BSI INTEGRATION SINGLE] Could not read DICOM for patient info: {e}")
-                return None, None
+            print(f"[BSI EXTRACT INFO] Final result - Patient: {patient_id}, Study: {study_date}")
+            return patient_id, study_date
             
         except Exception as e:
-            _log(f"[BSI INTEGRATION SINGLE] Error extracting patient info: {e}")
+            print(f"[BSI EXTRACT INFO] Error extracting patient info: {e}")
             return None, None
     
     def get_current_patient_data(self) -> Optional[Dict[str, Any]]:
@@ -285,46 +272,112 @@ class BSITimelineIntegration:
     
     def update_scan_meta_with_bsi(self, scan_data: Dict, session_code: str = None) -> Dict:
         """
-        ✅ UPDATED: Update scan metadata with BSI info including processing mode
+        ✅ FIXED: Update scan metadata with BSI info using existing paths.py infrastructure
         """
-    def update_scan_meta_with_bsi(self, scan_data: Dict, session_code: str = None) -> Dict:
-        """
-        ✅ UPDATED: Update scan metadata with BSI info including processing mode
-        """
-        # Check quantification status
-        status = self.check_quantification_status(scan_data, session_code)
-        
-        # Add BSI info to meta
-        if "meta" not in scan_data:
-            scan_data["meta"] = {}
-        
-        scan_data["meta"]["has_bsi"] = status.get("has_quantification", False)
-        
-        if status.get("has_quantification", False):
-            # ✅ DEBUG: Print status content
-            print(f"[BSI META SINGLE DEBUG] Status keys: {list(status.keys())}")
-            print(f"[BSI META SINGLE DEBUG] anterior_bsi from status: {status.get('anterior_bsi', 'NOT_FOUND')}")
-            print(f"[BSI META SINGLE DEBUG] posterior_bsi from status: {status.get('posterior_bsi', 'NOT_FOUND')}")
-            print(f"[BSI META SINGLE DEBUG] combined_bsi from status: {status.get('combined_bsi', 'NOT_FOUND')}")
-            print(f"[BSI META SINGLE DEBUG] processing_mode from status: {status.get('processing_mode', 'NOT_FOUND')}")
+        try:
+            print(f"[BSI META INTEGRATION] Updating scan meta with BSI data")
+            print(f"[BSI META INTEGRATION] Session code: {session_code}")
+            print(f"[BSI META INTEGRATION] Scan path: {scan_data.get('path', 'UNKNOWN')}")
             
-            # ✅ SEPARATE BSI per view
-            scan_data["meta"]["bsi_anterior"] = status.get("anterior_bsi", 0.0)
-            scan_data["meta"]["bsi_posterior"] = status.get("posterior_bsi", 0.0)
-            scan_data["meta"]["bsi_combined"] = status.get("combined_bsi", 0.0)
+            # ✅ REUSE: Use existing quantification_integration infrastructure
+            dicom_path = Path(scan_data["path"])
             
-            # ✅ NEW: Add processing mode and view availability info
-            scan_data["meta"]["bsi_processing_mode"] = status.get("processing_mode", "unknown")
-            scan_data["meta"]["bsi_has_anterior"] = status.get("v2_anterior_exists", False)
-            scan_data["meta"]["bsi_has_posterior"] = status.get("v2_posterior_exists", False)
-            scan_data["meta"]["bsi_can_run"] = status.get("can_run_quantification", False)
+            # Extract patient info using existing logic
+            patient_id, study_date = self._extract_patient_info(scan_data, session_code)
+            print(f"[BSI META INTEGRATION] Extracted - Patient: {patient_id}, Study: {study_date}")
             
-            print(f"[BSI META SINGLE DEBUG] Set meta - anterior: {scan_data['meta']['bsi_anterior']}")
-            print(f"[BSI META SINGLE DEBUG] Set meta - posterior: {scan_data['meta']['bsi_posterior']}")
-            print(f"[BSI META SINGLE DEBUG] Set meta - processing_mode: {scan_data['meta']['bsi_processing_mode']}")
+            if not patient_id or not study_date:
+                print(f"[BSI META INTEGRATION] Could not extract patient info, no BSI meta added")
+                if "meta" not in scan_data:
+                    scan_data["meta"] = {}
+                scan_data["meta"]["has_bsi"] = False
+                return scan_data
             
-        return scan_data
-
+            # ✅ REUSE: Use existing QuantificationManager to load BSI data
+            from features.spect_viewer.logic.quantification_integration import QuantificationManager
+            
+            # Try to determine correct patient folder for BSI files
+            patient_folder = None
+            
+            # Method 1: Check if DICOM is in study_date folder
+            if len(dicom_path.parent.name) == 8 and dicom_path.parent.name.isdigit():
+                # DICOM is in study_date folder: .../patient_id/study_date/file.dcm
+                study_date_folder = dicom_path.parent
+                patient_folder_candidate = study_date_folder.parent
+                
+                # Check if BSI files exist in study_date folder
+                from core.config.paths import get_planar_quantification_files
+                study_date_quant_files = get_planar_quantification_files(study_date_folder)
+                
+                if study_date_quant_files['bsi_json_ant'].exists() or study_date_quant_files['bsi_json_post'].exists():
+                    print(f"[BSI META INTEGRATION] Found BSI files in study_date folder: {study_date_folder}")
+                    patient_folder = study_date_folder
+                else:
+                    print(f"[BSI META INTEGRATION] No BSI files in study_date folder, trying patient folder: {patient_folder_candidate}")
+                    patient_quant_files = get_planar_quantification_files(patient_folder_candidate)
+                    if patient_quant_files['bsi_json_ant'].exists() or patient_quant_files['bsi_json_post'].exists():
+                        patient_folder = patient_folder_candidate
+            else:
+                # DICOM is in patient folder directly
+                patient_folder = dicom_path.parent
+            
+            if not patient_folder:
+                print(f"[BSI META INTEGRATION] Could not determine patient folder with BSI files")
+                if "meta" not in scan_data:
+                    scan_data["meta"] = {}
+                scan_data["meta"]["has_bsi"] = False
+                return scan_data
+            
+            print(f"[BSI META INTEGRATION] Using patient folder: {patient_folder}")
+            
+            # ✅ REUSE: Load BSI scores using existing infrastructure
+            manager = QuantificationManager()
+            all_scores = manager.load_all_quantification_scores(patient_folder, patient_id)
+            
+            # Find scores for this study_date
+            matching_scores = [score for score in all_scores if score.get("study_date") == study_date]
+            
+            if not matching_scores:
+                print(f"[BSI META INTEGRATION] No BSI scores found for study_date: {study_date}")
+                if "meta" not in scan_data:
+                    scan_data["meta"] = {}
+                scan_data["meta"]["has_bsi"] = False
+                return scan_data
+            
+            # Get the BSI data for this study
+            bsi_data = matching_scores[0]  # Should only be one per study_date
+            
+            print(f"[BSI META INTEGRATION] Found BSI data: {bsi_data}")
+            
+            # ✅ UPDATE: Add BSI info to meta
+            if "meta" not in scan_data:
+                scan_data["meta"] = {}
+            
+            scan_data["meta"]["has_bsi"] = True
+            scan_data["meta"]["bsi_anterior"] = bsi_data.get("anterior_bsi", 0.0)
+            scan_data["meta"]["bsi_posterior"] = bsi_data.get("posterior_bsi", 0.0)
+            scan_data["meta"]["bsi_combined"] = bsi_data.get("combined_bsi", 0.0)  # For internal use only
+            scan_data["meta"]["bsi_processing_mode"] = bsi_data.get("processing_mode", "unknown")
+            scan_data["meta"]["bsi_file_source"] = bsi_data.get("file_source", "unknown")
+            
+            print(f"[BSI META INTEGRATION] ✅ Updated meta with BSI data:")
+            print(f"[BSI META INTEGRATION]   Anterior BSI: {scan_data['meta']['bsi_anterior']}")
+            print(f"[BSI META INTEGRATION]   Posterior BSI: {scan_data['meta']['bsi_posterior']}")
+            print(f"[BSI META INTEGRATION]   Processing mode: {scan_data['meta']['bsi_processing_mode']}")
+            
+            return scan_data
+            
+        except Exception as e:
+            print(f"[BSI META INTEGRATION] ❌ Error updating scan meta: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            # Ensure meta exists even on error
+            if "meta" not in scan_data:
+                scan_data["meta"] = {}
+            scan_data["meta"]["has_bsi"] = False
+            return scan_data
+    
 
 # Global integration instance
 bsi_timeline_integration = BSITimelineIntegration()
