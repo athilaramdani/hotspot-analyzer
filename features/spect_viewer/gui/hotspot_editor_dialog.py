@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QCheckBox, QSlider, QWidget, QGraphicsView
 )
 from PySide6.QtGui import QGuiApplication
-
+from core.gui.ui_constants import OPACITY_SLIDER_STYLE, OPACITY_VALUE_LABEL_STYLE
 from core.config.paths import (
     extract_study_date_from_dicom,
     generate_filename_stem,
@@ -156,6 +156,8 @@ class HotspotEditorDialog(BaseEditorDialog):
             print(f"✗ Error processing XML {xml_path}: {e}")
             return np.zeros_like(self.original_image_data, np.uint8)
 
+    # Replace the opacity panel creation section in _create_toolbar() method
+
     def _create_toolbar(self):
         """Create hotspot-specific toolbar."""
         super()._create_toolbar()
@@ -189,45 +191,29 @@ class HotspotEditorDialog(BaseEditorDialog):
         undo_row.addWidget(self.btn_redo)
         self.toolbar_layout.addLayout(undo_row)
         
-        # Brush Size - Updated to use new brush size control
+        # Brush Size - Using base component
         from .editor_components.base_components import BaseBrushSizeControl
         self.brush_size_control = BaseBrushSizeControl("Brush Size", initial_radius=1, min_radius=1, max_radius=15)
         self.toolbar_layout.addWidget(self.brush_size_control)
         
-        # Zoom controls - Updated to use base opacity slider
-        self.toolbar_layout.addWidget(QLabel("Zoom"))
-        self.zoom_slider = BaseOpacitySlider("", 10)
+        # Zoom controls - Using base component  
+        self.zoom_slider = BaseOpacitySlider("Zoom", 10)
         self.zoom_slider.slider.setRange(1, 1000)
         self.zoom_slider.setValue(10)
         self.zoom_slider.lbl_value.setText("1.0x")
         self.toolbar_layout.addWidget(self.zoom_slider)
         
-        # Opacity panel - Enhanced with improved styling
-        # Opacity panel - Create directly with proper attribute storage (Original Image removed)
-        self.opacity_panel = QWidget()
-        self.opacity_panel.setStyleSheet("""
-            QWidget {
-                background: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 6px;
-                padding: 8px;
-                margin: 4px 0px;
-            }
-        """)
-        opacity_layout = QVBoxLayout(self.opacity_panel)
+        # ✅ SIMPLIFIED: Hotspot Layer Opacity - Using same base component
+        self.hotspot_opacity = BaseOpacitySlider("Hotspot Layer", 30)
+        self.hotspot_opacity.slider.setRange(0, 100)
+        self.hotspot_opacity.setValue(30)
+        self.toolbar_layout.addWidget(self.hotspot_opacity)
         
-        # Create opacity sliders with proper storage (only for adjustable layers)
-        self.opacity_sliders = {}
-        
-        # Hotspot Layer opacity (30% default)
-        self.opacity_sliders["Hotspot Layer"] = BaseOpacitySlider("Hotspot Layer", 30)
-        opacity_layout.addWidget(self.opacity_sliders["Hotspot Layer"])
-        
-        # Segmentation opacity (10% default)
-        self.opacity_sliders["Segmentation"] = BaseOpacitySlider("Segmentation", 10)
-        opacity_layout.addWidget(self.opacity_sliders["Segmentation"])
-        
-        self.toolbar_layout.addWidget(self.opacity_panel)
+        # ✅ SIMPLIFIED: Segmentation Opacity - Using same base component  
+        self.segmentation_opacity = BaseOpacitySlider("Segmentation", 10)
+        self.segmentation_opacity.slider.setRange(0, 100)
+        self.segmentation_opacity.setValue(10)
+        self.toolbar_layout.addWidget(self.segmentation_opacity)
         
         # Contrast button
         btn_contrast = QPushButton("Contrast…")
@@ -312,56 +298,92 @@ class HotspotEditorDialog(BaseEditorDialog):
         canvas_layout = QHBoxLayout()
         
         # Original scan view (read-only)
+        # Left panel: View-only reference (no editing)
         scan_layout = QVBoxLayout()
-        scan_header = QLabel("Scan Image")
+        scan_header = QLabel("Scan Image (View Only)")
         scan_header.setAlignment(Qt.AlignCenter)
         scan_header.setStyleSheet("QLabel { background: #e0e0e0; padding: 5px; font-weight: bold; }")
         scan_layout.addWidget(scan_header)
-        
+
+        # Create view-only canvas with empty mask (no hotspot data shown)
         self.original_canvas = HotspotCanvas(self.processed_image_data, np.zeros_like(self.processed_image_data, np.uint8))
         self.original_canvas.setStyleSheet("QGraphicsView { border: 1px solid #888; }")
+
+        # Make original canvas view-only (disable all editing interactions)
+        # Make original canvas completely view-only (disable all editing interactions)
+        self.original_canvas.setInteractive(False)  # Disable scene interactions
+        self.original_canvas.setDragMode(QGraphicsView.NoDrag)  # Disable dragging
         
-        # Make original canvas view-only (simple approach)
-        self.original_canvas.setInteractive(False)  # Disable all interactions
-        self.original_canvas.setDragMode(QGraphicsView.NoDrag)  # ✅ FIXED: Use QGraphicsView.NoDrag
-        
-        # Re-enable zoom with Ctrl+Scroll (keep zoom functionality)
+        # Override ALL mouse events to block editing completely
+        def view_only_mouse_press(event):
+            # Only allow middle-click for panning, block all left-click editing
+            if event.button() == Qt.MiddleButton:
+                # Enable panning for middle-click
+                self.original_canvas.setDragMode(QGraphicsView.ScrollHandDrag)
+                QGraphicsView.mousePressEvent(self.original_canvas, event)
+            # Block all other mouse press events (including left-click)
+            event.accept()
+            
+        def view_only_mouse_move(event):
+            # Only allow mouse move during middle-click drag
+            if event.buttons() & Qt.MiddleButton:
+                QGraphicsView.mouseMoveEvent(self.original_canvas, event)
+            # Block all other mouse move events
+            event.accept()
+            
+        def view_only_mouse_release(event):
+            # Handle middle-click release
+            if event.button() == Qt.MiddleButton:
+                QGraphicsView.mouseReleaseEvent(self.original_canvas, event)
+                self.original_canvas.setDragMode(QGraphicsView.NoDrag)
+            # Block all other mouse release events
+            event.accept()
+
         def view_only_wheel_event(event):
+            # Only allow Ctrl+Scroll for zooming
             if event.modifiers() & Qt.ControlModifier:
                 # Allow zoom with Ctrl+Scroll
                 HotspotCanvas.wheelEvent(self.original_canvas, event)
             # Block other wheel events
-        
+            event.accept()
+
+        # Override all mouse events to make canvas truly view-only
+        self.original_canvas.mousePressEvent = view_only_mouse_press
+        self.original_canvas.mouseMoveEvent = view_only_mouse_move
+        self.original_canvas.mouseReleaseEvent = view_only_mouse_release
         self.original_canvas.wheelEvent = view_only_wheel_event
         
-        # Setup segmentation for original canvas
+        # Disable brush cursor on view-only canvas
+        self.original_canvas.set_brush_cursor_visible(False)
+
+        # Setup segmentation for view-only canvas (for reference)
         if self.segmentation_path.exists():
             self.original_canvas.set_segmentation_layer(self.segmentation_path)
-        
+
         scan_layout.addWidget(self.original_canvas)
-        
-        # Editor view (editable)
+
+        # Right panel: Hotspot Editor (with editing capabilities)
         editor_layout = QVBoxLayout()
-        editor_header = QLabel("Hotspot Editor")
+        editor_header = QLabel("Hotspot Editor (Editable)")
         editor_header.setAlignment(Qt.AlignCenter)
         editor_header.setStyleSheet("QLabel { background: #d0f0d0; padding: 5px; font-weight: bold; }")
         editor_layout.addWidget(editor_header)
-        
+
         # Info panel
         info_frame = self._create_info_panel()
         editor_layout.addWidget(info_frame)
-        
-        # Main editing canvas
+
+        # Main editing canvas with brush/eraser functionality
         self.canvas = HotspotCanvas(self.processed_image_data, self.mask_arr)
         self.canvas.set_info_callback(self._update_info_display)
         self.canvas.setStyleSheet("QGraphicsView { border: 1px solid #4a90e2; }")
-        
-        # Setup segmentation for editing canvas
+
+        # Setup segmentation for editing canvas (for painting constraints)
         if self.segmentation_path.exists():
             success = self.canvas.set_segmentation_layer(self.segmentation_path)
             if not success:
                 print(f"✗ Segmentation load failed: {self.segmentation_path.name}")
-        
+
         editor_layout.addWidget(self.canvas)
         
         # Add to main layout
@@ -383,32 +405,35 @@ class HotspotEditorDialog(BaseEditorDialog):
         self.btn_undo.clicked.connect(self._perform_undo)
         self.btn_redo.clicked.connect(self._perform_redo)
         
-        # Sliders - Updated to use new components
+        # Brush size and zoom - Using simplified connections
         self.brush_size_control.radiusChanged.connect(self._size_changed)
         self.zoom_slider.valueChanged.connect(self._zoom_slider_changed)
         
+        # Set initial canvas opacity
         self.canvas.set_gray_opacity(1.0)
         self.original_canvas.set_gray_opacity(1.0)
 
-        # Connect adjustable opacity sliders
-        self.opacity_sliders["Hotspot Layer"].valueChanged.connect(
-            lambda v: self.canvas.set_mask_opacity(v / 100.0)
-        )
-        self.opacity_sliders["Segmentation"].valueChanged.connect(
-            lambda v: self.canvas.set_segmentation_opacity(v / 100.0) if hasattr(self.canvas, 'set_segmentation_opacity') else None
-        )
+        # ✅ SIMPLIFIED: Connect opacity sliders using same pattern as zoom
+        def update_hotspot_opacity(value):
+            self.hotspot_opacity.lbl_value.setText(f"{value}%")
+            self.canvas.set_mask_opacity(value / 100.0)
 
-        # Also connect to original canvas for sync
-        self.opacity_sliders["Segmentation"].valueChanged.connect(
-            lambda v: self.original_canvas.set_segmentation_opacity(v / 100.0) if hasattr(self.original_canvas, 'set_segmentation_opacity') else None
-        )
+        def update_segmentation_opacity(value):
+            self.segmentation_opacity.lbl_value.setText(f"{value}%")
+            if hasattr(self.canvas, 'set_segmentation_opacity'):
+                self.canvas.set_segmentation_opacity(value / 100.0)
+            if hasattr(self.original_canvas, 'set_segmentation_opacity'):
+                self.original_canvas.set_segmentation_opacity(value / 100.0)
+
+        self.hotspot_opacity.valueChanged.connect(update_hotspot_opacity)
+        self.segmentation_opacity.valueChanged.connect(update_segmentation_opacity)
         
         # Contrast and invert
         self.btn_contrast.clicked.connect(self._open_contrast_popup)
         self.invert_checkbox.stateChanged.connect(self._on_invert_changed)
         
-        # Save/Cancel - FIX: Connect to the correct method name
-        self.btn_save.clicked.connect(self._save_all)  # This should match the method name
+        # Save/Cancel
+        self.btn_save.clicked.connect(self._save_all)
         self.btn_cancel.clicked.connect(self.reject)
 
     def _setup_zoom_sync(self):

@@ -239,26 +239,25 @@ class BaseOpacitySlider(QWidget):
 class BaseCanvas(QGraphicsView):
     """Base canvas with core functionality: pan, zoom, drawing, history management."""
 
-    def __init__(self, orig: np.ndarray, mask: np.ndarray, palette: list, parent=None):
+    def __init__(self, orig: np.ndarray, mask: np.ndarray, parent=None):
         super().__init__(parent)
-        self.palette = palette  # Store the palette for use
-
+        
         # Rendering setup
         self.setRenderHints(
-            QPainter.Antialiasing |
-            QPainter.SmoothPixmapTransform |
+            QPainter.Antialiasing | 
+            QPainter.SmoothPixmapTransform | 
             QPainter.TextAntialiasing
         )
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
         self.setDragMode(QGraphicsView.NoDrag)
         self.setCursor(QCursor(Qt.CrossCursor))
-        self.setMouseTracking(True)
+
         # Scene setup
         self._scene = QGraphicsScene(self)
         self.setScene(self._scene)
 
-        # Store image dimensions
+        # Store original dimensions
         self._img_height, self._img_width = orig.shape
 
         # Original grayscale layer
@@ -269,19 +268,9 @@ class BaseCanvas(QGraphicsView):
         self._item_gray.setOpacity(0.5)
         self._scene.addItem(self._item_gray)
 
-        # Base mask array
+        # Mask layer (to be implemented by subclasses)
         self._mask_arr = mask.astype(np.uint8)
-
-        # ✅ FIX: Define the _layers attribute HERE, before it's ever used.
-        # This creates a separate binary mask for each label in the palette.
-        self._layers = {
-            label_id: (self._mask_arr == label_id).astype(np.uint8)
-            for label_id in range(len(self.palette))
-        }
-
-        # Create the pixmap item for the mask (subclass will populate it)
-        self._item_mask = QGraphicsPixmapItem()
-        self._scene.addItem(self._item_mask)
+        self._item_mask = None  # Subclasses must create this
 
         # Drawing state
         self._cur_label = 1
@@ -290,6 +279,7 @@ class BaseCanvas(QGraphicsView):
         self._show_all = False
         self._drawing = False
         self._pan_mode = False
+        # Brush cursor state
         self._mouse_pos = QPointF()
         self._show_brush_cursor = True
 
@@ -300,10 +290,9 @@ class BaseCanvas(QGraphicsView):
         # Info callback
         self._info_callback = None
 
-        # History management (initialized at the very end)
+        # History management
         self._layer_history = {}
         self._max_history = 50
-        # This call is now safe because self._layers exists
         self._init_history()
 
     def _init_history(self):
@@ -355,20 +344,18 @@ class BaseCanvas(QGraphicsView):
         self.viewport().update()
 
     def _get_brush_targets(self, x: int, y: int) -> List[Tuple[int, int]]:
-        """Get list of pixel coordinates affected by brush."""
+        """Get list of pixel coordinates affected by brush using radius."""
         h, w = self._mask_arr.shape
         
-        # ✅ FIX: Use the correct attribute name `_brush_radius`
-        if self._brush_radius <= 1: 
+        if self._brush_radius <= 1:
             return [(x, y)]
         
         targets = []
-        # ✅ FIX: Use the correct attribute name `_brush_radius`
-        radius = self._brush_radius 
-        radius_sq = radius * radius # Use squared radius for efficiency
+        radius_sq = self._brush_radius * self._brush_radius
         
-        for dy in range(-radius, radius + 1):
-            for dx in range(-radius, radius + 1):
+        for dy in range(-self._brush_radius, self._brush_radius + 1):
+            for dx in range(-self._brush_radius, self._brush_radius + 1):
+                # Use proper circular distance calculation
                 if dx*dx + dy*dy <= radius_sq:
                     px, py = x + dx, y + dy
                     if 0 <= px < w and 0 <= py < h:
@@ -423,22 +410,19 @@ class BaseCanvas(QGraphicsView):
         """Get list of pixel coordinates affected by brush."""
         h, w = self._mask_arr.shape
         
-        # ✅ FIX: Use the correct attribute name `_brush_radius`
-        if self._brush_radius <= 1:
+        if self._brush_sz == 1:
             return [(x, y)]
         
         targets = []
-        # ✅ FIX: Use the correct attribute name `_brush_radius`
-        radius = self._brush_radius
-        radius_sq = radius * radius
-        
+        radius = self._brush_sz
         for dy in range(-radius, radius + 1):
             for dx in range(-radius, radius + 1):
-                if dx*dx + dy*dy <= radius_sq:
+                if dx*dx + dy*dy <= radius*radius:
                     px, py = x + dx, y + dy
                     if 0 <= px < w and 0 <= py < h:
                         targets.append((px, py))
         return targets
+
     # Mouse events
     def mousePressEvent(self, ev):
         if ev.button() == Qt.LeftButton and not self._pan_mode:
@@ -457,16 +441,14 @@ class BaseCanvas(QGraphicsView):
 
     def mouseMoveEvent(self, ev):
         scene_pos = self.mapToScene(ev.position().toPoint())
-        self._mouse_pos = scene_pos # Store the current position
-
+        self._mouse_pos = scene_pos
         if self._drawing and ev.buttons() & Qt.LeftButton and not self._pan_mode:
-            self._apply_brush(scene_pos) # This is your fix from before
+            scene_pos = self.mapToScene(ev.position().toPoint())
             ev.accept()
         else:
             super().mouseMoveEvent(ev)
-        
-        # ✅ FIX: Always update the viewport to redraw the cursor
-        if not self._pan_mode:
+        #update cursor display
+        if self._drawing and not self._pan_mode:
             self.viewport().update()
 
     def mouseReleaseEvent(self, ev):
@@ -535,7 +517,7 @@ class BaseCanvas(QGraphicsView):
                     painter.drawLine(max(0, left), y, min(self._img_width, right), y)
                 y += step
         
-        if self._show_brush_cursor and not self._pan_mode and self._brush_radius > 0:
+        if (self._show_brush_cursor and self._drawing and not self._pan_mode and not self._drawing and self._brush_radius >0):
             self._draw_brush_cursor(painter)
            
     def _draw_brush_cursor(self, painter: QPainter):
@@ -614,7 +596,7 @@ class BaseCanvas(QGraphicsView):
         pass
     
 class BaseBrushSizeControl(QWidget):
-    """Reusable brush size control with 1px increments."""
+    """Reusable brush size control with slider and +/- buttons, matching zoom slider style."""
     radiusChanged = Signal(int)  # Emits radius value
     
     def __init__(self, label_text: str = "Brush Size", 
@@ -643,7 +625,6 @@ class BaseBrushSizeControl(QWidget):
         self.btn_plus = QPushButton("+")
         self.btn_plus.setFixedSize(30, 22)
         
-        # Show pixel count instead of radius
         self.lbl_value = QLabel(f"{initial_radius}px")
         self.lbl_value.setFixedWidth(35)
         self.lbl_value.setAlignment(Qt.AlignRight)
@@ -657,11 +638,11 @@ class BaseBrushSizeControl(QWidget):
         
         # Connect signals
         self.slider.valueChanged.connect(self._on_value_changed)
-        self.btn_minus.clicked.connect(lambda: self._adjust_value(-1))  # 1px increment
-        self.btn_plus.clicked.connect(lambda: self._adjust_value(1))    # 1px increment
+        self.btn_minus.clicked.connect(lambda: self._adjust_value(-1))
+        self.btn_plus.clicked.connect(lambda: self._adjust_value(1))
 
     def _on_value_changed(self, value: int):
-        self.lbl_value.setText(f"r={value}")
+        self.lbl_value.setText(f"{value}px")
         self.radiusChanged.emit(value)
 
     def _adjust_value(self, step: int):
@@ -669,15 +650,15 @@ class BaseBrushSizeControl(QWidget):
         new_value = max(self.slider.minimum(), min(self.slider.maximum(), current + step))
         self.slider.setValue(new_value)
 
-    def setValue(self, radius: int):
-        self.slider.setValue(radius)
+    def setValue(self, value: int):
+        self.slider.setValue(value)
 
     def value(self) -> int:
         return self.slider.value()
 
     def setRange(self, min_radius: int, max_radius: int):
         self.slider.setRange(min_radius, max_radius)
-
+        
 class BaseEditorDialog(QDialog):
     """Base dialog with common infrastructure for editors."""
 
