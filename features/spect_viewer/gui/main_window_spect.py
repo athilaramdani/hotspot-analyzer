@@ -313,19 +313,30 @@ class MainWindowSpect(QMainWindow):
                 formatted_date = date
             
             # ✅ UPDATED: Get BSI per frame (no combined)
-            bsi_info = ""
             if meta.get("has_bsi", False):
                 bsi_anterior = meta.get("bsi_anterior", 0.0)
                 bsi_posterior = meta.get("bsi_posterior", 0.0)
                 
-                # ✅ REMOVED: Combined BSI - show per frame only
-                bsi_info = f"<br><span style='color: #ff6b6b;'>Anterior BSI: {bsi_anterior:.1f}%</span><br><span style='color: #4ecdc4;'>Posterior BSI: {bsi_posterior:.1f}%</span>"
+                # ✅ FORMAT: 10 decimal places with truncation
+                ant_str = f"{bsi_anterior:.10f}".rstrip('0').rstrip('.')
+                if len(ant_str.split('.')[-1]) > 10:
+                    ant_str = f"{bsi_anterior:.10f}..."
+                    
+                post_str = f"{bsi_posterior:.10f}".rstrip('0').rstrip('.')
+                if len(post_str.split('.')[-1]) > 10:
+                    post_str = f"{bsi_posterior:.10f}..."
+                
+                # ✅ UPDATED: Show BSI values without percent
+                bsi_info = f"<br><span style='color: #ff6b6b;'>Anterior BSI: {ant_str}</span><br><span style='color: #4ecdc4;'>Posterior BSI: {post_str}</span>"
+            else:
+                # ✅ NEW: Show views without BSI
+                bsi_info = f"<br><span style='color: #ff6b6b;'>Anterior</span><br><span style='color: #4ecdc4;'>Posterior</span>"
             
-            # ✅ UPDATED: Show both views separately
+            # ✅ UPDATED: Always show both views
             info_text = f"""
             <b>Scan {scan_num}/{total_scans}</b><br>
             Date: {formatted_date}<br>
-            <b>Views: Anterior & Posterior</b>{bsi_info}
+            <b>Views:</b>{bsi_info}
             """
             
             self.scan_info_label.setText(info_text)

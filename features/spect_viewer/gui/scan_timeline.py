@@ -697,31 +697,31 @@ class ScanTimelineWidget(QWidget):
         except ValueError: 
             hdr = "Unknown"
         
-        # ✅ UPDATED: BSI per frame only (no combined)
-        bsi_text = ""
+        # ✅ NEW: Always show view name, with BSI if available
+        view_name = self.current_view
+        color = "#ff6b6b" if self.current_view == "Anterior" else "#4ecdc4"
+        
         if meta.get("has_bsi", False):
-            print(f"[BSI HEADER DEBUG] Meta keys: {list(meta.keys())}")
-            print(f"[BSI HEADER DEBUG] Current view: {self.current_view}")
-            print(f"[BSI HEADER DEBUG] has_bsi: {meta.get('has_bsi', False)}")
-            
             if self.current_view == "Anterior":
                 bsi_score = meta.get("bsi_anterior", 0.0)
-                color = "#ff6b6b"  # Red for anterior
-                print(f"[BSI HEADER DEBUG] Using anterior BSI: {bsi_score}")
             else:  # Posterior
                 bsi_score = meta.get("bsi_posterior", 0.0)
-                color = "#4ecdc4"  # Teal for posterior
-                print(f"[BSI HEADER DEBUG] Using posterior BSI: {bsi_score}")
             
-            # ✅ UPDATED: Show per-frame BSI with color coding
-            bsi_text = f"<br><small style='color: {color}; font-weight: bold;'>{self.current_view} BSI: {bsi_score:.1f}%</small>"
+            # ✅ FORMAT: 10 decimal places with truncation
+            bsi_str = f"{bsi_score:.10f}".rstrip('0').rstrip('.')
+            if len(bsi_str.split('.')[-1]) > 10:
+                bsi_str = f"{bsi_score:.10f}..."
+            
+            # ✅ UPDATED: Show view with BSI (no percent sign)
+            view_text = f"<span style='color: {color}; font-weight: bold; font-size: 12px;'>{view_name} BSI: {bsi_str}</span>"
         else:
-            print(f"[BSI HEADER DEBUG] No BSI data found in meta")
+            # ✅ NEW: Show view name only when no BSI
+            view_text = f"<span style='color: {color}; font-weight: bold; font-size: 12px;'>{view_name}</span>"
         
         hbox = QHBoxLayout()
         
-        # ✅ UPDATED: Header info with per-frame BSI
-        header_label = QLabel(f"<b>{hdr}</b>{bsi_text}")
+        # ✅ UPDATED: Always show view name
+        header_label = QLabel(f"<b>{hdr}</b><br>{view_text}")
         header_label.setStyleSheet("font-size: 11px;")
         hbox.addWidget(header_label)
         hbox.addStretch()
