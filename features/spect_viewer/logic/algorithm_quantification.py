@@ -99,7 +99,8 @@ def separate_left_right_components(image, bones_to_separate=None, color_shift=50
                     x_coords = component_pixels[1]
                     
                     centroid_x = np.mean(x_coords)
-                    is_left = centroid_x < center_x
+                    # ✅ FIX: Correct spatial mapping - left is right side of image
+                    is_left = centroid_x > center_x  # Left anatomical = right side of image
                     
                     left_pixels = np.sum(x_coords < center_x)
                     right_pixels = np.sum(x_coords >= center_x)

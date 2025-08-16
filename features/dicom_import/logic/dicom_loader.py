@@ -162,8 +162,11 @@ def load_frames_and_metadata_with_assignments(
     meta = {
         "patient_id":    getattr(ds, "PatientID", ""),
         "patient_name":  str(getattr(ds, "PatientName", "")),
-        "patient_birth": getattr(ds, "PatientBirthDate", ""),
+        "patient_birth_date": getattr(ds, "PatientBirthDate", ""),  # ✅ FIXED key name
         "patient_sex":   getattr(ds, "PatientSex", ""),
+        "patient_weight": getattr(ds, "PatientWeight", ""),         # ✅ NEW
+        "patient_size": getattr(ds, "PatientSize", ""),             # ✅ NEW  
+        "patient_age": getattr(ds, "PatientAge", ""),               # ✅ NEW (backup)
         "study_date":    getattr(ds, "StudyDate", ""),
         "series_date":   getattr(ds, "SeriesDate", ""),
         "study_time":    getattr(ds, "StudyTime", ""),

@@ -368,20 +368,109 @@ def load_original_image_from_path(dicom_path: Path, view_name: str, frame_map: d
         print(f"[ERROR] Failed to load original image: {e}")
         return None
 
+def debug_quantification_paths(patient_folder: Path, patient_id: str = None) -> None:
+    """Debug helper untuk check quantification file paths"""
+    
+    print(f"\n📁 [DEBUG PATHS GANTENG] ===================")
+    print(f"📁 [DEBUG PATHS] Patient folder: {patient_folder}")
+    print(f"📁 [DEBUG PATHS] Patient ID: {patient_id}")
+    print(f"📁 [DEBUG PATHS] Folder exists: {patient_folder.exists()}")
+    
+    if not patient_folder.exists():
+        print(f"📁 [DEBUG PATHS] ❌ Folder does not exist!")
+        return
+    
+    print(f"📁 [DEBUG PATHS] Folder structure:")
+    
+    # Check main folder contents
+    for item in patient_folder.iterdir():
+        if item.is_file():
+            size = item.stat().st_size
+            print(f"📁 [DEBUG PATHS]   FILE: {item.name} ({size} bytes)")
+        elif item.is_dir():
+            print(f"📁 [DEBUG PATHS]   DIR:  {item.name}/")
+            # Check subdirectory contents (for study_date folders)
+            if len(item.name) == 8 and item.name.isdigit():
+                print(f"📁 [DEBUG PATHS]     Study date folder contents:")
+                for subitem in item.iterdir():
+                    if subitem.is_file():
+                        sub_size = subitem.stat().st_size
+                        print(f"📁 [DEBUG PATHS]       FILE: {subitem.name} ({sub_size} bytes)")
+                    elif subitem.is_dir():
+                        print(f"📁 [DEBUG PATHS]       DIR:  {subitem.name}/")
+    
+    # Test new quantification paths
+    try:
+        quant_files = get_planar_quantification_files(patient_folder)
+        print(f"📁 [DEBUG PATHS] New quantification paths:")
+        for key, path in quant_files.items():
+            exists = path.exists()
+            size = path.stat().st_size if exists else 0
+            print(f"📁 [DEBUG PATHS]   {key}: {path} (exists: {exists}, size: {size} bytes)")
+            
+            if exists:
+                # Try to read file content
+                try:
+                    with open(path, 'r') as f:
+                        content = f.read()
+                        print(f"📁 [DEBUG PATHS]     Content preview: {content[:100]}...")
+                except Exception as e:
+                    print(f"📁 [DEBUG PATHS]     Error reading file: {e}")
+                    
+    except Exception as e:
+        print(f"📁 [DEBUG PATHS] Error with new paths: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    # Test old pattern if patient_id provided
+    if patient_id:
+        print(f"📁 [DEBUG PATHS] Old pattern search:")
+        old_ant = list(patient_folder.glob(f"{patient_id}_*_bsi_quantification_anterior.json"))
+        old_post = list(patient_folder.glob(f"{patient_id}_*_bsi_quantification_posterior.json"))
+        print(f"📁 [DEBUG PATHS]   Old anterior: {[f.name for f in old_ant]}")
+        print(f"📁 [DEBUG PATHS]   Old posterior: {[f.name for f in old_post]}")
+        
+        # Also check study_date subfolders
+        for item in patient_folder.iterdir():
+            if item.is_dir() and len(item.name) == 8 and item.name.isdigit():
+                study_old_ant = list(item.glob(f"{patient_id}_*_bsi_quantification_anterior.json"))
+                study_old_post = list(item.glob(f"{patient_id}_*_bsi_quantification_posterior.json"))
+                study_new_ant = list(item.glob("bsi_quantification_anterior.json"))
+                study_new_post = list(item.glob("bsi_quantification_posterior.json"))
+                
+                if study_old_ant or study_old_post or study_new_ant or study_new_post:
+                    print(f"📁 [DEBUG PATHS]   In study_date folder {item.name}:")
+                    print(f"📁 [DEBUG PATHS]     Old anterior: {[f.name for f in study_old_ant]}")
+                    print(f"📁 [DEBUG PATHS]     Old posterior: {[f.name for f in study_old_post]}")
+                    print(f"📁 [DEBUG PATHS]     New anterior: {[f.name for f in study_new_ant]}")
+                    print(f"📁 [DEBUG PATHS]     New posterior: {[f.name for f in study_new_post]}")
+
+
 def get_planar_quantification_files(patient_folder: Path):
     """
-    Get BSI quantification file paths with new simplified naming
-    
-    Args:
-        patient_folder: Patient directory path
-        
-    Returns:
-        Dictionary with quantification file paths using new naming convention
+    ✅ FIXED: Get BSI quantification file paths with correct naming (ant/post not anterior/posterior)
     """
-    return {
+    print(f"📁 [DEBUG QUANT FILES] Getting quantification files for: {patient_folder}")
+    
+    # ✅ FIX: Use actual file names - ant/post not anterior/posterior
+    files = {
         'bsi_json_ant': patient_folder / "bsi_quantification_ant.json",
         'bsi_json_post': patient_folder / "bsi_quantification_post.json"
     }
+    
+    print(f"📁 [DEBUG QUANT FILES] Generated paths:")
+    for key, path in files.items():
+        exists = path.exists()
+        print(f"📁 [DEBUG QUANT FILES]   {key}: {path} (exists: {exists})")
+    
+    # ✅ DEBUG: Also check what files actually exist
+    print(f"📁 [DEBUG QUANT FILES] Actual BSI files in folder:")
+    if patient_folder.exists():
+        bsi_files = list(patient_folder.glob("*bsi*.json"))
+        for bsi_file in bsi_files:
+            print(f"📁 [DEBUG QUANT FILES]   Found: {bsi_file.name}")
+    
+    return files
 
 def get_planar_files_complete(patient_folder: Path, view: str, original_dicom_name: str = None, with_priority: bool = True):
     """
@@ -1255,3 +1344,50 @@ def is_file_editable(filename: str) -> bool:
         True if file is editable
     """
     return filename in EDITABLE_FILES
+
+def get_quantification_files(patient_folder: Path, filename_stem: str = None) -> dict:
+    """
+    ✅ NEW: Get quantification file paths with new simplified naming
+    
+    Args:
+        patient_folder: Patient directory path  
+        filename_stem: Filename stem (optional, for backward compatibility)
+        
+    Returns:
+        Dictionary with quantification file paths using new naming convention
+    """
+    return {
+        'bsi_json_ant': patient_folder / "bsi_quantification_anterior.json",
+        'bsi_json_post': patient_folder / "bsi_quantification_posterior.json",
+        # For backward compatibility with old naming
+        'bsi_json_ant_old': patient_folder / f"{filename_stem}_bsi_quantification_anterior.json" if filename_stem else None,
+        'bsi_json_post_old': patient_folder / f"{filename_stem}_bsi_quantification_posterior.json" if filename_stem else None
+    }
+
+def get_segmentation_files_with_edited(patient_folder: Path, filename_stem: str, view: str) -> dict:
+    """
+    ✅ NEW: Get segmentation files with priority for edited versions
+    """
+    vtag = "ant" if view.lower() in ["anterior", "ant"] else "post"
+    
+    base_files = {
+        'png_colored': patient_folder / f"{vtag}_segm.png",
+        'png_colored_edited': get_latest_timestamp_file(patient_folder, f"{vtag}_segm.png"),
+    }
+    
+    return base_files
+
+def get_classification_files(patient_folder: Path, filename_stem: str, view: str) -> dict:
+    """
+    ✅ NEW: Get classification files with priority for edited versions
+    """
+    vtag = "ant" if view.lower() in ["anterior", "ant"] else "post"
+    
+    base_files = {
+        'mask_original': patient_folder / f"{vtag}_hotspot_classification.png", 
+        'mask_edited': get_latest_timestamp_file(patient_folder, f"{vtag}_hotspot_classification.png"),
+        'xml_original': patient_folder / f"{vtag}_hotspot_classification.xml",
+        'xml_edited': get_latest_timestamp_file(patient_folder, f"{vtag}_hotspot_classification.xml")
+    }
+    
+    return base_files

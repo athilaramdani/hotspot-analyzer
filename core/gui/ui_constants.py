@@ -1166,6 +1166,35 @@ def get_workflow_step_style(step_status: str) -> str:
     }
     return styles.get(step_status, WORKFLOW_STEP_INDICATOR_STYLE)
 
+PATIENT_INFO_FIELD_STYLE = (
+    """
+    QLineEdit {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 3px;
+        padding: 4px 6px;
+        font-size: 11px;
+        color: #495057;
+        selection-background-color: #007bff;
+    }
+    QLineEdit:read-only {
+        background: #f8f9fa;
+        color: #6c757d;
+    }
+    """
+)
+
+PATIENT_INFO_LABEL_STYLE = (
+    """
+    QLabel {
+        font-weight: bold;
+        color: #495057;
+        font-size: 10px;
+        padding: 2px 4px;
+    }
+    """
+)
+
 __all__ = [
     # Existing button styles
     "PRIMARY_BUTTON_STYLE",

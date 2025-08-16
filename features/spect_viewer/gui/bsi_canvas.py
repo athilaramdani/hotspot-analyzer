@@ -44,7 +44,7 @@ class BSICanvas(FigureCanvas):
         # Line visibility controls (default all visible)
         self.anterior_visible = True
         self.posterior_visible = True
-        self.combined_visible = True
+        # ✅ REMOVED: combined_visible - simplify to per-frame only
         
         self.setMinimumSize(400, 300)
         self._plot_empty_chart()
@@ -100,7 +100,7 @@ class BSICanvas(FigureCanvas):
         self.draw()
     
     def _plot_bsi_trend_chart_v2(self):
-        """✅ FIXED: Plot 3-line chart for BSI with single view support"""
+        """✅ FIXED: Plot 3-line chart for BSI with single view support and better date handling"""
         if not self.patient_folder or not self.patient_id:
             self._plot_empty_chart()
             return
@@ -134,10 +134,24 @@ class BSICanvas(FigureCanvas):
                     date_str = entry["study_date"]
                     processing_mode = entry.get('processing_mode', 'unknown')
                     
-                    print(f"[DEBUG BSI] Processing date: {date_str}, mode: {processing_mode}")
+                    print(f"[DEBUG BSI CANVAS] Processing date: {date_str}, mode: {processing_mode}")
                     
-                    date_obj = datetime.strptime(date_str, "%Y%m%d")
-                    formatted_date = date_obj.strftime("%d %b %Y")
+                    # ✅ FIX: Better date validation and parsing
+                    try:
+                        # Try to parse as YYYYMMDD format
+                        if len(date_str) == 8 and date_str.isdigit():
+                            date_obj = datetime.strptime(date_str, "%Y%m%d")
+                            formatted_date = date_obj.strftime("%d %b %Y")
+                        else:
+                            print(f"[WARN] Invalid date format in BSI data: {date_str}, using current date")
+                            # ✅ FIX: Use current date as fallback instead of skipping
+                            date_obj = datetime.now()
+                            formatted_date = f"{date_str} (Invalid)"
+                            
+                    except ValueError as ve:
+                        print(f"[WARN] Date parsing failed for {date_str}: {ve}, using current date")
+                        date_obj = datetime.now()
+                        formatted_date = f"{date_str} (Invalid)"
                     
                     dates.append(date_obj)
                     
@@ -151,10 +165,10 @@ class BSICanvas(FigureCanvas):
                     combined_scores.append(combined_bsi)
                     date_labels.append(formatted_date)
                     
-                    print(f"[DEBUG BSI] Added: Ant={ant_bsi} Post={post_bsi} Combined={combined_bsi:.1f}%")
+                    print(f"[DEBUG BSI CANVAS] Added: Ant={ant_bsi} Post={post_bsi} Combined={combined_bsi:.1f}%")
                     
-                except ValueError as e:
-                    print(f"[WARN] Invalid date format in BSI data: {entry['study_date']}, skipping...")
+                except Exception as e:
+                    print(f"[WARN] Error processing BSI entry: {e}")
                     continue
 
             if not dates:
@@ -165,7 +179,7 @@ class BSICanvas(FigureCanvas):
                 self.draw()
                 return
 
-            # Plot lines with single view support
+            # Plot lines with single view support (existing code continues...)
             
             # Plot anterior line (only where data is available)
             if self.anterior_visible:
@@ -173,7 +187,7 @@ class BSICanvas(FigureCanvas):
                 ant_values = [v for v in anterior_scores if v is not None]
                 if ant_dates and ant_values:
                     ax.plot(ant_dates, ant_values, marker='o', linestyle='-', color='#ff6b6b', 
-                           linewidth=2, markersize=6, label='Anterior BSI')
+                        linewidth=2, markersize=6, label='Anterior BSI')
             
             # Plot posterior line (only where data is available)
             if self.posterior_visible:
@@ -181,22 +195,16 @@ class BSICanvas(FigureCanvas):
                 post_values = [v for v in posterior_scores if v is not None]
                 if post_dates and post_values:
                     ax.plot(post_dates, post_values, marker='^', linestyle='-', color='#4ecdc4', 
-                           linewidth=2, markersize=6, label='Posterior BSI')
-            
-            # Plot combined line (always available)
-            if self.combined_visible:
-                ax.plot(dates, combined_scores, marker='s', linestyle='-', color='#007bff', 
-                       linewidth=2, markersize=6, label='Combined BSI')
+                        linewidth=2, markersize=6, label='Posterior BSI')
 
             # Only show legend if at least one line is visible
-            if self.anterior_visible or self.posterior_visible or self.combined_visible:
+            if self.anterior_visible or self.posterior_visible:
                 legend = ax.legend(loc='upper left', fontsize=9)
 
             # Set axis and formatting
             ax.set_xticks(dates)
             ax.set_xticklabels(date_labels, rotation=45, ha='right')
 
-            # ✅ FIXED: Clean title without version info
             ax.set_title("BSI Score Trend", fontsize=12, fontweight='bold')
             ax.set_xlabel("Study Date", fontsize=10)
             ax.set_ylabel("BSI Score", fontsize=10)
@@ -206,17 +214,19 @@ class BSICanvas(FigureCanvas):
 
         except Exception as e:
             print(f"[BSI CANVAS] Failed to plot BSI trend: {e}")
+            import traceback
+            traceback.print_exc()
             self._plot_error_chart(str(e))
             return
 
         self.figure.tight_layout()
         self.draw()
     
-    def set_line_visibility(self, anterior_visible: bool, posterior_visible: bool, combined_visible: bool):
+    def set_line_visibility(self, anterior_visible: bool, posterior_visible: bool):
         """Control visibility of BSI lines"""
         self.anterior_visible = anterior_visible
         self.posterior_visible = posterior_visible
-        self.combined_visible = combined_visible
+        # ✅ REMOVED: combined_visible parameter - simplify interface
         # Redraw chart with new visibility settings
         self._plot_bsi_trend_chart_v2()
     

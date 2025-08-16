@@ -192,12 +192,27 @@ class MainWindowSpect(QMainWindow):
             print(f"[MainWindow] Error syncing view: {e}")
 
     def update_timeline_with_scans_enhanced(self, scans_data: list, active_index: int = -1):
-        """✅ Enhanced timeline update with BSI integration"""
+        """✅ FIXED: Enhanced timeline update with BSI integration"""
         try:
             print(f"[MainWindow] Updating timeline with {len(scans_data)} scans")
             
-            # ✅ Update scans with BSI information
-            updated_scans = update_timeline_scans_with_bsi(scans_data, self.session_code)
+            # ✅ MANDATORY: Update scans with BSI information using existing infrastructure
+            updated_scans = []
+            for scan in scans_data:
+                # ✅ CALL: BSI integration to update meta
+                updated_scan = self.bsi_integration.update_scan_meta_with_bsi(scan, self.session_code)
+                updated_scans.append(updated_scan)
+            
+            print(f"[MainWindow] ✅ BSI integration completed for {len(updated_scans)} scans")
+            
+            # Debug: Check first scan meta
+            if updated_scans:
+                first_scan_meta = updated_scans[0].get("meta", {})
+                print(f"[MainWindow DEBUG] First scan meta keys: {list(first_scan_meta.keys())}")
+                print(f"[MainWindow DEBUG] has_bsi: {first_scan_meta.get('has_bsi', False)}")
+                if first_scan_meta.get('has_bsi', False):
+                    print(f"[MainWindow DEBUG] bsi_anterior: {first_scan_meta.get('bsi_anterior', 0)}")
+                    print(f"[MainWindow DEBUG] bsi_posterior: {first_scan_meta.get('bsi_posterior', 0)}")
             
             # Set session code for timeline
             if hasattr(self, 'timeline_widget') and self.session_code:
@@ -210,9 +225,11 @@ class MainWindowSpect(QMainWindow):
             
         except Exception as e:
             print(f"[MainWindow] Error updating timeline: {e}")
+            import traceback
+            traceback.print_exc()
             # Fallback to original method
             self.timeline_widget.display_timeline(scans_data, active_index)
-
+        
     def complete_initialization_setup(self):
         """✅ Complete initialization sequence - CALL THIS AT END OF __init__"""
         
@@ -276,7 +293,7 @@ class MainWindowSpect(QMainWindow):
         print(f"[EDIT BUTTONS] Seg button enabled: {self.seg_edit_btn.isEnabled()}, Hotspot button enabled: {self.hotspot_edit_btn.isEnabled()}")
         
     def _update_scan_info_display(self):
-        """✅ FIXED: Update scan information with BSI data"""
+        """✅ FIXED: Update scan information with BSI data per frame (no combined)"""
         if not self.timeline_widget._scans_cache or self.timeline_widget.active_scan_index < 0:
             self.scan_info_label.setText("No scan selected")
             return
@@ -295,22 +312,20 @@ class MainWindowSpect(QMainWindow):
             except ValueError:
                 formatted_date = date
             
-            # Get BSI information
+            # ✅ UPDATED: Get BSI per frame (no combined)
             bsi_info = ""
             if meta.get("has_bsi", False):
-                # ✅ FIX: Use combined_bsi instead of bsi_score
-                bsi_combined = meta.get("bsi_combined", 0.0)
                 bsi_anterior = meta.get("bsi_anterior", 0.0)
                 bsi_posterior = meta.get("bsi_posterior", 0.0)
                 
-                # ✅ Show combined BSI in main window
-                bsi_info = f"<br>BSI Combined: {bsi_combined:.1f}<br>Ant: {bsi_anterior:.1f} | Post: {bsi_posterior:.1f}"
-
-            # ✅ FIX: Replace self.current_view with static text
+                # ✅ REMOVED: Combined BSI - show per frame only
+                bsi_info = f"<br><span style='color: #ff6b6b;'>Anterior BSI: {bsi_anterior:.1f}%</span><br><span style='color: #4ecdc4;'>Posterior BSI: {bsi_posterior:.1f}%</span>"
+            
+            # ✅ UPDATED: Show both views separately
             info_text = f"""
             <b>Scan {scan_num}/{total_scans}</b><br>
             Date: {formatted_date}<br>
-            <b>View: Anterior & Posterior</b>{bsi_info}
+            <b>Views: Anterior & Posterior</b>{bsi_info}
             """
             
             self.scan_info_label.setText(info_text)
@@ -852,24 +867,93 @@ class MainWindowSpect(QMainWindow):
             print(f"[MainWindow] Error refreshing BSI panel: {e}")
             
     def _load_bsi_for_scan(self, scan_data: Dict, session_code: str):
-        """Load BSI data for selected scan"""
+        """Load BSI data for selected scan with debugging"""
+        success = False  # ✅ INITIALIZE SUCCESS VARIABLE
+        
         try:
-            print(f"[BSI] Loading BSI data for selected scan")
+            print(f"\n🏠 [DEBUG MAIN GANTENG] ===================")
+            print(f"🏠 [DEBUG MAIN] Loading BSI data for selected scan")
+            print(f"🏠 [DEBUG MAIN] Session code: {session_code}")
+            print(f"🏠 [DEBUG MAIN] Scan data keys: {list(scan_data.keys())}")
             
             # Extract patient info from scan
             dicom_path = Path(scan_data["path"])
+            print(f"🏠 [DEBUG MAIN] DICOM path: {dicom_path}")
+            print(f"🏠 [DEBUG MAIN] DICOM exists: {dicom_path.exists()}")
+            
             patient_folder = dicom_path.parent
+            print(f"🏠 [DEBUG MAIN] Initial patient folder: {patient_folder}")
+            print(f"🏠 [DEBUG MAIN] Initial patient folder exists: {patient_folder.exists()}")
+            print(f"🏠 [DEBUG MAIN] Initial patient folder name: {patient_folder.name}")
             
-            # Get patient ID from path or scan data
-            patient_id = patient_folder.name
+            # Get patient ID and study date
+            from core.config.paths import extract_study_date_from_dicom
             study_date = extract_study_date_from_dicom(dicom_path)
+            print(f"🏠 [DEBUG MAIN] Study date from DICOM: {study_date}")
             
-            # Load BSI data
-            self.bsi_panel.load_patient_data(patient_folder, patient_id, study_date)
+            # Check if this is study_date folder structure
+            if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
+                print(f"🏠 [DEBUG MAIN] Detected study_date folder structure")
+                actual_patient_folder = patient_folder.parent
+                actual_patient_id = actual_patient_folder.name
+                actual_study_date = patient_folder.name  # Use folder name as study date
+                
+                print(f"🏠 [DEBUG MAIN] Corrected patient folder: {actual_patient_folder}")
+                print(f"🏠 [DEBUG MAIN] Corrected patient ID: {actual_patient_id}")
+                print(f"🏠 [DEBUG MAIN] Corrected study date: {actual_study_date}")
+                
+                # ✅ PRIORITY 1: Check BSI files in study_date folder first
+                from core.config.paths import get_planar_quantification_files
+                study_date_quant_files = get_planar_quantification_files(patient_folder)
+                print(f"🏠 [DEBUG MAIN] BSI files in study_date folder:")
+                print(f"🏠 [DEBUG MAIN]   Anterior: {study_date_quant_files['bsi_json_ant'].exists()}")
+                print(f"🏠 [DEBUG MAIN]   Posterior: {study_date_quant_files['bsi_json_post'].exists()}")
+                
+                if study_date_quant_files['bsi_json_ant'].exists() or study_date_quant_files['bsi_json_post'].exists():
+                    print(f"🏠 [DEBUG MAIN] Found BSI files in study_date folder, using it")
+                    success = self.bsi_panel.load_patient_data(patient_folder, actual_patient_id, actual_study_date)
+                else:
+                    print(f"🏠 [DEBUG MAIN] No BSI files in study_date folder, trying patient folder")
+                    # ✅ PRIORITY 2: Check patient folder
+                    patient_quant_files = get_planar_quantification_files(actual_patient_folder)
+                    print(f"🏠 [DEBUG MAIN] BSI files in patient folder:")
+                    print(f"🏠 [DEBUG MAIN]   Anterior: {patient_quant_files['bsi_json_ant'].exists()}")
+                    print(f"🏠 [DEBUG MAIN]   Posterior: {patient_quant_files['bsi_json_post'].exists()}")
+                    
+                    if patient_quant_files['bsi_json_ant'].exists() or patient_quant_files['bsi_json_post'].exists():
+                        print(f"🏠 [DEBUG MAIN] Found BSI files in patient folder")
+                        success = self.bsi_panel.load_patient_data(actual_patient_folder, actual_patient_id, actual_study_date)
+                    else:
+                        print(f"🏠 [DEBUG MAIN] ❌ No BSI files found anywhere!")
+                        success = False
+            else:
+                print(f"🏠 [DEBUG MAIN] Standard patient folder structure")
+                patient_id = patient_folder.name
+                
+                print(f"🏠 [DEBUG MAIN] Patient ID: {patient_id}")
+                
+                # Check if BSI files exist in patient folder
+                from core.config.paths import get_planar_quantification_files
+                patient_quant_files = get_planar_quantification_files(patient_folder)
+                print(f"🏠 [DEBUG MAIN] BSI files in patient folder:")
+                print(f"🏠 [DEBUG MAIN]   Anterior: {patient_quant_files['bsi_json_ant'].exists()}")
+                print(f"🏠 [DEBUG MAIN]   Posterior: {patient_quant_files['bsi_json_post'].exists()}")
+                
+                success = self.bsi_panel.load_patient_data(patient_folder, patient_id, study_date)
+            
+            print(f"🏠 [DEBUG MAIN] BSI panel load result: {success}")
+            
+            if not success:
+                print(f"🏠 [DEBUG MAIN] ❌ BSI loading failed, clearing panel")
+                self.bsi_panel.clear_patient_data()
             
         except Exception as e:
-            print(f"[BSI ERROR] Failed to load BSI data: {e}")
-            self.bsi_panel.clear_patient_data()
+            print(f"🏠 [DEBUG MAIN] ❌ Failed to load BSI data: {e}")
+            import traceback
+            traceback.print_exc()
+            if hasattr(self, 'bsi_panel'):
+                self.bsi_panel.clear_patient_data()
+
 
     # NEW: Handle checkbox-based layer changes
     def _on_layers_changed(self, active_layers: list) -> None:
@@ -1180,34 +1264,65 @@ class MainWindowSpect(QMainWindow):
         print("[DEBUG] Folder scan completed")
     
     def _on_patient_selected(self, txt: str) -> None:
-        """Handle patient selection with new structure - FIXED parsing logic"""
-        print(f"[DEBUG] _on_patient_selected: {txt}")
+        """Handle patient selection with debugging"""
+        print(f"\n🎯 [DEBUG SELECT GANTENG] ===================")
+        print(f"🎯 [DEBUG SELECT] Patient selected: {txt}")
+        
         try:
-            # FIXED: Parse "ID: 12 (NSY)" format correctly
-            # Split by "ID: " first, then parse the rest
+            # Parse patient selection
             if not txt.startswith("ID: "):
-                print(f"[DEBUG] Invalid format: {txt}")
+                print(f"🎯 [DEBUG SELECT] Invalid format: {txt}")
                 return
                 
-            # Remove "ID: " prefix and get "12 (NSY)"
             remainder = txt[4:]  # Remove "ID: "
             
-            # Split by " (" to separate patient_id and session
             if " (" not in remainder:
-                print(f"[DEBUG] No session found in: {remainder}")
+                print(f"🎯 [DEBUG SELECT] No session found in: {remainder}")
                 return
                 
             patient_id = remainder.split(" (")[0]  # "12"
             session_part = remainder.split(" (")[1]  # "NSY)"
             session = session_part.rstrip(")")  # "NSY"
             
-            print(f"[DEBUG] Parsed - Patient: {patient_id}, Session: {session}")
+            print(f"🎯 [DEBUG SELECT] Parsed - Patient: {patient_id}, Session: {session}")
+            
+            # Test path resolution
+            from core.config.paths import get_patient_planar_path, debug_quantification_paths
+            patient_path = get_patient_planar_path(session, patient_id)
+            print(f"🎯 [DEBUG SELECT] Patient path from paths.py: {patient_path}")
+            print(f"🎯 [DEBUG SELECT] Patient path exists: {patient_path.exists()}")
+            
+            if patient_path.exists():
+                print(f"🎯 [DEBUG SELECT] Patient path contents:")
+                for item in patient_path.iterdir():
+                    print(f"🎯 [DEBUG SELECT]   - {item.name} ({'DIR' if item.is_dir() else 'FILE'})")
+            
+            # Call debug function
+            debug_quantification_paths(patient_path, patient_id)
+            
+            # Check for DICOM files to understand structure
+            from features.dicom_import.logic.directory_scanner import get_patient_dicom_files
+            dicom_files = get_patient_dicom_files(session, patient_id, primary_only=True)
+            print(f"🎯 [DEBUG SELECT] Found DICOM files: {len(dicom_files)}")
+            
+            for dicom_file in dicom_files:
+                print(f"🎯 [DEBUG SELECT]   DICOM: {dicom_file}")
+                dicom_folder = dicom_file.parent
+                print(f"🎯 [DEBUG SELECT]   DICOM folder: {dicom_folder}")
+                
+                # Check if BSI files exist near DICOM
+                from core.config.paths import get_planar_quantification_files
+                dicom_quant_files = get_planar_quantification_files(dicom_folder)
+                print(f"🎯 [DEBUG SELECT]   BSI files near DICOM:")
+                print(f"🎯 [DEBUG SELECT]     Anterior: {dicom_quant_files['bsi_json_ant'].exists()}")
+                print(f"🎯 [DEBUG SELECT]     Posterior: {dicom_quant_files['bsi_json_post'].exists()}")
+            
             self._load_patient(patient_id, session)
             
-        except (IndexError, ValueError) as e:
-            print(f"[DEBUG] Failed to parse patient selection: {e}")
-            print(f"[DEBUG] Original text: '{txt}'")
-            return
+        except Exception as e:
+            print(f"🎯 [DEBUG SELECT] ❌ Error: {e}")
+            import traceback
+            traceback.print_exc()
     
     def _load_patient(self, patient_id: str, session_code: str) -> None:
         """Load patient data using new directory structure - SIMPLIFIED without AI processing"""
