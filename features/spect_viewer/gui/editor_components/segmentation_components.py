@@ -7,6 +7,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 import numpy as np
+import datetime as datetime
 from PIL import Image
 
 from PySide6.QtCore import Qt, QPointF, Signal
@@ -41,25 +42,28 @@ class SegmentationCanvas(BaseCanvas):
     """Canvas with segmentation-specific functionality and layer management."""
 
     def __init__(self, orig: np.ndarray, mask: np.ndarray, parent=None):
+        # Initialize segmentation-specific attributes BEFORE calling parent
+        self._layers = {}
+        self._bg_alpha = 0.0  # Background opacity
+        
         super().__init__(orig, mask, parent)
         
-        # Segmentation-specific layers (one per anatomical structure)
+        # Now populate the layers after parent initialization is complete
         self._layers = {lbl: (self._mask_arr == lbl).astype(np.uint8)
                         for lbl in range(len(_PALETTE))}
-        self._bg_alpha = 0.0  # Background opacity
         
         # Create mask display
         self._mask_img = self._mask_to_qimage(show_all=False, label=1)
         self._item_mask = QGraphicsPixmapItem(QPixmap.fromImage(self._mask_img))
         self._scene.addItem(self._item_mask)
-        
-        self._init_history()
 
     def _init_history(self):
         """Initialize history for segmentation layers."""
         for label_id in range(len(_PALETTE)):
             self._layer_history[label_id] = {'undo': [], 'redo': []}
-        self._save_all_states()
+        # Only save states if layers are properly initialized
+        if hasattr(self, '_layers') and self._layers:
+            self._save_all_states()
 
     def _save_all_states(self):
         """Save initial state for all layers."""
@@ -241,91 +245,259 @@ class SegmentationPalette(QWidget):
 class SegmentationSaveThread(BaseSaveThread):
     """Save thread for segmentation data."""
     
-    def __init__(self, canvas: SegmentationCanvas, seg_files_edited: Dict[str, Path],
-                 patient_id: str, session_code: str, study_date: str):
+    def __init__(self, canvas: SegmentationCanvas, session_path: Path, 
+             patient_id: str, view_short: str, filename_stem: str, 
+             dicom_path: Path, study_date: str, current_session: str = None):
         super().__init__()
         self.canvas = canvas
-        self.seg_files_edited = seg_files_edited
+        self.session_path = session_path  # Base session directory path
         self.patient_id = patient_id
-        self.session_code = session_code
+        self.view_short = view_short
+        self.filename_stem = filename_stem
+        self.dicom_path = dicom_path
         self.study_date = study_date
+        self.current_session = current_session
+        
+        # Initialize attributes to None to prevent AttributeError
+        self.segmentation_mask_edited = None
+        self.segmentation_colored_edited = None
+        
+        # Initialize save paths
+        self._initialize_save_paths()
 
-    def _perform_save(self):
-        """Perform segmentation save operations."""
-        mask = self.canvas.current_mask()
+    def _initialize_save_paths(self):
+        """Initialize the save paths with proper session handling."""
+        from datetime import datetime
         
-        self.progress_updated.emit(10, "Preparing images...")
+        # Get current edit date in YYYYMMDD format
+        edit_date = datetime.now().strftime("%Y%m%d")
         
-        # Prepare images
-        bin_img = (mask > 0).astype(np.uint8) * 255
-        rgb_img = label_mask_to_rgb(mask)
+        # Determine session code to use
+        session_code = self._get_session_code()
+        if session_code is None:  # User cancelled session selection
+            return
         
-        self.progress_updated.emit(30, "Creating directories...")
-        
-        # Create parent directories
-        self.seg_files_edited['png_mask_edited'].parent.mkdir(parents=True, exist_ok=True)
-        
-        self.progress_updated.emit(50, "Saving PNG mask...")
-        
-        # Save PNG files
-        Image.fromarray(bin_img, mode="L").save(self.seg_files_edited['png_mask_edited'])
-        
-        self.progress_updated.emit(70, "Saving PNG colored...")
-        
-        Image.fromarray(rgb_img).save(self.seg_files_edited['png_colored_edited'])
-        
-        self.progress_updated.emit(85, "Uploading to cloud...")
-        
-        # Upload to cloud
-        cloud_success = self._upload_to_cloud()
-        
-        self.progress_updated.emit(90, "Running quantification...")
-        
-        # Trigger quantification
-        quant_success = self._trigger_quantification()
-        
-        self.progress_updated.emit(100, "Save completed!")
-        
-        # Build success message
-        success_msg = (
-            f"Edited segmentation saved successfully!\n\n"
-            f"PNG files saved with study date naming:\n"
-            f"• {self.seg_files_edited['png_mask_edited'].name}\n"
-            f"• {self.seg_files_edited['png_colored_edited'].name}\n\n"
-            f"Study Date: {self.study_date}\n"
-            f"Patient ID: {self.patient_id}\n"
-            f"Session: {self.session_code}"
-        )
-        
-        if quant_success:
-            success_msg += "\n\n✅ Quantification pipeline completed successfully"
+        # Check if this is the special ALL session case
+        if self.current_session == "ALL":
+            # Special ALL workspace structure: ALL/PatientID/StudyDate/DoctorCode/EditDate/
+            patient_dir = self.session_path / "ALL" / self.patient_id / self.study_date
+            doctor_dir = patient_dir / session_code
+            save_dir = doctor_dir / edit_date
+            print(f"[SAVE] ALL session - saving to: ALL/{self.patient_id}/{self.study_date}/{session_code}/{edit_date}/")
         else:
-            success_msg += "\n\n⚠️ Quantification pipeline failed (segmentation saved)"
+            # Regular session structure: SessionCode/PatientID/StudyDate/EditDate/
+            patient_dir = self.session_path / self.current_session / self.patient_id / self.study_date
+            save_dir = patient_dir / edit_date
+            print(f"[SAVE] Regular session - saving to: {self.current_session}/{self.patient_id}/{self.study_date}/{edit_date}/")
+        
+        # Create directories if they don't exist
+        save_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate timestamp for filenames (HHMMSS format only)
+        timestamp = datetime.now().strftime("%H%M%S")
+        
+        # Set file paths with timestamp
+        base_filename_mask = f"{self.view_short}_mask_{timestamp}"
+        base_filename_segm = f"{self.view_short}_segm_{timestamp}"
+        self.segmentation_mask_edited = save_dir / f"{base_filename_mask}.png"
+        self.segmentation_colored_edited = save_dir / f"{base_filename_segm}.png"
+        
+        print(f"[SAVE] Files: {base_filename_mask}.png, {base_filename_segm}.png")
 
-        if cloud_success:
-            success_msg += "\n\n✅ Colored PNG synced to cloud storage"
-        else:
-            success_msg += "\n\n⚠️ Cloud sync failed (files saved locally)"
+    def _get_session_code(self) -> Optional[str]:
+        """Get session code, showing dialog only if current session is ALL."""
+        if self.current_session != "ALL":
+            return self.current_session
+        
+        # Show dialog to select doctor code only for ALL session
+        return self._show_session_selection_dialog()
 
-    def _upload_to_cloud(self) -> bool:
-        """Upload edited files to cloud storage."""
+    def _show_session_selection_dialog(self) -> Optional[str]:
+        """Show dialog to select session code from doctor_tags.json."""
+        import json
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem, QPushButton, QLabel
+        from PySide6.QtCore import Qt
+        
         try:
-            from core.config.cloud_storage import upload_patient_file
+            # Load doctor tags from config file
+            config_path = Path("C:/hotspot/hotspot-analyzer/config/doctor_tags.json")
+            if not config_path.exists():
+                print(f"Config file not found: {config_path}")
+                return "NSY"  # Fallback to default
             
-            file_path = self.seg_files_edited['png_colored_edited']
+            with open(config_path, 'r') as f:
+                config_data = json.load(f)
             
-            if file_path.exists():
-                return upload_patient_file(
-                    file_path, 
-                    self.session_code, 
-                    self.patient_id, 
-                    is_edited=True
-                )
-            return False
+            # Filter out "ALL" and get available tags
+            available_tags = [tag for tag in config_data.get("doctor_tags", []) if tag.get("code") != "ALL"]
+            
+            if not available_tags:
+                print("No available doctor tags found")
+                return "NSY"  # Fallback to default
+            
+            # Create dialog
+            dialog = QDialog()
+            dialog.setWindowTitle("Select Session Code")
+            dialog.setModal(True)
+            dialog.resize(400, 300)
+            
+            layout = QVBoxLayout(dialog)
+            
+            if self.current_session == "ALL":
+                layout.addWidget(QLabel("Select doctor code for saving edited segmentation to ALL workspace:"))
+                edit_date = datetime.now().strftime("%Y%m%d")
+                layout.addWidget(QLabel(f"Files will be saved in: ALL/{self.patient_id}/{self.study_date}/[doctor]/{edit_date}/"))
+            else:
+                layout.addWidget(QLabel("Select session code to save the segmentation data:"))
+            
+            # Create list widget
+            list_widget = QListWidget()
+            for tag in available_tags:
+                item = QListWidgetItem()
+                
+                # Create widget for each item
+                item_widget = QWidget()
+                item_layout = QHBoxLayout(item_widget)
+                
+                # Color indicator
+                color_label = QLabel()
+                color_label.setFixedSize(20, 20)
+                color_label.setStyleSheet(f"background-color: {tag.get('color', '#000000')}; border: 1px solid #ccc;")
+                
+                # Code and name with save path info
+                if self.current_session == "ALL":
+                    edit_date = datetime.now().strftime("%Y%m%d")
+                    save_path_info = f"→ ALL/{self.patient_id}/{self.study_date}/{tag.get('code', 'N/A')}/{edit_date}/"
+                    text_label = QLabel(f"{tag.get('code', 'N/A')} - {tag.get('name', 'Unknown')}\n{save_path_info}")
+                    text_label.setStyleSheet("font-size: 11px;")
+                else:
+                    text_label = QLabel(f"{tag.get('code', 'N/A')} - {tag.get('name', 'Unknown')}")
+                
+                item_layout.addWidget(color_label)
+                item_layout.addWidget(text_label)
+                item_layout.addStretch()
+                
+                item.setSizeHint(item_widget.sizeHint())
+                list_widget.addItem(item)
+                list_widget.setItemWidget(item, item_widget)
+                
+                # Store the code in the item data
+                item.setData(Qt.UserRole, tag.get('code'))
+            
+            # Select first item by default
+            if list_widget.count() > 0:
+                list_widget.setCurrentRow(0)
+            
+            layout.addWidget(list_widget)
+            
+            # Buttons
+            button_layout = QHBoxLayout()
+            ok_button = QPushButton("OK")
+            cancel_button = QPushButton("Cancel")
+            
+            ok_button.clicked.connect(dialog.accept)
+            cancel_button.clicked.connect(dialog.reject)
+            
+            button_layout.addStretch()
+            button_layout.addWidget(ok_button)
+            button_layout.addWidget(cancel_button)
+            layout.addLayout(button_layout)
+            
+            # Show dialog
+            if dialog.exec() == QDialog.Accepted:
+                current_item = list_widget.currentItem()
+                if current_item:
+                    return current_item.data(Qt.UserRole)
+            
+            return None  # User cancelled
             
         except Exception as e:
-            print(f"Cloud upload failed: {e}")
-            return False
+            print(f"Error showing session selection dialog: {e}")
+            return "NSY"  # Fallback to default
+    def _perform_save(self):
+        """Perform segmentation save operations."""
+        try:
+            # Check if paths were initialized successfully
+            if not hasattr(self, 'segmentation_mask_edited') or self.segmentation_mask_edited is None:
+                self.save_completed.emit(False, "Save cancelled: No session selected")
+                return
+            
+            # Add safety check for canvas and its current_mask method
+            if not self.canvas or not hasattr(self.canvas, 'current_mask'):
+                self.save_completed.emit(False, "Canvas not properly initialized")
+                return
+                
+            try:
+                mask = self.canvas.current_mask()
+            except Exception as e:
+                self.save_completed.emit(False, f"Failed to get current mask: {e}")
+                return
+            
+            self.progress_updated.emit(10, "Preparing segmentation data...")
+            
+            # Prepare images
+            bin_img = (mask > 0).astype(np.uint8) * 255
+            rgb_img = label_mask_to_rgb(mask)
+            
+            self.progress_updated.emit(30, "Saving mask files...")
+            
+            # Save PNG files (directory already created in _initialize_save_paths)
+            try:
+                Image.fromarray(bin_img, mode="L").save(self.segmentation_mask_edited)
+                Image.fromarray(rgb_img).save(self.segmentation_colored_edited)
+            except Exception as e:
+                self.save_completed.emit(False, f"Failed to save segmentation files: {e}")
+                return
+            
+            self.progress_updated.emit(80, "Running quantification...")
+            
+            # Trigger quantification
+            quant_success = self._trigger_quantification()
+            
+            self.progress_updated.emit(100, "Save completed!")
+            
+            # Build success message
+            success_msg = (
+                f"Segmentation files saved successfully!\n\n"
+                f"Location: {self.segmentation_mask_edited.parent}\n"
+                f"Files:\n"
+                f"• {self.segmentation_mask_edited.name}\n"
+                f"• {self.segmentation_colored_edited.name}\n\n"
+            )
+            
+            if quant_success:
+                success_msg += "\n✅ Quantification pipeline completed successfully"
+            else:
+                success_msg += "\n⚠️ Quantification pipeline failed (check logs for details)"
+            
+            # Emit success signal
+            self.save_completed.emit(True, success_msg)
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            error_msg = f"Save failed: {str(e)}"
+            self.save_completed.emit(False, error_msg)
+
+    # def _upload_to_cloud(self) -> bool:
+    #     """Upload edited files to cloud storage."""
+    #     try:
+    #         from core.config.cloud_storage import upload_patient_file
+            
+    #         file_path = self.seg_files_edited['png_colored_edited']
+            
+    #         if file_path.exists():
+    #             return upload_patient_file(
+    #                 file_path, 
+    #                 self.session_code, 
+    #                 self.patient_id, 
+    #                 is_edited=True
+    #             )
+    #         return False
+            
+    #     except Exception as e:
+    #         print(f"Cloud upload failed: {e}")
+    #         return False
 
     def _trigger_quantification(self) -> bool:
         """Trigger quantification after segmentation save."""
@@ -334,23 +506,8 @@ class SegmentationSaveThread(BaseSaveThread):
                 run_quantification_for_patient
             )
             
-            # Find DICOM file in patient folder
-            patient_folder = self.seg_files_edited['png_mask_edited'].parent
-            dicom_path = None
-            
-            for possible_dicom in patient_folder.glob("*.dcm"):
-                if not any(skip in possible_dicom.name.lower() 
-                          for skip in ['mask', 'colored', 'edited']):
-                    dicom_path = possible_dicom
-                    break
-            
-            if not dicom_path or not dicom_path.exists():
-                print("No DICOM file found, skipping quantification")
-                return False
-            
-            # Run quantification with updated segmentation
             return run_quantification_for_patient(
-                dicom_path,
+                self.dicom_path,
                 self.patient_id,
                 self.study_date
             )
@@ -358,6 +515,18 @@ class SegmentationSaveThread(BaseSaveThread):
         except Exception as e:
             print(f"Quantification failed: {e}")
             return False
+
+    def get_save_info(self) -> Dict[str, Path]:
+        """Get information about save paths for external use."""
+        # Add safety checks for None values
+        if self.segmentation_mask_edited is None or self.segmentation_colored_edited is None:
+            return {}
+            
+        return {
+            'mask_path': self.segmentation_mask_edited,
+            'colored_path': self.segmentation_colored_edited,
+            'date_dir': self.segmentation_mask_edited.parent
+        }
 
 
 class SegmentationToolPanel(QWidget):
