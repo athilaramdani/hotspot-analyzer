@@ -25,11 +25,12 @@ from core.config.paths import (
     get_patient_planar_path, 
     get_session_planar_path,
     PLANAR_DATA_PATH,
-    is_cloud_enabled,
     extract_study_date_from_dicom,
-    generate_filename_stem,
-    get_dicom_output_path
+    generate_filename_stem
 )
+
+# Import cloud functions from archive
+from core.config.paths_archive import is_cloud_enabled
 
 try:
     from features.dicom_import.logic.pixel_analyzer import convert_to_black_background
@@ -95,11 +96,13 @@ def _upload_original_png_to_cloud(png_path: Path, session_code: str, patient_id:
     Returns:
         True if successful upload
     """
-    if not CLOUD_AVAILABLE or not is_cloud_enabled():
+    if not CLOUD_AVAILABLE:
         return False
     
-    # ONLY UPLOAD ORIGINAL PNG FILES
-    if not png_path.name.endswith('_original.png'):
+    try:
+        if not is_cloud_enabled():
+            return False
+    except Exception:
         return False
     
     try:
