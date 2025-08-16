@@ -1,0 +1,29 @@
+{
+    "doctor_tags": [
+      {
+        "code": "NSY",
+        "name": "Neurological Surgery Department",
+        "color": "#4e73ff",
+        "shared": false
+      },
+      {
+        "code": "ATL",
+        "name": "Atlantic Medical Center",
+        "color": "#28a745",
+        "shared": false
+      },
+      {
+        "code": "NBL",
+        "name": "Neurobiology Laboratory",
+        "color": "#dc3545",
+        "shared": false
+      },
+      {
+        "code": "ALL",
+        "name": "Shared Access (All Users)",
+        "color": "#ffc107",
+        "shared": true
+      }
+    ],
+    "last_updated": "2025-01-01T00:00:00Z"
+  }

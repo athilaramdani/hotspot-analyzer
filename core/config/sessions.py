@@ -7,17 +7,27 @@ from pathlib import Path
 from datetime import datetime
 import json
 
+# Dynamic session codes - will be loaded from doctor_tags.json
+def get_dynamic_session_codes() -> List[str]:
+    """Get session codes from doctor tags configuration"""
+    try:
+        config_path = Path("config/doctor_tags.json")
+        if config_path.exists():
+            with open(config_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return [tag['code'] for tag in data.get('doctor_tags', [])]
+    except Exception:
+        pass
+    
+    # Fallback to default codes
+    return ["NSY", "ATL", "NBL", "ALL"]
+
 # Available patient session codes
-AVAILABLE_SESSION_CODES = [
-    "NSY",  
-    "ATL",  
-    "NBL",  
-]
+AVAILABLE_SESSION_CODES = get_dynamic_session_codes()
 
 # Available modalities
 AVAILABLE_MODALITIES = [
-    "SPECT",
-    "PET"
+    "Planar"  # Changed from SPECT to Planar, removed PET
 ]
 
 # Session code descriptions (optional)
@@ -25,13 +35,14 @@ SESSION_CODE_DESCRIPTIONS = {
     "NSY": "Neurological Surgery Department",
     "ATL": "Atlantic Medical Center", 
     "NBL": "Neurobiology Laboratory",
+    "ALL": "Shared Access (All Users)"
 }
 
 # Default session settings
 DEFAULT_SESSION_CONFIG = {
     "auto_login": False,
     "remember_last_session": True,
-    "default_modality": "SPECT",
+    "default_modality": "Planar",
     "session_timeout_minutes": 60,
     "max_concurrent_sessions": 3
 }
@@ -67,8 +78,15 @@ class SessionManager:
         except Exception as e:
             print(f"[WARNING] Failed to save session config: {e}")
     
+    def refresh_session_codes(self):
+        """Refresh session codes from doctor_tags.json"""
+        global AVAILABLE_SESSION_CODES
+        AVAILABLE_SESSION_CODES = get_dynamic_session_codes()
+    
     def get_available_session_codes(self) -> List[str]:
         """Get list of available session codes"""
+        # Refresh from file each time to get latest codes
+        self.refresh_session_codes()
         return AVAILABLE_SESSION_CODES.copy()
     
     def get_available_modalities(self) -> List[str]:
@@ -81,6 +99,8 @@ class SessionManager:
     
     def validate_session_code(self, session_code: str) -> bool:
         """Validate if session code is available"""
+        # Refresh codes before validation
+        self.refresh_session_codes()
         return session_code in AVAILABLE_SESSION_CODES
     
     def validate_modality(self, modality: str) -> bool:

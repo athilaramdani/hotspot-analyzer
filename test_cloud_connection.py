@@ -122,13 +122,13 @@ def main():
     print("\n5️⃣  Testing SPECT data sync functions...")
     try:
         from core.config.cloud_storage import sync_spect_data
-        from core.config.paths import SPECT_DATA_PATH
+        from core.config.paths import PLANAR_DATA_PATH
         
-        print(f"📁 Local SPECT path: {SPECT_DATA_PATH}")
+        print(f"📁 Local SPECT path: {PLANAR_DATA_PATH}")
         
-        if SPECT_DATA_PATH.exists():
+        if PLANAR_DATA_PATH.exists():
             # Count local files
-            local_files = list(SPECT_DATA_PATH.rglob("*"))
+            local_files = list(PLANAR_DATA_PATH.rglob("*"))
             local_file_count = len([f for f in local_files if f.is_file()])
             print(f"📊 Found {local_file_count} local files in SPECT data")
             

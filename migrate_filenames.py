@@ -22,7 +22,7 @@ project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
 from core.config.paths import (
-    SPECT_DATA_PATH,
+    PLANAR_DATA_PATH,
     extract_study_date_from_dicom,
     generate_filename_stem
 )
@@ -197,22 +197,22 @@ def migrate_session_directory(session_dir: Path, dry_run: bool = True) -> Tuple[
 def migrate_all_files(dry_run: bool = True, session_filter: str = None):
     """Migrate all files in SPECT data directory"""
     print("🚀 Starting file migration to include study date in filenames")
-    print(f"📂 Target directory: {SPECT_DATA_PATH}")
+    print(f"📂 Target directory: {PLANAR_DATA_PATH}")
     
     if dry_run:
         print("🔍 DRY RUN MODE - No files will be modified")
     else:
         print("⚠️  LIVE MODE - Files will be renamed")
     
-    if not SPECT_DATA_PATH.exists():
-        print(f"❌ SPECT data directory not found: {SPECT_DATA_PATH}")
+    if not PLANAR_DATA_PATH.exists():
+        print(f"❌ SPECT data directory not found: {PLANAR_DATA_PATH}")
         return
     
     total_migrated = 0
     total_skipped = 0
     
     # Get all session directories
-    session_dirs = [d for d in SPECT_DATA_PATH.iterdir() if d.is_dir()]
+    session_dirs = [d for d in PLANAR_DATA_PATH.iterdir() if d.is_dir()]
     
     if session_filter:
         session_dirs = [d for d in session_dirs if d.name == session_filter]

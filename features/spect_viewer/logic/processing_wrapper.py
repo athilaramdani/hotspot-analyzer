@@ -16,11 +16,15 @@ sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
 
 # Import configurations and utilities
 from core.config.paths import (
-    YOLO_MODEL_PATH, 
-    get_hotspot_files, 
-    extract_study_date_from_dicom, 
+    get_planar_hotspot_files,
+    get_patient_planar_path,
+    get_planar_segmentation_files,
+    get_planar_files_complete,
+    get_planar_quantification_files,
+    PLANAR_DATA_PATH,
     generate_filename_stem,
-    get_patient_spect_path
+    extract_study_date_from_dicom,
+    YOLO_MODEL_PATH  # Add this missing import
 )
 
 # Import DICOM loader
@@ -121,8 +125,9 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
             filename_stem = f"{patient_id}_{study_date}"
             print(f"[DEBUG] Using fallback study_date: {study_date}")
         
-        ant_hotspot_files = get_hotspot_files(patient_id, session_code, "ant", study_date)
-        post_hotspot_files = get_hotspot_files(patient_id, session_code, "post", study_date)
+        patient_folder = get_patient_planar_path(session_code, patient_id, study_date)
+        ant_hotspot_files = get_planar_hotspot_files(patient_folder, "ant")
+        post_hotspot_files = get_planar_hotspot_files(patient_folder, "post")
         ant_xml_path = Path(ant_hotspot_files['xml_file'])
         post_xml_path = Path(post_hotspot_files['xml_file'])
 
@@ -263,7 +268,7 @@ def run_segmentation_in_process(dicom_path: Path, patient_id: str) -> Dict[str, 
         filename_stem = generate_filename_stem(patient_id, study_date)
         
         # Tentukan nama file output yang konsisten
-        output_path = dicom_path.parent / f"{filename_stem}_segmentation_colored.png"
+        output_path = dicom_path.parent / "ant_segm.png"  # or determine view dynamically
         
         # Simpan gambar menggunakan PIL
         Image.fromarray(segmented_rgb).save(output_path)
@@ -414,25 +419,26 @@ def get_patient_analysis_status(dicom_path: Path, patient_id: str, study_date: s
         "files_exist": {
             "dicom": dicom_path.exists(),
             "segmentation": {
-                "anterior_colored": (patient_folder / f"{filename_stem}_anterior_colored.png").exists(),
-                "posterior_colored": (patient_folder / f"{filename_stem}_posterior_colored.png").exists(),
+                "anterior_colored": (patient_folder / "ant_segm.png").exists(),
+                "posterior_colored": (patient_folder / "post_segm.png").exists(),
             },
             "yolo_xml": {
-                "anterior": (patient_folder / f"{filename_stem}_ant.xml").exists(),
-                "posterior": (patient_folder / f"{filename_stem}_post.xml").exists(),
+                "anterior": (patient_folder / "ant_hotspot_yolo.xml").exists(),
+                "posterior": (patient_folder / "post_hotspot_yolo.xml").exists(),
             },
             "otsu_hotspot": {
-                "anterior": (patient_folder / f"{filename_stem}_ant_hotspot_mask.png").exists(),
-                "posterior": (patient_folder / f"{filename_stem}_post_hotspot_mask.png").exists(),
+                "anterior": (patient_folder / "ant_hotspot_otsu_grayscale.png").exists(),
+                "posterior": (patient_folder / "post_hotspot_otsu_grayscale.png").exists(),
             },
             "classification": {
-                "anterior_json": (patient_folder / f"{filename_stem}_anterior_classification.json").exists(),
-                "anterior_mask": (patient_folder / f"{filename_stem}_anterior_classification_mask.png").exists(),
-                "posterior_json": (patient_folder / f"{filename_stem}_posterior_classification.json").exists(),
-                "posterior_mask": (patient_folder / f"{filename_stem}_posterior_classification_mask.png").exists(),
+                "anterior_json": (patient_folder / "ant_hotspot_classification.xml").exists(),
+                "anterior_mask": (patient_folder / "ant_hotspot_classification.png").exists(),
+                "posterior_json": (patient_folder / "post_hotspot_classification.xml").exists(),
+                "posterior_mask": (patient_folder / "post_hotspot_classification.png").exists(),
             },
             "quantification": {
-                "bsi_json": (patient_folder / f"{filename_stem}_bsi_quantification.json").exists(),
+                "bsi_json_ant": (patient_folder / "bsi_quantification_ant.json").exists(),
+                "bsi_json_post": (patient_folder / "bsi_quantification_post.json").exists(),
             }
         }
     }

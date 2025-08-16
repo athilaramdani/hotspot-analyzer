@@ -21,11 +21,13 @@ from ultralytics import YOLO
 
 # Import from your modules
 from core.config.paths import (
-    YOLO_MODEL_PATH, 
-    get_hotspot_files, 
-    extract_study_date_from_dicom, 
-    generate_filename_stem
+    get_planar_hotspot_files,
+    get_patient_planar_path,
+    generate_filename_stem,
+    extract_study_date_from_dicom,
+    YOLO_MODEL_PATH
 )
+
 from features.dicom_import.logic.dicom_loader import load_frames_and_metadata
 
 # Initialize YOLO model
@@ -249,8 +251,9 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
                 print(f"[DETECTION] Processing view: {view_name} -> {view_full}")
                 
                 # Get output paths
-                hotspot_files = get_hotspot_files(patient_id, session_code, view_type, study_date)
-                xml_output_path = Path(hotspot_files['xml_file'])
+                patient_folder = get_patient_planar_path(session_code, patient_id, study_date)
+                hotspot_files = get_planar_hotspot_files(patient_folder, view_type)
+                xml_output_path = Path(hotspot_files['yolo_xml'])  # Use 'yolo_xml' key instead of 'xml_file'
                 
                 # Skip if XML already exists
                 if xml_output_path.exists():
