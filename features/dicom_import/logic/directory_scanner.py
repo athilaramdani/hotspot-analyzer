@@ -24,33 +24,27 @@ from core.config.paths import PLANAR_DATA_PATH, get_patient_planar_path, get_ses
 
 # ---------------------------------------------------------------- helpers
 def _extract_session_patient_from_path(dicom_path: Path) -> Tuple[str, str]:
-    """
-    Extract session code and patient ID from path
-    NEW: data/SPECT/[session_code]/[patient_id]/file.dcm
-    OLD: data/SPECT/[patient_id]_[session_code]/file.dcm
-    """
     try:
         parts = dicom_path.parts
         
-        # Find SPECT directory index
-        spect_index = None
+        # Find PLANAR directory index
+        planar_index = None
         for i, part in enumerate(parts):
-            if part == "SPECT":
-                spect_index = i
+            if part == "PLANAR":
+                planar_index = i
                 break
         
-        if spect_index is not None and len(parts) > spect_index + 2:
-            # NEW structure: .../SPECT/[session_code]/[patient_id]/file.dcm
-            session_code = parts[spect_index + 1]
-            patient_id = parts[spect_index + 2]
+        if planar_index is not None and len(parts) > planar_index + 2:
+            session_code = parts[planar_index + 1]
+            patient_id = parts[planar_index + 2]
             
             # Validate if this looks like new structure (no underscore in session_code for patient_id)
             if "_" not in patient_id or session_code in ["NSY", "ATL", "NBL"]:
                 return session_code, patient_id
         
         # Check for OLD structure: [patient_id]_[session_code]
-        if spect_index is not None and len(parts) > spect_index + 1:
-            folder_name = parts[spect_index + 1]
+        if planar_index is not None and len(parts) > planar_index + 1:
+            folder_name = parts[planar_index + 1]
             if "_" in folder_name:
                 parts_old = folder_name.split("_")
                 if len(parts_old) >= 2:

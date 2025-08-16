@@ -117,88 +117,164 @@ class DoctorTagWidget(QFrame):
     """Individual doctor tag widget with selection capability"""
     
     tag_selected = Signal(dict)
+    tag_updated = Signal()  # Signal for when tag is updated
     
     def __init__(self, tag_data: dict, parent=None):
         super().__init__(parent)
         self.tag_data = tag_data
         self.selected = False
+        self.parent_dialog = parent
         self._setup_ui()
     
     def _setup_ui(self):
-        """Setup the tag widget UI"""
+        """Setup the tag widget UI - FIXED layout"""
         self.setFrameStyle(QFrame.Box)
-        self.setStyleSheet(f"""
-            QFrame {{
-                border: 2px solid {self.tag_data.get('color', Colors.SECONDARY)};
-                border-radius: 8px;
-                background: white;
-                padding: 8px;
-                margin: 4px;
-            }}
-            QFrame:hover {{
-                background: {self.tag_data.get('color', Colors.SECONDARY)}15;
-                border-color: {self.tag_data.get('color', Colors.SECONDARY)};
-            }}
-        """)
         
+        # Main layout
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(8)
         
-        # Tag code with color indicator
-        code_layout = QHBoxLayout()
+        # Header with code and color indicator
+        header_layout = QHBoxLayout()
+        header_layout.setSpacing(8)
         
         # Color indicator
         color_indicator = QLabel()
-        color_indicator.setFixedSize(16, 16)
+        color_indicator.setFixedSize(12, 12)
         color_indicator.setStyleSheet(f"""
             QLabel {{
                 background: {self.tag_data.get('color', Colors.SECONDARY)};
-                border-radius: 8px;
+                border-radius: 6px;
                 border: 1px solid #dee2e6;
             }}
         """)
-        code_layout.addWidget(color_indicator)
+        header_layout.addWidget(color_indicator)
         
         # Tag code
         code_label = QLabel(self.tag_data['code'])
         code_label.setFont(QFont("Arial", 14, QFont.Bold))
-        code_label.setStyleSheet(f"color: {self.tag_data.get('color', Colors.SECONDARY)};")
-        code_layout.addWidget(code_label)
+        code_label.setStyleSheet(f"""
+            QLabel {{
+                color: {self.tag_data.get('color', Colors.SECONDARY)};
+                font-weight: bold;
+            }}
+        """)
+        header_layout.addWidget(code_label)
         
-        # Shared indicator for ALL user
+        # Shared badge for ALL user
         if self.tag_data.get('shared', False):
             shared_badge = QLabel("SHARED")
-            shared_badge.setStyleSheet(ENHANCED_WORKFLOW_BADGE_STYLE)
-            code_layout.addWidget(shared_badge)
+            shared_badge.setStyleSheet("""
+                QLabel {
+                    background: #4e73ff;
+                    color: white;
+                    border-radius: 8px;
+                    padding: 2px 8px;
+                    font-size: 9px;
+                    font-weight: bold;
+                }
+            """)
+            header_layout.addWidget(shared_badge)
         
-        code_layout.addStretch()
-        layout.addLayout(code_layout)
+        header_layout.addStretch()
+        layout.addLayout(header_layout)
         
-        # Tag name/description
+        # Doctor name
         name_label = QLabel(self.tag_data['name'])
         name_label.setWordWrap(True)
         name_label.setStyleSheet("""
             QLabel {
                 color: #495057;
-                font-size: 12px;
-                margin-top: 4px;
+                font-size: 11px;
+                line-height: 1.3;
+                margin: 4px 0px;
             }
         """)
         layout.addWidget(name_label)
         
-        # Selection indicator
-        self.selection_indicator = QLabel("●")
-        self.selection_indicator.setAlignment(Qt.AlignCenter)
-        self.selection_indicator.setStyleSheet("""
-            QLabel {
-                color: #dee2e6;
-                font-size: 20px;
-                font-weight: bold;
-            }
-        """)
-        layout.addWidget(self.selection_indicator)
+        # Edit button for non-shared tags
+        if not self.tag_data.get('shared', False):
+            edit_btn = QPushButton("✏️ Edit")
+            edit_btn.setStyleSheet("""
+                QPushButton {
+                    background: #f8f9fa;
+                    border: 1px solid #dee2e6;
+                    border-radius: 4px;
+                    padding: 4px 8px;
+                    font-size: 10px;
+                    color: #495057;
+                }
+                QPushButton:hover {
+                    background: #e9ecef;
+                    border-color: #adb5bd;
+                }
+            """)
+            edit_btn.clicked.connect(self._edit_tag)
+            layout.addWidget(edit_btn)
         
-        self.setFixedHeight(120)
+        # Set widget properties
+        self.setMinimumSize(180, 120)
+        self.setMaximumSize(220, 140)
         self.setCursor(Qt.PointingHandCursor)
+        
+        # Apply initial style
+        self._apply_style(selected=False)
+    
+    def _apply_style(self, selected: bool):
+        """Apply style based on selection state"""
+        color = self.tag_data.get('color', Colors.SECONDARY)
+        
+        if selected:
+            self.setStyleSheet(f"""
+                QFrame {{
+                    border: 3px solid {color};
+                    border-radius: 8px;
+                    background: {color}20;
+                }}
+            """)
+        else:
+            self.setStyleSheet(f"""
+                QFrame {{
+                    border: 2px solid {color};
+                    border-radius: 8px;
+                    background: white;
+                }}
+                QFrame:hover {{
+                    background: {color}15;
+                    border-color: {color};
+                }}
+            """)
+    
+    def _edit_tag(self):
+        """Edit tag name and color"""
+        dialog = EditDoctorDialog(self.tag_data, self)
+        if dialog.exec() == QDialog.Accepted:
+            try:
+                # Update through tag manager
+                tag_manager = DoctorTagManager()
+                tag_manager.update_tag(
+                    self.tag_data['code'], 
+                    name=dialog.new_name, 
+                    color=dialog.new_color
+                )
+                
+                # Update local data
+                old_name = self.tag_data['name']
+                self.tag_data['name'] = dialog.new_name
+                self.tag_data['color'] = dialog.new_color
+                
+                # Refresh parent dialog to reload all tags
+                if hasattr(self.parent(), '_populate_doctor_tags'):
+                    self.parent()._populate_doctor_tags()
+                
+                QMessageBox.information(self, "Success", 
+                    f"Doctor updated successfully!\n\n"
+                    f"Name: {old_name} → {dialog.new_name}\n"
+                    f"Code '{self.tag_data['code']}' remains unchanged")
+                    
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Failed to update doctor: {e}")
     
     def mousePressEvent(self, event):
         """Handle click to select tag"""
@@ -210,45 +286,7 @@ class DoctorTagWidget(QFrame):
     def set_selected(self, selected: bool):
         """Set selection state"""
         self.selected = selected
-        
-        if selected:
-            self.setStyleSheet(f"""
-                QFrame {{
-                    border: 3px solid {self.tag_data.get('color', Colors.SECONDARY)};
-                    border-radius: 8px;
-                    background: {self.tag_data.get('color', Colors.SECONDARY)}20;
-                    padding: 8px;
-                    margin: 4px;
-                }}
-            """)
-            self.selection_indicator.setStyleSheet(f"""
-                QLabel {{
-                    color: {self.tag_data.get('color', Colors.SECONDARY)};
-                    font-size: 20px;
-                    font-weight: bold;
-                }}
-            """)
-        else:
-            self.setStyleSheet(f"""
-                QFrame {{
-                    border: 2px solid {self.tag_data.get('color', Colors.SECONDARY)};
-                    border-radius: 8px;
-                    background: white;
-                    padding: 8px;
-                    margin: 4px;
-                }}
-                QFrame:hover {{
-                    background: {self.tag_data.get('color', Colors.SECONDARY)}15;
-                    border-color: {self.tag_data.get('color', Colors.SECONDARY)};
-                }}
-            """)
-            self.selection_indicator.setStyleSheet("""
-                QLabel {
-                    color: #dee2e6;
-                    font-size: 20px;
-                    font-weight: bold;
-                }
-            """)
+        self._apply_style(selected)
 
 class AddDoctorDialog(QDialog):
     """Dialog for adding new doctor tags"""
@@ -257,17 +295,18 @@ class AddDoctorDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Add New Doctor Tag")
         self.setModal(True)
-        self.setFixedSize(400, 300)
+        self.setFixedSize(380, 300)
         
         self.code = ""
         self.name = ""
-        self.color = Colors.SECONDARY
+        self.color = Colors.PRIMARY
         
         self._setup_ui()
     
     def _setup_ui(self):
         """Setup the add doctor dialog UI"""
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
         
         # Title
         title = QLabel("Add New Doctor Tag")
@@ -275,14 +314,14 @@ class AddDoctorDialog(QDialog):
         layout.addWidget(title)
         
         # Code input
-        layout.addWidget(QLabel("Doctor Code (3-4 characters):"))
+        layout.addWidget(QLabel("Doctor Code (2-4 characters):"))
         self.code_input = QLineEdit()
         self.code_input.setPlaceholderText("e.g., EMA, JDN")
         self.code_input.setMaxLength(4)
         layout.addWidget(self.code_input)
         
         # Name input
-        layout.addWidget(QLabel("Department/Name:"))
+        layout.addWidget(QLabel("Doctor Name:"))
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("e.g., Emergency Medicine Associates")
         layout.addWidget(self.name_input)
@@ -297,12 +336,12 @@ class AddDoctorDialog(QDialog):
         
         for color in colors:
             btn = QPushButton()
-            btn.setFixedSize(30, 30)
+            btn.setFixedSize(28, 28)
             btn.setStyleSheet(f"""
                 QPushButton {{
                     background: {color};
                     border: 2px solid #dee2e6;
-                    border-radius: 15px;
+                    border-radius: 14px;
                 }}
                 QPushButton:checked {{
                     border: 3px solid #000;
@@ -359,7 +398,117 @@ class AddDoctorDialog(QDialog):
             return
         
         if not self.name:
-            QMessageBox.warning(self, "Invalid Input", "Department/Name cannot be empty")
+            QMessageBox.warning(self, "Invalid Input", "Doctor name cannot be empty")
+            return
+        
+        self.accept()
+
+class EditDoctorDialog(QDialog):
+    """Dialog for editing existing doctor tags"""
+    
+    def __init__(self, tag_data: dict, parent=None):
+        super().__init__(parent)
+        self.tag_data = tag_data
+        self.new_name = tag_data['name']
+        self.new_color = tag_data['color']
+        
+        self.setWindowTitle("Edit Doctor")
+        self.setModal(True)
+        self.setFixedSize(500, 400)
+        
+        self._setup_ui()
+    
+    def _setup_ui(self):
+        """Setup the edit dialog UI"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        
+        # Title
+        title = QLabel(f"Edit Doctor: {self.tag_data['code']}")
+        title.setStyleSheet(DIALOG_TITLE_STYLE)
+        layout.addWidget(title)
+        
+        # Code info (read-only)
+        layout.addWidget(QLabel("Doctor Code (cannot be changed):"))
+        code_display = QLineEdit(self.tag_data['code'])
+        code_display.setReadOnly(True)
+        code_display.setStyleSheet("background: #f8f9fa; color: #6c757d;")
+        layout.addWidget(code_display)
+        
+        # Name input
+        layout.addWidget(QLabel("Doctor Name:"))
+        self.name_input = QLineEdit(self.tag_data['name'])
+        self.name_input.setPlaceholderText("Enter doctor name")
+        layout.addWidget(self.name_input)
+        
+        # Color selection
+        layout.addWidget(QLabel("Color:"))
+        color_layout = QHBoxLayout()
+        
+        self.color_buttons = []
+        colors = [Colors.PRIMARY, Colors.SUCCESS, Colors.WARNING, Colors.DANGER, 
+                 "#9C27B0", "#FF5722", "#607D8B", Colors.SECONDARY]
+        
+        for color in colors:
+            btn = QPushButton()
+            btn.setFixedSize(28, 28)
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background: {color};
+                    border: 2px solid #dee2e6;
+                    border-radius: 14px;
+                }}
+                QPushButton:checked {{
+                    border: 3px solid #000;
+                }}
+            """)
+            btn.setCheckable(True)
+            btn.clicked.connect(lambda checked, c=color: self._select_color(c))
+            self.color_buttons.append(btn)
+            color_layout.addWidget(btn)
+            
+            # Check current color
+            if color == self.tag_data['color']:
+                btn.setChecked(True)
+        
+        color_layout.addStretch()
+        layout.addLayout(color_layout)
+        
+        layout.addStretch()
+        
+        # Buttons
+        button_layout = QHBoxLayout()
+        
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.setStyleSheet(DIALOG_CANCEL_BUTTON_STYLE)
+        cancel_btn.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_btn)
+        
+        save_btn = QPushButton("Save Changes")
+        save_btn.setStyleSheet(SUCCESS_BUTTON_STYLE)
+        save_btn.clicked.connect(self._validate_and_accept)
+        button_layout.addWidget(save_btn)
+        
+        layout.addLayout(button_layout)
+    
+    def _select_color(self, color: str):
+        """Select color for the tag"""
+        self.new_color = color
+        for btn in self.color_buttons:
+            btn.setChecked(False)
+        
+        # Find and check the clicked button
+        for btn in self.color_buttons:
+            if btn.styleSheet().find(color) != -1:
+                btn.setChecked(True)
+                break
+    
+    def _validate_and_accept(self):
+        """Validate input and accept dialog"""
+        self.new_name = self.name_input.text().strip()
+        
+        if not self.new_name:
+            QMessageBox.warning(self, "Invalid Input", "Doctor name cannot be empty")
             return
         
         self.accept()
@@ -373,13 +522,14 @@ class DoctorSelectionDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Hotspot Analyzer - Doctor Selection")
         self.setModal(True)
-        self.setFixedSize(800, 600)
-        
+        self.setMinimumSize(1000, 700)
+        self.resize(1200, 800)
+        self.setSizeGripEnabled(True)
         # Remove close button
         self.setWindowFlag(Qt.WindowCloseButtonHint, False)
         
         self.selected_doctor_id: str = None
-        self.selected_modality: str = "Planar"  # Default to Planar instead of SPECT
+        self.selected_modality: str = "Planar"
         self.selected_tag_data: dict = None
         
         self.session_manager = get_session_manager()
@@ -427,7 +577,8 @@ class DoctorSelectionDialog(QDialog):
         # Tags grid
         self.tags_widget = QWidget()
         self.tags_layout = QGridLayout(self.tags_widget)
-        self.tags_layout.setSpacing(8)
+        self.tags_layout.setSpacing(12)
+        self.tags_layout.setContentsMargins(10, 10, 10, 10)
         
         self._populate_doctor_tags()
         
@@ -518,15 +669,19 @@ class DoctorSelectionDialog(QDialog):
             if child.widget():
                 child.widget().deleteLater()
         
-        # Add tag widgets
-        tags = self.tag_manager.get_tags()
-        cols = 3
+        # Sort tags: ALL first, then others
+        all_tags = self.tag_manager.get_tags()
+        shared_tags = [tag for tag in all_tags if tag.get('shared', False)]
+        individual_tags = [tag for tag in all_tags if not tag.get('shared', False)]
+        sorted_tags = shared_tags + individual_tags
         
-        for i, tag_data in enumerate(tags):
+        cols = 4  # 4 columns for better layout
+        
+        for i, tag_data in enumerate(sorted_tags):
             row = i // cols
             col = i % cols
             
-            tag_widget = DoctorTagWidget(tag_data)
+            tag_widget = DoctorTagWidget(tag_data, self)
             tag_widget.tag_selected.connect(self._on_tag_selected)
             self.tag_widgets.append(tag_widget)
             
