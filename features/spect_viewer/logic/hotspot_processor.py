@@ -11,7 +11,7 @@ from skimage.morphology import binary_dilation, disk
 # Import untuk extract study date
 try:
     from features.dicom_import.logic.dicom_loader import extract_study_date_from_dicom
-    from core.config.paths import generate_filename_stem
+    from core.config.paths import generate_filename_stem, get_planar_hotspot_files, get_current_session_code, get_patient_planar_path
     STUDY_DATE_SUPPORT = True
 except ImportError:
     STUDY_DATE_SUPPORT = False
@@ -143,21 +143,7 @@ def parse_xml_annotations(xml_file: str) -> List[Tuple[int, int, int, int, str]]
 def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, int, int, str]], 
                        patient_id: str, view: str, study_date: str = None, output_dir: str = None) -> Tuple[np.ndarray, Image.Image, Image.Image]:
     """
-    Create hotspot mask, overlayed image, and PURE colored image based on Otsu threshold.
-    
-    Args:
-        image_file: Path to input image
-        bounding_boxes: List of bounding boxes with labels
-        patient_id: Patient ID for naming output files
-        view: View type (ant/post) for naming output files
-        study_date: Study date in YYYYMMDD format (will be extracted if None)
-        output_dir: Directory to save mask files
-    
-    Returns:
-        Tuple of (mask_array, overlayed_image, pure_colored_image): 
-        - Hotspot mask
-        - Overlayed image (blended with original)
-        - Pure colored image (palette colors only)
+    ✅ FIXED: Create hotspot mask using paths.py for proper file naming
     """
     with Image.open(image_file) as img:
         # Convert to grayscale for mask creation
@@ -283,36 +269,24 @@ def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, in
         
         overlayed_image = Image.fromarray(overlayed_array)
         
-        # Save both versions if output_dir specified
+        # ✅ SAVE using paths.py naming convention
         if output_dir:
+            from core.config.paths import get_planar_hotspot_files
+            
             output_path = Path(output_dir)
-            output_path.mkdir(exist_ok=True)
             
-            # Generate filename stems
-            if study_date:
-                filename_stem = generate_filename_stem(patient_id, study_date)
-            else:
-                filename_stem = patient_id
+            # ✅ USE paths.py for proper file naming
+            hotspot_files = get_planar_hotspot_files(output_path, view, with_priority=False)
             
-            # ✅ SAVE BLENDED VERSION (original naming)
-            view_suffix = "ant" if "ant" in view.lower() else "post"
-            blended_filename = f"{filename_stem}_{view_suffix}_hotspot_colored.png"
-            blended_path = output_path / blended_filename
-            overlayed_image.save(blended_path)
-            print(f"Blended hotspot image saved: {blended_path}")
+            # Save files using correct naming from paths.py
+            overlayed_image.save(hotspot_files['otsu_colored_blend'])
+            print(f"Blended hotspot image saved: {hotspot_files['otsu_colored_blend']}")
             
-            # ✅ SAVE PURE VERSION (new naming with full view name)
-            view_full = "anterior" if "ant" in view.lower() else "posterior"
-            pure_filename = f"{filename_stem}_{view_full}_hotspot_colored.png"
-            pure_path = output_path / pure_filename
-            pure_colored_image.save(pure_path)
-            print(f"Pure hotspot image saved: {pure_path}")
+            pure_colored_image.save(hotspot_files['otsu_colored'])
+            print(f"Pure hotspot image saved: {hotspot_files['otsu_colored']}")
             
-            # Save mask as well
-            mask_filename = f"{filename_stem}_{view_suffix}_hotspot_mask.png"
-            mask_path = output_path / mask_filename
-            Image.fromarray(mask).save(mask_path)
-            print(f"Hotspot mask saved: {mask_path}")
+            Image.fromarray(mask).save(hotspot_files['otsu_grayscale'])
+            print(f"Hotspot mask saved: {hotspot_files['otsu_grayscale']}")
         
         return mask, overlayed_image, pure_colored_image
 
@@ -426,9 +400,13 @@ class HotspotProcessor:
     Enhanced with study date support for file naming.
     """
     
-    def __init__(self, temp_dir: str = "data/tmp/hotspot_temp"):
-        self.temp_dir = Path(temp_dir)
-        self.temp_dir.mkdir(exist_ok=True)
+    def __init__(self, temp_dir: str = None):
+        if temp_dir is None:
+            from core.config.paths import get_temp_path
+            self.temp_dir = get_temp_path("hotspot_temp")
+        else:
+            self.temp_dir = Path(temp_dir)
+        self.temp_dir.mkdir(parents=True, exist_ok=True)
     
     def _extract_patient_and_study_info(self, image_path: str, patient_id: str = None) -> Tuple[str, str]:
         """
@@ -581,13 +559,21 @@ class HotspotProcessor:
             print(f"[DEBUG] Processing frame with study_date: {study_date}")
             
             # ✅ FIX: Process with create_hotspot_mask - now returns 3 values
+            
+            session_code = get_current_session_code()
+            if session_code == "unknown":
+                session_code = "ATL"  # Safe default
+
+            patient_folder = get_patient_planar_path(session_code, patient_id, study_date)
+
+            # ✅ FIX: Process with create_hotspot_mask using correct patient folder
             mask, overlayed_image, pure_colored_image = create_hotspot_mask(
                 str(temp_path),
                 bounding_boxes,
                 patient_id,
                 view,
                 study_date,
-                output_dir=str(Path(xml_path).parent)  # Save to same directory as XML
+                output_dir=str(patient_folder)  # Use proper patient folder from paths.py
             )
             
             # Clean up temp file
