@@ -30,7 +30,7 @@ from core.config.paths import (
     get_planar_hotspot_files,         # ✅ ADD
     PLANAR_DATA_PATH,
     extract_study_date_from_dicom,
-    generate_filename_stem
+    generate_filename_stem,check_dicom_exists, get_existing_dicom_info
 )
 
 # Import cloud functions from archive
@@ -131,37 +131,56 @@ def scan_folders_for_dicom(folder_paths: List[Path]) -> List[Path]:
     return sorted(dicom_files)
 
 # ✅ NEW: Smart duplicate detection
-def check_duplicate_files(file_paths: List[Path], session_code: str) -> Dict[Path, bool]:
+def check_duplicate_files(file_paths: List[Path], session_code: str) -> Dict[Path, Dict[str, any]]:
     """
-    Check which files are already imported
+    Enhanced duplicate detection with detailed information
     
     Args:
         file_paths: List of DICOM file paths to check
         session_code: Session code
         
     Returns:
-        Dictionary mapping file_path to is_duplicate
+        Dictionary mapping file_path to duplicate info
     """
-    duplicates = {}
-    session_root = get_session_planar_path(session_code)
+    duplicate_info = {}
     
     for file_path in file_paths:
-        # Extract patient info
         try:
+            # Extract patient info from DICOM
             ds = pydicom.dcmread(file_path, stop_before_pixels=True)
-            pid = str(ds.PatientID)
+            patient_id = str(ds.PatientID)
             study_date = extract_study_date_from_dicom(file_path)
             
-            # Check if file already exists
-            patient_dir = session_root / pid / study_date
-            existing_dicom = patient_dir / file_path.name
+            # Check if already exists
+            is_duplicate = check_dicom_exists(session_code, patient_id, study_date)
             
-            duplicates[file_path] = existing_dicom.exists()
+            duplicate_info[file_path] = {
+                "is_duplicate": is_duplicate,
+                "patient_id": patient_id,
+                "study_date": study_date,
+                "reason": "Patient ID and Study Date already exist" if is_duplicate else "New"
+            }
             
-        except Exception:
-            duplicates[file_path] = False
+            # Get additional info if duplicate
+            if is_duplicate:
+                existing_info = get_existing_dicom_info(session_code, patient_id, study_date)
+                duplicate_info[file_path].update({
+                    "existing_dicom_count": existing_info.get("dicom_count", 0),
+                    "existing_files": existing_info.get("dicom_files", []),
+                    "has_processed_files": existing_info.get("has_processed_files", False)
+                })
+            
+        except Exception as e:
+            print(f"[ERROR] Error checking duplicate for {file_path}: {e}")
+            duplicate_info[file_path] = {
+                "is_duplicate": False,
+                "patient_id": "Unknown",
+                "study_date": "Unknown",
+                "reason": f"Error checking: {str(e)}",
+                "error": True
+            }
     
-    return duplicates
+    return duplicate_info
 
 def _ensure_2d(mask: np.ndarray) -> np.ndarray:
     return mask if mask.ndim == 2 else mask[0] if mask.shape[0] == 1 else mask[:, :, 0]

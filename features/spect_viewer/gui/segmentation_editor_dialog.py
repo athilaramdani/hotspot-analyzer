@@ -548,12 +548,13 @@ class SegmentationEditorDialog(BaseEditorDialog):
             # Connect signals (same pattern as hotspot editor)
             if hasattr(self.save_thread, 'progress_updated'):
                 self.save_thread.progress_updated.connect(self._update_progress)
-            
+
+            # ✅ PERBAIKI: Gunakan _on_save_finished seperti hotspot editor
             self.save_thread.finished.connect(self._on_save_finished)
-            
+
             if hasattr(self.save_thread, 'save_completed'):
                 self.save_thread.save_completed.connect(self._on_save_success)
-            
+
             if hasattr(self.save_thread, 'error_occurred'):
                 self.save_thread.error_occurred.connect(self._on_save_error)
             
@@ -721,26 +722,40 @@ class SegmentationEditorDialog(BaseEditorDialog):
         """Update progress bar and message (same as hotspot editor)."""
         print(f"Save progress: {value}% - {message}")
 
-    def _on_save_completed(self, success: bool, message: str):
-        """Handle save completion."""
+    def _on_save_finished(self):
+        """Handle save thread completion (same as hotspot editor)."""
         from PySide6.QtWidgets import QMessageBox
         
         print("🧪 [DEBUG SEGMENTATION] ===================")
-        print(f"🧪 [DEBUG SEGMENTATION] Save completed: {success}")
-        print(f"🧪 [DEBUG SEGMENTATION] Message: {message}")
+        print("🧪 [DEBUG SEGMENTATION] Save finished!")
+        print("🧪 [DEBUG SEGMENTATION] About to emit signal...")
+        
+        # Get save information
+        if hasattr(self.save_thread, 'get_save_info'):
+            save_info = self.save_thread.get_save_info()
+            success_message = (
+                f"Files saved successfully!\n\n"
+                f"Location: {save_info['date_dir']}\n"
+                f"Files:\n"
+                f"• {save_info['mask_path'].name}\n"
+                f"• {save_info['colored_path'].name}"
+            )
+        else:
+            success_message = "Segmentation data saved successfully!"
+        
+        QMessageBox.information(self, "Save Complete", success_message)
         
         # Re-enable save button
         self.btn_save.setEnabled(True)
         
-        if success:
-            QMessageBox.information(self, "Save Complete", message)
-            
-            # ✅ EMIT SIGNAL SEBELUM CLOSE
-            print("🧪 [DEBUG SEGMENTATION] Emitting editor_completed signal...")
+        # ✅ EMIT SIGNAL SEPERTI HOTSPOT EDITOR
+        print("🧪 [DEBUG SEGMENTATION] Checking if signal exists...")
+        if hasattr(self, 'editor_completed'):
+            print("🧪 [DEBUG SEGMENTATION] Signal exists, emitting...")
             self.editor_completed.emit()
             print("🧪 [DEBUG SEGMENTATION] Signal emitted!")
-            
-            # Close dialog on success
-            self.accept()
         else:
-            QMessageBox.critical(self, "Save Error", message)
+            print("🧪 [DEBUG SEGMENTATION] ❌ Signal does not exist!")
+        
+        # Close dialog
+        self.accept()
