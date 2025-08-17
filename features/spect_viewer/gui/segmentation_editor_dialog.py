@@ -1,4 +1,4 @@
-# features/spect_viewer/gui/segmentation_editor_dialog.py - Simplified saving like hotspot editor
+# features/spect_viewer/gui/segmentation_editor_dialog.py - Fixed duplicate method
 """
 Segmentation editor dialog using modular components.
 Fixed mask loading logic and simplified saving to match hotspot editor pattern.
@@ -45,15 +45,110 @@ class SegmentationEditorDialog(BaseEditorDialog):
     """Segmentation editor dialog using modular components."""
     
     def __init__(self, scan: Dict, view: str, parent=None):
-        self.scan_data = scan
+        # 1. STORE INITIAL DATA
+        self.scan = scan
         self.view = view
+        view_key = view.lower()
+        vtag = "ant" if "ant" in view_key else "post"
+
+        # 2. ASSIGN DICOM PATH FIRST (before using it)
+        self.dicom_path = Path(scan["path"])
+
+        # 3. Extract patient info needed for getting newest paths
+        patient_folder = self.dicom_path.parent
+        self.patient_id = patient_folder.parent.name
+        self.session_code = patient_folder.parent.parent.name
+        self.study_date = extract_study_date_from_dicom(self.dicom_path)
+        self.filename_stem = generate_filename_stem(self.patient_id, self.study_date)
+        self.view_short = vtag
+
+        # 4. GET NEWEST PATHS USING YOUR NEW METHODS (like hotspot editor)
+        from core.config.paths import get_newest_segmentation_path
         
-        # Setup paths and load data before initializing the UI
-        self._setup_data_paths()
-        self._load_images_and_masks()
+        # Use the newest segmentation file
+        self.segmentation_path = get_newest_segmentation_path(patient_folder, view)
+
+        # 5. LOAD IMAGES AND MASKS (using the newest paths)
+        # Get original image path from workflow_files (this should be correct)
+        workflow_files = self.scan.get('workflow_files', {})
+        original_png_path = workflow_files.get('original', {}).get(vtag)
         
+        if original_png_path and original_png_path.exists():
+            self.orig_arr = np.array(Image.open(original_png_path).convert('L'))
+            self.has_orig_png = True
+        else:
+            # Fallback to raw DICOM frame if original PNG is missing
+            self.orig_arr = scan["frames"][view_key]
+            self.has_orig_png = False
+
+        # Load mask using the newest segmentation path
+        self.mask_arr = self._load_existing_mask()
+
+        # 6. INITIALIZE THE BASE DIALOG UI
         super().__init__(f"Manual Edit – {view}", parent)
 
+    def _load_existing_mask(self) -> np.ndarray:
+        """Load existing mask with proper priority using NEWEST paths."""
+        
+        # Debug output to show which files we're using
+        print(f"🔍 [SEGMENTATION LOAD] Loading mask for {self.view_short}")
+        print(f"🔍 [SEGMENTATION LOAD] Segmentation file: {self.segmentation_path}")
+        print(f"🔍 [SEGMENTATION LOAD] File exists: {self.segmentation_path.exists() if self.segmentation_path else False}")
+        
+        # The path self.segmentation_path now points to the NEWEST file
+        if self.segmentation_path and self.segmentation_path.exists():
+            print(f"✓ Loading NEWEST segmentation mask from: {self.segmentation_path.name}")
+            return self._load_mask_from_segmentation_png(self.segmentation_path)
+        else:
+            print(f"✗ No segmentation data found. Creating empty mask.")
+            return np.zeros_like(self.orig_arr, np.uint8)
+
+    def _load_mask_from_segmentation_png(self, segmentation_path: Path) -> np.ndarray:
+        """Load mask from segmentation PNG file."""
+        try:
+            img = Image.open(segmentation_path)
+            
+            # Check if image is colored (RGB/RGBA) or grayscale
+            if img.mode in ['RGB', 'RGBA']:
+                print(f"  Loading as colored segmentation from: {segmentation_path.name}")
+                return self._load_mask_from_colored_png(segmentation_path)
+            else:
+                # Load as grayscale mask
+                print(f"  Loading as grayscale segmentation from: {segmentation_path.name}")
+                mask = np.array(img.convert('L'))
+                
+                # Convert grayscale values to label indices if needed
+                # Assuming segmentation uses label indices directly
+                unique_vals = np.unique(mask)
+                print(f"✓ Loaded grayscale mask with unique values: {unique_vals}")
+                return mask
+                
+        except Exception as e:
+            print(f"✗ Failed to load segmentation mask: {e}")
+            return np.zeros_like(self.orig_arr, np.uint8)
+
+    def _load_mask_from_colored_png(self, png_path: Path) -> np.ndarray:
+        """Load mask from colored PNG file using proper palette."""
+        try:
+            from features.spect_viewer.logic.colorizer import _PALETTE
+            
+            rgb = np.array(Image.open(png_path).convert("RGB"))
+            mask = np.zeros(rgb.shape[:2], np.uint8)
+            
+            # Use the correct palette from colorizer
+            for lbl, col in enumerate(_PALETTE):
+                matches = (rgb == col).all(-1)
+                mask[matches] = lbl
+                if matches.any():
+                    print(f"  Found {matches.sum()} pixels for label {lbl} (color {col})")
+            
+            print(f"✓ Loaded colored segmentation mask with {len(np.unique(mask))} unique labels: {np.unique(mask)}")
+            return mask
+            
+        except Exception as e:
+            print(f"✗ Failed to load colored segmentation mask from {png_path}: {e}")
+            return np.zeros_like(self.orig_arr, np.uint8)
+        
     def _setup_data_paths(self):
         """Set up all necessary file paths for segmentation data."""
         self.dicom_path = self.scan_data["path"]
@@ -249,26 +344,6 @@ class SegmentationEditorDialog(BaseEditorDialog):
             print(f"✗ Failed to load mask from {png_path}: {e}")
             return np.zeros((self.orig_arr.shape[0], self.orig_arr.shape[1]), np.uint8)
 
-    def _load_mask_from_colored_png(self, png_path: Path) -> np.ndarray:
-        """✅ CORRECTED: Load mask from colored PNG file using proper palette."""
-        try:
-            rgb = np.array(Image.open(png_path).convert("RGB"))
-            mask = np.zeros(rgb.shape[:2], np.uint8)
-            
-            # Use the correct palette from colorizer
-            for lbl, col in enumerate(_PALETTE):
-                matches = (rgb == col).all(-1)
-                mask[matches] = lbl
-                if matches.any():
-                    print(f"  Found {matches.sum()} pixels for label {lbl} (color {col})")
-            
-            print(f"✓ Loaded colored mask with {len(np.unique(mask))} unique labels: {np.unique(mask)}")
-            return mask
-            
-        except Exception as e:
-            print(f"✗ Failed to load colored mask from {png_path}: {e}")
-            return np.zeros((self.orig_arr.shape[0], self.orig_arr.shape[1]), np.uint8)
-
     def _create_toolbar(self):
         """✅ MODULAR: Create segmentation-specific toolbar using modular components."""
         super()._create_toolbar()
@@ -306,27 +381,30 @@ class SegmentationEditorDialog(BaseEditorDialog):
         self.btn_cancel = btn_cancel
 
     def _create_instructions_label(self) -> QLabel:
-        """Create instructions with current data info."""
-        # Determine data sources
-        data_source = "Original PNG loaded" if getattr(self, 'has_orig_png', False) else "DICOM frames used"
+        """Create instructions with current data info using NEWEST file logic."""
+        data_source = "Original PNG loaded" if self.has_orig_png else "DICOM frames used"
         
-        # ✅ FIXED: Safe check for mask status with proper key handling
-        mask_status = "New mask created"  # Default
+        # ✅ UPDATED LOGIC: Show info about newest segmentation file loaded
+        mask_status = ""
         
-        # Check for edited versions first
-        edited_keys = ['segmentation_png', 'mask_png', 'png_colored_edited', 'colored_edited']
-        for key in edited_keys:
-            if key in self.seg_files and self.seg_files[key].exists():
-                if 'edited' in key or key in ['segmentation_png', 'mask_png']:
-                    mask_status = "Edited mask loaded"
-                    break
+        if self.segmentation_path and self.segmentation_path.exists():
+            # Check if this is a timestamped (edited) version
+            if "_" in self.segmentation_path.stem:
+                segm_parts = self.segmentation_path.stem.split("_")
+                if len(segm_parts) >= 3 and len(segm_parts[-1]) == 6 and segm_parts[-1].isdigit():
+                    timestamp = segm_parts[-1]
+                    # Extract date from parent folder
+                    date_folder = self.segmentation_path.parent.name
+                    if len(date_folder) == 8 and date_folder.isdigit():
+                        mask_status = f"✨ NEWEST edited segmentation: {date_folder} {timestamp[:2]}:{timestamp[2:4]}:{timestamp[4:6]}"
+                    else:
+                        mask_status = f"✨ NEWEST edited segmentation ({self.segmentation_path.name})"
+                else:
+                    mask_status = "Original segmentation loaded"
+            else:
+                mask_status = "Original segmentation loaded"
         else:
-            # Check for original versions
-            original_keys = ['png_colored', 'colored', 'png_segm', 'segm']
-            for key in original_keys:
-                if key in self.seg_files and self.seg_files[key].exists():
-                    mask_status = "Original mask loaded"
-                    break
+            mask_status = "New segmentation will be created"
 
         session_code = getattr(self, 'session_code', 'Unknown')
         patient_id = getattr(self, 'patient_id', 'Unknown')
@@ -347,6 +425,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
             f"• Patient: {patient_id}<br>"
             f"• Study Date: {study_date}<br>"
             f"• Size: {self.orig_arr.shape[1]}×{self.orig_arr.shape[0]}<br>"
+            f"• Save: Creates new timestamped file"
         )
         instructions.setWordWrap(True)
         instructions.setStyleSheet("QLabel { background: #f0f0f0; padding: 8px; border-radius: 4px; }")
@@ -440,40 +519,44 @@ class SegmentationEditorDialog(BaseEditorDialog):
         pass
 
     def _save_all(self):
-        """Save segmentation data using same method as hotspot editor."""
-        # Use the same session handling as hotspot editor
+        """Save segmentation data with proper session handling (same as hotspot editor)."""
+        # Handle session selection for ALL users (same logic as hotspot editor)
+        editor_session = None
         if self.session_code == "ALL":
             session_choice = self._show_session_selector_dialog()
             if not session_choice:
                 return  # User cancelled
-            current_session = session_choice
-        else:
-            current_session = self.session_code
+            editor_session = session_choice
         
         # Disable save button during save operation
         self.btn_save.setEnabled(False)
         
         try:
-            # Create and start save thread with current session
+            # Create and start save thread with editor session (same as hotspot editor)
             self.save_thread = SegmentationSaveThread(
                 canvas=self.canvas,
                 session_path=self._get_session_base_path(),
                 patient_id=self.patient_id,
-                view_short=self.view.lower()[:3],  # "anterior" -> "ant", "posterior" -> "pos"
-                filename_stem=generate_filename_stem(self.patient_id, self.study_date),
+                view_short=self.view_short,
+                filename_stem=self.filename_stem,
                 dicom_path=self.dicom_path,
                 study_date=self.study_date,
-                current_session=self.session_code  # Pass the original session_code to the thread
+                current_session=self.session_code,
+                editor_session=editor_session  # Pass the selected editor session
             )
             
-            # Connect signals - only connect to signals that exist
-            # Connect signals - only connect to signals that exist
+            # Connect signals (same pattern as hotspot editor)
             if hasattr(self.save_thread, 'progress_updated'):
                 self.save_thread.progress_updated.connect(self._update_progress)
-
+            
+            self.save_thread.finished.connect(self._on_save_finished)
+            
             if hasattr(self.save_thread, 'save_completed'):
-                self.save_thread.save_completed.connect(self._on_save_completed)
-
+                self.save_thread.save_completed.connect(self._on_save_success)
+            
+            if hasattr(self.save_thread, 'error_occurred'):
+                self.save_thread.error_occurred.connect(self._on_save_error)
+            
             # Start the thread
             self.save_thread.start()
             
@@ -483,12 +566,62 @@ class SegmentationEditorDialog(BaseEditorDialog):
             from PySide6.QtWidgets import QMessageBox
             QMessageBox.critical(self, "Save Error", f"Failed to start save operation: {str(e)}")
 
+    def _on_save_success(self, success_message: str):
+        """Handle successful save with message (same as hotspot editor)."""
+        from PySide6.QtWidgets import QMessageBox
+        
+        # Get save information if available
+        if hasattr(self.save_thread, 'get_save_info'):
+            save_info = self.save_thread.get_save_info()
+            if save_info and save_info:  # Check if save_info is not empty
+                detailed_message = (
+                    f"Files saved successfully!\n\n"
+                    f"Location: {save_info.get('date_dir', 'Unknown')}\n"
+                    f"Files:\n"
+                    f"• {save_info.get('mask_path', {}).name if save_info.get('mask_path') else 'Mask file'}\n"
+                    f"• {save_info.get('colored_path', {}).name if save_info.get('colored_path') else 'Segmentation file'}"
+                )
+            else:
+                detailed_message = success_message
+        else:
+            detailed_message = success_message
+        
+        QMessageBox.information(self, "Save Complete", detailed_message)
+        
+        # Close dialog
+        self.accept()
+
+    def _on_save_finished(self):
+        """Handle save thread completion (cleanup only - same as hotspot editor)."""
+        # Re-enable save button
+        self.btn_save.setEnabled(True)
+        
+        # Note: Success message is handled by _on_save_success
+        # This method only handles cleanup
+
+    def _on_save_error(self, error_message: str):
+        """Handle save errors (same as hotspot editor)."""
+        from PySide6.QtWidgets import QMessageBox
+        
+        QMessageBox.critical(self, "Save Error", error_message)
+        
+        # Re-enable save button
+        self.btn_save.setEnabled(True)
+
+
     def _get_session_base_path(self) -> Path:
-        """Get the base session path for saving files."""
-        # Navigate to PLANAR directory from current file location
-        patient_folder = self.dicom_path.parent
-        # Go up to PLANAR level: study_date -> patient -> session -> PLANAR
-        return patient_folder.parent.parent.parent
+        """Get the base session path for saving files (same as hotspot editor)."""
+        if hasattr(self, 'segmentation_path') and self.segmentation_path:
+            # Navigate up to PLANAR level from segmentation file
+            # Example: .../PLANAR/ATL/5001/20250115/ant_segm.png
+            # We want: .../PLANAR
+            current_path = Path(self.segmentation_path)
+            # Go up levels: filename -> study_date -> patient -> session -> PLANAR
+            return current_path.parent.parent.parent.parent
+        
+        # Fallback to config path
+        from core.config.paths import PLANAR_DATA_PATH
+        return PLANAR_DATA_PATH
 
     def _show_session_selector_dialog(self):
         """Show session selector dialog reading from doctor_tags.json."""
@@ -497,8 +630,10 @@ class SegmentationEditorDialog(BaseEditorDialog):
         from PySide6.QtCore import Qt
         
         try:
-            # Load doctor tags from config file
-            config_path = Path("C:/hotspot/hotspot-analyzer/config/doctor_tags.json")
+            # Load doctor tags from config file using proper config path
+            from core.config.paths import CONFIG_ROOT
+            config_path = CONFIG_ROOT / "doctor_tags.json"
+            
             if not config_path.exists():
                 print(f"Config file not found: {config_path}")
                 return "NSY"  # Fallback to default
@@ -583,7 +718,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
             return "NSY"  # Fallback to default
 
     def _update_progress(self, value: int, message: str):
-        """Update progress - simplified like hotspot editor."""
+        """Update progress bar and message (same as hotspot editor)."""
         print(f"Save progress: {value}% - {message}")
 
     def _on_save_completed(self, success: bool, message: str):

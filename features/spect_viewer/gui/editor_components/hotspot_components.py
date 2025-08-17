@@ -9,6 +9,7 @@ from typing import Dict, List, Tuple, Optional
 import numpy as np
 from PIL import Image
 import datetime
+from core.config.paths import generate_edit_date, generate_edit_timestamp
 
 from PySide6.QtCore import Qt, QPointF, Signal
 from PySide6.QtGui import QImage, QPixmap
@@ -400,12 +401,17 @@ class HotspotPalette(QWidget):
 
 class HotspotSaveThread(BaseSaveThread):
     """Save thread for hotspot classification data."""
+    progress_updated = Signal(int, str)      # (progress_percentage, message)
+    error_occurred = Signal(str)             # (error_message)
+    save_completed = Signal(str) 
     
     def __init__(self, canvas: HotspotCanvas, session_path: Path, 
                  patient_id: str, view_short: str, filename_stem: str, 
-                 dicom_path: Path, study_date: str, current_session: str = None):
+                 dicom_path: Path, study_date: str, current_session: str = None,
+                 editor_session: str = None):  # ADD editor_session parameter
         super().__init__()
         self.canvas = canvas
+        self.editor_session = editor_session
         self.session_path = session_path  # Base session directory path
         self.patient_id = patient_id
         self.view_short = view_short
@@ -413,51 +419,128 @@ class HotspotSaveThread(BaseSaveThread):
         self.dicom_path = dicom_path
         self.study_date = study_date
         self.current_session = current_session
+        self.editor_session = editor_session  # NEW: Store editor session
+        self.save_info = {}
         
-        # ✅ FIX: Initialize attributes to None to prevent AttributeError
+        # Initialize attributes to None to prevent AttributeError
         self.classification_mask_edited = None
         self.xml_edited = None
-        
-        # Initialize save paths
-        self._initialize_save_paths()
 
     def _initialize_save_paths(self):
-        """Initialize the save paths with proper session handling."""
-        from datetime import datetime
+        """
+        Initialize save paths with proper patient/study_date/session/editor structure.
         
-        # Get current edit date in YYYYMMDD format
-        edit_date = datetime.now().strftime("%Y%m%d")
-        
-        # Determine session code to use
-        session_code = self._get_session_code()
-        if session_code is None:  # User cancelled session selection
-            return
-        
-        # Check if this is the special ALL session case
-        if self.current_session == "ALL":
-            # Special ALL workspace structure: ALL/PatientID/StudyDate/DoctorCode/EditDate/
-            patient_dir = self.session_path / "ALL" / self.patient_id / self.study_date
-            doctor_dir = patient_dir / session_code
-            save_dir = doctor_dir / edit_date
-            print(f"[SAVE] ALL session - saving to: ALL/{self.patient_id}/{self.study_date}/{session_code}/{edit_date}/")
-        else:
-            # Regular session structure: SessionCode/PatientID/StudyDate/EditDate/
-            patient_dir = self.session_path / self.current_session / self.patient_id / self.study_date
-            save_dir = patient_dir / edit_date
-            print(f"[SAVE] Regular session - saving to: {self.current_session}/{self.patient_id}/{self.study_date}/{edit_date}/")
-        
-        # Create directories if they don't exist
-        save_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Generate timestamp for filenames (HHMMSS format only)
-        timestamp = datetime.now().strftime("%H%M%S")
-        
-        # Set file paths with timestamp
-        base_filename = f"{self.view_short}_hotspot_classification_{timestamp}"
-        self.classification_mask_edited = save_dir / f"{base_filename}.png"
-        self.xml_edited = save_dir / f"{base_filename}.xml"
-        
-        print(f"[SAVE] Files: {base_filename}.png, {base_filename}.xml")
+        Expected structure:
+        - Individual user: data/PLANAR/NSY/5001/20250115/20250817/
+        - ALL user: data/PLANAR/ALL/5001/20250115/NSY/20250817/
+        """
+        try:
+            # ADD MISSING IMPORTS
+            from core.config.paths import generate_edit_date, generate_edit_timestamp
+            
+            # 1. DETERMINE THE CORRECT PATIENT STUDY FOLDER
+            # Start from the dicom_path and work backwards to find the correct structure
+            
+            # Get the current file's directory (should be study_date folder)
+            current_dir = self.dicom_path.parent
+            
+            # Extract components from the current path
+            # Example path: C:\hotspot\hotspot-analyzer\data\PLANAR\ALL\5001\20250115\ant_hotspot_classification.png
+            path_parts = current_dir.parts
+            
+            # Find PLANAR index
+            try:
+                planar_idx = path_parts.index('PLANAR')
+            except ValueError:
+                raise ValueError("Could not find PLANAR in path")
+            
+            # Extract path components
+            if len(path_parts) <= planar_idx + 3:
+                raise ValueError("Invalid path structure - missing components")
+                
+            base_planar = Path(*path_parts[:planar_idx + 1])  # .../PLANAR
+            session_folder = path_parts[planar_idx + 1]       # ALL or NSY/ATL/NBL
+            patient_id = path_parts[planar_idx + 2]           # 5001
+            study_date = path_parts[planar_idx + 3]           # 20250115
+            
+            # Validate extracted components
+            if not (len(patient_id) >= 1 and patient_id.isdigit()):
+                raise ValueError(f"Invalid patient_id: {patient_id}")
+            if not (len(study_date) == 8 and study_date.isdigit()):
+                raise ValueError(f"Invalid study_date: {study_date}")
+            
+            # 2. BUILD THE CORRECT BASE PATH
+            base_patient_study_folder = base_planar / session_folder / patient_id / study_date
+            
+            if not base_patient_study_folder.exists():
+                raise ValueError(f"Patient study folder does not exist: {base_patient_study_folder}")
+            
+            # 3. DETERMINE SAVE DIRECTORY BASED ON SESSION TYPE
+            edit_date = generate_edit_date()  # YYYYMMDD format for today
+            
+            if session_folder == "ALL":
+                # ALL user structure: data/PLANAR/ALL/5001/20250115/NSY/20250817/
+                # FIX: Handle editor_session properly
+                if self.editor_session:
+                    selected_editor = self.editor_session
+                else:
+                    # Fallback: get from dialog or use default
+                    selected_editor = self._get_session_code()
+                    if not selected_editor:
+                        raise ValueError("Editor session required for ALL user")
+                
+                save_dir = base_patient_study_folder / selected_editor / edit_date
+            else:
+                # Individual user structure: data/PLANAR/NSY/5001/20250115/20250817/
+                save_dir = base_patient_study_folder / edit_date
+            
+            # 4. CREATE SAVE DIRECTORY
+            save_dir.mkdir(parents=True, exist_ok=True)
+            
+            # 5. GENERATE TIMESTAMPED FILENAMES
+            edit_time = generate_edit_timestamp()  # HHMMSS format
+            
+            # Create timestamped filenames
+            png_filename = f"{self.view_short}_hotspot_classification_{edit_time}.png"
+            xml_filename = f"{self.view_short}_hotspot_classification_{edit_time}.xml"
+            
+            # 6. SET FINAL SAVE PATHS
+            self.classification_mask_edited = save_dir / png_filename
+            self.xml_edited = save_dir / xml_filename
+            
+            # 7. STORE SAVE INFO FOR SUCCESS MESSAGE
+            self.save_info = {
+                'base_folder': base_patient_study_folder,
+                'save_dir': save_dir,
+                'session_folder': session_folder,
+                'patient_id': patient_id,
+                'study_date': study_date,
+                'editor_session': selected_editor if session_folder == "ALL" else session_folder,
+                'edit_date': edit_date,
+                'edit_time': edit_time
+            }
+            
+            print(f"✅ Save paths initialized:")
+            print(f"   Base: {base_patient_study_folder}")
+            print(f"   Save dir: {save_dir}")
+            print(f"   PNG: {png_filename}")
+            print(f"   XML: {xml_filename}")
+            
+            return True
+            
+        except Exception as e:
+            error_msg = f"Failed to initialize save paths: {e}"
+            print(f"❌ {error_msg}")
+            print(f"   DICOM path: {self.dicom_path}")
+            print(f"   Current session: {self.current_session}")
+            print(f"   Editor session: {getattr(self, 'editor_session', 'Not set')}")
+            self.error_occurred.emit(error_msg)
+            return False
+
+    def run(self):
+        if not self._initialize_save_paths():
+            return  # Error already emitted
+        self._perform_save()
 
     def _get_session_code(self) -> Optional[str]:
         """Get session code, showing dialog if current session is ALL."""
@@ -470,12 +553,14 @@ class HotspotSaveThread(BaseSaveThread):
     def _show_session_selection_dialog(self) -> Optional[str]:
         """Show dialog to select session code from doctor_tags.json."""
         import json
+        from datetime import datetime
         from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem, QPushButton, QLabel
         from PySide6.QtCore import Qt
         
         try:
             # Load doctor tags from config file
-            config_path = Path("C:/hotspot/hotspot-analyzer/config/doctor_tags.json")
+            from core.config.paths import CONFIG_ROOT
+            config_path = CONFIG_ROOT / "doctor_tags.json"
             if not config_path.exists():
                 print(f"Config file not found: {config_path}")
                 return "NSY"  # Fallback to default
@@ -498,7 +583,6 @@ class HotspotSaveThread(BaseSaveThread):
             
             layout = QVBoxLayout(dialog)
             
-            # ✅ FIX: Move current_date declaration to module level to avoid repeated definition
             current_date = datetime.now().strftime("%Y%m%d")
             
             if self.current_session == "ALL":
@@ -570,7 +654,8 @@ class HotspotSaveThread(BaseSaveThread):
         except Exception as e:
             print(f"Error showing session selection dialog: {e}")
             return "NSY"  # Fallback to default
-        
+
+    # ... rest of your existing methods remain the same ...        
     def _get_save_path_preview(self, doctor_code: str) -> str:
         """Get a preview of where files will be saved."""
         from datetime import datetime
@@ -642,8 +727,21 @@ class HotspotSaveThread(BaseSaveThread):
         else:
             success_msg += "\n⚠️ Quantification pipeline failed (check logs for details)"
 
-        # ✅ FIX: Emit success signal with message
-        self.finished.emit(success_msg)
+        # ✅ FIX: Use custom signal instead of built-in finished signal
+        if hasattr(self, 'save_completed'):
+            self.save_completed.emit(success_msg)
+        else:
+            # Fallback if save_completed signal doesn't exist
+            print(f"Save completed: {success_msg}")
+            
+        # Store save info for get_save_info() method
+        self.save_info = {
+            'date_dir': self.classification_mask_edited.parent,
+            'png_path': self.classification_mask_edited,
+            'xml_path': self.xml_edited,
+            'success': True,
+            'message': success_msg
+        }
 
     def _save_xml_with_backup(self, mask: np.ndarray) -> Optional[Dict]:
         """Save XML annotations with bounding box generation."""
