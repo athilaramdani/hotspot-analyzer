@@ -444,19 +444,23 @@ class ScanTimelineWidget(QWidget):
             print(f"[WARN] View '{view_name}' not found in adjustments. Cannot set contrast.")
 
     
-    def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None):
-        """Load segmentation layer using study_date folder"""
+    def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None, session_code: str = None):
+        """Load segmentation layer using study_date folder with priority system"""
         try:
             if study_date_folder is None:
                 study_date_folder = dicom_path.parent
                 
             view_short = "ant" if view_normalized in ["anterior", "ant"] else "post"
-            seg_files = get_planar_segmentation_files(study_date_folder, view_short, with_priority=True)
+            
+            # ✅ USE PRIORITY SYSTEM
+            seg_files = get_planar_segmentation_files(
+                study_date_folder, view_short, with_priority=True, session_code=session_code
+            )
                 
             seg_png = seg_files['segmentation_png']
-            print(f"[DEBUG] Looking for segmentation (NEW structure): {seg_png}")
+            print(f"[DEBUG] Looking for segmentation (PRIORITY): {seg_png}")
 
-            if seg_png.exists():
+            if seg_png and seg_png.exists():
                 # Load with transparency (make black pixels transparent)
                 seg_image = load_image_with_transparency(seg_png, make_transparent=True)
                 if seg_image:
@@ -468,19 +472,23 @@ class ScanTimelineWidget(QWidget):
         except Exception as e:
             print(f"[ERROR] Failed to load segmentation layer: {e}")
 
-    def _load_hotspot_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None):
-        """Load hotspot layer using study_date folder"""
+    def _load_hotspot_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None, session_code: str = None):
+        """Load hotspot layer using study_date folder with priority system"""
         try:
             if study_date_folder is None:
                 study_date_folder = dicom_path.parent
                 
             view_short = "ant" if view_normalized in ["anterior", "ant"] else "post"
-            hotspot_files = get_planar_hotspot_files(study_date_folder, view_short, with_priority=True)
+            
+            # ✅ USE PRIORITY SYSTEM
+            hotspot_files = get_planar_hotspot_files(
+                study_date_folder, view_short, with_priority=True, session_code=session_code
+            )
             
             classification_png = hotspot_files['classification_png']
-            print(f"[DEBUG] Looking for hotspot classification (NEW structure): {classification_png}")
+            print(f"[DEBUG] Looking for hotspot classification (PRIORITY): {classification_png}")
             
-            if classification_png.exists():
+            if classification_png and classification_png.exists():
                 hotspot_image = load_image_with_transparency(classification_png)
                 if hotspot_image:
                     layers["Hotspot"] = hotspot_image
@@ -491,19 +499,23 @@ class ScanTimelineWidget(QWidget):
         except Exception as e:
             print(f"[ERROR] Failed to load hotspot layer: {e}")
 
-    def _load_bbox_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None):
-        """Load bounding box layer using study_date folder"""
+    def _load_bbox_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None, session_code: str = None):
+        """Load bounding box layer using study_date folder with priority system"""
         try:
             if study_date_folder is None:
                 study_date_folder = dicom_path.parent
                 
             view_short = "ant" if view_normalized in ["anterior", "ant"] else "post"
-            hotspot_files = get_planar_hotspot_files(study_date_folder, view_short, with_priority=True)
+            
+            # ✅ USE PRIORITY SYSTEM
+            hotspot_files = get_planar_hotspot_files(
+                study_date_folder, view_short, with_priority=True, session_code=session_code
+            )
             
             classification_xml = hotspot_files['classification_xml']
-            print(f"[DEBUG] Looking for classification XML (NEW structure): {classification_xml}")
+            print(f"[DEBUG] Looking for classification XML (PRIORITY): {classification_xml}")
             
-            if classification_xml.exists():
+            if classification_xml and classification_xml.exists():
                 if "Image" in layers:
                     image_dimensions = layers["Image"].size
                     bbox_image = self._create_bbox_visualization_from_classification(classification_xml, image_dimensions)
@@ -1312,9 +1324,9 @@ class ScanTimelineWidget(QWidget):
             layers["Image"] = original_image
         
         # ✅ GUNAKAN study_date_folder yang benar
-        self._load_segmentation_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder)
-        self._load_hotspot_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder)  
-        self._load_bbox_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder)
+        self._load_segmentation_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder, self.session_code)
+        self._load_hotspot_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder, self.session_code)  
+        self._load_bbox_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder, self.session_code)
 
         # ✅ NEW: Cache loaded layers if not using overrides
         if use_cache and layers:

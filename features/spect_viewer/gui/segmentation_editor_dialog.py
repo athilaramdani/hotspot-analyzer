@@ -11,7 +11,7 @@ from PIL import Image
 import datetime
 import json
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFrame
 )
@@ -43,7 +43,7 @@ from features.spect_viewer.logic.colorizer import label_mask_to_rgb, _PALETTE
 
 class SegmentationEditorDialog(BaseEditorDialog):
     """Segmentation editor dialog using modular components."""
-    
+    editor_completed = Signal()
     def __init__(self, scan: Dict, view: str, parent=None):
         self.scan_data = scan
         self.view = view
@@ -590,11 +590,21 @@ class SegmentationEditorDialog(BaseEditorDialog):
         """Handle save completion."""
         from PySide6.QtWidgets import QMessageBox
         
+        print("🧪 [DEBUG SEGMENTATION] ===================")
+        print(f"🧪 [DEBUG SEGMENTATION] Save completed: {success}")
+        print(f"🧪 [DEBUG SEGMENTATION] Message: {message}")
+        
         # Re-enable save button
         self.btn_save.setEnabled(True)
         
         if success:
             QMessageBox.information(self, "Save Complete", message)
+            
+            # ✅ EMIT SIGNAL SEBELUM CLOSE
+            print("🧪 [DEBUG SEGMENTATION] Emitting editor_completed signal...")
+            self.editor_completed.emit()
+            print("🧪 [DEBUG SEGMENTATION] Signal emitted!")
+            
             # Close dialog on success
             self.accept()
         else:

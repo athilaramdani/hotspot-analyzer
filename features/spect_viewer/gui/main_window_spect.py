@@ -391,13 +391,21 @@ class MainWindowSpect(QMainWindow):
 
             try:
                 dlg = SegmentationEditorDialog(scan, selected_view, parent=self)
+                
+                # ✅ CONNECT SIGNAL WITH DEBUG
+                print("🔗 [DEBUG CONNECTION] Connecting segmentation editor signal...")
+                dlg.editor_completed.connect(self._on_editor_completed)
+                print("🔗 [DEBUG CONNECTION] ✅ Segmentation editor signal connected!")
+                
                 if dlg.exec():
-                    self._on_editor_completed()
+                    print("🔗 [DEBUG CONNECTION] Dialog accepted")
+                else:
+                    print("🔗 [DEBUG CONNECTION] Dialog cancelled")
+                    
             except Exception as e:
-                print(f"[ERROR] Failed to create SegmentationEditorDialog: {e}")
+                print(f"🔗 [DEBUG CONNECTION] ❌ Error: {e}")
                 import traceback
                 traceback.print_exc()
-                QMessageBox.critical(self, "Editor Error", f"Could not open the segmentation editor.\n\nError: {e}")
 
     def _open_hotspot_editor(self):
         """Buka editor hotspot untuk scan saat ini."""
@@ -441,14 +449,21 @@ class MainWindowSpect(QMainWindow):
 
             try:
                 dlg = HotspotEditorDialog(scan, selected_view, parent=self)
+                
+                # ✅ CONNECT SIGNAL WITH DEBUG
+                print("🔗 [DEBUG CONNECTION] Connecting hotspot editor signal...")
+                dlg.editor_completed.connect(self._on_editor_completed)
+                print("🔗 [DEBUG CONNECTION] ✅ Hotspot editor signal connected!")
+                
                 if dlg.exec():
-                    self._on_editor_completed()
-
+                    print("🔗 [DEBUG CONNECTION] Dialog accepted")
+                else:
+                    print("🔗 [DEBUG CONNECTION] Dialog cancelled")
+                    
             except Exception as e:
-                print(f"[ERROR] Failed to create HotspotEditorDialog: {e}")
+                print(f"🔗 [DEBUG CONNECTION] ❌ Error: {e}")
                 import traceback
                 traceback.print_exc()
-                QMessageBox.critical(self, "Editor Error", f"Could not open the hotspot editor.\n\nError: {e}")
 
 
 
@@ -635,10 +650,19 @@ class MainWindowSpect(QMainWindow):
         zoom_buttons_layout.addWidget(zoom_out_btn)
         left_layout.addLayout(zoom_buttons_layout)
 
+        # AFTER - TAMBAH setelah contrast_button
         contrast_button = QPushButton("Adjust Contrast")
         contrast_button.setStyleSheet(ZOOM_BUTTON_STYLE) # Use a style you like
         contrast_button.clicked.connect(self._open_contrast_dialog)
         left_layout.addWidget(contrast_button)
+
+        # ✅ TAMBAH BUTTON TEST
+        test_refresh_btn = QPushButton("Force Refresh")
+        test_refresh_btn.setStyleSheet(ZOOM_BUTTON_STYLE)
+        test_refresh_btn.clicked.connect(self._force_refresh_test)
+        left_layout.addWidget(test_refresh_btn)
+
+        left_layout.addStretch()
 
         left_layout.addStretch()
         
@@ -896,26 +920,46 @@ class MainWindowSpect(QMainWindow):
 
     def _on_editor_completed(self):
         """Handle editor completion - refresh BSI panel and timeline"""
-        print("[MainWindow] Editor completed, refreshing BSI panel...")
+        print("🔥 [DEBUG SIGNAL] ===================")
+        print("🔥 [DEBUG SIGNAL] _on_editor_completed() called!")
+        print("🔥 [DEBUG SIGNAL] Editor completion signal received")
         
         try:
             # Get current patient info
             patient_id, session_code = self._get_current_patient_info()
+            print(f"🔥 [DEBUG SIGNAL] Patient: {patient_id}, Session: {session_code}")
             
             if not patient_id or not session_code:
-                print("[MainWindow] No patient selected, skipping refresh")
+                print("🔥 [DEBUG SIGNAL] ❌ No patient selected, skipping refresh")
                 return
             
-            # Refresh timeline to pick up new files
-            self.timeline_widget.refresh_current_view()
+            # ✅ CRITICAL: Clear timeline cache to force reload of new files
+            print("🔥 [DEBUG SIGNAL] Clearing timeline cache...")
+            if hasattr(self.timeline_widget, '_clear_layer_cache'):
+                self.timeline_widget._clear_layer_cache()
+                print("🔥 [DEBUG SIGNAL] ✅ Timeline cache cleared")
+            else:
+                print("🔥 [DEBUG SIGNAL] ❌ Timeline cache clear method not found")
             
-            # Refresh BSI panel with latest data
-            self._refresh_bsi_panel_for_current_patient()
+            # ✅ CRITICAL: Clear patient cache to force reload
+            cache_key = f"{patient_id}_{session_code}"
+            if cache_key in self._loaded:
+                print(f"🔥 [DEBUG SIGNAL] Clearing patient cache: {cache_key}")
+                del self._loaded[cache_key]
+                print("🔥 [DEBUG SIGNAL] ✅ Patient cache cleared")
+            else:
+                print(f"🔥 [DEBUG SIGNAL] ❌ Patient cache key not found: {cache_key}")
             
-            print("[MainWindow] ✅ Auto-refresh completed")
+            # ✅ CRITICAL: Reload patient data
+            print("🔥 [DEBUG SIGNAL] Reloading patient data...")
+            self._load_patient(patient_id, session_code)
+            
+            print("🔥 [DEBUG SIGNAL] ✅ Auto-refresh completed")
             
         except Exception as e:
-            print(f"[MainWindow] Error in auto-refresh: {e}")
+            print(f"🔥 [DEBUG SIGNAL] ❌ Error in auto-refresh: {e}")
+            import traceback
+            traceback.print_exc()
 
     def _refresh_bsi_panel_for_current_patient(self):
         """Refresh BSI panel for currently selected patient"""
@@ -1435,7 +1479,8 @@ class MainWindowSpect(QMainWindow):
                     scan_data['workflow_files'] = get_planar_workflow_files(
                         patient_folder=patient_folder,
                         original_dicom_name=dicom_file.name,
-                        with_priority=True # Always get the latest edited versions
+                        with_priority=True, # Always get the latest edited versions
+                        session_code=session_code  # ✅ TAMBAH session_code
                     )
                     # =========================================================================
 
@@ -1578,3 +1623,31 @@ class MainWindowSpect(QMainWindow):
     def zoom_out(self):
         """Zoom out timeline"""
         self.timeline_widget.zoom_out()
+
+    def _force_refresh_test(self):
+        """Force refresh untuk test cache clearing"""
+        print("🧪🧪🧪 [FORCE REFRESH TEST] ===================")
+        
+        # Get current patient info
+        patient_id, session_code = self._get_current_patient_info()
+        print(f"🧪 [FORCE REFRESH] Patient: {patient_id}, Session: {session_code}")
+        
+        if not patient_id or not session_code:
+            print("🧪 [FORCE REFRESH] ❌ No patient selected")
+            return
+        
+        # Clear timeline cache
+        if hasattr(self.timeline_widget, '_clear_layer_cache'):
+            self.timeline_widget._clear_layer_cache()
+            print("🧪 [FORCE REFRESH] ✅ Timeline cache cleared")
+        
+        # Clear patient cache
+        cache_key = f"{patient_id}_{session_code}"
+        if cache_key in self._loaded:
+            del self._loaded[cache_key]
+            print(f"🧪 [FORCE REFRESH] ✅ Patient cache cleared: {cache_key}")
+        
+        # Reload patient
+        print("🧪 [FORCE REFRESH] Reloading patient...")
+        self._load_patient(patient_id, session_code)
+        print("🧪 [FORCE REFRESH] ✅ Patient reloaded")
