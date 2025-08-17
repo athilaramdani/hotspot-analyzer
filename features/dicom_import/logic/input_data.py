@@ -45,13 +45,10 @@ except ImportError:
         return frame_data
 
 # Import cloud storage
-try:
-    from core.config.cloud_storage import upload_patient_file
-    CLOUD_AVAILABLE = True
-except ImportError:
-    CLOUD_AVAILABLE = False
-    def upload_patient_file(*args, **kwargs):
-        return False
+# Cloud storage disabled
+CLOUD_AVAILABLE = False
+def upload_patient_file(*args, **kwargs):
+    return False
 
 # ---------------------------------------------------------------- config
 _VERBOSE = True
@@ -211,36 +208,9 @@ def _save_original_frame_png(frame: np.ndarray, output_path: Path) -> None:
 
 def _upload_original_png_to_cloud(png_path: Path, session_code: str, patient_id: str) -> bool:
     """
-    Upload ONLY original PNG files to cloud
-    
-    Args:
-        png_path: Path to original PNG file
-        session_code: Session code
-        patient_id: Patient ID
-        
-    Returns:
-        True if successful upload
+    Cloud upload disabled - always return False
     """
-    if not CLOUD_AVAILABLE:
-        return False
-    
-    try:
-        if not is_cloud_enabled():
-            return False
-    except Exception:
-        return False
-    
-    try:
-        success = upload_patient_file(png_path, session_code, patient_id, is_edited=False)
-        if success:
-            _log(f"     ✅ Uploaded original PNG: {png_path.name}")
-        else:
-            _log(f"     ❌ Failed to upload PNG: {png_path.name}")
-        return success
-    except Exception as e:
-        _log(f"     [WARN] PNG upload failed: {e}")
-        return False
-
+    return False
 # ---------------------------------------------------------------- core
 def _process_one_with_assignments(
     src: Path, 
@@ -466,23 +436,11 @@ def _process_one_with_assignments(
         _log(f"     [WARN] BSI quantification failed: {e}")
 
     # STEP 8: UPLOAD ORIGINAL PNG FILES TO CLOUD (if enabled)
-    _log("  >> Uploading original PNG files to cloud...")
+    _log("  >> Cloud storage disabled - skipping upload")
     uploaded_count = 0
-    if cloud_upload_enabled:
-        for png_path in png_files_to_upload:
-            if _upload_original_png_to_cloud(png_path, session_code, pid):
-                uploaded_count += 1
-    else:
-        _log("  >> Cloud upload disabled - skipping upload step")
-    
-    if uploaded_count > 0:
-        _log(f"     ✅ Uploaded {uploaded_count} original PNG files to cloud")
-    else:
-        _log(f"     ⚠️  No files uploaded to cloud (cloud storage unavailable or disabled)")
     
     _log(f"  ✅ DICOM processing completed - ORIGINAL DICOM UNTOUCHED")
     _log(f"  Files saved locally: {len(saved)} PNG output files")
-    _log(f"  Cloud upload: {uploaded_count} original PNG files only")
     _log(f"  Views processed: {list(frames.keys())}")
     _log(f"  ORIGINAL DICOM: {dest_path.name} (NO MODIFICATION)")
     

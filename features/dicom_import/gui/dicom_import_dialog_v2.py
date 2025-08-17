@@ -46,11 +46,7 @@ from core.gui.ui_constants import (
 from .dicom_view_selector_dialog import DicomViewSelectorDialog
 from core.config.paths import extract_study_date_from_dicom
 # Import for cloud storage
-try:
-    from core.config.cloud_storage import sync_spect_data
-    CLOUD_AVAILABLE = True
-except ImportError:
-    CLOUD_AVAILABLE = False
+CLOUD_AVAILABLE = False
 
 class ProcessingThread(QThread):
     """Thread untuk menjalankan proses import DICOM dengan view assignments"""
@@ -60,13 +56,12 @@ class ProcessingThread(QThread):
     
     def __init__(self, file_view_assignments: Dict[Path, Dict[int, str]], 
                 background_assignments: Dict[Path, Dict[int, Dict[str, str]]],
-                data_root: Path, session_code: str, cloud_upload_enabled: bool = True):  # ✅ ADD cloud parameter
+                data_root: Path, session_code: str): 
         super().__init__()
         self.file_view_assignments = file_view_assignments
         self.background_assignments = background_assignments
         self.data_root = data_root
-        self.session_code = session_code
-        self.cloud_upload_enabled = cloud_upload_enabled  # ✅ ADD
+        self.session_code = session_code  # ✅ ADD this line
         
     def run(self):
         try:
@@ -76,12 +71,11 @@ class ProcessingThread(QThread):
                 background_assignments=self.background_assignments,
                 data_root=self.data_root,
                 session_code=self.session_code,
-                cloud_upload_enabled=self.cloud_upload_enabled,  # ✅ ADD
                 progress_cb=self._progress_callback,
                 log_cb=self._log_callback
             )
             
-            self.log_updated.emit("## Processing completed. Original PNG files uploaded to cloud.")
+            self.log_updated.emit("## Processing completed.")
             self.log_updated.emit("## All files processed with proper Anterior/Posterior naming.")
             
         except Exception as e:
@@ -179,7 +173,7 @@ class QuickDetectionThread(QThread):
 class DicomImportDialog(QDialog):
     files_imported = Signal()
     
-    def __init__(self, data_root: Path, parent=None, session_code: str | None = None, enable_cloud: bool = True):
+    def __init__(self, data_root: Path, parent=None, session_code: str | None = None,):
         super().__init__(parent)
         self.setWindowTitle("Import DICOM Files - Enhanced Workflow")
         self.setModal(True)
@@ -198,11 +192,6 @@ class DicomImportDialog(QDialog):
         
         self._setup_ui()
         self._connect_signals()
-
-        self.cloud_upload_enabled = enable_cloud and CLOUD_AVAILABLE
-    
-        if not self.cloud_upload_enabled:
-            self._log_message("☁️ Cloud upload disabled for this import session")
         
     def _setup_ui(self):
         """Setup UI components"""
@@ -223,7 +212,7 @@ class DicomImportDialog(QDialog):
         
         # Enhanced workflow description
         if self.session_code:
-            structure_info = QLabel(f"Files will be saved to: data/SPECT/{self.session_code}/[patient_id]/")
+            structure_info = QLabel(f"Files will be saved to: data/PLANAR/{self.session_code}/[patient_id]/")
             structure_info.setStyleSheet(DIALOG_SUBTITLE_STYLE)
             structure_info.setAlignment(Qt.AlignCenter)
             main_layout.addWidget(structure_info)
@@ -313,14 +302,9 @@ class DicomImportDialog(QDialog):
         initial_msg = "🚀 Enhanced DICOM Import Workflow Ready\n"
         if self.session_code:
             initial_msg += f"Session: {self.session_code}\n"
-            initial_msg += f"Target: data/SPECT/{self.session_code}/[patient_id]/\n"
-        
-        cloud_status = "✅ Available" if CLOUD_AVAILABLE else "❌ Not available"
-        initial_msg += f"Cloud storage: {cloud_status}\n"
-        
-        if CLOUD_AVAILABLE:
-            initial_msg += "Upload: Original PNG files only (*_original.png)\n"
-        
+            initial_msg += f"Target: data/PLANAR/{self.session_code}/[patient_id]/\n"
+
+        initial_msg += "Cloud storage: ❌ Disabled\n"
         initial_msg += "\nAuto-Detection Features:\n"
         initial_msg += "• ✅ High confidence: Clear DICOM tags (auto-configured)\n"
         initial_msg += "• ⚠️ Low confidence: Partial tags (manual verification)\n"
@@ -329,6 +313,7 @@ class DicomImportDialog(QDialog):
         initial_msg += "1️⃣ Add DICOM files (instant analysis)\n"
         initial_msg += "2️⃣ Configure views (if needed)\n"
         initial_msg += "3️⃣ Confirm and process\n"
+
         
         self.process_log.setPlainText(initial_msg)
         layout.addWidget(self.process_log)
@@ -1435,7 +1420,6 @@ class DicomImportDialog(QDialog):
         self.progress_bar.setMaximum(len(self.view_assignments))  # ✅ FIX: Use actual count
         self.progress_bar.setValue(0)
         
-        cloud_enabled = getattr(self, 'cloud_upload_enabled', True)
 
         # Start processing thread with view assignments
         self.processing_thread = ProcessingThread(
@@ -1443,7 +1427,6 @@ class DicomImportDialog(QDialog):
             getattr(self, 'background_assignments', {}),
             self.data_root, 
             self.session_code,
-            cloud_enabled  # ✅ PASS cloud setting
         )
         self.processing_thread.progress_updated.connect(self._on_progress_updated)
         self.processing_thread.log_updated.connect(self._on_log_updated)
@@ -1511,7 +1494,6 @@ class DicomImportDialog(QDialog):
             "Import Successful",
             f"Successfully processed {processed_count} DICOM files! {config_summary}\n\n"
             "✅ All files have proper Anterior/Posterior view assignments\n"
-            "✅ Original PNG files uploaded to cloud storage\n"
             "✅ Complete processing pipeline executed\n"
             "✅ Enhanced auto-detection workflow completed\n\n"
             "Files are now ready for viewing and analysis."
@@ -1964,22 +1946,12 @@ def validate_import_requirements(data_root: Path, session_code: str = None) -> t
                 return False, f"Invalid session code format: {session_code}"
             
             # Check if session directory can be created
-            session_path = data_root / "SPECT" / session_code
+            session_path = data_root / "PLANAR" / session_code
             try:
                 session_path.mkdir(parents=True, exist_ok=True)
             except Exception as e:
                 return False, f"Cannot create session directory: {e}"
         
-        # Check cloud storage if available
-        if CLOUD_AVAILABLE:
-            try:
-                from core.config.paths import is_cloud_enabled
-                if is_cloud_enabled():
-                    print("[IMPORT] Cloud storage is enabled and configured")
-                else:
-                    print("[IMPORT] Cloud storage is available but not configured")
-            except Exception as e:
-                print(f"[IMPORT] Cloud storage check failed: {e}")
         
         return True, ""
         
@@ -1997,9 +1969,9 @@ def get_import_dialog_config() -> dict:
     return {
         "enhanced_mode_available": True,
         "legacy_mode_available": True,
-        "cloud_storage_available": CLOUD_AVAILABLE,
+        "cloud_storage_available": False,  # ✅ Changed to False
         "supported_extensions": [".dcm", ".dicom"],
-        "max_files_per_import": 50,  # Reasonable limit
+        "max_files_per_import": 50,
         "auto_detection_confidence_levels": ["high", "low", "none"],
         "required_views": ["Anterior", "Posterior"],
         "default_mode": "enhanced"
@@ -2276,7 +2248,7 @@ def get_version_info() -> dict:
             "confidence_based_detection": True,
             "instant_analysis": True,
             "zoom_and_pan": True,
-            "cloud_integration": CLOUD_AVAILABLE,
+            "cloud_integration": False,
             "legacy_compatibility": True
         },
         "supported_formats": SUPPORTED_DICOM_EXTENSIONS
