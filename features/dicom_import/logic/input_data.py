@@ -707,15 +707,17 @@ def validate_planar_structure(session_code: str) -> bool:
     
 def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str) -> bool:
     """
-    ✅ COMPLETE: Run classification with proper new file naming and path mapping
+    ✅ FIXED: Run classification with new file naming ONLY - no old naming fallback
     """
     try:
         patient_folder = dest_path.parent
         
-        # ✅ CHECK: Map new files to old naming expected by classification
+        # ✅ GET ALL FILE PATHS using paths.py
         original_files = get_planar_original_files(patient_folder)
         segmentation_files_ant = get_planar_segmentation_files(patient_folder, "ant", with_priority=False)
         segmentation_files_post = get_planar_segmentation_files(patient_folder, "post", with_priority=False)
+        hotspot_files_ant = get_planar_hotspot_files(patient_folder, "ant", with_priority=False)
+        hotspot_files_post = get_planar_hotspot_files(patient_folder, "post", with_priority=False)
         
         # ✅ CREATE: Temporary directory with old naming for classification compatibility
         temp_dir = patient_folder / "temp_classification"
@@ -726,12 +728,23 @@ def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str
         file_mappings = []
         success_count = 0
         
-        # Map new files to old naming expected by classification
+        # ✅ COMPLETE file mapping using paths.py (not hardcoded)
         file_mapping_list = [
+            # Original files
             (original_files['ant_original'], f"{filename_stem}_anterior_original.png"),
             (original_files['post_original'], f"{filename_stem}_posterior_original.png"),
+            
+            # Segmentation files
             (segmentation_files_ant['segmentation_png'], f"{filename_stem}_anterior_colored.png"),
-            (segmentation_files_post['segmentation_png'], f"{filename_stem}_posterior_colored.png")
+            (segmentation_files_post['segmentation_png'], f"{filename_stem}_posterior_colored.png"),
+            
+            # ✅ HOTSPOT MASK files
+            (hotspot_files_ant['otsu_grayscale'], f"{filename_stem}_ant_hotspot_mask.png"),
+            (hotspot_files_post['otsu_grayscale'], f"{filename_stem}_post_hotspot_mask.png"),
+            
+            # ✅ YOLO XML files
+            (hotspot_files_ant['yolo_xml'], f"{filename_stem}_ant.xml"),
+            (hotspot_files_post['yolo_xml'], f"{filename_stem}_post.xml"),
         ]
         
         # Create file mappings
@@ -743,10 +756,12 @@ def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str
                 file_mappings.append(target_file)
                 success_count += 1
                 _log(f"     Mapped: {source_file.name} -> {old_name}")
+            else:
+                _log(f"     Missing: {source_file} -> {old_name}")
         
         _log(f"     Successfully mapped {success_count} files for classification")
         
-        if success_count >= 2:  # At least some files mapped
+        if success_count >= 4:  # Need at least basic files
             # ✅ CHANGE: Temporarily change working directory for classification
             import os
             original_cwd = os.getcwd()
@@ -758,25 +773,41 @@ def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str
                 from features.spect_viewer.logic.processing_wrapper import run_classification_for_patient
                 result = run_classification_for_patient(dest_path, pid, study_date)
                 
-                # ✅ COPY: Results back to main folder with new naming
+                # ✅ COPY: Results back using NEW NAMING ONLY (paths.py)
                 if result:
-                    _log(f"     Copying classification results back to main folder...")
+                    _log(f"     Copying classification results back to main folder with NEW naming...")
                     
-                    # Copy results back with new naming
-                    result_mappings = [
-                        (f"{filename_stem}_ant_classification.xml", "ant_hotspot_classification.xml"),
-                        (f"{filename_stem}_post_classification.xml", "post_hotspot_classification.xml"),
-                        (f"{filename_stem}_anterior_classification_mask.png", "ant_hotspot_classification.png"),
-                        (f"{filename_stem}_posterior_classification_mask.png", "post_hotspot_classification.png")
-                    ]
-                    
-                    for old_result_name, new_result_name in result_mappings:
-                        old_result_path = temp_dir / old_result_name
-                        new_result_path = patient_folder / new_result_name
+                    # ✅ USE paths.py for result file mapping - NEW NAMING ONLY
+                    for view_tag in ["ant", "post"]:
+                        hotspot_files = get_planar_hotspot_files(patient_folder, view_tag, with_priority=False)
                         
-                        if old_result_path.exists():
-                            shutil.copy2(old_result_path, new_result_path)
-                            _log(f"     Copied: {old_result_name} -> {new_result_name}")
+                        # Map temp directory results to NEW paths using paths.py
+                        view_full = "anterior" if view_tag == "ant" else "posterior"
+                        
+                        # Old files in temp directory (what classification created)
+                        old_xml = temp_dir / f"{filename_stem}_{view_tag}_classification.xml"
+                        old_json = temp_dir / f"{filename_stem}_{view_tag}_classification.json"
+                        old_mask = temp_dir / f"{filename_stem}_{view_full}_classification_mask.png"
+                        
+                        # ✅ NEW paths using paths.py - NEW NAMING CONVENTION
+                        new_xml = hotspot_files['classification_xml']   # ant_hotspot_classification.xml
+                        new_png = hotspot_files['classification_png']   # ant_hotspot_classification.png
+                        
+                        # Copy XML files to NEW naming
+                        if old_xml.exists():
+                            shutil.copy2(old_xml, new_xml)
+                            _log(f"     ✅ Copied XML: {old_xml.name} -> {new_xml.name}")
+                        
+                        # Copy mask files to NEW naming (PNG)
+                        if old_mask.exists():
+                            shutil.copy2(old_mask, new_png)
+                            _log(f"     ✅ Copied PNG: {old_mask.name} -> {new_png.name}")
+                        
+                        # ✅ OPTIONAL: Copy JSON for reference with NEW naming
+                        if old_json.exists():
+                            json_backup = patient_folder / f"{view_tag}_hotspot_classification.json"
+                            shutil.copy2(old_json, json_backup)
+                            _log(f"     ✅ Copied JSON: {old_json.name} -> {json_backup.name}")
                 
                 return result
                 
@@ -786,11 +817,12 @@ def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str
                 # ✅ CLEANUP: Remove temp directory
                 try:
                     shutil.rmtree(temp_dir)
-                    _log(f"     Cleaned up temp directory")
+                    _log(f"     ✅ Cleaned up temp directory")
                 except Exception as cleanup_error:
                     _log(f"     [WARN] Cleanup failed: {cleanup_error}")
         else:
-            _log(f"     ❌ Insufficient files for classification ({success_count} < 2)")
+            _log(f"     ❌ Insufficient files for classification ({success_count} < 4)")
+            _log(f"     Required: original, segmentation, hotspot mask, and XML files")
             return False
             
     except Exception as e:
