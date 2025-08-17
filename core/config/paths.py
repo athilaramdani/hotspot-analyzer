@@ -400,6 +400,89 @@ def extract_study_date_from_dicom(dicom_path: Path) -> str:
         print(f"Warning: Could not extract study date from {dicom_path}: {e}")
         return datetime.now().strftime("%Y%m%d")
 
+def check_dicom_exists(session_code: str, patient_id: str, study_date: str, original_filename: str = None) -> bool:
+    """
+    Check if DICOM already exists based on patient ID and study date
+    
+    Args:
+        session_code: Session code (NSY, ATL, etc.)
+        patient_id: Patient ID from DICOM
+        study_date: Study date in YYYYMMDD format
+        original_filename: Original DICOM filename (optional for specific file check)
+        
+    Returns:
+        True if DICOM already exists, False otherwise
+    """
+    try:
+        print(f"🔍 [CHECK_DICOM_EXISTS] Checking: session={session_code}, patient={patient_id}, study_date={study_date}")
+        
+        # Get expected patient study date path
+        study_date_path = get_patient_planar_path(session_code, patient_id, study_date)
+        print(f"🔍 [CHECK_DICOM_EXISTS] Expected path: {study_date_path}")
+        
+        if not study_date_path.exists():
+            print(f"🔍 [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE")
+            return False
+        
+        # If specific filename provided, check for that exact file
+        if original_filename:
+            specific_file = study_date_path / original_filename
+            exists = specific_file.exists()
+            print(f"🔍 [CHECK_DICOM_EXISTS] Specific file {original_filename} exists: {exists}")
+            return exists
+        
+        # Otherwise, check if any DICOM files exist in the study date folder
+        dicom_files = list(study_date_path.glob("*.dcm")) + list(study_date_path.glob("*.dicom"))
+        
+        # Also check if any processed files exist (indicates previous processing)
+        processed_files = (
+            list(study_date_path.glob("*_original.png")) +
+            list(study_date_path.glob("*_segm.png")) +
+            list(study_date_path.glob("*_hotspot_*.xml"))
+        )
+        
+        print(f"🔍 [CHECK_DICOM_EXISTS] Found {len(dicom_files)} DICOM files")
+        print(f"🔍 [CHECK_DICOM_EXISTS] Found {len(processed_files)} processed files")
+        
+        result = len(dicom_files) > 0 or len(processed_files) > 0
+        print(f"🔍 [CHECK_DICOM_EXISTS] Final result: {result}")
+        
+        return result
+        
+    except Exception as e:
+        print(f"🔍 [CHECK_DICOM_EXISTS] ERROR: {e}")
+        return False
+
+def get_existing_dicom_info(session_code: str, patient_id: str, study_date: str) -> Dict[str, any]:
+    """
+    Get information about existing DICOM files for given patient and study date
+    
+    Returns:
+        Dictionary with existing file information
+    """
+    try:
+        study_date_path = get_patient_planar_path(session_code, patient_id, study_date)
+        
+        if not study_date_path.exists():
+            return {"exists": False}
+        
+        # Count existing files
+        dicom_files = list(study_date_path.glob("*.dcm")) + list(study_date_path.glob("*.dicom"))
+        original_files = list(study_date_path.glob("*_original.png"))
+        
+        return {
+            "exists": True,
+            "study_date_path": study_date_path,
+            "dicom_count": len(dicom_files),
+            "dicom_files": [f.name for f in dicom_files],
+            "has_processed_files": len(original_files) > 0,
+            "last_modified": max([f.stat().st_mtime for f in dicom_files]) if dicom_files else None
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Error getting existing DICOM info: {e}")
+        return {"exists": False, "error": str(e)}
+
 def generate_filename_stem(patient_id: str, study_date: str) -> str:
     """
     Generate filename stem with patient ID and study date
