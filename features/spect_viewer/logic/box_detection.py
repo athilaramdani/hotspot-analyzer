@@ -199,7 +199,7 @@ def write_pascal_voc_xml(output_path: Path, image_shape: Tuple[int, int],
 def process_dicom_for_detection(dicom_path: Path, patient_id: str, 
                                session_code: str = None) -> Dict[str, bool]:
     """
-    Process DICOM file for hotspot detection using YOLO
+    ✅ FIXED: Process DICOM file for hotspot detection using YOLO with proper path extraction
     
     Args:
         dicom_path: Path to DICOM file
@@ -222,14 +222,56 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
         # Extract study date
         study_date = extract_study_date_from_dicom(dicom_path)
         
-        # Extract session code from path if not provided
+        # ✅ FIX: Extract session code from correct path structure
         if not session_code:
-            session_code = dicom_path.parent.parent.name
+            # Expected path: data/PLANAR/SESSION/patient_id/study_date/file.dcm
+            path_parts = dicom_path.parts
+            planar_index = None
+            for i, part in enumerate(path_parts):
+                if part == "PLANAR":
+                    planar_index = i
+                    break
+            
+            if planar_index is not None and len(path_parts) > planar_index + 1:
+                session_code = path_parts[planar_index + 1]  # Session after PLANAR
+                print(f"[DETECTION] Extracted session from path: {session_code}")
+            else:
+                # ✅ FALLBACK: Get from config
+                from core.config.paths import get_current_session_code
+                session_code = get_current_session_code()
+                print(f"[DETECTION] Using session from config: {session_code}")
+                
+                if session_code == "unknown":
+                    session_code = "ATL"  # Safe default
+                    print(f"[DETECTION] Using default session: {session_code}")
         
         print(f"[DETECTION] Patient: {patient_id}, Session: {session_code}, Study Date: {study_date}")
         print(f"[DETECTION] Loaded {len(frames_dict)} frames: {list(frames_dict.keys())}")
         
         results = {"anterior": False, "posterior": False}
+        
+        # ✅ FIX: Get correct patient folder path
+        patient_folder = get_patient_planar_path(session_code, patient_id, study_date)
+        
+        if not patient_folder.exists():
+            print(f"[DETECTION ERROR] Patient folder not found: {patient_folder}")
+            
+            # ✅ FALLBACK: Try to find in other sessions
+            potential_sessions = ["ATL", "NSY", "NBL", "ALL"]
+            found_folder = None
+            
+            for potential_session in potential_sessions:
+                test_folder = get_patient_planar_path(potential_session, patient_id, study_date)
+                if test_folder.exists():
+                    patient_folder = test_folder
+                    session_code = potential_session
+                    found_folder = test_folder
+                    print(f"[DETECTION] Found patient folder in session: {potential_session}")
+                    break
+            
+            if not found_folder:
+                print(f"[DETECTION ERROR] No valid patient folder found for patient {patient_id}")
+                return {"anterior": False, "posterior": False}
         
         # Process each view
         for view_name, frame_data in frames_dict.items():
@@ -250,10 +292,9 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
                 
                 print(f"[DETECTION] Processing view: {view_name} -> {view_full}")
                 
-                # Get output paths
-                patient_folder = get_patient_planar_path(session_code, patient_id, study_date)
-                hotspot_files = get_planar_hotspot_files(patient_folder, view_type)
-                xml_output_path = Path(hotspot_files['yolo_xml'])  # Use 'yolo_xml' key instead of 'xml_file'
+                # ✅ FIX: Get output paths using correct patient folder
+                hotspot_files = get_planar_hotspot_files(patient_folder, view_type, with_priority=False)
+                xml_output_path = Path(hotspot_files['yolo_xml'])
                 
                 # Skip if XML already exists
                 if xml_output_path.exists():
@@ -277,6 +318,9 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
                 # Run YOLO detection
                 print(f"[DETECTION] Running YOLO on {view_full} view...")
                 detections = inference_detection_from_array(processed_frame)
+                
+                # ✅ ENSURE output directory exists
+                xml_output_path.parent.mkdir(parents=True, exist_ok=True)
                 
                 if detections:
                     print(f"[DETECTION] Found {len(detections)} hotspots in {view_full}")
@@ -315,11 +359,12 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
         print(f"[DETECTION FATAL ERROR] Failed to process {dicom_path}: {e}")
         traceback.print_exc()
         return {"anterior": False, "posterior": False}
+    
 
-
+# For backward compatibility
 def run_yolo_detection_for_patient(scan_path: Path, patient_id: str) -> Dict[str, bool]:
     """
-    Main function to run YOLO detection for a patient scan
+    ✅ FIXED: Main function to run YOLO detection for a patient scan
     
     Args:
         scan_path: Path to DICOM file
@@ -332,8 +377,29 @@ def run_yolo_detection_for_patient(scan_path: Path, patient_id: str) -> Dict[str
         print(f"[YOLO WRAPPER] Starting detection for patient {patient_id}")
         print(f"[YOLO WRAPPER] DICOM file: {scan_path}")
         
-        # Extract session code from path structure
-        session_code = scan_path.parent.parent.name
+        # ✅ FIX: Extract session code from correct path structure
+        # Expected: data/PLANAR/SESSION/patient_id/study_date/file.dcm
+        path_parts = scan_path.parts
+        session_code = None
+        
+        planar_index = None
+        for i, part in enumerate(path_parts):
+            if part == "PLANAR":
+                planar_index = i
+                break
+        
+        if planar_index is not None and len(path_parts) > planar_index + 1:
+            session_code = path_parts[planar_index + 1]
+            print(f"[YOLO WRAPPER] Extracted session from path: {session_code}")
+        else:
+            # ✅ FALLBACK: Get from config
+            from core.config.paths import get_current_session_code
+            session_code = get_current_session_code()
+            print(f"[YOLO WRAPPER] Using session from config: {session_code}")
+            
+            if session_code == "unknown":
+                session_code = "ATL"  # Safe default
+                print(f"[YOLO WRAPPER] Using default session: {session_code}")
         
         # Process DICOM for detection
         results = process_dicom_for_detection(scan_path, patient_id, session_code)
@@ -349,8 +415,6 @@ def run_yolo_detection_for_patient(scan_path: Path, patient_id: str) -> Dict[str
         traceback.print_exc()
         return {"anterior": False, "posterior": False}
 
-
-# For backward compatibility
 def inference_detection(path_image: str) -> List[Dict]:
     """
     Backward compatibility function
