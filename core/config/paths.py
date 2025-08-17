@@ -169,14 +169,7 @@ def generate_edit_date() -> str:
 def get_patient_planar_path(session_code: str, patient_id: str, study_date: str = None) -> Path:
     """
     Get patient path for planar data with ALL user support
-    
-    Args:
-        session_code: Session code (NSY, ATL, NBL, ALL)
-        patient_id: Patient ID
-        study_date: Study date in YYYYMMDD format (optional)
-        
-    Returns:
-        Path for patient data
+    Returns the base patient path where main files are stored
     """
     if session_code == "ALL":
         base_path = PLANAR_DATA_PATH / "ALL" / patient_id
@@ -186,6 +179,12 @@ def get_patient_planar_path(session_code: str, patient_id: str, study_date: str 
     if study_date:
         return base_path / study_date
     return base_path
+
+def get_study_date_path(session_code: str, patient_id: str, study_date: str) -> Path:
+    """
+    Get the study date path where main files are stored
+    """
+    return get_patient_planar_path(session_code, patient_id, study_date)
 
 def get_edit_timestamp_path(session_code: str, patient_id: str, study_date: str, editor_code: str = None, edit_date: str = None) -> Path:
     """
@@ -241,53 +240,74 @@ def get_planar_original_files(patient_folder: Path, original_dicom_name: str = N
     
     return files
 
-def get_planar_segmentation_files(patient_folder: Path, view: str, with_priority: bool = True):
+def get_planar_segmentation_files(patient_folder: Path, view: str, with_priority: bool = True, session_code: str = None):
+    """
+    Get segmentation file paths with priority system for edited files
+    
+    Args:
+        patient_folder: Patient directory path (study_date folder)
+        view: View name (ant/post or anterior/posterior)
+        with_priority: Whether to use priority system (edited > original)
+        session_code: Session code for ALL user context
+        
+    Returns:
+        Dictionary with segmentation file paths using priority system
+    """
     vtag = "ant" if view.lower() in ["anterior", "ant"] else "post"
-    
-    # ✅ PERBAIKAN: Cek apakah patient_folder adalah study_date directory
-    study_date_files = {
-        'segmentation_png': patient_folder / f"{vtag}_segm.png",
-        'mask_png': patient_folder / f"{vtag}_mask.png"
-    }
-    
-    # Jika file ada di study_date directory, gunakan itu
-    if study_date_files['segmentation_png'].exists():
-        base_files = study_date_files
-    else:
-        # ✅ FALLBACK: Cari di level patient
-        base_files = {
-            'segmentation_png': patient_folder.parent / f"{vtag}_segm.png" if len(patient_folder.name) == 8 and patient_folder.name.isdigit() else patient_folder / f"{vtag}_segm.png",
-            'mask_png': patient_folder.parent / f"{vtag}_mask.png" if len(patient_folder.name) == 8 and patient_folder.name.isdigit() else patient_folder / f"{vtag}_mask.png"
-        }
+    segm_filename = f"{vtag}_segm.png"
+    mask_filename = f"{vtag}_mask.png"
     
     if with_priority:
-        # Check for latest timestamp version
-        latest_segm = get_latest_timestamp_file(patient_folder, f"{vtag}_segm.png")
-        if latest_segm:
-            base_files['segmentation_png'] = latest_segm
+        # Use priority system
+        segm_file = get_file_with_priority(patient_folder, segm_filename, session_code)
+        mask_file = get_file_with_priority(patient_folder, mask_filename, session_code)
+        
+        return {
+            'segmentation_png': segm_file or (patient_folder / segm_filename),
+            'mask_png': mask_file or (patient_folder / mask_filename)
+        }
+    else:
+        # Original behavior
+        return {
+            'segmentation_png': patient_folder / segm_filename,
+            'mask_png': patient_folder / mask_filename
+        }
+def get_planar_hotspot_files(patient_folder: Path, view: str, with_priority: bool = True, session_code: str = None):
+    """
+    ✅ UPDATED: Get hotspot file paths with priority system for edited files
     
-    return base_files
-
-def get_planar_hotspot_files(patient_folder: Path, view: str, with_priority: bool = True):
+    Args:
+        patient_folder: Patient directory path (study_date folder)
+        view: View name (ant/post or anterior/posterior)
+        with_priority: Whether to use priority system (edited > original)
+        session_code: Session code for ALL user context (NSY, ATL, etc.)
+        
+    Returns:
+        Dictionary with hotspot file paths using priority system
+    """
     vtag = "ant" if view.lower() in ["anterior", "ant"] else "post"
     
-    # ✅ PERBAIKAN: Cek apakah patient_folder adalah study_date directory
-    study_date_files = {
+    # ✅ Base files (non-editable) - always from study_date folder
+    base_files = {
+        # YOLO detection files (non-editable)
         'yolo_xml': patient_folder / f"{vtag}_hotspot_yolo.xml",
+        
+        # Otsu processing files (non-editable)
         'otsu_colored': patient_folder / f"{vtag}_hotspot_otsu_colored.png",
         'otsu_colored_blend': patient_folder / f"{vtag}_hotspot_otsu_colored_blend.png",
         'otsu_grayscale': patient_folder / f"{vtag}_hotspot_otsu_grayscale.png",
+        
+        # Classification files (editable) - will be updated with priority
         'classification_xml': patient_folder / f"{vtag}_hotspot_classification.xml",
         'classification_png': patient_folder / f"{vtag}_hotspot_classification.png"
     }
     
-    # Jika file classification ada di study_date directory, gunakan itu
-    if study_date_files['classification_png'].exists():
-        base_files = study_date_files
-    else:
-        # ✅ FALLBACK: Cari di level patient
+    # ✅ FALLBACK: Check if files exist in study_date folder, otherwise try parent
+    if not base_files['classification_png'].exists():
+        # Try parent directory (patient level) as fallback
         parent_dir = patient_folder.parent if len(patient_folder.name) == 8 and patient_folder.name.isdigit() else patient_folder
-        base_files = {
+        
+        fallback_files = {
             'yolo_xml': parent_dir / f"{vtag}_hotspot_yolo.xml",
             'otsu_colored': parent_dir / f"{vtag}_hotspot_otsu_colored.png",
             'otsu_colored_blend': parent_dir / f"{vtag}_hotspot_otsu_colored_blend.png",
@@ -295,17 +315,44 @@ def get_planar_hotspot_files(patient_folder: Path, view: str, with_priority: boo
             'classification_xml': parent_dir / f"{vtag}_hotspot_classification.xml",
             'classification_png': parent_dir / f"{vtag}_hotspot_classification.png"
         }
+        
+        # Use fallback files if they exist
+        for key, fallback_path in fallback_files.items():
+            if fallback_path.exists():
+                base_files[key] = fallback_path
     
     if with_priority:
-        # Check for latest timestamp versions of editable files
-        latest_classification_png = get_latest_timestamp_file(patient_folder, f"{vtag}_hotspot_classification.png")
-        if latest_classification_png:
-            base_files['classification_png'] = latest_classification_png
-            
-            # Also update XML if PNG is from timestamp (they go together)
-            latest_classification_xml = get_latest_timestamp_file(patient_folder, f"{vtag}_hotspot_classification.xml")
-            if latest_classification_xml:
-                base_files['classification_xml'] = latest_classification_xml
+        # ✅ Use priority system for editable files only
+        classification_png_filename = f"{vtag}_hotspot_classification.png"
+        classification_xml_filename = f"{vtag}_hotspot_classification.xml"
+        
+        # Check if these are editable files
+        if classification_png_filename in EDITABLE_FILES:
+            priority_png = get_file_with_priority(
+                patient_folder, classification_png_filename, session_code
+            )
+            if priority_png and priority_png.exists():
+                base_files['classification_png'] = priority_png
+                print(f"[PRIORITY] Using edited PNG: {priority_png}")
+            else:
+                print(f"[PRIORITY] Using original PNG: {base_files['classification_png']}")
+        
+        if classification_xml_filename in EDITABLE_FILES:
+            priority_xml = get_file_with_priority(
+                patient_folder, classification_xml_filename, session_code
+            )
+            if priority_xml and priority_xml.exists():
+                base_files['classification_xml'] = priority_xml
+                print(f"[PRIORITY] Using edited XML: {priority_xml}")
+            else:
+                print(f"[PRIORITY] Using original XML: {base_files['classification_xml']}")
+    
+    # ✅ DEBUG: Print final file selection
+    print(f"[HOTSPOT FILES] Final selection for {vtag}:")
+    for key, path in base_files.items():
+        exists = path.exists() if path else False
+        is_edited = "edited" if (path and "_20" in str(path) and len(path.stem.split('_')[-1]) == 6) else "original"
+        print(f"[HOTSPOT FILES]   {key}: {path} (exists: {exists}, type: {is_edited})")
     
     return base_files
 
@@ -457,27 +504,42 @@ def debug_quantification_paths(patient_folder: Path, patient_id: str = None) -> 
 
 def get_planar_quantification_files(patient_folder: Path):
     """
-    ✅ FIXED: Get BSI quantification file paths with correct naming (ant/post not anterior/posterior)
+    ✅ AUTO-DETECT: Get BSI quantification file paths with study_date structure detection
     """
     print(f"📁 [DEBUG QUANT FILES] Getting quantification files for: {patient_folder}")
     
-    # ✅ FIX: Use actual file names - ant/post not anterior/posterior
+    # ✅ AUTO-DETECT: Check if this is study_date folder or patient folder
+    folder_name = patient_folder.name
+    is_study_date_folder = len(folder_name) == 8 and folder_name.isdigit()
+    
+    if is_study_date_folder:
+        # Files are in study_date folder
+        search_folder = patient_folder
+        print(f"📁 [DEBUG QUANT FILES] Detected study_date folder: {search_folder}")
+    else:
+        # Look for study_date subfolders
+        study_date_folders = [d for d in patient_folder.iterdir() 
+                            if d.is_dir() and len(d.name) == 8 and d.name.isdigit()]
+        
+        if study_date_folders:
+            # Use the latest study_date folder
+            latest_study_date = sorted(study_date_folders, key=lambda x: x.name)[-1]
+            search_folder = latest_study_date
+            print(f"📁 [DEBUG QUANT FILES] Using latest study_date folder: {search_folder}")
+        else:
+            # No study_date folders, use patient folder directly
+            search_folder = patient_folder
+            print(f"📁 [DEBUG QUANT FILES] Using patient folder: {search_folder}")
+    
     files = {
-        'bsi_json_ant': patient_folder / "bsi_quantification_ant.json",
-        'bsi_json_post': patient_folder / "bsi_quantification_post.json"
+        'bsi_json_ant': search_folder / "bsi_quantification_ant.json",
+        'bsi_json_post': search_folder / "bsi_quantification_post.json"
     }
     
     print(f"📁 [DEBUG QUANT FILES] Generated paths:")
     for key, path in files.items():
         exists = path.exists()
         print(f"📁 [DEBUG QUANT FILES]   {key}: {path} (exists: {exists})")
-    
-    # ✅ DEBUG: Also check what files actually exist
-    print(f"📁 [DEBUG QUANT FILES] Actual BSI files in folder:")
-    if patient_folder.exists():
-        bsi_files = list(patient_folder.glob("*bsi*.json"))
-        for bsi_file in bsi_files:
-            print(f"📁 [DEBUG QUANT FILES]   Found: {bsi_file.name}")
     
     return files
 
@@ -532,7 +594,8 @@ def get_planar_files_complete(patient_folder: Path, view: str, original_dicom_na
     
     return result
 
-def get_planar_workflow_files(patient_folder: Path, original_dicom_name: str = None, with_priority: bool = True):
+# AFTER
+def get_planar_workflow_files(patient_folder: Path, original_dicom_name: str = None, with_priority: bool = True, session_code: str = None):
     """
     Get all workflow-related files for both views with timestamp priority
     
@@ -540,6 +603,7 @@ def get_planar_workflow_files(patient_folder: Path, original_dicom_name: str = N
         patient_folder: Patient directory path
         original_dicom_name: Original DICOM filename
         with_priority: Whether to use latest timestamp versions
+        session_code: Session code for ALL user context
         
     Returns:
         Dictionary with workflow files organized by step and view
@@ -591,16 +655,16 @@ def get_planar_workflow_files(patient_folder: Path, original_dicom_name: str = N
     }
     
     if with_priority:
-        # Update with latest timestamp versions for editable files
+        # ✅ TAMBAH: Update with latest timestamp versions for editable files
         for view in ['ant', 'post']:
             # Segmentation
-            latest_segm = get_latest_timestamp_file(patient_folder, f"{view}_segm.png")
+            latest_segm = get_latest_timestamp_file(patient_folder, f"{view}_segm.png", session_code)
             if latest_segm:
                 workflow_files['segmentation'][view] = latest_segm
             
             # Classification
-            latest_class_png = get_latest_timestamp_file(patient_folder, f"{view}_hotspot_classification.png")
-            latest_class_xml = get_latest_timestamp_file(patient_folder, f"{view}_hotspot_classification.xml")
+            latest_class_png = get_latest_timestamp_file(patient_folder, f"{view}_hotspot_classification.png", session_code)
+            latest_class_xml = get_latest_timestamp_file(patient_folder, f"{view}_hotspot_classification.xml", session_code)
             if latest_class_png:
                 workflow_files['classification'][view]['png'] = latest_class_png
             if latest_class_xml:
@@ -737,16 +801,10 @@ def get_workflow_step_files(patient_folder: Path, step: str, view: str = None, w
     return []
 
 # ===== TIMESTAMP EDIT FUNCTIONS =====
-def get_latest_timestamp_file(patient_folder: Path, filename: str) -> Optional[Path]:
+def get_latest_timestamp_file(patient_folder: Path, filename: str, session_code: str = None) -> Optional[Path]:
     """
     Get the latest timestamp version of a file if it exists
-    
-    Args:
-        patient_folder: Patient directory path
-        filename: Base filename to search for
-        
-    Returns:
-        Path to latest timestamp version or None if not found
+    Supports both individual and ALL user structures
     """
     if filename not in EDITABLE_FILES:
         return None
@@ -786,6 +844,139 @@ def get_latest_timestamp_file(patient_folder: Path, filename: str) -> Optional[P
                 continue
     
     return latest_file
+
+def get_file_with_priority(base_path: Path, filename: str, session_code: str = None) -> Optional[Path]:
+    """
+    Get file with priority: edited timestamp > original file
+    """
+    # ✅ USE DEBUG VERSION
+    return debug_file_with_priority(base_path, filename, session_code)
+
+def debug_timestamp_file_detection(patient_folder: Path, filename: str, session_code: str = None):
+    """
+    Debug function to trace timestamp file detection
+    """
+    print(f"\n🔍 [DEBUG TIMESTAMP GANTENG] ===================")
+    print(f"🔍 [DEBUG TIMESTAMP] Looking for: {filename}")
+    print(f"🔍 [DEBUG TIMESTAMP] In folder: {patient_folder}")
+    print(f"🔍 [DEBUG TIMESTAMP] Session code: {session_code}")
+    print(f"🔍 [DEBUG TIMESTAMP] Is editable: {filename in EDITABLE_FILES}")
+    
+    if filename not in EDITABLE_FILES:
+        print(f"🔍 [DEBUG TIMESTAMP] ❌ File not in EDITABLE_FILES: {EDITABLE_FILES}")
+        return None
+    
+    # Check folder structure
+    print(f"🔍 [DEBUG TIMESTAMP] Folder contents:")
+    if patient_folder.exists():
+        for item in patient_folder.iterdir():
+            if item.is_dir():
+                print(f"🔍 [DEBUG TIMESTAMP]   DIR:  {item.name}")
+                # Check if it's a date directory
+                if len(item.name) == 8 and item.name.isdigit():
+                    print(f"🔍 [DEBUG TIMESTAMP]     This is a date directory!")
+                    # Check contents of date directory
+                    for sub_item in item.iterdir():
+                        if sub_item.is_file():
+                            print(f"🔍 [DEBUG TIMESTAMP]       FILE: {sub_item.name}")
+                            # Check if it matches our pattern
+                            base_name = filename.rsplit('.', 1)[0]  # ant_hotspot_classification
+                            extension = filename.split('.')[-1]     # png
+                            
+                            if sub_item.name.startswith(base_name + '_') and sub_item.name.endswith('.' + extension):
+                                print(f"🔍 [DEBUG TIMESTAMP]       ✅ MATCHES PATTERN!")
+                                
+                                # Extract timestamp
+                                parts = sub_item.name.rsplit('.', 1)[0].split('_')
+                                print(f"🔍 [DEBUG TIMESTAMP]       File parts: {parts}")
+                                
+                                if len(parts) >= 3:
+                                    potential_timestamp = parts[-1]
+                                    print(f"🔍 [DEBUG TIMESTAMP]       Potential timestamp: {potential_timestamp}")
+                                    
+                                    if len(potential_timestamp) == 6 and potential_timestamp.isdigit():
+                                        print(f"🔍 [DEBUG TIMESTAMP]       ✅ VALID TIMESTAMP!")
+                                        
+                                        # Try to parse datetime
+                                        try:
+                                            full_datetime_str = f"{item.name}_{potential_timestamp}"
+                                            full_datetime = datetime.strptime(full_datetime_str, "%Y%m%d_%H%M%S")
+                                            print(f"🔍 [DEBUG TIMESTAMP]       ✅ VALID DATETIME: {full_datetime}")
+                                        except ValueError as e:
+                                            print(f"🔍 [DEBUG TIMESTAMP]       ❌ INVALID DATETIME: {e}")
+                                    else:
+                                        print(f"🔍 [DEBUG TIMESTAMP]       ❌ Invalid timestamp format")
+                                else:
+                                    print(f"🔍 [DEBUG TIMESTAMP]       ❌ Not enough parts")
+                            else:
+                                print(f"🔍 [DEBUG TIMESTAMP]       ❌ Doesn't match pattern")
+            else:
+                print(f"🔍 [DEBUG TIMESTAMP]   FILE: {item.name}")
+    else:
+        print(f"🔍 [DEBUG TIMESTAMP] ❌ Folder doesn't exist!")
+    
+    # Now run the actual function
+    print(f"🔍 [DEBUG TIMESTAMP] Running get_latest_timestamp_file...")
+    result = get_latest_timestamp_file(patient_folder, filename, session_code)
+    print(f"🔍 [DEBUG TIMESTAMP] Result: {result}")
+    
+    return result
+
+def debug_file_with_priority(base_path: Path, filename: str, session_code: str = None):
+    """
+    Debug function to trace file priority selection
+    """
+    print(f"\n🎯 [DEBUG PRIORITY GANTENG] ===================")
+    print(f"🎯 [DEBUG PRIORITY] Looking for: {filename}")
+    print(f"🎯 [DEBUG PRIORITY] In path: {base_path}")
+    print(f"🎯 [DEBUG PRIORITY] Session code: {session_code}")
+    
+    # Check original file first
+    original_file = base_path / filename
+    print(f"🎯 [DEBUG PRIORITY] Original file: {original_file}")
+    print(f"🎯 [DEBUG PRIORITY] Original exists: {original_file.exists()}")
+    
+    # Check for edited version
+    if filename in EDITABLE_FILES:
+        print(f"🎯 [DEBUG PRIORITY] File is editable, checking for timestamp version...")
+        
+        # Debug the timestamp detection
+        latest_edited = debug_timestamp_file_detection(base_path, filename, session_code)
+        
+        if latest_edited and latest_edited.exists():
+            print(f"🎯 [DEBUG PRIORITY] ✅ Found edited version: {latest_edited}")
+            return latest_edited
+        else:
+            print(f"🎯 [DEBUG PRIORITY] ❌ No edited version found")
+    else:
+        print(f"🎯 [DEBUG PRIORITY] File is not editable")
+    
+    if original_file.exists():
+        print(f"🎯 [DEBUG PRIORITY] ✅ Using original file: {original_file}")
+        return original_file
+    else:
+        print(f"🎯 [DEBUG PRIORITY] ❌ No file found at all")
+        return None
+def get_all_possible_paths_for_file(study_date_path: Path, filename: str, session_code: str = None) -> List[Path]:
+    """
+    Get all possible paths where a file might exist, ordered by priority
+    
+    Returns:
+        List of paths ordered by priority (edited timestamp > original)
+    """
+    paths = []
+    
+    if filename in EDITABLE_FILES:
+        # Get all timestamp versions (already sorted by newest first)
+        timestamp_versions = get_all_timestamp_versions(study_date_path, filename)
+        paths.extend(timestamp_versions)
+    
+    # Add original file path
+    original_path = study_date_path / filename
+    if original_path not in paths:
+        paths.append(original_path)
+    
+    return paths
 
 def get_all_timestamp_versions(patient_folder: Path, filename: str) -> List[Path]:
     """

@@ -213,42 +213,16 @@ class BSISidePanel(QWidget):
 
     def load_patient_data(self, patient_folder: Path, patient_id: str, study_date: str) -> bool:
         """✅ FIXED: Load patient data with detailed debugging"""
-        
-        print(f"\n📊 [DEBUG PANEL GANTENG] ===================")
-        print(f"📊 [DEBUG PANEL] Loading patient data:")
-        print(f"📊 [DEBUG PANEL]   Patient folder: {patient_folder}")
-        print(f"📊 [DEBUG PANEL]   Patient ID: {patient_id}")
-        print(f"📊 [DEBUG PANEL]   Study date: {study_date}")
-        print(f"📊 [DEBUG PANEL]   Folder exists: {patient_folder.exists()}")
-        
-        # Debug folder structure
-        if patient_folder.exists():
-            print(f"📊 [DEBUG PANEL] Patient folder contents:")
-            for item in patient_folder.iterdir():
-                print(f"📊 [DEBUG PANEL]   - {item.name} ({'DIR' if item.is_dir() else 'FILE'})")
-                if item.is_dir() and len(item.name) == 8 and item.name.isdigit():
-                    print(f"📊 [DEBUG PANEL]     Study date folder contents:")
-                    for subitem in item.iterdir():
-                        print(f"📊 [DEBUG PANEL]       - {subitem.name}")
-        
         try:
             self.current_patient_folder = patient_folder
             self.current_patient_id = patient_id
             
             # Test BSI canvas loading
-            print(f"📊 [DEBUG PANEL] Testing BSI canvas loading...")
             canvas_success = self.bsi_canvas.load_bsi_data(patient_folder, patient_id, study_date)
-            print(f"📊 [DEBUG PANEL] BSI canvas load result: {canvas_success}")
             
             # Test quantification manager
-            print(f"📊 [DEBUG PANEL] Testing quantification manager...")
             all_scans = self.quant_manager.load_all_quantification_scores(patient_folder, patient_id)
-            print(f"📊 [DEBUG PANEL] Quantification manager result: {len(all_scans)} scans found")
             
-            for i, scan in enumerate(all_scans):
-                print(f"📊 [DEBUG PANEL]   Scan {i+1}: {scan.get('study_date', 'unknown')} - Mode: {scan.get('processing_mode', 'unknown')}")
-                print(f"📊 [DEBUG PANEL]     Combined BSI: {scan.get('combined_bsi', 0):.2f}%")
-                print(f"📊 [DEBUG PANEL]     File source: {scan.get('file_source', 'unknown')}")
             
             if all_scans:
                 all_scans = sorted(all_scans, key=lambda x: x["study_date"])
@@ -256,19 +230,16 @@ class BSISidePanel(QWidget):
                 if self.scan_buttons:
                     self._on_scan_selected(self.scan_buttons[0], all_scans[0], emit_signal=False)
                 self._update_button_states(True)
-                print(f"📊 [DEBUG PANEL] ✅ Successfully loaded {len(all_scans)} scans")
             else:
                 self._populate_scan_buttons([])
                 if hasattr(self, 'results_table'):
                     self.results_table.setRowCount(0)
                 self._update_patient_info(patient_id, "No Scans Found")
                 self._update_button_states(False)
-                print(f"📊 [DEBUG PANEL] ❌ No scans found")
                 
             return True
             
         except Exception as e:
-            print(f"📊 [DEBUG PANEL] ❌ Error loading patient data: {e}")
             import traceback
             traceback.print_exc()
             self.clear_patient_data()

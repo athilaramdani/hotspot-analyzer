@@ -10,7 +10,7 @@ import numpy as np
 import json
 from PIL import Image
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QCheckBox, QSlider, QWidget, QGraphicsView
 )
@@ -41,6 +41,8 @@ from features.spect_viewer.logic.hotspot_processor import parse_xml_annotations,
 class HotspotEditorDialog(BaseEditorDialog):
     """Hotspot editor dialog using modular components."""
     
+    editor_completed = Signal()
+
     def __init__(self, scan: Dict, view: str, parent=None):
         # 1. STORE INITIAL DATA
         self.scan = scan
@@ -715,6 +717,10 @@ class HotspotEditorDialog(BaseEditorDialog):
         """Handle save completion."""
         from PySide6.QtWidgets import QMessageBox
         
+        print("🎯🎯🎯 [DEBUG HOTSPOT] ===================")
+        print("🎯🎯🎯 [DEBUG HOTSPOT] Save finished!")
+        print("🎯🎯🎯 [DEBUG HOTSPOT] About to emit signal...")
+        
         # Get save information
         if hasattr(self.save_thread, 'get_save_info'):
             save_info = self.save_thread.get_save_info()
@@ -732,6 +738,15 @@ class HotspotEditorDialog(BaseEditorDialog):
         
         # Re-enable save button
         self.btn_save.setEnabled(True)
+        
+        # ✅ TEST SIGNAL EMIT
+        print("🎯🎯🎯 [DEBUG HOTSPOT] Checking if signal exists...")
+        if hasattr(self, 'editor_completed'):
+            print("🎯🎯🎯 [DEBUG HOTSPOT] Signal exists, emitting...")
+            self.editor_completed.emit()
+            print("🎯🎯🎯 [DEBUG HOTSPOT] Signal emitted!")
+        else:
+            print("🎯🎯🎯 [DEBUG HOTSPOT] ❌ Signal does not exist!")
         
         # Close dialog
         self.accept()
