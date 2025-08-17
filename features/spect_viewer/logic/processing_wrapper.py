@@ -21,10 +21,11 @@ from core.config.paths import (
     get_planar_segmentation_files,
     get_planar_files_complete,
     get_planar_quantification_files,
+    get_current_session_code,  # ✅ ADD
     PLANAR_DATA_PATH,
     generate_filename_stem,
     extract_study_date_from_dicom,
-    YOLO_MODEL_PATH  # Add this missing import
+    YOLO_MODEL_PATH
 )
 
 # Import DICOM loader
@@ -57,7 +58,7 @@ except ImportError as e:
 
 def run_yolo_detection_wrapper(scan_path: Path, patient_id: str) -> Dict[str, bool]:
     """
-    Wrapper function to run YOLO detection for a patient scan
+    ✅ UPDATED: Wrapper function to run YOLO detection with proper session handling
     
     Args:
         scan_path: Path to DICOM file
@@ -79,7 +80,8 @@ def run_yolo_detection_wrapper(scan_path: Path, patient_id: str) -> Dict[str, bo
             print(f"[YOLO ERROR] DICOM file not found: {scan_path}")
             return {"anterior": False, "posterior": False}
         
-        # Run detection
+        # ✅ IMPORT and run the fixed detection
+        from .box_detection import run_yolo_detection_for_patient
         results = run_yolo_detection_for_patient(scan_path, patient_id)
         
         print(f"[YOLO WRAPPER] Detection completed with results: {results}")
@@ -90,17 +92,21 @@ def run_yolo_detection_wrapper(scan_path: Path, patient_id: str) -> Dict[str, bo
         traceback.print_exc()
         return {"anterior": False, "posterior": False}
 
-
 def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
     """
-    Menjalankan proses hotspot dan MENYIMPAN hasilnya ke file gambar.
-    FIXED: Proper study date extraction and passing
+    ✅ FIXED: Get session code from sessions.json config
     """
     print("--- MENJALANKAN FUNGSI HOTSPOT DENGAN LOGIKA PENYIMPANAN FILE ---")
     try:
         from .hotspot_processor import HotspotProcessor
-        from features.dicom_import.logic.dicom_loader import load_frames_and_metadata, extract_study_date_from_dicom
-        from core.config.paths import get_hotspot_files, generate_filename_stem
+        from features.dicom_import.logic.dicom_loader import load_frames_and_metadata
+        from core.config.paths import (
+            get_planar_hotspot_files, 
+            generate_filename_stem, 
+            get_current_session_code,  # ✅ ADD
+            get_patient_planar_path,   # ✅ ADD
+            extract_study_date_from_dicom
+        )
 
         processor = HotspotProcessor()
         frames, meta = load_frames_and_metadata(str(scan_path))
@@ -108,28 +114,73 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
         if not frames:
             return {"frames": [], "ant_frames": [], "post_frames": []}
 
-        # ✅ FIX: Extract study date from DICOM path properly
+        # ✅ FIX: Get session code from config and extract study date
         try:
             study_date = extract_study_date_from_dicom(scan_path)
-            session_code = scan_path.parent.parent.name
+            
+            # ✅ NEW: Get session code from sessions.json
+            session_code = get_current_session_code()
+            
+            # ✅ FALLBACK: Extract from path structure if config fails
+            if session_code == "unknown":
+                print(f"[DEBUG] Config session failed, extracting from path...")
+                path_parts = scan_path.parts
+                planar_index = None
+                for i, part in enumerate(path_parts):
+                    if part == "PLANAR":
+                        planar_index = i
+                        break
+                
+                if planar_index is not None and len(path_parts) > planar_index + 1:
+                    session_code = path_parts[planar_index + 1]
+                    print(f"[DEBUG] Extracted session from path: {session_code}")
+                else:
+                    session_code = "ATL"  # Safe default
+                    print(f"[DEBUG] Using default session: {session_code}")
+            
             filename_stem = generate_filename_stem(patient_id, study_date)
-            print(f"[DEBUG] Extracted study_date: {study_date}, session: {session_code}")
+            print(f"[DEBUG] Using session: {session_code}, patient: {patient_id}, study_date: {study_date}")
+            
         except Exception as e:
-            print(f"[WARN] Could not extract study date from DICOM: {e}")
-            # ✅ FIX: Use study_date from meta if available
-            study_date = meta.get("study_date")
-            if not study_date:
-                from datetime import datetime
-                study_date = datetime.now().strftime("%Y%m%d")
-            session_code = "unknown"
+            print(f"[WARN] Could not extract session/study info: {e}")
+            study_date = meta.get("study_date", "20250101")
+            session_code = get_current_session_code()
+            if session_code == "unknown":
+                session_code = "ATL"  # Safe default
             filename_stem = f"{patient_id}_{study_date}"
-            print(f"[DEBUG] Using fallback study_date: {study_date}")
         
+        # ✅ FIX: Use correct path with session code from config
         patient_folder = get_patient_planar_path(session_code, patient_id, study_date)
+        
+        print(f"[DEBUG] Expected patient folder: {patient_folder}")
+        
+        if not patient_folder.exists():
+            print(f"[ERROR] Patient folder does not exist: {patient_folder}")
+            
+            # ✅ FALLBACK: Try to find the correct folder
+            potential_sessions = ["ATL", "NSY", "NBL", "ALL"]
+            found_folder = None
+            
+            for potential_session in potential_sessions:
+                test_folder = get_patient_planar_path(potential_session, patient_id, study_date)
+                print(f"[DEBUG] Testing folder: {test_folder}")
+                if test_folder.exists():
+                    found_folder = test_folder
+                    print(f"[DEBUG] Found patient folder in session: {potential_session}")
+                    break
+            
+            if found_folder:
+                patient_folder = found_folder
+                print(f"[DEBUG] Using found folder: {patient_folder}")
+            else:
+                print(f"[ERROR] No valid patient folder found for patient {patient_id}")
+                return {"frames": [], "ant_frames": [], "post_frames": []}
+        
         ant_hotspot_files = get_planar_hotspot_files(patient_folder, "ant")
         post_hotspot_files = get_planar_hotspot_files(patient_folder, "post")
-        ant_xml_path = Path(ant_hotspot_files['xml_file'])
-        post_xml_path = Path(post_hotspot_files['xml_file'])
+        
+        ant_xml_path = ant_hotspot_files['yolo_xml']  # ✅ FIX: Use correct key
+        post_xml_path = post_hotspot_files['yolo_xml']  # ✅ FIX: Use correct key
 
         result = {"frames": [], "ant_frames": [], "post_frames": []}
 
@@ -139,14 +190,14 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
             
             processing_frame = np.sum(frame, axis=0) if frame.ndim == 3 else frame
 
-            # Proses Anterior
+            # Process Anterior
             if ant_xml_path.exists() and "ant" in view_name.lower():
                 print(f"[DEBUG] Processing anterior with XML: {ant_xml_path}")
                 ant_processed = processor.process_frame_with_xml(
                     processing_frame, str(ant_xml_path), patient_id, "ant", study_date=study_date
                 )
                 if ant_processed is not None:
-                    print(f"[PROCESS] Anterior hotspot processing completed (both versions saved)")
+                    print(f"[PROCESS] Anterior hotspot processing completed")
                     result["ant_frames"].append(ant_processed)
                 else:
                     print(f"[PROCESS] Anterior processing failed, using original frame")
@@ -154,14 +205,14 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
             elif "ant" in view_name.lower():
                 result["ant_frames"].append(processing_frame)
 
-            # Proses Posterior
+            # Process Posterior
             if post_xml_path.exists() and "post" in view_name.lower():
                 print(f"[DEBUG] Processing posterior with XML: {post_xml_path}")
                 post_processed = processor.process_frame_with_xml(
                     processing_frame, str(post_xml_path), patient_id, "post", study_date=study_date
                 )
                 if post_processed is not None:
-                    print(f"[PROCESS] Posterior hotspot processing completed (both versions saved)")
+                    print(f"[PROCESS] Posterior hotspot processing completed")
                     result["post_frames"].append(post_processed)
                 else:
                     print(f"[PROCESS] Posterior processing failed, using original frame")
@@ -171,12 +222,7 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
         
         result["frames"] = result["ant_frames"] + result["post_frames"]
 
-        print(f"[PROCESS] Hotspot processing and file saving completed for {scan_path.name}")
-        print(f"[PROCESS] Expected files:")
-        print(f"  - Blended: {filename_stem}_ant_hotspot_colored.png")
-        print(f"  - Pure: {filename_stem}_anterior_hotspot_colored.png")
-        print(f"  - Blended: {filename_stem}_post_hotspot_colored.png")
-        print(f"  - Pure: {filename_stem}_posterior_hotspot_colored.png")
+        print(f"[PROCESS] Hotspot processing completed for {scan_path.name}")
         
         return result
 
@@ -186,23 +232,21 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
         traceback.print_exc()
         return {"frames": [], "ant_frames": [], "post_frames": []}
 
-
 def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date: str, source_is_editor: bool = False) -> bool:
     """
-    Run classification for patient using the new classification wrapper
-    
-    Args:
-        dicom_path: Path to patient's DICOM file
-        patient_id: Patient ID
-        study_date: Study date in YYYYMMDD format
-        
-    Returns:
-        True if classification successful, False otherwise
+    ✅ UPDATED: Use session from config
     """
     try:
         print(f"[CLASSIFICATION] Starting classification for patient {patient_id}")
+        
+        # ✅ ADD: Get session from config  
+        from core.config.paths import get_current_session_code
+        session_code = get_current_session_code()
+        
+        print(f"[CLASSIFICATION] Using session: {session_code}")
+        
         from .classification_wrapper import run_classification_for_patient as clf_runner
-        result = clf_runner(dicom_path, patient_id, study_date,source_is_editor=source_is_editor)
+        result = clf_runner(dicom_path, patient_id, study_date, source_is_editor=source_is_editor)
         
         if result:
             print(f"[CLASSIFICATION] Classification completed successfully")
@@ -219,12 +263,14 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
 
 
 def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date: str) -> bool:
-    """✅ UPDATED: Use V1.2 quantification algorithm"""
+    """✅ UPDATED: Use session from config for V1.2 quantification"""
     try:
-        # Import V1.2 quantification
         from .quantification_wrapper import run_quantification_for_patient_v2
+        from core.config.paths import get_current_session_code
         
-        print(f"[PROCESSING] Running V1.2 quantification for patient {patient_id}")
+        session_code = get_current_session_code()
+        print(f"[PROCESSING] Running V1.2 quantification for patient {patient_id} in session {session_code}")
+        
         result = run_quantification_for_patient_v2(dicom_path, patient_id, study_date)
         
         if result:

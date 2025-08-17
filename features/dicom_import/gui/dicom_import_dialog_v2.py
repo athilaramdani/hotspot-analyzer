@@ -58,22 +58,24 @@ class ProcessingThread(QThread):
     finished_processing = Signal()
     
     def __init__(self, file_view_assignments: Dict[Path, Dict[int, str]], 
-                 background_assignments: Dict[Path, Dict[int, Dict[str, str]]],
-                 data_root: Path, session_code: str):
+                background_assignments: Dict[Path, Dict[int, Dict[str, str]]],
+                data_root: Path, session_code: str, cloud_upload_enabled: bool = True):  # ✅ ADD cloud parameter
         super().__init__()
         self.file_view_assignments = file_view_assignments
-        self.background_assignments = background_assignments  # TAMBAHAN BARU
+        self.background_assignments = background_assignments
         self.data_root = data_root
         self.session_code = session_code
+        self.cloud_upload_enabled = cloud_upload_enabled  # ✅ ADD
         
     def run(self):
         try:
             # Process files with view assignments
             process_files_with_assignments(
                 file_view_assignments=self.file_view_assignments,
-                background_assignments=self.background_assignments,  # TAMBAHAN BARU
+                background_assignments=self.background_assignments,
                 data_root=self.data_root,
                 session_code=self.session_code,
+                cloud_upload_enabled=self.cloud_upload_enabled,  # ✅ ADD
                 progress_cb=self._progress_callback,
                 log_cb=self._log_callback
             )
@@ -176,7 +178,7 @@ class QuickDetectionThread(QThread):
 class DicomImportDialog(QDialog):
     files_imported = Signal()
     
-    def __init__(self, data_root: Path, parent=None, session_code: str | None = None):
+    def __init__(self, data_root: Path, parent=None, session_code: str | None = None, enable_cloud: bool = True):
         super().__init__(parent)
         self.setWindowTitle("Import DICOM Files - Enhanced Workflow")
         self.setModal(True)
@@ -195,6 +197,11 @@ class DicomImportDialog(QDialog):
         
         self._setup_ui()
         self._connect_signals()
+
+        self.cloud_upload_enabled = enable_cloud and CLOUD_AVAILABLE
+    
+        if not self.cloud_upload_enabled:
+            self._log_message("☁️ Cloud upload disabled for this import session")
         
     def _setup_ui(self):
         """Setup UI components"""
@@ -332,10 +339,18 @@ class DicomImportDialog(QDialog):
         layout = QHBoxLayout()
         layout.setSpacing(10)
         
-        # Add DICOM button
-        self.add_dicom_btn = QPushButton("Add DICOM Files")
+        # ✅ NEW: Add both file and folder import buttons
+        file_folder_layout = QHBoxLayout()
+
+        self.add_dicom_btn = QPushButton("Add Files")
         self.add_dicom_btn.setStyleSheet(DIALOG_IMPORT_BUTTON_STYLE)
-        layout.addWidget(self.add_dicom_btn)
+        file_folder_layout.addWidget(self.add_dicom_btn)
+
+        self.add_folders_btn = QPushButton("Add Folders")
+        self.add_folders_btn.setStyleSheet(DIALOG_IMPORT_BUTTON_STYLE)
+        file_folder_layout.addWidget(self.add_folders_btn)
+
+        layout.addLayout(file_folder_layout)
         
         # Progress bar
         self.progress_bar = QProgressBar()
@@ -373,6 +388,7 @@ class DicomImportDialog(QDialog):
     def _connect_signals(self):
         """Connect all signals"""
         self.add_dicom_btn.clicked.connect(self._add_dicom_files)
+        self.add_folders_btn.clicked.connect(self._add_dicom_folders)
         self.configure_views_btn.clicked.connect(self._configure_views)
         self.start_import_btn.clicked.connect(self._start_import)
         self.cancel_btn.clicked.connect(self._cancel_import)
@@ -426,6 +442,49 @@ class DicomImportDialog(QDialog):
             if new_files:
                 self._start_quick_detection(new_files)
     
+    def _add_dicom_folders(self):
+        """Add DICOM folders (bulk import)"""
+        folder_dialog = QFileDialog(self)
+        folder_dialog.setFileMode(QFileDialog.Directory)
+        folder_dialog.setOption(QFileDialog.ShowDirsOnly, False)
+        
+        if folder_dialog.exec():
+            folder_paths = [Path(p) for p in folder_dialog.selectedFiles()]
+            
+            # Scan folders for DICOM files
+            from features.dicom_import.logic.input_data import scan_folders_for_dicom
+            dicom_files = scan_folders_for_dicom(folder_paths)
+            
+            if dicom_files:
+                self._log_message(f"🔍 Found {len(dicom_files)} DICOM files in {len(folder_paths)} folders")
+                
+                # Check for duplicates
+                if self.session_code:
+                    from features.dicom_import.logic.input_data import check_duplicate_files
+                    duplicates = check_duplicate_files(dicom_files, self.session_code)
+                    new_files = [f for f, is_dup in duplicates.items() if not is_dup]
+                    skip_count = len(dicom_files) - len(new_files)
+                    
+                    if skip_count > 0:
+                        self._log_message(f"⚠️ Skipped {skip_count} duplicate files")
+                    
+                    dicom_files = new_files
+                
+                # Add new files to list
+                for file_path in dicom_files:
+                    if file_path not in self.selected_files:
+                        self.selected_files.append(file_path)
+                        self._add_file_to_list(file_path)
+                
+                self._update_ui_state()
+                self._log_message(f"✅ Added {len(dicom_files)} new files")
+                
+                # Start detection
+                if dicom_files:
+                    self._start_quick_detection(dicom_files)
+            else:
+                self._log_message("❌ No DICOM files found in selected folders")
+
     def _start_quick_detection(self, file_paths: List[Path]):
         """Start quick detection analysis untuk immediate feedback"""
         # ✅ FIXED: More thorough thread cleanup
@@ -935,12 +994,15 @@ class DicomImportDialog(QDialog):
         self.progress_bar.setMaximum(len(self.selected_files))
         self.progress_bar.setValue(0)
         
+        cloud_enabled = getattr(self, 'cloud_upload_enabled', True)
+    
         # Start processing thread with view assignments
         self.processing_thread = ProcessingThread(
             self.view_assignments,
-            getattr(self, 'background_assignments', {}),  # TAMBAHAN BARU
+            getattr(self, 'background_assignments', {}),
             self.data_root, 
-            self.session_code
+            self.session_code,
+            cloud_enabled  # ✅ PASS cloud setting
         )
         self.processing_thread.progress_updated.connect(self._on_progress_updated)
         self.processing_thread.log_updated.connect(self._on_log_updated)

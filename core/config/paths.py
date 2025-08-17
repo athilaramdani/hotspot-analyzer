@@ -809,6 +809,36 @@ def get_planar_quantification_files(patient_folder: Path):
     
     return files
 
+def get_current_session_code() -> str:
+    """
+    Get current session code from sessions.json config
+    
+    Returns:
+        Current session code or 'unknown' if not found
+    """
+    try:
+        import json
+        
+        # Get config path
+        project_root = get_safe_project_root()
+        sessions_config_path = project_root / "config" / "sessions.json"
+        
+        if sessions_config_path.exists():
+            with open(sessions_config_path, 'r') as f:
+                config = json.load(f)
+            
+            session_code = config.get("last_session", {}).get("session_code")
+            if session_code:
+                print(f"[SESSION] Found session code from config: {session_code}")
+                return session_code
+        
+        print(f"[SESSION] No session found in config, using 'unknown'")
+        return "unknown"
+        
+    except Exception as e:
+        print(f"[SESSION] Error reading session config: {e}")
+        return "unknown"
+
 def get_planar_files_complete(patient_folder: Path, view: str, original_dicom_name: str = None, with_priority: bool = True):
     """
     Get complete set of planar files for a specific view with timestamp priority
