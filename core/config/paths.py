@@ -76,7 +76,273 @@ EDITABLE_FILES = [
     "ant_hotspot_classification.png",
     "post_hotspot_classification.png"
 ]
+def get_newest_hotspot_classification_path(patient_folder: Path, view: str) -> Path:
+    """
+    Get the newest hotspot classification file path by comparing date and timestamp.
+    
+    Args:
+        patient_folder: Patient directory path (e.g., data/PLANAR/ALL/102/20251211 or data/PLANAR/NSY/101)
+        view: View name ("ant" or "post" or "anterior" or "posterior")
+        
+    Returns:
+        Path to the newest hotspot classification PNG file
+        
+    Logic:
+        1. If patient folder has date subfolders (YYYYMMDD), search in all of them
+        2. Find all hotspot classification files with timestamps
+        3. Compare by date first, then by timestamp
+        4. If no timestamped files found, return the original file from base folder
+    """
+    view_short = "ant" if view.lower() in ["anterior", "ant"] else "post"
+    base_filename = f"{view_short}_hotspot_classification.png"
+    
+    newest_file = None
+    newest_datetime = None
+    
+    # Check if this is a study_date folder (8-digit folder name) or patient folder
+    if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
+        # This is already a study_date folder, search within it and its edit subfolders
+        search_folders = [patient_folder]
+        
+        # Add edit date subfolders (YYYYMMDD format)
+        for item in patient_folder.iterdir():
+            if item.is_dir() and len(item.name) == 8 and item.name.isdigit():
+                search_folders.append(item)
+            elif item.is_dir():
+                # For ALL user structure: check editor code folders
+                for sub_item in item.iterdir():
+                    if sub_item.is_dir() and len(sub_item.name) == 8 and sub_item.name.isdigit():
+                        search_folders.append(sub_item)
+    else:
+        # This is a patient folder, search in study_date subfolders
+        search_folders = []
+        
+        for item in patient_folder.iterdir():
+            if item.is_dir() and len(item.name) == 8 and item.name.isdigit():
+                # Found study_date folder
+                study_date_folder = item
+                search_folders.append(study_date_folder)
+                
+                # Also search in edit date subfolders within study_date
+                for sub_item in study_date_folder.iterdir():
+                    if sub_item.is_dir() and len(sub_item.name) == 8 and sub_item.name.isdigit():
+                        search_folders.append(sub_item)
+                    elif sub_item.is_dir():
+                        # For ALL user structure: check editor code folders
+                        for editor_item in sub_item.iterdir():
+                            if editor_item.is_dir() and len(editor_item.name) == 8 and editor_item.name.isdigit():
+                                search_folders.append(editor_item)
+    
+    # Search for timestamped files in all candidate folders
+    for folder in search_folders:
+        if not folder.exists():
+            continue
+            
+        for file_item in folder.iterdir():
+            if not file_item.is_file():
+                continue
+                
+            filename = file_item.name
+            
+            # Check if this is a timestamped version of our target file
+            # Format: ant_hotspot_classification_HHMMSS.png
+            if filename.startswith(f"{view_short}_hotspot_classification_") and filename.endswith(".png"):
+                # Extract timestamp from filename
+                parts = filename.rsplit('.', 1)[0].split('_')  # Split by . first, then by _
+                if len(parts) >= 4 and len(parts[-1]) == 6 and parts[-1].isdigit():
+                    time_str = parts[-1]  # HHMMSS
+                    
+                    # Get the date from the folder structure
+                    # The date could be from the immediate parent folder or ancestor
+                    date_str = None
+                    current_folder = folder
+                    
+                    # Walk up the folder hierarchy to find a date folder
+                    while current_folder and current_folder != patient_folder.parent:
+                        if len(current_folder.name) == 8 and current_folder.name.isdigit():
+                            try:
+                                datetime.strptime(current_folder.name, "%Y%m%d")  # Validate date
+                                date_str = current_folder.name
+                                break
+                            except ValueError:
+                                pass
+                        current_folder = current_folder.parent
+                    
+                    if date_str:
+                        try:
+                            # Create full datetime for comparison
+                            full_datetime_str = f"{date_str}_{time_str}"
+                            full_datetime = datetime.strptime(full_datetime_str, "%Y%m%d_%H%M%S")
+                            
+                            if newest_datetime is None or full_datetime > newest_datetime:
+                                newest_datetime = full_datetime
+                                newest_file = file_item
+                                
+                        except ValueError:
+                            continue
+    
+    # If we found a timestamped file, return it
+    if newest_file:
+        return newest_file
+    
+    # Fallback: Look for original file in the base locations
+    # 1. First check in study_date folder if we're in one
+    if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
+        original_in_study = patient_folder / base_filename
+        if original_in_study.exists():
+            return original_in_study
+    
+    # 2. Check in patient folder (for both study_date subfolders and direct files)
+    if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
+        # We're in study_date, check parent (patient folder)
+        patient_base_folder = patient_folder.parent
+    else:
+        # We're already in patient folder
+        patient_base_folder = patient_folder
+    
+    # Check for original file in patient base folder
+    original_in_patient = patient_base_folder / base_filename
+    if original_in_patient.exists():
+        return original_in_patient
+    
+    # 3. Check in any study_date subfolder
+    for item in patient_base_folder.iterdir():
+        if item.is_dir() and len(item.name) == 8 and item.name.isdigit():
+            original_in_study_sub = item / base_filename
+            if original_in_study_sub.exists():
+                return original_in_study_sub
+    
+    # Final fallback: return the expected path even if it doesn't exist
+    # This maintains consistency with the expected file structure
+    if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
+        return patient_folder / base_filename
+    else:
+        return patient_folder / base_filename
 
+
+def get_newest_segmentation_path(patient_folder: Path, view: str) -> Path:
+    """
+    Get the newest segmentation file path by comparing date and timestamp.
+    Similar logic to hotspot classification but for segmentation files.
+    
+    Args:
+        patient_folder: Patient directory path
+        view: View name ("ant" or "post" or "anterior" or "posterior")
+        
+    Returns:
+        Path to the newest segmentation PNG file
+    """
+    view_short = "ant" if view.lower() in ["anterior", "ant"] else "post"
+    base_filename = f"{view_short}_segm.png"
+    
+    newest_file = None
+    newest_datetime = None
+    
+    # Check if this is a study_date folder or patient folder
+    if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
+        search_folders = [patient_folder]
+        
+        # Add edit date subfolders
+        for item in patient_folder.iterdir():
+            if item.is_dir() and len(item.name) == 8 and item.name.isdigit():
+                search_folders.append(item)
+            elif item.is_dir():
+                # For ALL user structure
+                for sub_item in item.iterdir():
+                    if sub_item.is_dir() and len(sub_item.name) == 8 and sub_item.name.isdigit():
+                        search_folders.append(sub_item)
+    else:
+        search_folders = []
+        
+        for item in patient_folder.iterdir():
+            if item.is_dir() and len(item.name) == 8 and item.name.isdigit():
+                study_date_folder = item
+                search_folders.append(study_date_folder)
+                
+                for sub_item in study_date_folder.iterdir():
+                    if sub_item.is_dir() and len(sub_item.name) == 8 and sub_item.name.isdigit():
+                        search_folders.append(sub_item)
+                    elif sub_item.is_dir():
+                        for editor_item in sub_item.iterdir():
+                            if editor_item.is_dir() and len(editor_item.name) == 8 and editor_item.name.isdigit():
+                                search_folders.append(editor_item)
+    
+    # Search for timestamped segmentation files
+    for folder in search_folders:
+        if not folder.exists():
+            continue
+            
+        for file_item in folder.iterdir():
+            if not file_item.is_file():
+                continue
+                
+            filename = file_item.name
+            
+            # Check if this is a timestamped version: ant_segm_HHMMSS.png
+            if filename.startswith(f"{view_short}_segm_") and filename.endswith(".png"):
+                parts = filename.rsplit('.', 1)[0].split('_')
+                if len(parts) >= 3 and len(parts[-1]) == 6 and parts[-1].isdigit():
+                    time_str = parts[-1]  # HHMMSS
+                    
+                    # Get date from folder hierarchy
+                    date_str = None
+                    current_folder = folder
+                    
+                    while current_folder and current_folder != patient_folder.parent:
+                        if len(current_folder.name) == 8 and current_folder.name.isdigit():
+                            try:
+                                datetime.strptime(current_folder.name, "%Y%m%d")
+                                date_str = current_folder.name
+                                break
+                            except ValueError:
+                                pass
+                        current_folder = current_folder.parent
+                    
+                    if date_str:
+                        try:
+                            full_datetime_str = f"{date_str}_{time_str}"
+                            full_datetime = datetime.strptime(full_datetime_str, "%Y%m%d_%H%M%S")
+                            
+                            if newest_datetime is None or full_datetime > newest_datetime:
+                                newest_datetime = full_datetime
+                                newest_file = file_item
+                                
+                        except ValueError:
+                            continue
+    
+    # Return newest timestamped file if found
+    if newest_file:
+        return newest_file
+    
+    # Fallback to original file
+    if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
+        original_in_study = patient_folder / base_filename
+        if original_in_study.exists():
+            return original_in_study
+        
+        # Check parent (patient folder)
+        original_in_patient = patient_folder.parent / base_filename
+        if original_in_patient.exists():
+            return original_in_patient
+    else:
+        # Check patient folder first
+        original_in_patient = patient_folder / base_filename
+        if original_in_patient.exists():
+            return original_in_patient
+        
+        # Check study_date subfolders
+        for item in patient_folder.iterdir():
+            if item.is_dir() and len(item.name) == 8 and item.name.isdigit():
+                original_in_study = item / base_filename
+                if original_in_study.exists():
+                    return original_in_study
+    
+    # Final fallback
+    if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
+        return patient_folder / base_filename
+    else:
+        return patient_folder / base_filename
+    
 def get_classification_files(patient_folder: Path, filename_stem: str, view: str) -> Dict[str, Path]:
     """Get classification file paths for hotspot detection."""
     view_short = view.lower()[:3]  # "anterior" -> "ant", "posterior" -> "pos"

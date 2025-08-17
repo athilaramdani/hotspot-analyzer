@@ -34,6 +34,7 @@ from .editor_components.base_components import BaseBrushSizeControl
 from datetime import datetime
 from core.config.paths import PLANAR_DATA_PATH, generate_edit_date, generate_edit_timestamp
 
+from core.config.paths import generate_edit_date, generate_edit_timestamp
 
 from features.spect_viewer.logic.hotspot_processor import parse_xml_annotations, create_hotspot_mask
 
@@ -50,15 +51,10 @@ class HotspotEditorDialog(BaseEditorDialog):
         view_key = view.lower()
         vtag = "ant" if "ant" in view_key else "post"
 
-        # 2. GET ALL PATHS FROM THE ENRICHED SCAN OBJECT (SINGLE SOURCE OF TRUTH)
-        workflow_files = self.scan['workflow_files']
-        self.classification_mask_original = workflow_files['classification'][vtag]['png']
-        self.xml_original = workflow_files['classification'][vtag]['xml']
-        self.segmentation_path = workflow_files['segmentation'][vtag]
+        # 2. ASSIGN DICOM PATH FIRST (before using it)
         self.dicom_path = Path(scan["path"])
-        
-        # Extract patient info needed for saving
-        # Assumes structure: .../PLANAR/SESSION/PATIENT_ID/
+
+        # 3. Extract patient info needed for getting newest paths
         patient_folder = self.dicom_path.parent
         self.patient_id = patient_folder.parent.name
         self.session_code = patient_folder.parent.parent.name
@@ -66,8 +62,39 @@ class HotspotEditorDialog(BaseEditorDialog):
         self.filename_stem = generate_filename_stem(self.patient_id, self.study_date)
         self.view_short = vtag
 
-        # 3. LOAD IMAGES AND MASKS (using the correct paths from step 2)
-        original_png_path = workflow_files['original'][vtag]
+        # 4. GET NEWEST PATHS USING YOUR NEW METHODS (instead of workflow_files)
+        from core.config.paths import get_newest_hotspot_classification_path, get_newest_segmentation_path
+        
+        # Use the newest hotspot classification file
+        self.classification_mask_original = get_newest_hotspot_classification_path(patient_folder, view)
+        
+        # For XML, get the corresponding XML file (same directory as PNG)
+        if self.classification_mask_original:
+            xml_name = f"{vtag}_hotspot_classification.xml"
+            # If PNG is timestamped, find corresponding timestamped XML
+            if "_" in self.classification_mask_original.stem and self.classification_mask_original.stem.endswith("_" + self.classification_mask_original.stem.split("_")[-1]):
+                # Extract timestamp from PNG filename
+                png_parts = self.classification_mask_original.stem.split("_")
+                if len(png_parts) >= 4 and len(png_parts[-1]) == 6 and png_parts[-1].isdigit():
+                    timestamp = png_parts[-1]
+                    xml_timestamped_name = f"{vtag}_hotspot_classification_{timestamp}.xml"
+                    self.xml_original = self.classification_mask_original.parent / xml_timestamped_name
+                else:
+                    self.xml_original = self.classification_mask_original.parent / xml_name
+            else:
+                self.xml_original = self.classification_mask_original.parent / xml_name
+        else:
+            # Fallback to base XML path
+            self.xml_original = patient_folder / f"{vtag}_hotspot_classification.xml"
+        
+        # Use the newest segmentation file
+        self.segmentation_path = get_newest_segmentation_path(patient_folder, view)
+
+        # 5. LOAD IMAGES AND MASKS (using the correct newest paths)
+        # Get original image path from workflow_files (this should be correct)
+        workflow_files = self.scan.get('workflow_files', {})
+        original_png_path = workflow_files.get('original', {}).get(vtag)
+        
         if original_png_path and original_png_path.exists():
             self.original_image_data = np.array(Image.open(original_png_path).convert('L'))
             self.has_orig_png = True
@@ -79,34 +106,39 @@ class HotspotEditorDialog(BaseEditorDialog):
         from features.spect_viewer.logic.image_inverter import simple_invert_image
         self.processed_image_data = simple_invert_image(self.original_image_data.copy())
         
-        # This now uses the correct paths assigned above
+        # Load mask using the newest paths
         self.mask_arr = self._load_existing_mask()
         self.xml_loaded_from_edited = self.xml_original and self.xml_original.name != f"{vtag}_hotspot_classification.xml"
 
-        # 4. INITIALIZE THE BASE DIALOG UI
+        # 6. INITIALIZE THE BASE DIALOG UI
         super().__init__(f"Hotspot Editor – {view}", parent)
         
-        # 5. SETUP ZOOM SYNC
+        # 7. SETUP ZOOM SYNC
         self._sync_zoom_in_progress = False
         self._setup_zoom_sync()
 
     def _load_existing_mask(self) -> np.ndarray:
-        """Load existing mask with proper priority using CORRECT paths."""
-        # This method is now much cleaner because it relies on paths set in __init__
+        """Load existing mask with proper priority using NEWEST paths."""
         
-        # The path self.classification_mask_original already points to the latest file
+        # Debug output to show which files we're using
+        print(f"🔍 [HOTSPOT LOAD] Loading mask for {self.view_short}")
+        print(f"🔍 [HOTSPOT LOAD] Classification PNG: {self.classification_mask_original}")
+        print(f"🔍 [HOTSPOT LOAD] XML file: {self.xml_original}")
+        print(f"🔍 [HOTSPOT LOAD] PNG exists: {self.classification_mask_original.exists() if self.classification_mask_original else False}")
+        print(f"🔍 [HOTSPOT LOAD] XML exists: {self.xml_original.exists() if self.xml_original else False}")
+        
+        # The path self.classification_mask_original now points to the NEWEST file
         if self.classification_mask_original and self.classification_mask_original.exists():
-            print(f"✓ Loading classification mask from: {self.classification_mask_original.name}")
+            print(f"✓ Loading NEWEST classification mask from: {self.classification_mask_original.name}")
             return self._load_mask_from_classification_png(self.classification_mask_original)
         
-        # The path self.xml_original already points to the latest file
+        # The path self.xml_original now points to the NEWEST XML file
         elif self.xml_original and self.xml_original.exists():
-            print(f"✓ Found XML annotations: {self.xml_original.name}")
+            print(f"✓ Found NEWEST XML annotations: {self.xml_original.name}")
             return self._load_from_xml(self.xml_original)
         
         else:
             print(f"✗ No classification data found. Creating empty mask.")
-            # ✅ FIX: Use self.original_image_data
             return np.zeros_like(self.original_image_data, np.uint8)
 
     def _load_mask_from_classification_png(self, classification_path: Path) -> np.ndarray:
@@ -238,33 +270,53 @@ class HotspotEditorDialog(BaseEditorDialog):
         self.btn_cancel = btn_cancel
 
     def _create_instructions_label(self) -> QLabel:
-        """Create instructions with current data info using updated logic."""
+        """Create instructions with current data info using NEWEST file logic."""
         data_source = "Original PNG loaded" if self.has_orig_png else "DICOM frames used"
         
-        # ✅ NEW LOGIC: Determine mask status based on available paths
+        # ✅ UPDATED LOGIC: Show info about newest files loaded
         mask_status = ""
-        # The 'classification_mask_original' now points to the LATEST version.
-        # We check if its name is the default or a timestamped version.
-        is_edited_version = (
-            self.classification_mask_original and
-            self.classification_mask_original.name != f"{self.view_short}_hotspot_classification.png"
-        )
-
-        if is_edited_version:
-            mask_status = f"Edited version loaded ({self.classification_mask_original.name})"
-        elif self.classification_mask_original and self.classification_mask_original.exists():
-            mask_status = "Original classification loaded"
+        
+        if self.classification_mask_original and self.classification_mask_original.exists():
+            # Check if this is a timestamped (edited) version
+            if "_" in self.classification_mask_original.stem:
+                png_parts = self.classification_mask_original.stem.split("_")
+                if len(png_parts) >= 4 and len(png_parts[-1]) == 6 and png_parts[-1].isdigit():
+                    timestamp = png_parts[-1]
+                    # Extract date from parent folder
+                    date_folder = self.classification_mask_original.parent.name
+                    if len(date_folder) == 8 and date_folder.isdigit():
+                        mask_status = f"✨ NEWEST edited version loaded: {date_folder} {timestamp[:2]}:{timestamp[2:4]}:{timestamp[4:6]}"
+                    else:
+                        mask_status = f"✨ NEWEST edited version loaded ({self.classification_mask_original.name})"
+                else:
+                    mask_status = "Original classification loaded"
+            else:
+                mask_status = "Original classification loaded"
         elif self.xml_original and self.xml_original.exists():
-            # Fallback check for XML if the PNG doesn't exist but the XML does
-            mask_status = "Loaded from original XML"
+            # Check if XML is timestamped
+            if "_" in self.xml_original.stem:
+                xml_parts = self.xml_original.stem.split("_")
+                if len(xml_parts) >= 4 and len(xml_parts[-1]) == 6 and xml_parts[-1].isdigit():
+                    mask_status = "✨ NEWEST edited XML loaded (converted to mask)"
+                else:
+                    mask_status = "Loaded from original XML"
+            else:
+                mask_status = "Loaded from original XML"
         else:
             mask_status = "New mask will be created"
         
-        # Segmentation status
-        if self.segmentation_path.exists():
-            segmentation_status = f"Segmentation loaded: {self.segmentation_path.name}"
+        # Segmentation status with newest info
+        if self.segmentation_path and self.segmentation_path.exists():
+            if "_" in self.segmentation_path.stem:
+                segm_parts = self.segmentation_path.stem.split("_")
+                if len(segm_parts) >= 3 and len(segm_parts[-1]) == 6 and segm_parts[-1].isdigit():
+                    segmentation_status = f"✨ NEWEST segmentation loaded: {self.segmentation_path.name}"
+                else:
+                    segmentation_status = f"Segmentation loaded: {self.segmentation_path.name}"
+            else:
+                segmentation_status = f"Segmentation loaded: {self.segmentation_path.name}"
         else:
-            segmentation_status = f"No segmentation found: {self.segmentation_path.name}"
+            segmentation_status = f"No segmentation found"
 
         instructions = QLabel(
             "<b>Controls:</b><br>"
@@ -466,7 +518,8 @@ class HotspotEditorDialog(BaseEditorDialog):
         
         try:
             # Load doctor tags from config file
-            config_path = Path("C:/hotspot/hotspot-analyzer/config/doctor_tags.json")
+            from core.config.paths import CONFIG_ROOT
+            config_path = CONFIG_ROOT / "doctor_tags.json"
             if not config_path.exists():
                 print(f"Config file not found: {config_path}")
                 return "NSY"  # Fallback to default
@@ -651,24 +704,24 @@ class HotspotEditorDialog(BaseEditorDialog):
             return original_path.parent.parent.parent.parent
         
         # Fallback to default path
-        return Path("C:/hotspot/hotspot-analyzer/data/PLANAR")
+        from core.config.paths import PLANAR_DATA_PATH
+        return PLANAR_DATA_PATH
 
     def _save_all(self):
-        """Save hotspot classification data with session selection."""
-        # Use the same session handling as segmentation editor
+        """Save hotspot classification data with proper session handling."""
+        # Handle session selection for ALL users
+        editor_session = None
         if self.session_code == "ALL":
             session_choice = self._show_session_selector_dialog()
             if not session_choice:
                 return  # User cancelled
-            current_session = session_choice
-        else:
-            current_session = self.session_code
+            editor_session = session_choice
         
         # Disable save button during save operation
         self.btn_save.setEnabled(False)
         
         try:
-            # Create and start save thread with current session
+            # Create and start save thread with editor session
             self.save_thread = HotspotSaveThread(
                 canvas=self.canvas,
                 session_path=self._get_session_base_path(),
@@ -677,16 +730,19 @@ class HotspotEditorDialog(BaseEditorDialog):
                 filename_stem=self.filename_stem,
                 dicom_path=self.dicom_path,
                 study_date=self.study_date,
-                current_session=self.session_code  # Pass the original session_code to the thread
+                current_session=self.session_code,
+                editor_session=editor_session  # Pass the selected editor session
             )
             
-            # Connect signals - only connect to signals that exist
+            # Connect signals
             if hasattr(self.save_thread, 'progress_updated'):
                 self.save_thread.progress_updated.connect(self._update_progress)
             
             self.save_thread.finished.connect(self._on_save_finished)
             
-            # Check if error_occurred signal exists before connecting
+            if hasattr(self.save_thread, 'save_completed'):
+                self.save_thread.save_completed.connect(self._on_save_success)
+            
             if hasattr(self.save_thread, 'error_occurred'):
                 self.save_thread.error_occurred.connect(self._on_save_error)
             
@@ -699,6 +755,39 @@ class HotspotEditorDialog(BaseEditorDialog):
             from PySide6.QtWidgets import QMessageBox
             QMessageBox.critical(self, "Save Error", f"Failed to start save operation: {str(e)}")
 
+    def _on_save_success(self, success_message: str):
+        """Handle successful save with message."""
+        from PySide6.QtWidgets import QMessageBox
+        
+        # Get save information if available
+        if hasattr(self.save_thread, 'get_save_info'):
+            save_info = self.save_thread.get_save_info()
+            if save_info and save_info:  # Check if save_info is not empty
+                detailed_message = (
+                    f"Files saved successfully!\n\n"
+                    f"Location: {save_info.get('date_dir', 'Unknown')}\n"
+                    f"Files:\n"
+                    f"• {save_info.get('png_path', {}).name if save_info.get('png_path') else 'PNG file'}\n"
+                    f"• {save_info.get('xml_path', {}).name if save_info.get('xml_path') else 'XML file'}"
+                )
+            else:
+                detailed_message = success_message
+        else:
+            detailed_message = success_message
+        
+        QMessageBox.information(self, "Save Complete", detailed_message)
+        
+        # Close dialog
+        self.accept()
+
+    def _on_save_finished(self):
+        """Handle save thread completion (cleanup only)."""
+        # Re-enable save button
+        self.btn_save.setEnabled(True)
+        
+        # Note: Success message is handled by _on_save_success
+        # This method only handles cleanup
+
     def _on_save_error(self, error_message: str):
         """Handle save errors."""
         from PySide6.QtWidgets import QMessageBox
@@ -707,7 +796,6 @@ class HotspotEditorDialog(BaseEditorDialog):
         
         # Re-enable save button
         self.btn_save.setEnabled(True)
-
     def _update_progress(self, value: int, message: str):
         """Update progress bar and message."""
         # You can add progress bar updates here if you have progress UI elements

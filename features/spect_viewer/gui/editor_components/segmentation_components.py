@@ -242,12 +242,18 @@ class SegmentationPalette(QWidget):
         layout.addWidget(self.list_palette, 1)
 
 
+
 class SegmentationSaveThread(BaseSaveThread):
-    """Save thread for segmentation data."""
+    """Save thread for segmentation data - updated to match hotspot editor pattern."""
+    
+    progress_updated = Signal(int, str)      # (progress_percentage, message)
+    error_occurred = Signal(str)             # (error_message)
+    save_completed = Signal(str)             # (success_message) - CUSTOM SIGNAL
     
     def __init__(self, canvas: SegmentationCanvas, session_path: Path, 
-             patient_id: str, view_short: str, filename_stem: str, 
-             dicom_path: Path, study_date: str, current_session: str = None):
+                 patient_id: str, view_short: str, filename_stem: str, 
+                 dicom_path: Path, study_date: str, current_session: str = None,
+                 editor_session: str = None):  # ADD editor_session parameter
         super().__init__()
         self.canvas = canvas
         self.session_path = session_path  # Base session directory path
@@ -257,52 +263,117 @@ class SegmentationSaveThread(BaseSaveThread):
         self.dicom_path = dicom_path
         self.study_date = study_date
         self.current_session = current_session
+        self.editor_session = editor_session  # NEW: Store editor session
+        self.save_info = {}
         
         # Initialize attributes to None to prevent AttributeError
         self.segmentation_mask_edited = None
         self.segmentation_colored_edited = None
-        
-        # Initialize save paths
-        self._initialize_save_paths()
 
     def _initialize_save_paths(self):
-        """Initialize the save paths with proper session handling."""
-        from datetime import datetime
+        """
+        Initialize save paths with proper patient/study_date/session/editor structure.
+        Uses the SAME logic as hotspot editor.
         
-        # Get current edit date in YYYYMMDD format
-        edit_date = datetime.now().strftime("%Y%m%d")
-        
-        # Determine session code to use
-        session_code = self._get_session_code()
-        if session_code is None:  # User cancelled session selection
-            return
-        
-        # Check if this is the special ALL session case
-        if self.current_session == "ALL":
-            # Special ALL workspace structure: ALL/PatientID/StudyDate/DoctorCode/EditDate/
-            patient_dir = self.session_path / "ALL" / self.patient_id / self.study_date
-            doctor_dir = patient_dir / session_code
-            save_dir = doctor_dir / edit_date
-            print(f"[SAVE] ALL session - saving to: ALL/{self.patient_id}/{self.study_date}/{session_code}/{edit_date}/")
-        else:
-            # Regular session structure: SessionCode/PatientID/StudyDate/EditDate/
-            patient_dir = self.session_path / self.current_session / self.patient_id / self.study_date
-            save_dir = patient_dir / edit_date
-            print(f"[SAVE] Regular session - saving to: {self.current_session}/{self.patient_id}/{self.study_date}/{edit_date}/")
-        
-        # Create directories if they don't exist
-        save_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Generate timestamp for filenames (HHMMSS format only)
-        timestamp = datetime.now().strftime("%H%M%S")
-        
-        # Set file paths with timestamp
-        base_filename_mask = f"{self.view_short}_mask_{timestamp}"
-        base_filename_segm = f"{self.view_short}_segm_{timestamp}"
-        self.segmentation_mask_edited = save_dir / f"{base_filename_mask}.png"
-        self.segmentation_colored_edited = save_dir / f"{base_filename_segm}.png"
-        
-        print(f"[SAVE] Files: {base_filename_mask}.png, {base_filename_segm}.png")
+        Expected structure:
+        - Individual user: data/PLANAR/NSY/5001/20250115/20250817/
+        - ALL user: data/PLANAR/ALL/5001/20250115/NSY/20250817/
+        """
+        try:
+            # ADD MISSING IMPORTS
+            from core.config.paths import generate_edit_date, generate_edit_timestamp
+            
+            # 1. DETERMINE THE CORRECT PATIENT STUDY FOLDER (same as hotspot)
+            current_dir = self.dicom_path.parent
+            path_parts = current_dir.parts
+            
+            # Find PLANAR index
+            try:
+                planar_idx = path_parts.index('PLANAR')
+            except ValueError:
+                raise ValueError("Could not find PLANAR in path")
+            
+            # Extract path components
+            if len(path_parts) <= planar_idx + 3:
+                raise ValueError("Invalid path structure - missing components")
+                
+            base_planar = Path(*path_parts[:planar_idx + 1])  # .../PLANAR
+            session_folder = path_parts[planar_idx + 1]       # ALL or NSY/ATL/NBL
+            patient_id = path_parts[planar_idx + 2]           # 5001
+            study_date = path_parts[planar_idx + 3]           # 20250115
+            
+            # Validate extracted components
+            if not (len(patient_id) >= 1 and patient_id.isdigit()):
+                raise ValueError(f"Invalid patient_id: {patient_id}")
+            if not (len(study_date) == 8 and study_date.isdigit()):
+                raise ValueError(f"Invalid study_date: {study_date}")
+            
+            # 2. BUILD THE CORRECT BASE PATH (same as hotspot)
+            base_patient_study_folder = base_planar / session_folder / patient_id / study_date
+            
+            if not base_patient_study_folder.exists():
+                raise ValueError(f"Patient study folder does not exist: {base_patient_study_folder}")
+            
+            # 3. DETERMINE SAVE DIRECTORY BASED ON SESSION TYPE (same as hotspot)
+            edit_date = generate_edit_date()  # YYYYMMDD format for today
+            
+            if session_folder == "ALL":
+                # ALL user structure: data/PLANAR/ALL/5001/20250115/NSY/20250817/
+                if self.editor_session:
+                    selected_editor = self.editor_session
+                else:
+                    # Fallback: get from dialog or use default
+                    selected_editor = self._get_session_code()
+                    if not selected_editor:
+                        raise ValueError("Editor session required for ALL user")
+                
+                save_dir = base_patient_study_folder / selected_editor / edit_date
+            else:
+                # Individual user structure: data/PLANAR/NSY/5001/20250115/20250817/
+                save_dir = base_patient_study_folder / edit_date
+            
+            # 4. CREATE SAVE DIRECTORY
+            save_dir.mkdir(parents=True, exist_ok=True)
+            
+            # 5. GENERATE TIMESTAMPED FILENAMES (segmentation-specific)
+            edit_time = generate_edit_timestamp()  # HHMMSS format
+            
+            # Create timestamped filenames for segmentation
+            mask_filename = f"{self.view_short}_mask_{edit_time}.png"
+            segm_filename = f"{self.view_short}_segm_{edit_time}.png"
+            
+            # 6. SET FINAL SAVE PATHS
+            self.segmentation_mask_edited = save_dir / mask_filename
+            self.segmentation_colored_edited = save_dir / segm_filename
+            
+            # 7. STORE SAVE INFO FOR SUCCESS MESSAGE
+            self.save_info = {
+                'base_folder': base_patient_study_folder,
+                'save_dir': save_dir,
+                'session_folder': session_folder,
+                'patient_id': patient_id,
+                'study_date': study_date,
+                'editor_session': selected_editor if session_folder == "ALL" else session_folder,
+                'edit_date': edit_date,
+                'edit_time': edit_time
+            }
+            
+            print(f"✅ Segmentation save paths initialized:")
+            print(f"   Base: {base_patient_study_folder}")
+            print(f"   Save dir: {save_dir}")
+            print(f"   Mask: {mask_filename}")
+            print(f"   Segmentation: {segm_filename}")
+            
+            return True
+            
+        except Exception as e:
+            error_msg = f"Failed to initialize segmentation save paths: {e}"
+            print(f"❌ {error_msg}")
+            print(f"   DICOM path: {self.dicom_path}")
+            print(f"   Current session: {self.current_session}")
+            print(f"   Editor session: {getattr(self, 'editor_session', 'Not set')}")
+            self.error_occurred.emit(error_msg)
+            return False
 
     def _get_session_code(self) -> Optional[str]:
         """Get session code, showing dialog only if current session is ALL."""
@@ -320,7 +391,8 @@ class SegmentationSaveThread(BaseSaveThread):
         
         try:
             # Load doctor tags from config file
-            config_path = Path("C:/hotspot/hotspot-analyzer/config/doctor_tags.json")
+            from core.config.paths import CONFIG_ROOT
+            config_path = CONFIG_ROOT / "doctor_tags.json"
             if not config_path.exists():
                 print(f"Config file not found: {config_path}")
                 return "NSY"  # Fallback to default
@@ -414,93 +486,98 @@ class SegmentationSaveThread(BaseSaveThread):
         except Exception as e:
             print(f"Error showing session selection dialog: {e}")
             return "NSY"  # Fallback to default
-    def _perform_save(self):
-        """Perform segmentation save operations."""
+        
+    def run(self):
+        """Main thread execution with proper path initialization (same as hotspot)."""
         try:
-            # Check if paths were initialized successfully
-            if not hasattr(self, 'segmentation_mask_edited') or self.segmentation_mask_edited is None:
-                self.save_completed.emit(False, "Save cancelled: No session selected")
-                return
+            self.progress_updated.emit(0, "Initializing save paths...")
             
-            # Add safety check for canvas and its current_mask method
-            if not self.canvas or not hasattr(self.canvas, 'current_mask'):
-                self.save_completed.emit(False, "Canvas not properly initialized")
-                return
-                
-            try:
-                mask = self.canvas.current_mask()
-            except Exception as e:
-                self.save_completed.emit(False, f"Failed to get current mask: {e}")
-                return
+            # Initialize save paths first
+            if not self._initialize_save_paths():
+                return  # Error already emitted
             
-            self.progress_updated.emit(10, "Preparing segmentation data...")
+            self.progress_updated.emit(5, "Starting save operation...")
             
-            # Prepare images
-            bin_img = (mask > 0).astype(np.uint8) * 255
-            rgb_img = label_mask_to_rgb(mask)
-            
-            self.progress_updated.emit(30, "Saving mask files...")
-            
-            # Save PNG files (directory already created in _initialize_save_paths)
-            try:
-                Image.fromarray(bin_img, mode="L").save(self.segmentation_mask_edited)
-                Image.fromarray(rgb_img).save(self.segmentation_colored_edited)
-            except Exception as e:
-                self.save_completed.emit(False, f"Failed to save segmentation files: {e}")
-                return
-            
-            self.progress_updated.emit(80, "Running quantification...")
-            
-            # Trigger quantification
-            quant_success = self._trigger_quantification()
-            
-            self.progress_updated.emit(100, "Save completed!")
-            
-            # Build success message
-            success_msg = (
-                f"Segmentation files saved successfully!\n\n"
-                f"Location: {self.segmentation_mask_edited.parent}\n"
-                f"Files:\n"
-                f"• {self.segmentation_mask_edited.name}\n"
-                f"• {self.segmentation_colored_edited.name}\n\n"
-            )
-            
-            if quant_success:
-                success_msg += "\n✅ Quantification pipeline completed successfully"
-            else:
-                success_msg += "\n⚠️ Quantification pipeline failed (check logs for details)"
-            
-            # Emit success signal
-            self.save_completed.emit(True, success_msg)
+            # Perform the actual save
+            self._perform_save()
             
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            error_msg = f"Save failed: {str(e)}"
-            self.save_completed.emit(False, error_msg)
+            self.error_occurred.emit(f"Segmentation save operation failed: {str(e)}")
 
-    # def _upload_to_cloud(self) -> bool:
-    #     """Upload edited files to cloud storage."""
-    #     try:
-    #         from core.config.cloud_storage import upload_patient_file
+    def _perform_save(self):
+        """Perform segmentation save operations (updated with same pattern as hotspot)."""
+        # Check if paths were initialized successfully
+        if not hasattr(self, 'segmentation_mask_edited') or self.segmentation_mask_edited is None:
+            self.error_occurred.emit("Save cancelled: No session selected")
+            return
+        
+        # Add safety check for canvas and its current_mask method
+        if not self.canvas or not hasattr(self.canvas, 'current_mask'):
+            self.error_occurred.emit("Canvas not properly initialized")
+            return
             
-    #         file_path = self.seg_files_edited['png_colored_edited']
+        try:
+            mask = self.canvas.current_mask()
+        except Exception as e:
+            self.error_occurred.emit(f"Failed to get current mask: {e}")
+            return
+        
+        self.progress_updated.emit(10, "Preparing segmentation data...")
+        
+        # Prepare segmentation images
+        from features.spect_viewer.logic.colorizer import label_mask_to_rgb
+        
+        bin_img = (mask > 0).astype(np.uint8) * 255  # Binary mask
+        rgb_img = label_mask_to_rgb(mask)            # Colored segmentation
+        
+        self.progress_updated.emit(30, "Saving segmentation files...")
+        
+        # Save files (directory already created in _initialize_save_paths)
+        try:
+            Image.fromarray(bin_img, mode="L").save(self.segmentation_mask_edited)
+            Image.fromarray(rgb_img).save(self.segmentation_colored_edited)
+        except Exception as e:
+            self.error_occurred.emit(f"Failed to save segmentation files: {e}")
+            return
+        
+        self.progress_updated.emit(80, "Running quantification...")
+        
+        # Trigger quantification
+        quant_success = self._trigger_quantification()
+        
+        self.progress_updated.emit(100, "Save completed!")
+        
+        # Build success message
+        success_msg = (
+            f"Segmentation edits saved successfully!\n\n"
+            f"Files saved to: {self.segmentation_mask_edited.parent}\n"
+            f"• {self.segmentation_mask_edited.name}\n"
+            f"• {self.segmentation_colored_edited.name}\n\n"
+        )
+        
+        if quant_success:
+            success_msg += "\n✅ Quantification pipeline completed successfully"
+        else:
+            success_msg += "\n⚠️ Quantification pipeline failed (check logs for details)"
+
+        # Use custom signal instead of built-in finished signal (same as hotspot)
+        if hasattr(self, 'save_completed'):
+            self.save_completed.emit(success_msg)
+        else:
+            # Fallback if save_completed signal doesn't exist
+            print(f"Segmentation save completed: {success_msg}")
             
-    #         if file_path.exists():
-    #             return upload_patient_file(
-    #                 file_path, 
-    #                 self.session_code, 
-    #                 self.patient_id, 
-    #                 is_edited=True
-    #             )
-    #         return False
-            
-    #     except Exception as e:
-    #         print(f"Cloud upload failed: {e}")
-    #         return False
+        # Store save info for get_save_info() method
+        self.save_info = {
+            'date_dir': self.segmentation_mask_edited.parent,
+            'mask_path': self.segmentation_mask_edited,
+            'colored_path': self.segmentation_colored_edited,
+            'success': True,
+            'message': success_msg
+        }
 
     def _trigger_quantification(self) -> bool:
-        """Trigger quantification after segmentation save."""
+        """Trigger quantification pipeline (same as hotspot)."""
         try:
             from features.spect_viewer.logic.processing_wrapper import (
                 run_quantification_for_patient
@@ -517,7 +594,7 @@ class SegmentationSaveThread(BaseSaveThread):
             return False
 
     def get_save_info(self) -> Dict[str, Path]:
-        """Get information about save paths for external use."""
+        """Get information about save paths for external use (same pattern as hotspot)."""
         # Add safety checks for None values
         if self.segmentation_mask_edited is None or self.segmentation_colored_edited is None:
             return {}
