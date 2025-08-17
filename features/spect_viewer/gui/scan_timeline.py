@@ -445,75 +445,99 @@ class ScanTimelineWidget(QWidget):
 
     
     def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None, session_code: str = None):
-        """Load segmentation layer using study_date folder with priority system"""
+        """✅ FIXED: Load segmentation layer using NEWEST priority system from paths.py"""
         try:
             if study_date_folder is None:
                 study_date_folder = dicom_path.parent
                 
-            view_short = "ant" if view_normalized in ["anterior", "ant"] else "post"
+            view_name = "anterior" if view_normalized in ["anterior", "ant"] else "posterior"
             
-            # ✅ USE PRIORITY SYSTEM
-            seg_files = get_planar_segmentation_files(
-                study_date_folder, view_short, with_priority=True, session_code=session_code
-            )
-                
-            seg_png = seg_files['segmentation_png']
-            print(f"[DEBUG] Looking for segmentation (PRIORITY): {seg_png}")
+            # ✅ NEW: Use the same function as hotspot editor
+            from core.config.paths import get_newest_segmentation_path
+            
+            segmentation_path = get_newest_segmentation_path(study_date_folder, view_name)
+            print(f"[DEBUG] Looking for segmentation (NEWEST): {segmentation_path}")
 
-            if seg_png and seg_png.exists():
+            if segmentation_path and segmentation_path.exists():
                 # Load with transparency (make black pixels transparent)
-                seg_image = load_image_with_transparency(seg_png, make_transparent=True)
+                seg_image = load_image_with_transparency(segmentation_path, make_transparent=True)
                 if seg_image:
                     layers["Segmentation"] = seg_image
-                    print(f"[DEBUG] Loaded segmentation with transparency: {seg_png}")
+                    print(f"[DEBUG] ✅ Loaded segmentation with transparency: {segmentation_path}")
+                    
+                    # ✅ DEBUG: Show if this is edited or original file
+                    is_edited = "_" in segmentation_path.stem and len(segmentation_path.stem.split('_')[-1]) == 6 and segmentation_path.stem.split('_')[-1].isdigit()
+                    file_type = "EDITED" if is_edited else "ORIGINAL"
+                    print(f"[DEBUG] Segmentation type: {file_type}")
             else:
-                print(f"[WARN] Segmentation file not found: {seg_png}")
-                
+                print(f"[WARN] Segmentation file not found: {segmentation_path}")
+                    
         except Exception as e:
             print(f"[ERROR] Failed to load segmentation layer: {e}")
 
     def _load_hotspot_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None, session_code: str = None):
-        """Load hotspot layer using study_date folder with priority system"""
+        """✅ FIXED: Load hotspot layer using NEWEST priority system from paths.py"""
         try:
             if study_date_folder is None:
                 study_date_folder = dicom_path.parent
                 
-            view_short = "ant" if view_normalized in ["anterior", "ant"] else "post"
+            view_name = "anterior" if view_normalized in ["anterior", "ant"] else "posterior"
             
-            # ✅ USE PRIORITY SYSTEM
-            hotspot_files = get_planar_hotspot_files(
-                study_date_folder, view_short, with_priority=True, session_code=session_code
-            )
+            # ✅ NEW: Use the same function as hotspot editor
+            from core.config.paths import get_newest_hotspot_classification_path
             
-            classification_png = hotspot_files['classification_png']
-            print(f"[DEBUG] Looking for hotspot classification (PRIORITY): {classification_png}")
+            classification_png = get_newest_hotspot_classification_path(study_date_folder, view_name)
+            print(f"[DEBUG] Looking for hotspot classification (NEWEST): {classification_png}")
             
             if classification_png and classification_png.exists():
                 hotspot_image = load_image_with_transparency(classification_png)
                 if hotspot_image:
                     layers["Hotspot"] = hotspot_image
-                    print(f"[DEBUG] Loaded hotspot layer: {classification_png}")
+                    print(f"[DEBUG] ✅ Loaded hotspot layer: {classification_png}")
+                    
+                    # ✅ DEBUG: Show if this is edited or original file
+                    is_edited = "_" in classification_png.stem and len(classification_png.stem.split('_')[-1]) == 6 and classification_png.stem.split('_')[-1].isdigit()
+                    file_type = "EDITED" if is_edited else "ORIGINAL"
+                    print(f"[DEBUG] Hotspot type: {file_type}")
             else:
                 print(f"[DEBUG] No hotspot classification found: {classification_png}")
-                
+                    
         except Exception as e:
             print(f"[ERROR] Failed to load hotspot layer: {e}")
 
     def _load_bbox_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None, session_code: str = None):
-        """Load bounding box layer using study_date folder with priority system"""
+        """✅ FIXED: Load bounding box layer using NEWEST priority system from paths.py"""
         try:
             if study_date_folder is None:
                 study_date_folder = dicom_path.parent
                 
-            view_short = "ant" if view_normalized in ["anterior", "ant"] else "post"
+            view_name = "anterior" if view_normalized in ["anterior", "ant"] else "posterior"
+            view_short = "ant" if view_name == "anterior" else "post"
             
-            # ✅ USE PRIORITY SYSTEM
-            hotspot_files = get_planar_hotspot_files(
-                study_date_folder, view_short, with_priority=True, session_code=session_code
-            )
+            # ✅ NEW: Use the same function as hotspot editor
+            from core.config.paths import get_newest_hotspot_classification_path
             
-            classification_xml = hotspot_files['classification_xml']
-            print(f"[DEBUG] Looking for classification XML (PRIORITY): {classification_xml}")
+            classification_png = get_newest_hotspot_classification_path(study_date_folder, view_name)
+            
+            # Get corresponding XML file using same logic as hotspot editor
+            if classification_png:
+                xml_name = f"{view_short}_hotspot_classification.xml"
+                
+                # If PNG is timestamped, find corresponding timestamped XML
+                if "_" in classification_png.stem:
+                    png_parts = classification_png.stem.split("_")
+                    if len(png_parts) >= 4 and len(png_parts[-1]) == 6 and png_parts[-1].isdigit():
+                        timestamp = png_parts[-1]
+                        xml_timestamped_name = f"{view_short}_hotspot_classification_{timestamp}.xml"
+                        classification_xml = classification_png.parent / xml_timestamped_name
+                    else:
+                        classification_xml = classification_png.parent / xml_name
+                else:
+                    classification_xml = classification_png.parent / xml_name
+            else:
+                classification_xml = study_date_folder / f"{view_short}_hotspot_classification.xml"
+            
+            print(f"[DEBUG] Looking for classification XML (NEWEST): {classification_xml}")
             
             if classification_xml and classification_xml.exists():
                 if "Image" in layers:
@@ -521,12 +545,68 @@ class ScanTimelineWidget(QWidget):
                     bbox_image = self._create_bbox_visualization_from_classification(classification_xml, image_dimensions)
                     if bbox_image:
                         layers["HotspotBBox"] = bbox_image
-                        print(f"[DEBUG] Loaded bbox layer: {classification_xml}")
+                        print(f"[DEBUG] ✅ Loaded bbox layer: {classification_xml}")
+                        
+                        # ✅ DEBUG: Show if this is edited or original file
+                        is_edited = "_" in classification_xml.stem and len(classification_xml.stem.split('_')[-1]) == 6 and classification_xml.stem.split('_')[-1].isdigit()
+                        file_type = "EDITED" if is_edited else "ORIGINAL"
+                        print(f"[DEBUG] BBox XML type: {file_type}")
             else:
                 print(f"[DEBUG] No classification XML found: {classification_xml}")
-                
+                    
         except Exception as e:
             print(f"[ERROR] Failed to load bbox layer: {e}")
+
+    def has_layer_data(self, layer: str) -> bool:
+        """✅ FIXED: Check if layer data is available using NEWEST priority system"""
+        if not self._scans_cache:
+            return False
+        
+        # HotspotBBox is hidden from UI
+        if layer == "HotspotBBox":
+            return False
+        
+        try:
+            # Check if any scan has data for this layer using newest priority system
+            for scan in self._scans_cache:
+                dicom_path = Path(scan["path"])
+                
+                # Get patient info for session_code
+                patient_id, session_code = self._get_patient_session_from_scan(scan)
+                study_date = extract_study_date_from_dicom(dicom_path)
+                
+                # Use patient folder (study_date folder) directly
+                patient_folder = dicom_path.parent
+
+                # ✅ Check each view using newest priority system
+                for view_name in ["anterior", "posterior"]:
+                    if layer == "Image":
+                        # Check for original image files
+                        frame_map = scan.get("frames", {})
+                        view_display_name = "Anterior" if view_name == "anterior" else "Posterior"
+                        original_image = load_original_image_from_path(dicom_path, view_display_name, frame_map)
+                        if original_image:
+                            return True
+                            
+                    elif layer == "Segmentation":
+                        # Check for segmentation files with newest priority
+                        from core.config.paths import get_newest_segmentation_path
+                        segmentation_path = get_newest_segmentation_path(patient_folder, view_name)
+                        if segmentation_path and segmentation_path.exists():
+                            return True
+                            
+                    elif layer == "Hotspot":
+                        # Check for hotspot classification files with newest priority
+                        from core.config.paths import get_newest_hotspot_classification_path
+                        classification_path = get_newest_hotspot_classification_path(patient_folder, view_name)
+                        if classification_path and classification_path.exists():
+                            return True
+            
+            return False
+            
+        except Exception as e:
+            print(f"[WARN] Error checking layer data with newest priority system: {e}")
+            return False
     
     def set_invert_original(self, inverted: bool):
         """✅ OPTIMIZED: Set invert status with change detection"""
@@ -923,25 +1003,68 @@ class ScanTimelineWidget(QWidget):
         """Get list of currently active layers"""
         return self._active_layers.copy()
 
-    def has_layer_data(self, layer: str) -> bool:
-        """Check if layer data is available for current scans"""
-        if not self._scans_cache:
-            return False
-        
-        # HotspotBBox is hidden from UI
-        if layer == "HotspotBBox":
-            return False
+    
+    def debug_layer_file_priority(self, scan_index: int = None):
+        """✅ NEW: Debug method to show which files are being selected by priority system"""
+        if scan_index is None:
+            scan_index = self.active_scan_index
+            
+        if not self._scans_cache or scan_index < 0:
+            print("[DEBUG PRIORITY] No active scan")
+            return
+            
+        active_scan = self._scans_cache[scan_index]
+        dicom_path = Path(active_scan["path"])
         
         try:
-            # Check if any scan has data for this layer
-            for scan in self._scans_cache:
-                layer_images = self._get_layer_images(scan)
-                if layer in layer_images:
-                    return True
-            return False
+            patient_id, session_code = self._get_patient_session_from_scan(active_scan)
+            study_date = extract_study_date_from_dicom(dicom_path)
+            
+            if session_code and session_code != "UNKNOWN":
+                study_date_folder = get_patient_planar_path(session_code, patient_id, study_date)
+            else:
+                study_date_folder = dicom_path.parent
+                
+            print(f"\n🔍 [DEBUG PRIORITY] File priority analysis for scan {scan_index}")
+            print(f"🔍 [DEBUG PRIORITY] Study date folder: {study_date_folder}")
+            print(f"🔍 [DEBUG PRIORITY] Session code: {session_code}")
+            
+            for view in ["ant", "post"]:
+                print(f"\n🔍 [DEBUG PRIORITY] === {view.upper()} VIEW ===")
+                
+                # Segmentation files
+                seg_files = get_planar_segmentation_files(
+                    study_date_folder, view, with_priority=True, session_code=session_code
+                )
+                seg_file = seg_files['segmentation_png']
+                is_seg_edited = "_20" in str(seg_file) and len(seg_file.stem.split('_')[-1]) == 6
+                print(f"🔍 [DEBUG PRIORITY] Segmentation: {seg_file}")
+                print(f"🔍 [DEBUG PRIORITY] Segmentation type: {'EDITED' if is_seg_edited else 'ORIGINAL'}")
+                print(f"🔍 [DEBUG PRIORITY] Segmentation exists: {seg_file.exists()}")
+                
+                # Hotspot files
+                hotspot_files = get_planar_hotspot_files(
+                    study_date_folder, view, with_priority=True, session_code=session_code
+                )
+                
+                class_png = hotspot_files['classification_png']
+                class_xml = hotspot_files['classification_xml']
+                
+                is_png_edited = "_20" in str(class_png) and len(class_png.stem.split('_')[-1]) == 6
+                is_xml_edited = "_20" in str(class_xml) and len(class_xml.stem.split('_')[-1]) == 6
+                
+                print(f"🔍 [DEBUG PRIORITY] Classification PNG: {class_png}")
+                print(f"🔍 [DEBUG PRIORITY] Classification PNG type: {'EDITED' if is_png_edited else 'ORIGINAL'}")
+                print(f"🔍 [DEBUG PRIORITY] Classification PNG exists: {class_png.exists()}")
+                
+                print(f"🔍 [DEBUG PRIORITY] Classification XML: {class_xml}")
+                print(f"🔍 [DEBUG PRIORITY] Classification XML type: {'EDITED' if is_xml_edited else 'ORIGINAL'}")
+                print(f"🔍 [DEBUG PRIORITY] Classification XML exists: {class_xml.exists()}")
+                
         except Exception as e:
-            print(f"[WARN] Error checking layer data: {e}")
-            return False
+            print(f"🔍 [DEBUG PRIORITY ERROR] {e}")
+            import traceback
+            traceback.print_exc()
 
     # ------------------------------------------------------ rebuild
     def _clear(self):
