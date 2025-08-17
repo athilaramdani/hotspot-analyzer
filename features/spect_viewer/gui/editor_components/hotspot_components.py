@@ -31,9 +31,16 @@ _SEGMENT_NAMES = {
 # Hotspot label information
 _HOTSPOT_LABEL_INFO: List[Tuple[str, str]] = [
     ("Background", "kosong"),
-    ("Abnormal", "Terdeteksi anomali"),
-    ("Normal", "Tidak terdeteksi anomali")
+    ("Malignant", "Terdeteksi anomali"),
+    ("Benign", "Tidak terdeteksi anomali")
 ]
+# ✅ ADD THIS after _HOTSPOT_LABEL_INFO:
+# Mapping for XML output (keeps compatibility)
+_XML_LABEL_MAPPING = {
+    "Background": "background",
+    "Malignant": "abnormal",  # ✅ UI "Malignant" -> XML "abnormal"
+    "Benign": "normal"        # ✅ UI "Benign" -> XML "normal"
+}
 
 
 class HotspotCanvas(BaseCanvas):
@@ -368,7 +375,7 @@ class HotspotPalette(QWidget):
         super().__init__(parent)
         
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("<b>Palette / Layers</b>"))
+        layout.addWidget(QLabel("<b>Classification Palette</b>"))
         
         self.list_palette = QListWidget()
         for rgb, (name, desc) in zip(_HOTSPOT_PALLETTE, _HOTSPOT_LABEL_INFO):
@@ -383,6 +390,25 @@ class HotspotPalette(QWidget):
                 f"background:rgb({rgb[0]},{rgb[1]},{rgb[2]});"
                 "border:1px solid #000;"
             )
+
+             # ✅ IMPROVED: Better styling for medical terminology
+            name_label = QLabel(name)
+            name_label.setStyleSheet("""
+                QLabel {
+                    font-weight: bold;
+                    font-size: 12px;
+                    color: #333;
+                }
+            """)
+            
+            desc_label = QLabel(f"({desc})")
+            desc_label.setStyleSheet("""
+                QLabel {
+                    font-size: 10px;
+                    color: #666;
+                    font-style: italic;
+                }
+            """)
             
             h_layout.addWidget(color_box)
             h_layout.addWidget(QLabel(name))
@@ -397,6 +423,36 @@ class HotspotPalette(QWidget):
         self.list_palette.currentRowChanged.connect(self.currentRowChanged.emit)
         
         layout.addWidget(self.list_palette, 1)
+         # ✅ NEW: Add instruction label
+        instruction_label = QLabel(
+            "<i>Click to select classification type.<br/>"
+            "Paint regions as Benign or Malignant.</i>"
+        )
+        instruction_label.setStyleSheet("""
+            QLabel {
+                font-size: 9px;
+                color: #888;
+                padding: 4px;
+                background: #f9f9f9;
+                border-radius: 3px;
+            }
+        """)
+        instruction_label.setWordWrap(True)
+        layout.addWidget(instruction_label)
+
+    
+    def get_current_display_label(self) -> str:
+        """Get the current display label (Benign/Malignant)."""
+        current_row = self.list_palette.currentRow()
+        if 0 <= current_row < len(_HOTSPOT_LABEL_INFO):
+            return _HOTSPOT_LABEL_INFO[current_row][0]
+        return "Background"
+
+    def get_current_xml_label(self) -> str:
+        """Get the XML-compatible label (normal/abnormal) for saving."""
+        display_label = self.get_current_display_label()
+        return _XML_LABEL_MAPPING.get(display_label, "background")
+
 
 
 class HotspotSaveThread(BaseSaveThread):
