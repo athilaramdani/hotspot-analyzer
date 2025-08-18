@@ -11,10 +11,10 @@ import datetime as datetime
 from PIL import Image
 
 from PySide6.QtCore import Qt, QPointF, Signal
-from PySide6.QtGui import QImage, QPixmap
+from PySide6.QtGui import QImage, QPixmap, QCursor
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
-    QPushButton, QWidget, QCheckBox, QGraphicsPixmapItem
+    QPushButton, QWidget, QCheckBox, QGraphicsPixmapItem,QGraphicsView
 )
 
 from .base_components import BaseCanvas, BaseEditorDialog, BaseSaveThread
@@ -59,31 +59,56 @@ class SegmentationCanvas(BaseCanvas):
 
     def _init_history(self):
         """Initialize history for segmentation layers."""
+        # ✅ FIX: Initialize _layer_history if it doesn't exist
+        if not hasattr(self, '_layer_history'):
+            self._layer_history = {}
+            
         for label_id in range(len(_PALETTE)):
             self._layer_history[label_id] = {'undo': [], 'redo': []}
-        # Only save states if layers are properly initialized
-        if hasattr(self, '_layers') and self._layers:
-            self._save_all_states()
+        
+        # ✅ FIX: DON'T save states here - layers might not be ready yet
+        # _save_all_states() will be called later when layers are properly initialized
 
     def _save_all_states(self):
         """Save initial state for all layers."""
+        print(f"🔄 Saving initial states for all layers...")
         for label_id in range(len(_PALETTE)):
-            self._save_layer_state(label_id)
+            if label_id in self._layers:
+                self._save_layer_state(label_id)
+        print(f"✅ Initial states saved for {len(_PALETTE)} layers")
 
     def _save_layer_state(self, label_id: int):
         """Save state for specific layer."""
+        # ✅ FIX: Ensure _layer_history exists
+        if not hasattr(self, '_layer_history'):
+            self._layer_history = {}
+        
+        # ✅ FIX: Ensure the label_id exists in _layer_history
+        if label_id not in self._layer_history:
+            self._layer_history[label_id] = {'undo': [], 'redo': []}
+        
         history = self._layer_history[label_id]
-        state = self._layers[label_id].copy()
+        
+        # ✅ FIX: Use layers if available
+        if hasattr(self, '_layers') and label_id in self._layers:
+            state = self._layers[label_id].copy()
+        else:
+            # Fallback to mask-based approach
+            state = (self._mask_arr == label_id).astype(np.uint8) if hasattr(self, '_mask_arr') else np.zeros((100, 100), dtype=np.uint8)
         
         if len(history['undo']) >= self._max_history:
             history['undo'].pop(0)
         
         history['undo'].append(state)
         history['redo'].clear()
+        
+        print(f"🔄 Saved state for label {label_id}, history length: {len(history['undo'])}")
 
     def _save_current_state(self):
         """Save current state for active layer."""
-        self._save_layer_state(self._cur_label)
+        if hasattr(self, '_cur_label') and self._cur_label is not None:
+            self._save_layer_state(self._cur_label)
+            print(f"🔄 Saved current state for active label {self._cur_label}")
 
     def set_bg_opacity(self, alpha: float):
         """Set background opacity."""
@@ -129,46 +154,132 @@ class SegmentationCanvas(BaseCanvas):
         x, y = self._get_pixel_coordinates(scene_pos)
         targets = self._get_brush_targets(x, y)
 
+        # ✅ FIX: Save state BEFORE making changes (not after)
+        if not hasattr(self, '_drawing') or not self._drawing:
+            # This is the start of a new drawing operation
+            self._save_current_state()
+            self._drawing = True
+
         # Get active layer
+        if not hasattr(self, '_cur_label') or self._cur_label not in self._layers:
+            return
+            
         layer = self._layers[self._cur_label]
         
+        # Track if any changes were made
+        changes_made = False
+        
         for px, py in targets:
-            if self._eraser:
-                layer[py, px] = 0
-            else:
-                layer[py, px] = 1
+            if 0 <= py < layer.shape[0] and 0 <= px < layer.shape[1]:
+                old_value = layer[py, px]
+                
+                if self._eraser:
+                    new_value = 0
+                else:
+                    new_value = 1
+                
+                if old_value != new_value:
+                    layer[py, px] = new_value
+                    changes_made = True
 
-        # Rebuild and refresh
-        self._rebuild_combined()
-        self._refresh_mask()
+        # Only rebuild and refresh if changes were made
+        if changes_made:
+            self._rebuild_combined()
+            self._refresh_mask()
+            print(f"🎨 Applied brush changes to label {self._cur_label}")
 
     def undo(self, label_id: int):
-        """Undo for specific layer."""
+        """Undo for specific layer - IMPROVED implementation."""
+        print(f"🔄 Undo called for label {label_id}")
+        
+        # ✅ FIX: Add comprehensive safety checks
+        if not hasattr(self, '_layer_history'):
+            print("❌ No layer history available")
+            return
+            
         history = self._layer_history.get(label_id)
-        if not history or len(history['undo']) < 2:
+        if not history:
+            print(f"❌ No history for label {label_id}")
+            return
+            
+        if len(history['undo']) < 2:
+            print(f"❌ Not enough history for label {label_id} (need at least 2, have {len(history['undo'])})")
             return
         
+        # Pop current state and move to redo
         current_state = history['undo'].pop()
         history['redo'].append(current_state)
         
+        # Get previous state
         prev_state = history['undo'][-1]
+        
+        print(f"🔄 Restoring previous state for label {label_id}")
         self._restore_layer_state(label_id, prev_state)
 
+
     def redo(self, label_id: int):
-        """Redo for specific layer."""
+        """Redo for specific layer - IMPROVED implementation."""
+        print(f"🔄 Redo called for label {label_id}")
+        
+        # ✅ FIX: Add comprehensive safety checks
+        if not hasattr(self, '_layer_history'):
+            print("❌ No layer history available")
+            return
+            
         history = self._layer_history.get(label_id)
-        if not history or not history['redo']:
+        if not history:
+            print(f"❌ No history for label {label_id}")
+            return
+            
+        if not history['redo']:
+            print(f"❌ No redo history for label {label_id}")
             return
         
+        # Get state from redo and move to undo
         state = history['redo'].pop()
         history['undo'].append(state)
+        
+        print(f"🔄 Restoring redo state for label {label_id}")
         self._restore_layer_state(label_id, state)
 
     def _restore_layer_state(self, label_id: int, state: np.ndarray):
-        """Restore state for specific layer."""
+        """Restore state for specific layer - IMPROVED implementation."""
+        print(f"🔄 Restoring layer {label_id} with state shape: {state.shape}")
+        
+        # ✅ FIX: Add safety checks
+        if not hasattr(self, '_layers') or label_id not in self._layers:
+            print(f"❌ Layer {label_id} not found in _layers")
+            return
+        
+        # Restore the layer
         self._layers[label_id] = state.copy()
+        
+        # Rebuild combined mask and refresh display
+        print(f"🔄 Rebuilding combined mask...")
         self._rebuild_combined()
+        
+        print(f"🔄 Refreshing mask display...")
         self._refresh_mask()
+        
+        print(f"✅ Successfully restored layer {label_id}")
+
+    def mousePressEvent(self, ev):
+        """Handle mouse press - IMPROVED for proper drawing state."""
+        if ev.button() == Qt.LeftButton and not self._pan_mode:
+            # ✅ FIX: Reset drawing state and start new operation
+            self._drawing = False  # Reset first
+            scene_pos = self.mapToScene(ev.position().toPoint())
+            self._apply_brush(scene_pos)
+            ev.accept()
+        elif ev.button() == Qt.MiddleButton:
+            self._pan_mode = True
+            self.setDragMode(QGraphicsView.ScrollHandDrag)
+            self.setCursor(QCursor(Qt.OpenHandCursor))
+            # Manually trigger the drag mode
+            fake_press = ev
+            super().mousePressEvent(fake_press)
+        else:
+            super().mousePressEvent(ev)
 
 
 class SegmentationOpacityPanel(QWidget):
@@ -182,19 +293,21 @@ class SegmentationOpacityPanel(QWidget):
         # Create opacity sliders (no segmentation layer for this editor)
         from .base_components import BaseOpacitySlider
         
-        self.original_opacity = BaseOpacitySlider("Original Opacity", 50)
+        # self.original_opacity = BaseOpacitySlider("Original Opacity", 50)
         self.mask_opacity = BaseOpacitySlider("Mask Opacity", 100)
         self.bg_opacity = BaseOpacitySlider("BG Opacity", 0)
         
-        layout.addWidget(self.original_opacity)
+        # layout.addWidget(self.original_opacity)
         layout.addWidget(self.mask_opacity)
         layout.addWidget(self.bg_opacity)
 
     def connect_to_canvas(self, canvas: SegmentationCanvas):
         """Connect opacity sliders to canvas."""
-        self.original_opacity.valueChanged.connect(
-            lambda v: canvas.set_gray_opacity(v / 100.0)
-        )
+        # self.original_opacity.valueChanged.connect(
+        #     lambda v: canvas.set_gray_opacity(v / 100.0)
+        # )
+        if hasattr(canvas, 'set_gray_opacity'):
+            canvas.set_gray_opacity(1.0)
         self.mask_opacity.valueChanged.connect(
             lambda v: canvas.set_mask_opacity(v / 100.0)
         )
@@ -642,11 +755,15 @@ class SegmentationToolPanel(QWidget):
         # Brush size controls
         from .base_components import BaseOpacitySlider
         
-        layout.addWidget(QLabel("Brush Size (pixels)"))
-        self.brush_size_slider = BaseOpacitySlider("", 1)
-        self.brush_size_slider.slider.setRange(1, 15)
-        self.brush_size_slider.setValue(1)
-        layout.addWidget(self.brush_size_slider)
+        from .base_components import BaseBrushSizeControl
+        
+        self.brush_size_control = BaseBrushSizeControl(
+            label_text="Brush Size (pixels)",
+            initial_radius=1,
+            min_radius=1,
+            max_radius=15
+        )
+        layout.addWidget(self.brush_size_control)
         
         # Zoom controls
         layout.addWidget(QLabel("Zoom"))
@@ -662,8 +779,8 @@ class SegmentationToolPanel(QWidget):
         self.btn_eraser.clicked.connect(lambda: self._select_eraser(canvas))
         self.btn_showall.toggled.connect(canvas.toggle_show_all)
         
-        # Size and zoom
-        self.brush_size_slider.valueChanged.connect(canvas.set_brush_size)
+        # Size and zoom - using the new brush size control
+        self.brush_size_control.radiusChanged.connect(canvas.set_brush_size)
         self.zoom_slider.valueChanged.connect(
             lambda v: canvas.set_zoom(v / 10.0)
         )

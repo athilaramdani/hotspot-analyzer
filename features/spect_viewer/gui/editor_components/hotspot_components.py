@@ -341,21 +341,23 @@ class HotspotOpacityPanel(QWidget):
         # Create opacity sliders
         from .base_components import BaseOpacitySlider
         
-        self.original_opacity = BaseOpacitySlider("Original Opacity", 50)
+        # self.original_opacity = BaseOpacitySlider("Original Opacity", 50)
         self.mask_opacity = BaseOpacitySlider("Mask Opacity", 100)
         self.bg_opacity = BaseOpacitySlider("BG Opacity", 0)
         self.segmentation_opacity = BaseOpacitySlider("Segmentation Opacity", 30)
         
-        layout.addWidget(self.original_opacity)
+        # layout.addWidget(self.original_opacity)
         layout.addWidget(self.mask_opacity)
         layout.addWidget(self.bg_opacity)
         layout.addWidget(self.segmentation_opacity)
 
     def connect_to_canvas(self, canvas: HotspotCanvas):
         """Connect opacity sliders to canvas."""
-        self.original_opacity.valueChanged.connect(
-            lambda v: canvas.set_gray_opacity(v / 100.0)
-        )
+        # self.original_opacity.valueChanged.connect(
+        #     lambda v: canvas.set_gray_opacity(v / 100.0)
+        # )
+        if hasattr(canvas, 'set_gray_opacity'):
+            canvas.set_gray_opacity(1.0)
         self.mask_opacity.valueChanged.connect(
             lambda v: canvas.set_mask_opacity(v / 100.0)
         )
