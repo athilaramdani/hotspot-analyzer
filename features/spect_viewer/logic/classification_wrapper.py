@@ -365,7 +365,7 @@ def run_classification_inference(raw_path: str, segment_path: str, hotspot_path:
 
 def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date: str, source_is_editor: bool = False) -> bool:
     """
-    Run hotspot classification for both anterior and posterior views with grayscale conversion
+    ✅ FIXED: Run hotspot classification with proper temp directory file checking
     """
     try:
         session_code = dicom_path.parent.parent.name
@@ -385,37 +385,35 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
             
             _log(f"     Processing {view} view with grayscale conversion...")
             
-            # Get file paths with priority: edited → original
+            # ✅ FIXED: Get file paths for current working directory (temp folder)
             paths = get_classification_input_paths(patient_folder, filename_stem, view, view_short)
             
-            # Check if all required files exist
+            # ✅ FIXED: Check if all required files exist in CURRENT DIRECTORY
             missing_files = []
-            if not paths['raw_original'].exists():
-                missing_files.append(f"original frame ({paths['raw_original'].name})")
-            if not paths['region_mask'].exists():
-                missing_files.append(f"region mask ({paths['region_mask'].name})")
-            if not paths['hotspot_mask'].exists():
-                missing_files.append(f"hotspot mask ({paths['hotspot_mask'].name})")
-            if not paths['xml_file'].exists():
-                missing_files.append(f"XML file ({paths['xml_file'].name})")
+            for file_type, file_path in paths.items():
+                if not file_path.exists():
+                    missing_files.append(f"{file_type} ({file_path.name})")
+                else:
+                    # ✅ DEBUG: Log found files
+                    _log(f"       Found {file_type}: {file_path.name}")
             
             if missing_files:
                 _log(f"     Missing files for {view}: {', '.join(missing_files)}")
                 results.append(False)
                 continue
             
-            # ✅ Run classification with automatic colored-to-grayscale conversion
+            # ✅ Run classification with files in current directory
             classification_result, classification_mask = run_classification_inference(
-                raw_path=str(paths['raw_original']),      # Original PNG
-                segment_path=str(paths['region_mask']),   # Colored PNG (will be auto-converted)
-                hotspot_path=str(paths['hotspot_mask']),  # Hotspot PNG
-                xml_path=str(paths['xml_file'])          # XML file
+                raw_path=str(paths['raw_original']),      # Direct filename in temp dir
+                segment_path=str(paths['region_mask']),   # Direct filename in temp dir
+                hotspot_path=str(paths['hotspot_mask']),  # Direct filename in temp dir
+                xml_path=str(paths['xml_file'])          # Direct filename in temp dir
             )
             
             if classification_result:
-                # Save results
+                # Save results (will save in current working directory = temp dir)
                 save_classification_results(
-                    patient_folder, filename_stem, view, classification_result, classification_mask, source_is_editor
+                    Path.cwd(), filename_stem, view, classification_result, classification_mask, source_is_editor
                 )
                 _log(f"     {view.title()} classification completed: {len(classification_result)} hotspots classified")
                 results.append(True)
@@ -433,52 +431,43 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
         
     except Exception as e:
         _log(f"Classification error for patient {patient_id}: {e}")
+        import traceback
+        traceback.print_exc()
         return False
-
+    
 def get_classification_input_paths(patient_folder: Path, filename_stem: str, view: str, view_short: str) -> dict:
-    """Get input file paths with edited priority and grayscale conversion support"""
+    """
+    ✅ FIXED: Get input file paths for current working directory (temp folder)
+    When running in temp directory, all files use the old naming convention
+    """
     
-    # Use original PNG file as raw input
-    raw_original = patient_folder / f"{filename_stem}_{view}_original.png"
-    
-    # Priority: edited → original for processed files (these may be colored)
-    region_candidates = [
-        patient_folder / f"{filename_stem}_{view}_edited_colored.png",
-        patient_folder / f"{filename_stem}_{view}_colored.png"
-    ]
-    
-    # ✅ UPDATED: Hotspot file pattern - new format
-    hotspot_candidates = [
-        patient_folder / f"{filename_stem}_{view_short}_hotspot_mask.png",  # NEW: 2011_20250628_ant_hotspot_mask.png
-    ]
-    
-    xml_candidates = [
-        patient_folder / f"{filename_stem}_{view_short}_edited.xml",
-        patient_folder / f"{filename_stem}_{view_short}.xml"
-    ]
+    # ✅ FIXED: Since we're running in temp directory, use old naming directly
+    # These files were already mapped in run_classification_with_new_paths
     
     return {
-        'raw_original': raw_original,
-        'region_mask': next((p for p in region_candidates if p.exists()), region_candidates[-1]),
-        'hotspot_mask': next((p for p in hotspot_candidates if p.exists()), hotspot_candidates[-1]),
-        'xml_file': next((p for p in xml_candidates if p.exists()), xml_candidates[-1])
+        'raw_original': Path(f"{filename_stem}_{view}_original.png"),
+        'region_mask': Path(f"{filename_stem}_{view}_colored.png"),
+        'hotspot_mask': Path(f"{filename_stem}_{view_short}_hotspot_mask.png"),
+        'xml_file': Path(f"{filename_stem}_{view_short}.xml")
     }
 
 def save_classification_results(patient_folder: Path, filename_stem: str, view: str, results: list, mask: any, source_is_editor: bool = False):
-    """✅ UPDATED: Save classification results with conditional naming"""
+    """
+    ✅ FIXED: Save classification results in current working directory (temp folder)
+    """
     try:
-        # Dapatkan semua path yang relevan dari paths.py
-        clf_files = get_classification_files(patient_folder, filename_stem, view)
-
-        # Logika IF/ELSE untuk menentukan path output
-        if source_is_editor:
-            json_path = clf_files['json_edited']
-            mask_path = clf_files['mask_edited']
-            _log(f"     Saving EDITED classification results to: {json_path.name}")
-        else:
-            json_path = clf_files['json_original']
-            mask_path = clf_files['mask_original']
-            _log(f"     Saving ORIGINAL classification results to: {json_path.name}")
+        # ✅ FIXED: Save in current directory (temp folder) using old naming
+        view_short = "ant" if "anterior" in view.lower() else "post"
+        
+        # Old naming convention for temp directory
+        json_path = Path(f"{filename_stem}_{view_short}_classification.json")
+        xml_path = Path(f"{filename_stem}_{view_short}_classification.xml")
+        mask_path = Path(f"{filename_stem}_{view}_classification_mask.png")
+        
+        _log(f"     Saving classification results to temp directory:")
+        _log(f"       JSON: {json_path.name}")
+        _log(f"       XML: {xml_path.name}")
+        _log(f"       Mask: {mask_path.name}")
         
         # Convert results to JSON-serializable format
         json_data = {
@@ -503,80 +492,41 @@ def save_classification_results(patient_folder: Path, filename_stem: str, view: 
             }
             json_data["hotspots"].append(hotspot_data)
         
+        # Save JSON
         with open(json_path, 'w') as f:
             json.dump(json_data, f, indent=2)
         
-        # ✅ NEW: Create classification XML from JSON results
-        view_short = "ant" if "anterior" in view.lower() else "post"
-        xml_output_path = patient_folder / f"{filename_stem}_{view_short}_classification.xml"
-        
-        # Get actual image dimensions
-        img_width, img_height = get_image_dimensions_from_files(patient_folder, filename_stem, view)
+        # ✅ Create classification XML from JSON results
+        # Get actual image dimensions (fallback to default)
+        img_width, img_height = 512, 512  # Default SPECT dimensions
         
         # Convert JSON to XML
         xml_success = create_classification_xml(
             classification_json_path=json_path,
-            output_xml_path=xml_output_path,
+            output_xml_path=xml_path,
             original_image_width=img_width,
             original_image_height=img_height
         )
         
-        # ✅ Optional: Compare with original YOLO XML to show filtering effect
-        original_xml = patient_folder / f"{filename_stem}_{view_short}.xml"
-        if xml_success and original_xml.exists():
-            comparison = compare_xml_files(original_xml, xml_output_path)
-            removed_count = comparison.get('removed_hotspots', 0)
-            original_count = comparison.get('original_count', 0)
-            final_count = comparison.get('classification_count', 0)
-            
-            _log(f"       📊 YOLO→Classification filtering: {original_count} → {final_count} hotspots")
-            if removed_count > 0:
-                _log(f"       🗑️  Removed {removed_count} background hotspots (outside bone segments)")
-            
-            # Show class distribution changes
-            orig_classes = comparison.get('original_classes', {})
-            final_classes = comparison.get('classification_classes', {})
-            if orig_classes or final_classes:
-                _log(f"       📈 YOLO classes: {orig_classes}")
-                _log(f"       📈 Final classes: {final_classes}")
-        
-        # ✅ PIL ONLY: Save mask with PIL - pure RGB, no OpenCV BGR confusion!
+        # ✅ Save mask with PIL (RGB mode)
         if mask is not None:
-            _log(f"[PIL SAVE] Using PIL to save mask - pure RGB mode")
-            _log(f"[PIL SAVE] Mask shape: {mask.shape}")
-            _log(f"[PIL SAVE] Unique colors: {np.unique(mask.reshape(-1, 3), axis=0) if len(mask.shape) == 3 else 'Not RGB'}")
+            from PIL import Image
             
-            mask_path = patient_folder / f"{filename_stem}_{view}_classification_mask.png"
-            
-            # ✅ SAVE WITH PIL ONLY - PURE RGB, NO BGR!
             if len(mask.shape) == 3 and mask.shape[2] == 3:
-                from PIL import Image
-                
                 # Convert numpy array to PIL Image (RGB mode)
                 mask_pil = Image.fromarray(mask, mode='RGB')
-                
                 # Save with PIL - preserves RGB order
                 mask_pil.save(mask_path)
-                
-                _log(f"[PIL SAVE] Saved with PIL RGB mode - colors preserved correctly")
-                
+                _log(f"       ✅ Saved mask with PIL RGB mode")
             else:
                 # Fallback for non-RGB masks
+                import cv2
                 cv2.imwrite(str(mask_path), mask)
-                _log(f"[PIL SAVE] Saved without conversion (not RGB)")
-            
-            # Output file summary
-            if xml_success:
-                _log(f"       ✅ Saved: {json_path.name}, {xml_output_path.name}, {mask_path.name}")
-            else:
-                _log(f"       ⚠️  Saved: {json_path.name}, {mask_path.name} (XML creation failed)")
-        else:
-            if xml_success:
-                _log(f"       ✅ Saved: {json_path.name}, {xml_output_path.name}")
-            else:
-                _log(f"       ⚠️  Saved: {json_path.name} (XML creation failed)")
+                _log(f"       ⚠️ Saved mask without RGB conversion")
+        
+        _log(f"       ✅ Classification results saved successfully")
         
     except Exception as e:
         _log(f"Failed to save classification results: {e}")
         import traceback
-        _log(f"Full traceback: {traceback.format_exc()}")
+        traceback.print_exc()

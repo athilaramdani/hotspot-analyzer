@@ -397,10 +397,14 @@ class MainWindowSpect(QMainWindow):
                 dlg.editor_completed.connect(self._on_editor_completed)
                 print("🔗 [DEBUG CONNECTION] ✅ Segmentation editor signal connected!")
                 
-                if dlg.exec():
-                    print("🔗 [DEBUG CONNECTION] Dialog accepted")
+                result = dlg.exec()
+                if result:
+                    print("🔗 [DEBUG CONNECTION] Segmentation dialog accepted")
+                    # ✅ TAMBAHAN: Manual refresh jika signal tidak bekerja
+                    print("🔗 [DEBUG CONNECTION] Manual refresh trigger...")
+                    self._on_editor_completed()
                 else:
-                    print("🔗 [DEBUG CONNECTION] Dialog cancelled")
+                    print("🔗 [DEBUG CONNECTION] Segmentation dialog cancelled")
                     
             except Exception as e:
                 print(f"🔗 [DEBUG CONNECTION] ❌ Error: {e}")
@@ -656,11 +660,6 @@ class MainWindowSpect(QMainWindow):
         contrast_button.clicked.connect(self._open_contrast_dialog)
         left_layout.addWidget(contrast_button)
 
-        # ✅ TAMBAH BUTTON TEST
-        test_refresh_btn = QPushButton("Force Refresh")
-        test_refresh_btn.setStyleSheet(ZOOM_BUTTON_STYLE)
-        test_refresh_btn.clicked.connect(self._force_refresh_test)
-        left_layout.addWidget(test_refresh_btn)
 
         left_layout.addStretch()
 
@@ -1624,30 +1623,4 @@ class MainWindowSpect(QMainWindow):
         """Zoom out timeline"""
         self.timeline_widget.zoom_out()
 
-    def _force_refresh_test(self):
-        """Force refresh untuk test cache clearing"""
-        print("🧪🧪🧪 [FORCE REFRESH TEST] ===================")
-        
-        # Get current patient info
-        patient_id, session_code = self._get_current_patient_info()
-        print(f"🧪 [FORCE REFRESH] Patient: {patient_id}, Session: {session_code}")
-        
-        if not patient_id or not session_code:
-            print("🧪 [FORCE REFRESH] ❌ No patient selected")
-            return
-        
-        # Clear timeline cache
-        if hasattr(self.timeline_widget, '_clear_layer_cache'):
-            self.timeline_widget._clear_layer_cache()
-            print("🧪 [FORCE REFRESH] ✅ Timeline cache cleared")
-        
-        # Clear patient cache
-        cache_key = f"{patient_id}_{session_code}"
-        if cache_key in self._loaded:
-            del self._loaded[cache_key]
-            print(f"🧪 [FORCE REFRESH] ✅ Patient cache cleared: {cache_key}")
-        
-        # Reload patient
-        print("🧪 [FORCE REFRESH] Reloading patient...")
-        self._load_patient(patient_id, session_code)
-        print("🧪 [FORCE REFRESH] ✅ Patient reloaded")
+    
