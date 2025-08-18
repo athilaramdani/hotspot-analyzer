@@ -13,7 +13,7 @@ import json
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFrame
+    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFrame, QCheckBox
 )
 from PySide6.QtGui import QGuiApplication
 
@@ -62,6 +62,19 @@ class SegmentationEditorDialog(BaseEditorDialog):
         self.filename_stem = generate_filename_stem(self.patient_id, self.study_date)
         self.view_short = vtag
 
+        # 4. LOAD ORIGINAL IMAGE DATA FIRST
+        workflow_files = self.scan.get('workflow_files', {})
+        original_png_path = workflow_files.get('original', {}).get(vtag)
+
+        if original_png_path and original_png_path.exists():
+            self.original_image_data = np.array(Image.open(original_png_path).convert('L'))
+        else:
+            # Fallback to raw DICOM frame if original PNG is missing
+            self.original_image_data = scan["frames"][view_key]
+
+        from features.spect_viewer.logic.image_inverter import simple_invert_image
+        self.processed_image_data = simple_invert_image(self.original_image_data.copy())
+
         # 4. GET NEWEST PATHS USING YOUR NEW METHODS (like hotspot editor)
         from core.config.paths import get_newest_segmentation_path
         
@@ -102,7 +115,33 @@ class SegmentationEditorDialog(BaseEditorDialog):
         else:
             print(f"✗ No segmentation data found. Creating empty mask.")
             return np.zeros_like(self.orig_arr, np.uint8)
-
+    
+    def _on_invert_changed(self, state: int):
+        """Handle image inversion toggle."""
+        from features.spect_viewer.logic.image_inverter import simple_invert_image
+        
+        try:
+            if self.invert_checkbox.isChecked():
+                inverted_data = simple_invert_image(self.original_image_data)
+            else:
+                inverted_data = self.original_image_data.copy()
+            
+            # Recreate the canvas with new image data
+            old_canvas = self.canvas
+            self.canvas = SegmentationCanvas(inverted_data, self.mask_arr)
+            self.canvas.set_info_callback(self._update_info_display)
+            
+            # Replace in layout
+            self.main_area_layout.replaceWidget(old_canvas, self.canvas)
+            old_canvas.deleteLater()
+            
+            # Reconnect tool panel signals
+            self.tool_panel.connect_to_canvas(self.canvas)
+            self.opacity_panel.connect_to_canvas(self.canvas)
+            
+        except Exception as e:
+            print(f"✗ Error during image inversion: {e}")
+            self.invert_checkbox.setChecked(not self.invert_checkbox.isChecked())
     def _load_mask_from_segmentation_png(self, segmentation_path: Path) -> np.ndarray:
         """Load mask from segmentation PNG file."""
         try:
@@ -363,6 +402,12 @@ class SegmentationEditorDialog(BaseEditorDialog):
         # Contrast button
         btn_contrast = QPushButton("Contrast…")
         self.toolbar_layout.addWidget(btn_contrast)
+
+        # Invert checkbox
+        self.invert_checkbox = QCheckBox("Invert Image Colors")
+        self.invert_checkbox.setChecked(True)
+        self.invert_checkbox.setStyleSheet("margin-top: 8px; font-weight: bold;")
+        self.toolbar_layout.addWidget(self.invert_checkbox)
         
         # Instructions
         instructions = self._create_instructions_label()
@@ -440,7 +485,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
         self.main_area_layout.addWidget(info_frame)
         
         # Main canvas - using modular SegmentationCanvas
-        self.canvas = SegmentationCanvas(self.orig_arr, self.mask_arr)
+        self.canvas = SegmentationCanvas(self.processed_image_data, self.mask_arr)
         self.canvas.set_info_callback(self._update_info_display)
         self.main_area_layout.addWidget(self.canvas)
 
@@ -488,6 +533,10 @@ class SegmentationEditorDialog(BaseEditorDialog):
         
         # Opacity panel signals
         self.opacity_panel.connect_to_canvas(self.canvas)
+
+        # Contrast and invert
+        self.btn_contrast.clicked.connect(self._open_contrast_popup)
+        self.invert_checkbox.stateChanged.connect(self._on_invert_changed)
         
         # Contrast button
         self.btn_contrast.clicked.connect(self._open_contrast_popup)
@@ -495,6 +544,9 @@ class SegmentationEditorDialog(BaseEditorDialog):
         # Save/Cancel buttons
         self.btn_save.clicked.connect(self._save_all)
         self.btn_cancel.clicked.connect(self.reject)
+        self.setFocus()
+        
+        print("✅ All signals connected in SegmentationEditorDialog")
 
     def _change_label(self, idx: int):
         """Handle palette selection."""
@@ -504,19 +556,59 @@ class SegmentationEditorDialog(BaseEditorDialog):
 
     def _perform_undo(self):
         """Perform undo for current layer."""
+        """Perform undo for current layer - IMPROVED implementation."""
+        print("🔍 _perform_undo called in SegmentationEditorDialog")
+        
+        # ✅ FIX: Add safety checks and better error handling
+        if not hasattr(self, 'palette') or not self.palette:
+            print("❌ No palette available for undo")
+            return
+            
+        if not hasattr(self, 'canvas') or not self.canvas:
+            print("❌ No canvas available for undo")
+            return
+        
         current_label = self.palette.list_palette.currentRow()
-        self.canvas.undo(current_label)
+        if current_label < 0:
+            print("❌ No valid label selected for undo")
+            return
+            
+        print(f"🔄 Performing undo for label {current_label}")
+        
+        # Call canvas undo method
+        try:
+            self.canvas.undo(current_label)
+            print("✅ Undo operation completed")
+        except Exception as e:
+            print(f"❌ Undo failed: {e}")
 
     def _perform_redo(self):
         """Perform redo for current layer."""
+        print("🔍 _perform_redo called in SegmentationEditorDialog")
+        
+        # ✅ FIX: Add safety checks and better error handling
+        if not hasattr(self, 'palette') or not self.palette:
+            print("❌ No palette available for redo")
+            return
+            
+        if not hasattr(self, 'canvas') or not self.canvas:
+            print("❌ No canvas available for redo")
+            return
+        
         current_label = self.palette.list_palette.currentRow()
-        self.canvas.redo(current_label)
+        if current_label < 0:
+            print("❌ No valid label selected for redo")
+            return
+            
+        print(f"🔄 Performing redo for label {current_label}")
+        
+        # Call canvas redo method
+        try:
+            self.canvas.redo(current_label)
+            print("✅ Redo operation completed")
+        except Exception as e:
+            print(f"❌ Redo failed: {e}")
 
-    def _open_contrast_popup(self):
-        """Open contrast adjustment popup."""
-        # This would use a modular contrast component if available
-        # For now, placeholder implementation
-        pass
 
     def _save_all(self):
         """Save segmentation data with proper session handling (same as hotspot editor)."""
