@@ -1,8 +1,105 @@
 # features\spect_viewer\logic\segmenter.py - Enhanced with better progress messages
 from __future__ import annotations
 
-import inspect
+# PyInstaller compatibility patch - MUST BE FIRST
+import sys
+import warnings
 import os
+
+def apply_pyinstaller_patches():
+    """Apply patches for PyInstaller compatibility"""
+    if hasattr(sys, '_MEIPASS'):  # Running as PyInstaller bundle
+        print("[PATCH] Applying PyInstaller patches for segmenter.py...")
+        
+        # ✅ Environment variables only
+        os.environ['TRITON_DISABLE'] = '1'
+        os.environ['TORCH_TRITON_DISABLE'] = '1'
+        os.environ['USE_TRITON'] = '0'
+        os.environ['TORCH_DISABLE_TRITON_OPS'] = '1'
+        os.environ['TORCH_DISABLE_TRITON_LIBRARY'] = '1'
+        os.environ['TORCH_DISABLE_TRITON_REGISTRATION'] = '1'
+        os.environ['TORCH_LOGS'] = ''
+        os.environ['TORCH_JIT'] = '0'
+        os.environ['TORCH_JIT_LOG_LEVEL'] = 'ERROR'
+        os.environ['TORCH_COMPILE_DEBUG'] = '0'
+        os.environ['TORCHDYNAMO_DISABLE'] = '1'
+        
+        # ✅ Only create dummy modules, no import patching
+        import types
+        
+        # Create dummy triton modules if not already created
+        triton_modules = [
+            'triton', 'triton.language', 'triton.compiler', 
+            'triton.runtime', 'triton.ops', 'triton.testing'
+        ]
+        
+        for module_name in triton_modules:
+            if module_name not in sys.modules:
+                sys.modules[module_name] = types.ModuleType(module_name)
+        
+        # Create torch._dynamo modules
+        dynamo_modules = [
+            'torch._dynamo', 'torch._dynamo.polyfills', 
+            'torch._dynamo.polyfills.fx', 'torch._dynamo.polyfills.loader'
+        ]
+        
+        for module_name in dynamo_modules:
+            if module_name not in sys.modules:
+                module_obj = types.ModuleType(module_name)
+                if module_name == 'torch._dynamo':
+                    class OptimizedModule:
+                        def __init__(self, *args, **kwargs):
+                            pass
+                        def __call__(self, *args, **kwargs):
+                            return None
+                    module_obj.OptimizedModule = OptimizedModule
+                elif module_name == 'torch._dynamo.polyfills.loader':
+                    module_obj.POLYFILLED_MODULES = ()
+                sys.modules[module_name] = module_obj
+        
+        # Patch inspect module
+        import inspect
+        original_methods = {
+            'getsource': inspect.getsource,
+            'getsourcelines': inspect.getsourcelines,
+            'findsource': inspect.findsource
+        }
+        
+        def safe_getsource(obj):
+            try:
+                return original_methods['getsource'](obj)
+            except (OSError, IOError):
+                return ""
+        
+        def safe_getsourcelines(obj):
+            try:
+                return original_methods['getsourcelines'](obj)
+            except (OSError, IOError):
+                return ([], 0)
+        
+        def safe_findsource(obj):
+            try:
+                return original_methods['findsource'](obj)
+            except (OSError, IOError):
+                return ([], 0)
+        
+        inspect.getsource = safe_getsource
+        inspect.getsourcelines = safe_getsourcelines
+        inspect.findsource = safe_findsource
+        
+        # Suppress warnings
+        import warnings
+        warnings.filterwarnings("ignore", message="Unable to retrieve source.*torch.jit.*")
+        warnings.filterwarnings("ignore", message=".*could not get source code.*")
+        warnings.filterwarnings("ignore", message=".*torch._dynamo.*")
+        warnings.filterwarnings("ignore", message=".*triton.*")
+        warnings.filterwarnings("ignore", message=".*TORCH_LIBRARY.*")
+        
+        print("[PATCH] ✅ Segmenter patches applied (no import patching)")
+
+apply_pyinstaller_patches()
+
+import inspect
 import time
 from pathlib import Path
 from typing import Tuple, Union
@@ -10,6 +107,20 @@ from typing import Tuple, Union
 import cv2
 import numpy as np
 import torch
+
+# Disable torch JIT compilation for PyInstaller compatibility
+if hasattr(sys, '_MEIPASS'):
+    try:
+        # Try to disable JIT compilation entirely
+        torch.jit._state.disable()
+    except AttributeError:
+        # Fallback: set JIT to simple mode
+        try:
+            torch.jit._script.COMPILATION_MODE = torch.jit._script.CompilationMode.SIMPLE
+        except AttributeError:
+            # Last resort: just pass
+            pass
+
 from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 from core.logger import _log
 from core.gui.ui_constants import truncate_text
@@ -52,8 +163,15 @@ def create_predictor() -> nnUNetPredictor:
         device=device,
         allow_tqdm=True
     )
-    if "fp16" in inspect.signature(nnUNetPredictor).parameters:
-        settings["fp16"] = use_cuda
+    
+    # Check if fp16 parameter exists (PyInstaller-safe)
+    try:
+        if "fp16" in inspect.signature(nnUNetPredictor).parameters:
+            settings["fp16"] = use_cuda
+    except Exception:
+        # Fallback if inspect fails in PyInstaller
+        pass
+    
     return nnUNetPredictor(**settings)
 
 

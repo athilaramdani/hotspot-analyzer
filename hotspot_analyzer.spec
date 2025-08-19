@@ -1,30 +1,28 @@
-# hotspot_analyzer.spec
+# hotspot_analyzer.spec - FIXED VERSION FOR PRODUCTION
 # -*- mode: python ; coding: utf-8 -*-
 
 import sys
+import os
 from pathlib import Path
 
 # Get the current directory
 current_dir = Path.cwd()
 
 # Define paths
-main_script = 'app/__main__.py'  # Updated to match your structure
-app_name = 'hotspotAnalyzer'
+main_script = 'main.py'
+app_name = 'HotspotAnalyzer'
+
+# PyTorch compatibility fixes
+block_cipher = None
 
 # Collect all Python files and modules
 hiddenimports = [
-    # App module
+    # ========== CORE APP MODULES ==========
     'app',
+    'app.main',
     'app.__main__',
     
-    # Missing modules for scientific stack
-    'pydoc',
-    'pydoc_data',
-    'pydoc_data.topics',
-    'doctest',
-    'inspect',
-    
-    # Core modules
+    # ========== CORE MODULES ==========
     'core.config.cloud_storage',
     'core.config.paths',
     'core.config.sessions',
@@ -34,17 +32,10 @@ hiddenimports = [
     'core.gui.ui_constants',
     'core.utils.image_converter',
     'core.utils.image_transparency',
+    'core.utils.pyinstaller_patches',
     'core.logger',
     
-    # Features
-    'features.dicom_import.gui.dicom_import_dialog_v2',
-    'features.dicom_import.gui.dicom_view_selector_dialog',
-    'features.dicom_import.gui.doctor_selection_dialog',
-    'features.dicom_import.logic.dicom_loader',
-    'features.dicom_import.logic.directory_scanner',
-    'features.dicom_import.logic.input_data',
-    'features.dicom_import.logic.pixel_analyzer',
-    
+    # ========== FEATURES - SPECT VIEWER ==========
     'features.spect_viewer.gui.main_window_spect',
     'features.spect_viewer.gui.bsi_canvas',
     'features.spect_viewer.gui.frame_selector',
@@ -79,39 +70,247 @@ hiddenimports = [
     'features.spect_viewer.logic.quantification_wrapper',
     'features.spect_viewer.logic.segmenter',
     
+    # ========== DICOM IMPORT ==========
+    'features.dicom_import.gui.dicom_import_dialog_v2',
+    'features.dicom_import.gui.dicom_view_selector_dialog',
+    'features.dicom_import.gui.doctor_selection_dialog',
+    'features.dicom_import.logic.dicom_loader',
+    'features.dicom_import.logic.directory_scanner',
+    'features.dicom_import.logic.input_data',
+    'features.dicom_import.logic.pixel_analyzer',
+    
+    # ========== PET VIEWER (optional) ==========
     'features.pet_viewer.gui.main_window_pet',
     'features.pet_viewer.gui.pet_import_dialog',
     'features.pet_viewer.gui.pet_viewer_widget',
     'features.pet_viewer.logic.pet_directory_scanner',
     'features.pet_viewer.logic.pet_loader',
     
-    # Scientific/ML libraries
+    # ========== SCIENTIFIC LIBRARIES ==========
     'numpy',
+    'numpy.core',
+    'numpy.core._methods',
+    'numpy.lib',
+    'numpy.lib.format',
+    'numpy.random',
+    'numpy.random._pickle',
+    'numpy.linalg',
+    'numpy.fft',
+    
     'scipy',
     'scipy.ndimage',
     'scipy.ndimage._support_alternative_backends', 
     'scipy._lib',
     'scipy._lib._array_api',
     'scipy._lib._docscrape',
+    'scipy._lib._util',
+    'scipy.sparse',
+    'scipy.sparse.linalg',
+    'scipy.spatial',
+    'scipy.spatial.distance',
+    'scipy.optimize',
+    'scipy.interpolate',
+    'scipy.integrate',
+    'scipy.stats',
+    
     'pandas',
+    'pandas._libs',
+    'pandas._libs.tslibs',
+    'pandas.io',
+    'pandas.io.formats',
+    
     'sklearn',
+    'sklearn.utils',
+    'sklearn.utils._cython_blas',
+    'sklearn.neighbors',
+    'sklearn.neighbors._typedefs',
+    'sklearn.neighbors._quad_tree',
+    'sklearn.tree',
+    'sklearn.tree._utils',
+    'sklearn.ensemble',
+    'sklearn.preprocessing',
+    
     'skimage',
     'skimage.filters',
     'skimage.filters.thresholding',
+    'skimage.feature',
+    'skimage.measure',
+    'skimage.morphology',
+    'skimage.segmentation',
+    'skimage.transform',
+    'skimage.util',
+    
     'matplotlib',
+    'matplotlib.backends',
+    'matplotlib.backends.backend_qt5agg',
+    'matplotlib.backends.backend_qtagg',
+    'matplotlib.backends._backend_qt',
+    'matplotlib.figure',
+    'matplotlib.pyplot',
+    
     'seaborn',
+    
+    # ========== PYTORCH - COMPLETE MODULES ==========
     'torch',
-    'torchvision',
-    'timm',
+    'torch.nn',
+    'torch.nn.functional',
+    'torch.nn.modules',
+    'torch.nn.modules.module',
+    'torch.nn.modules.activation',
+    'torch.nn.modules.batchnorm',
+    'torch.nn.modules.container',
+    'torch.nn.modules.conv',
+    'torch.nn.modules.linear',
+    'torch.nn.modules.loss',
+    'torch.nn.modules.normalization',
+    'torch.nn.modules.pooling',
+    'torch.nn.modules.dropout',
+    'torch.nn.parameter',
+    'torch.nn.init',
+    'torch.optim',
+    'torch.utils',
+    'torch.utils.data',
+    'torch.autograd',
+    'torch.autograd.function',
+    'torch.cuda',
+    'torch.jit',
+    'torch._C',
+    'torch._C._nn',
+    'torch._C._autograd',
+    'torch._C._te',
+    'torch._C._fft',
+    'torch._C._linalg',
+    'torch._C._sparse',
+    'torch._C._special',
+    'torch._ops',
+    'torch._ops.ops',
+    'torch.serialization',
+    'torch.storage',
+    'torch.tensor',
+    'torch.testing',
+    'torch.types',
+    'torch.version',
+    'torch.backends',
+    'torch.backends.cudnn',
+    'torch.backends.mkl',
+    'torch.backends.mkldnn',
+    
+    # Torch FX and nested
+    'torch.fx',
+    'torch.fx.node',
+    'torch.fx.graph',
+    'torch.fx.graph_module',
+    'torch.fx.experimental',
+    'torch.fx.experimental._constant_symnode',
+    'torch.nested',
+    'torch.nested._internal',
+    'torch.nested._internal.nested_tensor',
+    'torch.nested._internal.nested_int',
+
+    # ========== TORCH TESTING & INTERNAL MODULES ==========
+    'torch.testing',
+    'torch.testing._internal',
+    'torch.testing._internal.logging_tensor',
+    'torch.testing._internal.common_utils',
+    'torch.testing._internal.common_dtype',
+    'torch.testing._internal.common_device_type',
+    'torch.testing._internal.common_methods',
+    'torch.testing._internal.common_cuda',
+    'torch.testing._internal.autograd_function_db',
+    'torch.utils.checkpoint',
+
+    # ========== TORCH DYNAMO (for newer PyTorch) ==========
+    'torch._dynamo',
+    'torch._dynamo.config',
+    'torch._dynamo.convert_frame',
+    'torch._dynamo.eval_frame',
+    'torch._dynamo.resume_execution',
+    'torch._dynamo.symbolic_convert',
+    'torch._dynamo.trace_rules',
+    'torch._dynamo.variables',
+    'torch._dynamo.variables.base',
+    'torch._dynamo.guards',
+    'torch._dynamo.polyfills.fx',
+    'torch._dynamo.polyfills.loader',
+    'torch._dynamo.polyfills',
+    'torch._functorch.functional_call',
+    'torch._functorch.vmap',
+    'torch._functorch.compile',
+    
+    # Additional torch modules
+    'torch._inductor',
+    'torch._inductor.config',
+    'torch.compiler',
+
+    # ========== TORCH COMPILE & JIT ==========
+    'torch.compiler',
+    'torch._inductor',
+    'torch._functorch',
+    
+    # YOLO/Ultralytics
     'ultralytics',
+    'ultralytics.models',
+    'ultralytics.models.yolo',
+    'ultralytics.utils',
+    'ultralytics.engine',
+    'ultralytics.nn',
+    
+    # Timm (for model architectures)
+    'timm',
+    'timm.models',
+    'timm.layers',
+    
+    # TorchVision
+    'torchvision',
+    'torchvision.transforms',
+    'torchvision.models',
+    'torchvision.utils',
+    
+    # ========== NNUNET ==========
+    'nnunetv2',
+    'nnunetv2.inference',
+    'nnunetv2.inference.predict_from_raw_data',
+    'nnunetv2.training',
+    'nnunetv2.utilities',
+    'dynamic_network_architectures',
+    'dynamic_network_architectures.architectures',
+    'batchgenerators',
+    'batchgenerators.utilities',
+    'acvl_utils',
+    'acvl_utils.cropping_and_padding',
+    'acvl_utils.cropping_and_padding.padding',
+    
+    # ========== XGBOOST ==========
+    'xgboost',
+    'xgboost.sklearn',
+    'xgboost.core',
+    
+    # ========== IMAGE/MEDICAL PROCESSING ==========
     'pydicom',
+    'pydicom.encoders',
+    'pydicom.decoders',
+    'pydicom.charset',
+    'pydicom.sequence',
+    'pydicom.dataset',
+    'pydicom.filereader',
+    'pydicom.filewriter',
+    
     'cv2',
     'PIL',
+    'PIL._tkinter_finder',
+    'PIL.Image',
+    'PIL.ImageTk',
+    
     'SimpleITK',
     'nibabel',
-    'imageio',
+    'nibabel.orientations',
+    'nibabel.affines',
     
-    # PySide6 modules
+    'imageio',
+    'imageio.plugins',
+    'imageio.core',
+    
+    # ========== PYSIDE6 ==========
     'PySide6.QtCore',
     'PySide6.QtGui', 
     'PySide6.QtWidgets',
@@ -119,55 +318,202 @@ hiddenimports = [
     'PySide6.QtOpenGLWidgets',
     'shiboken6',
     
-    # Other utilities
+    # ========== UTILITIES ==========
     'yaml',
     'json',
     'pathlib',
     'dotenv',
-]
-
-# Collect data files
-datas = [
-    # Configuration files
-    ('config', 'config'),
-    # Assets
-    ('assets', 'assets'),
-    # Models (include all subdirectories)
-    ('models', 'models'),
-    # Segmentation data
-    ('segmentation', 'segmentation'),
-    # Environment file
-    ('.env', '.'),
-    # Data directory structure (empty folders will be created later)
-    ('data', 'data'),
-]
-
-# Binaries to exclude (will be included automatically if needed)
-excludes = [
-    'tkinter',
-    'test',
+    'threading',
+    'multiprocessing',
+    'queue',
+    'subprocess',
+    'tempfile',
+    'shutil',
+    'glob',
+    'fnmatch',
+    're',
+    'datetime',
+    'time',
+    'logging',
+    'pickle',
+    'gzip',
+    'zipfile',
+    'tarfile',
+    
+    # ========== STANDARD LIBRARY MODULES ==========
+    'collections',
+    'collections.abc',
+    'importlib',
+    'importlib.util',
+    'importlib.metadata',
+    'importlib_metadata',
+    'importlib_resources',
+    'pkg_resources',
+    'setuptools',
+    'distutils',
+    'site',
+    'sysconfig',
+    'typing',
+    'typing_extensions',
+    'functools',
+    'itertools',
+    'operator',
+    'math',
+    'numbers',
+    'warnings',
+    'weakref',
+    'copy',
+    'struct',
+    'array',
+    'ctypes',
+    'ctypes.util',
+    'platform',
+    'concurrent',
+    'concurrent.futures',
+    'os.path',
+    'urllib',
+    'urllib.request',
+    'urllib.parse',
+    'urllib.error',
+    'ssl',
+    'socket',
+    'http',
+    'http.client',
+    'inspect',
     'unittest',
+    'unittest.mock',
+    'unittest.util',
     'pydoc',
+    'pydoc_data',
+    'pydoc_data.topics',
+    'textwrap',
+    'linecache',
+    'tokenize',
+    'keyword',
     'doctest',
 ]
 
-# Analysis
+# Collect data files - FIXED PATHS
+datas = []
+
+# Add configuration files
+config_path = current_dir / "config"
+if config_path.exists():
+    datas.append((str(config_path), 'config'))
+
+# Add models - CRITICAL for AI functionality
+models_path = current_dir / "models"
+if models_path.exists():
+    # Add the entire models directory
+    datas.append((str(models_path), 'models'))
+    
+    # Explicitly add critical model files to ensure they're included
+    critical_models = [
+        "models/hotspot_detection/models/model_detection_hs_yolov8.pt",
+        "models/classification/model_classification_hs_xgboost_250724.pkl", 
+        "models/classification/scaler_classification_32features.pkl",
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_best.pth"
+    ]
+    
+    for model_file in critical_models:
+        full_path = current_dir / model_file
+        if full_path.exists():
+            datas.append((str(full_path), str(Path(model_file).parent)))
+            print(f"[SPEC] Added critical model: {model_file}")
+        else:
+            print(f"[SPEC] WARNING: Critical model not found: {model_file}")
+
+# Add assets (if exists)
+assets_path = current_dir / "assets"
+if assets_path.exists():
+    datas.append((str(assets_path), 'assets'))
+
+# Add segmentation data
+segmentation_path = current_dir / "segmentation"
+if segmentation_path.exists():
+    datas.append((str(segmentation_path), 'segmentation'))
+
+# Add environment file
+env_file = current_dir / ".env"
+if env_file.exists():
+    datas.append((str(env_file), '.'))
+
+# Add data directory structure (but exclude large files if needed)
+data_path = current_dir / "data"
+if data_path.exists():
+    datas.append((str(data_path), 'data'))
+
+# Binaries to exclude (reduce size)
+excludes = [
+    'tkinter',
+    '_tkinter',
+    'matplotlib.tests',
+    'numpy.tests',
+    'scipy.tests',
+    'sklearn.tests',
+    'torch.test',
+    'test',
+    'tests',
+    'pytest',
+    'unittest2',
+    'IPython',
+    'jupyter',
+    'notebook',
+    # Block triton completely
+    'triton',
+    'triton.language',
+    'triton.compiler',
+    'triton.runtime',
+    'triton.ops',
+]
+
+# Runtime hooks - EMPTY to let PyInstaller handle torch normally
+runtime_hooks = []  # Empty, no runtime hooks
+
+# Analysis with improved settings
 a = Analysis(
     [main_script],
     pathex=[str(current_dir)],
     binaries=[],
     datas=datas,
     hiddenimports=hiddenimports,
-    hookspath=[],
-    hooksconfig={},
-    runtime_hooks=[],
+    hookspath=['hooks'],
+    hooksconfig={
+        # Disable PyTorch JIT and other problematic features
+        'torch': {
+            'enable_jit': False,
+            'optimize': False,
+        }
+    },
+    runtime_hooks=runtime_hooks,
     excludes=excludes,
     noarchive=False,
-    optimize=0,
+    optimize=1,  # Changed to 1 for better compatibility
+    # Ensure torch is treated as a package
+    module_collection_mode={
+        'torch': 'pyz+py',
+        'torch.nn': 'pyz+py',
+        'torch._C': 'pyz+py',
+        'torch._ops': 'pyz+py',
+        'torch.fx': 'pyz+py',
+        'torch.nested': 'pyz+py',
+        'torch.autograd': 'pyz+py',
+        'torch.utils': 'pyz+py',
+        'torch.backends': 'pyz+py',
+    }
 )
 
-# Remove duplicates
-pyz = PYZ(a.pure, a.zipped_data, cipher=None)
+# Filter out duplicates and problematic entries
+unique_pure = []
+seen = set()
+for item in a.pure:
+    if item[0] not in seen:
+        seen.add(item[0])
+        unique_pure.append(item)
+a.pure = unique_pure
+
+# Create PYZ archive
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 # Create executable
 exe = EXE(
@@ -176,16 +522,16 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name=app_name,
-    debug=False,
+    debug=False,  # Set to True for debugging
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,  # Set to True for debugging, False for windowed app
+    console=True,  # Set to True for debugging, False for production
     disable_windowed_traceback=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,  # Add path to .ico file if you have one
+    icon=None,  # Add icon path here if you have one
 )
 
 # Collect everything into dist folder
@@ -196,6 +542,11 @@ coll = COLLECT(
     a.datas,
     strip=False,
     upx=True,
-    upx_exclude=[],
+    upx_exclude=[
+        'torch*.dll',
+        'cuda*.dll', 
+        '*.pyd',
+        'qt*.dll',
+    ],
     name=app_name,
 )

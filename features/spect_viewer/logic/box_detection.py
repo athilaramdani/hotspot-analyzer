@@ -31,12 +31,44 @@ from core.config.paths import (
 from features.dicom_import.logic.dicom_loader import load_frames_and_metadata
 
 # Initialize YOLO model
-print(f"[YOLO] Loading model from: {YOLO_MODEL_PATH}")
-if not YOLO_MODEL_PATH.exists():
-    raise FileNotFoundError(f"YOLO model not found at: {YOLO_MODEL_PATH}")
+def initialize_yolo_model():
+    """Initialize YOLO model with proper error handling"""
+    global model
+    
+    print(f"[YOLO] Attempting to load model from: {YOLO_MODEL_PATH}")
+    
+    if not YOLO_MODEL_PATH.exists():
+        print(f"[YOLO ERROR] Model not found at: {YOLO_MODEL_PATH}")
+        
+        # Try alternative paths
+        from core.config.paths import get_safe_project_root
+        project_root = get_safe_project_root()
+        
+        alternative_paths = [
+            project_root / "models" / "hotspot_detection" / "models" / "model_detection_hs_yolov8.pt",
+            Path("models") / "hotspot_detection" / "models" / "model_detection_hs_yolov8.pt"
+        ]
+        
+        found_model = None
+        for alt_path in alternative_paths:
+            print(f"[YOLO] Checking alternative: {alt_path}")
+            if alt_path.exists():
+                found_model = alt_path
+                print(f"[YOLO] Found model at alternative location: {alt_path}")
+                break
+        
+        if not found_model:
+            raise FileNotFoundError(f"YOLO model not found at {YOLO_MODEL_PATH} or any alternative locations")
+        
+        model = YOLO(str(found_model))
+    else:
+        model = YOLO(str(YOLO_MODEL_PATH))
+    
+    print(f"[YOLO] Model loaded successfully")
+    return model
 
-model = YOLO(str(YOLO_MODEL_PATH))
-print(f"[YOLO] Model loaded successfully")
+# Initialize model
+model = initialize_yolo_model()
 
 
 def inference_detection_from_array(frame_array: np.ndarray) -> List[Dict]:

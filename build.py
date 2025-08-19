@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
+# build.py - Build script for Hotspot Analyzer
 """
-Build script untuk HotspotAnalyzer
-Menggunakan PyInstaller untuk membuat executable
+Enhanced build script for creating the Hotspot Analyzer executable
+Handles PyTorch compatibility and optimization
 """
 
 import os
@@ -9,317 +9,403 @@ import sys
 import shutil
 import subprocess
 from pathlib import Path
+import tempfile
 
-def run_command(cmd, description=""):
-    """Execute command and handle errors"""
-    print(f"\n{'='*50}")
-    print(f"🔄 {description}")
-    print(f"Running: {cmd}")
-    print('='*50)
+def setup_environment():
+    """Setup environment variables for PyTorch compatibility"""
+    # Disable PyTorch JIT to avoid source inspection issues
+    os.environ['TORCH_JIT'] = '0'
+    os.environ['TORCH_JIT_LOG_LEVEL'] = 'ERROR'
     
-    try:
-        result = subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
-        print("✅ Success!")
-        if result.stdout:
-            print("Output:", result.stdout)
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Error: {e}")
-        if e.stdout:
-            print("Stdout:", e.stdout)
-        if e.stderr:
-            print("Stderr:", e.stderr)
-        return False
+    # ✅ CRITICAL: Disable triton completely
+    os.environ['TRITON_DISABLE'] = '1'
+    os.environ['TORCH_TRITON_DISABLE'] = '1'
+    os.environ['USE_TRITON'] = '0'
+    
+    # ✅ NEW: Completely disable triton to prevent library registration conflicts
+    os.environ['TORCH_DISABLE_TRITON_OPS'] = '1'
+    os.environ['TORCH_DISABLE_TRITON_LIBRARY'] = '1'
+    os.environ['TORCH_DISABLE_TRITON_REGISTRATION'] = '1'
+    
+    # Optimize for production
+    os.environ['PYTHONOPTIMIZE'] = '1'
+    
+    # Reduce verbosity
+    os.environ['PYINSTALLER_COMPILE_BOOTLOADER'] = '0'
+    
+    # NEW: Disable torch dynamo completely
+    os.environ['TORCHDYNAMO_DISABLE'] = '1'
+    os.environ['TORCH_COMPILE_DISABLE'] = '1'
+    os.environ['TORCH_DYNAMO_DISABLE'] = '1'
+    
+    # ✅ ADD: Additional environment variables for nnUNet compatibility
+    os.environ['TORCH_FX_DISABLE'] = '1'
+    os.environ['NNUNET_DISABLE_COMPILE'] = '1'
+    
+    print("✅ Environment configured with torch._dynamo disabled")
 
-def clean_build():
+def create_torch_hooks():
+    """Create comprehensive torch hooks for PyInstaller"""
+    hooks_dir = Path("hooks")
+    hooks_dir.mkdir(exist_ok=True)
+    
+    # Create comprehensive torch hook
+    torch_hook = hooks_dir / "hook-torch.py"
+    torch_hook_content = '''
+from PyInstaller.utils.hooks import collect_all, collect_submodules
+
+# Collect all torch modules
+datas, binaries, hiddenimports = collect_all('torch')
+
+# Add specific torch modules that might be missing
+hiddenimports += [
+    'torch._dynamo',
+    'torch._dynamo.config',
+    'torch._dynamo.convert_frame',
+    'torch._dynamo.eval_frame',
+    'torch._dynamo.resume_execution', 
+    'torch._dynamo.symbolic_convert',
+    'torch._dynamo.trace_rules',
+    'torch._dynamo.variables',
+    'torch._dynamo.variables.base',
+    'torch._dynamo.guards',
+    'torch._dynamo.polyfills',
+    'torch._dynamo.polyfills.fx',
+    'torch._dynamo.polyfills.loader',
+    'torch._functorch',
+    'torch._inductor',
+    'torch._C._nn',
+    'torch._C._autograd',
+    'torch._C._te',
+    'torch._C._fft',
+    'torch._C._linalg',
+    'torch._C._sparse',
+    'torch._C._special',
+    'torch._ops',
+    'torch._ops.ops',
+    'torch.utils.checkpoint',
+    'torch.testing._internal',
+    'torch.testing._internal.logging_tensor',
+    'torch.testing._internal.common_utils',
+    'torch.testing._internal.common_dtype',
+    'torch.testing._internal.common_device_type',
+]
+
+# Exclude triton completely
+excludedimports = ['triton', 'triton.*']
+
+# Add nnUNet related modules  
+hiddenimports += [
+    'nnunetv2',
+    'dynamic_network_architectures',
+    'batchgenerators',
+    'acvl_utils',
+]
+
+# Add ultralytics modules
+hiddenimports += [
+    'ultralytics',
+    'ultralytics.models',
+    'ultralytics.models.yolo',
+    'ultralytics.utils',
+    'ultralytics.engine',
+    'ultralytics.nn',
+]
+
+# Exclude tests and development files
+excludedimports += [
+    'torch.test', 
+    'torch.testing',
+    'nnunetv2.tests',
+    'ultralytics.tests',
+]
+
+print(f"Torch hook: collected {len(hiddenimports)} hidden imports")
+'''
+    torch_hook.write_text(torch_hook_content)
+    print("✅ Comprehensive torch hook created")
+
+def clean_previous_builds():
     """Clean previous build artifacts"""
-    print("\n🧹 Cleaning previous build artifacts...")
-    
-    dirs_to_clean = ['build', 'dist']
+    dirs_to_clean = ['build', 'dist', '__pycache__']
     
     for dir_name in dirs_to_clean:
-        if os.path.exists(dir_name):
+        if Path(dir_name).exists():
             shutil.rmtree(dir_name)
-            print(f"  Removed: {dir_name}")
+            print(f"🧹 Cleaned {dir_name}/")
     
-    # Clean pycache recursively, but skip .venv folder
-    for root, dirs, files in os.walk('.'):
-        # Skip .venv directory and its subdirectories
-        if '.venv' in root or root.startswith('.venv'):
-            continue
-            
-        for dir_name in dirs[:]:  # Use slice to avoid modifying list during iteration
-            if dir_name == '__pycache__':
-                pycache_path = os.path.join(root, dir_name)
-                # Double check we're not in .venv
-                if '.venv' not in pycache_path:
-                    shutil.rmtree(pycache_path)
-                    print(f"  Removed: {pycache_path}")
-            elif dir_name == '.venv':
-                # Skip .venv directory entirely
-                dirs.remove(dir_name)
+    # Clean .pyc files
+    for pyc_file in Path('.').rglob('*.pyc'):
+        pyc_file.unlink()
+    
+    print("✅ Previous builds cleaned")
 
-def check_dependencies():
-    """Check if required tools are available"""
-    print("\n🔍 Checking dependencies...")
+def verify_dependencies():
+    """Verify that all required dependencies are available"""
+    required_modules = [
+        'torch',
+        'torchvision', 
+        'ultralytics',
+        'nnunetv2',
+        'xgboost',
+        'pydicom',
+        'PySide6',
+        'numpy',
+        'scipy',
+        'sklearn',
+        'cv2',
+        'PIL',
+    ]
     
-    # Check PyInstaller
-    try:
-        import PyInstaller
-        print(f"✅ PyInstaller version: {PyInstaller.__version__}")
-    except ImportError:
-        print("❌ PyInstaller not found. Installing...")
-        if not run_command("pip install pyinstaller", "Installing PyInstaller"):
+    missing_modules = []
+    
+    for module in required_modules:
+        try:
+            __import__(module)
+            print(f"✅ {module}")
+        except ImportError:
+            missing_modules.append(module)
+            print(f"❌ {module} - MISSING")
+    
+    if missing_modules:
+        print(f"\n⚠️  Missing modules: {', '.join(missing_modules)}")
+        print("Please install missing dependencies before building")
+        return False
+    
+    print("✅ All dependencies verified")
+    return True
+
+def check_model_files():
+    """Check if model files exist"""
+    model_files = [
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_best.pth",
+        "models/hotspot_detection/models/model_detection_hs_yolov8.pt",
+        "models/classification/model_classification_hs_xgboost_250724.pkl",
+        "models/classification/scaler_classification_32features.pkl"
+    ]
+    
+    missing_models = []
+    total_size = 0
+    
+    for model_path in model_files:
+        path = Path(model_path)
+        if path.exists():
+            size_mb = path.stat().st_size / (1024 * 1024)
+            total_size += size_mb
+            print(f"✅ {model_path} ({size_mb:.1f} MB)")
+        else:
+            missing_models.append(model_path)
+            print(f"❌ {model_path} - MISSING")
+    
+    if missing_models:
+        print(f"\n⚠️  Missing model files: {len(missing_models)}")
+        print("The application may not work properly without these models")
+        response = input("Continue anyway? (y/N): ")
+        if response.lower() != 'y':
             return False
     
-    # Check for main entry point - look for app/__main__.py or main.py
-    main_entry = None
-    if os.path.exists('app/__main__.py'):
-        main_entry = 'app/__main__.py'
-        print("✅ app/__main__.py found")
-    elif os.path.exists('main.py'):
-        main_entry = 'main.py'
-        print("✅ main.py found")
-    else:
-        print("❌ No main entry point found! (looking for app/__main__.py or main.py)")
-        return False
-    
-    # Store the main entry for later use
-    globals()['MAIN_ENTRY'] = main_entry
-    
-    # Check required directories
-    required_dirs = ['config', 'features', 'core', 'assets', 'models']
-    for dir_name in required_dirs:
-        if os.path.exists(dir_name):
-            print(f"✅ {dir_name}/ found")
-        else:
-            print(f"⚠️  {dir_name}/ not found (will skip)")
-    
+    print(f"✅ Total model size: {total_size:.1f} MB")
     return True
 
-def create_spec_file():
-    """Create the spec file if it doesn't exist"""
-    spec_file = 'hotspot_analyzer.spec'
+def copy_models_explicitly():
+    """Explicitly copy model files to ensure they're included"""
+    # ✅ FIXED: Define model_files list in this function
+    model_files = [
+        "models/hotspot_detection/models/model_detection_hs_yolov8.pt",
+        "models/classification/model_classification_hs_xgboost_250724.pkl",
+        "models/classification/scaler_classification_32features.pkl", 
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_best.pth"
+    ]
     
-    if os.path.exists(spec_file):
-        print(f"✅ {spec_file} already exists")
-        return True
+    # Create models directory INSIDE HotspotAnalyzer folder
+    dist_models = Path("dist/HotspotAnalyzer/models")
+    dist_models.mkdir(parents=True, exist_ok=True)
     
-    print(f"📝 Creating {spec_file}...")
-    # The spec file should be created separately as shown in the artifact above
-    print(f"⚠️  Please create {spec_file} manually using the provided template")
-    return False
+    for model_file in model_files:
+        src_path = Path(model_file)
+        if src_path.exists():
+            # Create destination directory structure INSIDE HotspotAnalyzer
+            dest_path = Path("dist/HotspotAnalyzer") / model_file
+            dest_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Copy file
+            shutil.copy2(src_path, dest_path)
+            print(f"✅ Copied model: {model_file}")
+        else:
+            print(f"❌ Model not found: {model_file}")
+    
+    print("✅ Model files explicitly copied")
 
-def build_executable():
-    """Build the executable using PyInstaller"""
-    print("\n🔨 Building executable...")
+def run_pyinstaller():
+    """Run PyInstaller with the spec file"""
+    spec_file = "hotspot_analyzer.spec"
     
-    # Get the main entry point that was detected
-    main_entry = globals().get('MAIN_ENTRY', 'app/__main__.py')
-    spec_file = 'hotspot_analyzer.spec'
-    
-    if not os.path.exists(spec_file):
-        # Fallback to auto-generated command
-        cmd = [
-            'pyinstaller',
-            '--onedir',
-            '--console',  # Changed to console for debugging
-            '--add-data', 'config;config',
-            '--add-data', 'assets;assets', 
-            '--add-data', 'models;models',
-            '--add-data', 'segmentation;segmentation',
-            '--add-data', '.env;.',
-            # Core PySide6
-            '--hidden-import', 'PySide6.QtCore',
-            '--hidden-import', 'PySide6.QtGui',
-            '--hidden-import', 'PySide6.QtWidgets',
-            '--hidden-import', 'PySide6.QtOpenGL',
-            '--hidden-import', 'shiboken6',
-            # Missing standard library modules
-            '--hidden-import', 'pydoc',
-            '--hidden-import', 'pydoc_data',
-            '--hidden-import', 'pydoc_data.topics',
-            '--hidden-import', 'doctest',
-            '--hidden-import', 'inspect',
-            # Scientific stack
-            '--hidden-import', 'numpy',
-            '--hidden-import', 'scipy',
-            '--hidden-import', 'scipy.ndimage',
-            '--hidden-import', 'scipy.ndimage._support_alternative_backends',
-            '--hidden-import', 'scipy._lib',
-            '--hidden-import', 'scipy._lib._array_api',
-            '--hidden-import', 'scipy._lib._docscrape',
-            '--hidden-import', 'skimage',
-            '--hidden-import', 'skimage.filters',
-            '--hidden-import', 'skimage.filters.thresholding',
-            '--hidden-import', 'pandas',
-            '--hidden-import', 'sklearn',
-            '--hidden-import', 'matplotlib',
-            # ML/AI
-            '--hidden-import', 'torch',
-            '--hidden-import', 'torchvision',
-            '--hidden-import', 'ultralytics',
-            # Image processing
-            '--hidden-import', 'pydicom',
-            '--hidden-import', 'cv2',
-            '--hidden-import', 'PIL',
-            '--hidden-import', 'imageio',
-            # App modules
-            '--hidden-import', 'app',
-            '--hidden-import', 'core',
-            '--hidden-import', 'features',
-            '--name', 'hotspotAnalyzer',
-            main_entry  # Use detected main entry
-        ]
-        cmd_str = ' '.join(f'"{arg}"' if ' ' in arg else arg for arg in cmd)
-    else:
-        cmd_str = f'pyinstaller {spec_file}'
-    
-    return run_command(cmd_str, "Building executable with PyInstaller")
-
-def create_data_structure():
-    """Create the final data structure"""
-    print("\n📁 Creating final application structure...")
-    
-    dist_dir = Path('dist/hotspotAnalyzer')
-    if not dist_dir.exists():
-        print("❌ Build directory not found!")
+    if not Path(spec_file).exists():
+        print(f"❌ Spec file not found: {spec_file}")
         return False
     
-    # Create data directory structure matching paths.py expectations
-    data_dir = dist_dir / 'data'
-    data_dir.mkdir(exist_ok=True)
+    print(f"🚀 Starting PyInstaller build with {spec_file}")
     
-    # Create PLANAR structure with session codes
-    planar_dir = data_dir / 'PLANAR'
-    planar_dir.mkdir(exist_ok=True)
+    cmd = [
+        sys.executable, "-m", "PyInstaller",
+        "--clean",           # Clean cache and temporary files
+        "--noconfirm",       # Don't ask for confirmation
+        "--log-level", "INFO",  # Set log level
+        spec_file
+    ]
     
-    # Create session code directories
-    session_codes = ['ALL', 'NSY', 'ATL', 'NBL']  # Add more as needed
-    for session_code in session_codes:
-        (planar_dir / session_code).mkdir(exist_ok=True)
-        print(f"✅ Created session directory: PLANAR/{session_code}")
-    
-    # Create other data subdirectories
-    (data_dir / 'SPECT').mkdir(exist_ok=True)
-    (data_dir / 'PET').mkdir(exist_ok=True)
-    (data_dir / 'DICOM').mkdir(exist_ok=True)
-    
-    # Copy existing data if available (preserve patient data)
-    if os.path.exists('data'):
-        print("📁 Copying existing patient data...")
-        for item in Path('data').iterdir():
-            if item.is_dir():
-                dest = data_dir / item.name
-                if not dest.exists():
-                    shutil.copytree(item, dest)
-                    print(f"✅ Copied: {item.name}")
-                else:
-                    # Merge directories
-                    for sub_item in item.iterdir():
-                        sub_dest = dest / sub_item.name
-                        if sub_item.is_dir() and not sub_dest.exists():
-                            shutil.copytree(sub_item, sub_dest)
-                        elif sub_item.is_file() and not sub_dest.exists():
-                            shutil.copy2(sub_item, sub_dest)
-    
-    # Create empty temp directory structure
-    temp_dir = dist_dir / 'temp'
-    temp_dir.mkdir(exist_ok=True)
-    (temp_dir / 'images').mkdir(exist_ok=True)
-    (temp_dir / 'processing').mkdir(exist_ok=True)
-    (temp_dir / 'hotspot_temp').mkdir(exist_ok=True)
-    
-    # Create logs directory
-    (dist_dir / 'logs').mkdir(exist_ok=True)
-    
-    # Test paths.py compatibility
-    print("🔍 Testing paths.py compatibility...")
     try:
-        # Create test file to verify paths work
-        test_script = f'''
-import sys
-sys.path.insert(0, r"{dist_dir}")
-from core.config.paths import get_safe_project_root, DATA_ROOT, PLANAR_DATA_PATH
-print("Project root:", get_safe_project_root())
-print("Data root:", DATA_ROOT)
-print("PLANAR path:", PLANAR_DATA_PATH)
-print("Data root exists:", DATA_ROOT.exists())
-print("PLANAR path exists:", PLANAR_DATA_PATH.exists())
-'''
-        
-        with open(dist_dir / 'test_paths.py', 'w') as f:
-            f.write(test_script)
-            
-        # Run test (if Python is available)
-        import subprocess
-        result = subprocess.run([sys.executable, str(dist_dir / 'test_paths.py')], 
-                              capture_output=True, text=True, cwd=str(dist_dir))
-        
-        if result.returncode == 0:
-            print("✅ Paths compatibility test passed")
-            print(result.stdout)
-        else:
-            print("⚠️ Paths test had issues (may be normal in build environment)")
-            print(result.stderr)
-            
-        # Clean up test file
-        (dist_dir / 'test_paths.py').unlink()
-        
-    except Exception as e:
-        print(f"⚠️ Could not run paths test: {e}")
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        print("✅ PyInstaller build completed successfully")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"❌ PyInstaller build failed with exit code {e.returncode}")
+        print(f"STDOUT:\n{e.stdout}")
+        print(f"STDERR:\n{e.stderr}")
+        return False
+
+def post_build_cleanup():
+    """Cleanup and optimization after build"""
+    dist_dir = Path("dist/HotspotAnalyzer")
     
-    print("✅ Application structure created with paths.py compatibility")
+    if not dist_dir.exists():
+        print("❌ Build directory not found")
+        return False
+    
+    # Calculate build size
+    total_size = 0
+    file_count = 0
+    
+    for file_path in dist_dir.rglob('*'):
+        if file_path.is_file():
+            total_size += file_path.stat().st_size
+            file_count += 1
+    
+    size_mb = total_size / (1024 * 1024)
+    print(f"📦 Build size: {size_mb:.1f} MB ({file_count:,} files)")
+    
+    # Optional: Remove debug files for smaller distribution
+    debug_patterns = ['*.pdb', '*.debug', '*.map']
+    removed_files = 0
+    
+    for pattern in debug_patterns:
+        for debug_file in dist_dir.rglob(pattern):
+            debug_file.unlink()
+            removed_files = 1
+    
+    if removed_files > 0:
+        print(f"🧹 Removed {removed_files} debug files")
+    
     return True
 
-def create_batch_file():
-    """Create a batch file to run the application"""
-    print("\n📝 Creating launch batch file...")
-    
-    batch_content = """@echo off
-echo Starting HotspotAnalyzer...
-cd /d "%~dp0"
-hotspotAnalyzer.exe
+def create_installer_script():
+    """Create a simple installer script"""
+    installer_content = """
+@echo off
+echo Installing Hotspot Analyzer...
+echo.
+echo This will install Hotspot Analyzer to: %PROGRAMFILES%\\HotspotAnalyzer
+echo.
+pause
+
+if not exist "%PROGRAMFILES%\\HotspotAnalyzer" mkdir "%PROGRAMFILES%\\HotspotAnalyzer"
+
+echo Copying files...
+xcopy /E /I /Y "HotspotAnalyzer\\*" "%PROGRAMFILES%\\HotspotAnalyzer\\"
+
+echo Creating desktop shortcut...
+powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%userprofile%\\Desktop\\Hotspot Analyzer.lnk');$s.TargetPath='%PROGRAMFILES%\\HotspotAnalyzer\\HotspotAnalyzer.exe';$s.Save"
+
+echo.
+echo Installation completed!
+echo You can run Hotspot Analyzer from the desktop shortcut or from:
+echo %PROGRAMFILES%\\HotspotAnalyzer\\HotspotAnalyzer.exe
+echo.
 pause
 """
     
-    batch_path = Path('dist/hotspotAnalyzer/run_hotspot_analyzer.bat')
-    batch_path.write_text(batch_content)
-    print("✅ Created run_hotspot_analyzer.bat")
+    installer_path = Path("dist/install.bat")
+    with open(installer_path, 'w') as f:
+        f.write(installer_content)
+    
+    print(f"✅ Created installer script: {installer_path}")
 
 def main():
     """Main build process"""
-    print("🚀 Building HotspotAnalyzer Application")
-    print("="*50)
+    print("🏗️  Hotspot Analyzer Build Script")
+    print("=" * 50)
     
-    # Change to script directory
-    os.chdir(Path(__file__).parent)
+    # Step 1: Setup environment
+    setup_environment()
     
-    # Build steps
-    steps = [
-        ("Clean build artifacts", clean_build),
-        ("Check dependencies", check_dependencies),
-        ("Build executable", build_executable),
-        ("Create data structure", create_data_structure),
-        ("Create batch file", create_batch_file),
-    ]
+    # Step 2: Clean previous builds
+    clean_previous_builds()
+    create_torch_hooks()
     
-    for step_name, step_func in steps:
-        print(f"\n🔄 {step_name}...")
-        if callable(step_func):
-            result = step_func()
-            if result is False:
-                print(f"❌ Failed at step: {step_name}")
-                sys.exit(1)
-        else:
-            step_func
+    # Step 3: Verify dependencies
+    if not verify_dependencies():
+        sys.exit(1)
     
-    print("\n" + "="*50)
-    print("🎉 BUILD COMPLETED SUCCESSFULLY!")
-    print("="*50)
-    print(f"📂 Application built in: {Path('dist/hotspotAnalyzer').absolute()}")
-    print("🚀 Run with: dist/hotspotAnalyzer/hotspotAnalyzer.exe")
-    print("💡 Or use: dist/hotspotAnalyzer/run_hotspot_analyzer.bat")
+    # Step 4: Check model files
+    if not check_model_files():
+        sys.exit(1)
+    # Step 4.5: Create runtime hooks if they don't exist
+    hooks_dir = Path("hooks")
+    hooks_dir.mkdir(exist_ok=True)
+
+    # Create the early torch hook
+    torch_early_hook = hooks_dir / "hook-torch_early.py"
+    if not torch_early_hook.exists():
+        print("Creating early torch hook...")
+        hook_content = '''"""
+    Early hook to patch torch BEFORE it loads to prevent triton registration
+    """
+    import sys
+    import types
+    import os
+
+    os.environ['TRITON_DISABLE'] = '1'
+    os.environ['TORCH_DISABLE_TRITON_LIBRARY'] = '1'
+
+    class MockLibrary:
+        def __init__(self, name, kind):
+            if name == "triton":
+                self.m = None
+            else:
+                try:
+                    import torch._C
+                    self.m = torch._C._dispatch_library(name, kind)
+                except:
+                    self.m = None
+
+    mock_torch = types.ModuleType('torch')
+    mock_torch.library = types.ModuleType('torch.library')
+    mock_torch.library.Library = MockLibrary
+    sys.modules['torch.library'] = mock_torch.library
+    '''
+        torch_early_hook.write_text(hook_content)
+        print("✅ Early torch hook created")
+
+    # Step 5: Run PyInstaller
+    if not run_pyinstaller():
+        sys.exit(1)
+    
+    # Step 6: Post-build cleanup
+    if not post_build_cleanup():
+        sys.exit(1)
+    
+    # Step 6.5: Copy models explicitly
+    copy_models_explicitly()
+    
+    # Step 7: Create installer
+    create_installer_script()
+    
+    print("\n" + "=" * 50)
+    print("🎉 Build completed successfully!")
+    print("\nNext steps:")
+    print("1. Test the executable: dist/HotspotAnalyzer/HotspotAnalyzer.exe")
+    print("2. Run the installer: dist/install.bat")
+    print("3. Distribute the dist/HotspotAnalyzer folder")
 
 if __name__ == "__main__":
     main()

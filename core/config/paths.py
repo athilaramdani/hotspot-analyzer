@@ -48,10 +48,35 @@ CLASSIFICATION_XGBOOST_MODEL = CLASSIFICATION_MODEL_PATH / "model_classification
 CLASSIFICATION_SCALER_MODEL = CLASSIFICATION_MODEL_PATH / "scaler_classification_32features.pkl"
 
 # Detection Model Path with build compatibility
-if getattr(sys, 'frozen', False):
-    YOLO_MODEL_PATH = MODELS_ROOT / "hotspot_detection" / "models" / "model_detection_hs_yolov8.pt"
-else:
-    YOLO_MODEL_PATH = PROJECT_ROOT / "models" / "hotspot_detection" / "models" / "model_detection_hs_yolov8.pt"
+def get_yolo_model_path():
+    """Get YOLO model path with multiple fallback locations"""
+    if getattr(sys, 'frozen', False):
+        # PyInstaller bundle - try multiple locations
+        potential_paths = [
+            MODELS_ROOT / "hotspot_detection" / "models" / "model_detection_hs_yolov8.pt",
+            PROJECT_ROOT / "models" / "hotspot_detection" / "models" / "model_detection_hs_yolov8.pt",
+            Path(sys._MEIPASS) / "models" / "hotspot_detection" / "models" / "model_detection_hs_yolov8.pt",
+            Path(sys.executable).parent / "models" / "hotspot_detection" / "models" / "model_detection_hs_yolov8.pt"
+        ]
+    else:
+        # Development mode
+        potential_paths = [
+            PROJECT_ROOT / "models" / "hotspot_detection" / "models" / "model_detection_hs_yolov8.pt"
+        ]
+    
+    for path in potential_paths:
+        if path.exists():
+            print(f"[PATHS] Found YOLO model at: {path}")
+            return path
+    
+    print(f"[PATHS] YOLO model not found in any location:")
+    for path in potential_paths:
+        print(f"[PATHS]   Checked: {path} (exists: {path.exists()})")
+    
+    # Return first path as fallback
+    return potential_paths[0]
+
+YOLO_MODEL_PATH = get_yolo_model_path()
 
 # Config files
 CONFIG_ROOT = PROJECT_ROOT / "config"
