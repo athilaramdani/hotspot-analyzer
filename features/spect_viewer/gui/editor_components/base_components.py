@@ -639,6 +639,10 @@ class BaseEditorDialog(QDialog):
         self._save_thread = None
         self._loading_dialog = None
         self._is_saving = False
+
+        # ✅ FIX: Set focus policy and enable keyboard focus
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setAttribute(Qt.WA_DeleteOnClose, False)
         
         # Main layout
         self.main_layout = QHBoxLayout(self)
@@ -648,6 +652,7 @@ class BaseEditorDialog(QDialog):
         self._create_toolbar()
         self._create_main_area()
         self._connect_signals()
+        self._setup_shortcuts()
 
     def _create_toolbar(self):
         """Create left toolbar - to be implemented by subclasses."""
@@ -655,6 +660,25 @@ class BaseEditorDialog(QDialog):
         self.toolbar_widget.setMaximumWidth(300)
         self.toolbar_layout = QVBoxLayout(self.toolbar_widget)
         self.main_layout.addWidget(self.toolbar_widget)
+    
+    def _setup_shortcuts(self):
+        """Setup keyboard shortcuts for undo/redo."""
+        from PySide6.QtGui import QShortcut, QKeySequence
+        from PySide6.QtCore import Qt
+        
+        # Create shortcuts
+        self.undo_shortcut = QShortcut(QKeySequence.Undo, self)  # Ctrl+Z
+        self.redo_shortcut = QShortcut(QKeySequence.Redo, self)  # Ctrl+Y
+        
+        # Connect to methods
+        self.undo_shortcut.activated.connect(self._perform_undo)
+        self.redo_shortcut.activated.connect(self._perform_redo)
+        
+        # Enable shortcuts
+        self.undo_shortcut.setEnabled(True)
+        self.redo_shortcut.setEnabled(True)
+        
+        print("✅ Keyboard shortcuts setup: Ctrl+Z (Undo), Ctrl+Y (Redo)")
 
     def _create_main_area(self):
         """Create main canvas area - to be implemented by subclasses."""
@@ -700,15 +724,28 @@ class BaseEditorDialog(QDialog):
 
     def keyPressEvent(self, event):
         """Handle common keyboard shortcuts."""
+        from PySide6.QtCore import Qt
+        
+        # ✅ FIX: Handle Ctrl+Z and Ctrl+Y with proper modifier checking
         if event.modifiers() & Qt.ControlModifier:
             if event.key() == Qt.Key_Z:
+                print("🔍 Ctrl+Z detected in keyPressEvent")
                 self._perform_undo()
                 event.accept()
                 return
             elif event.key() == Qt.Key_Y:
+                print("🔍 Ctrl+Y detected in keyPressEvent")
                 self._perform_redo()
                 event.accept()
                 return
+        
+        # ✅ FIX: Handle Escape key
+        if event.key() == Qt.Key_Escape:
+            self.reject()
+            event.accept()
+            return
+            
+        # Call parent implementation for other keys
         super().keyPressEvent(event)
 
     def _perform_undo(self):
@@ -839,3 +876,71 @@ class BaseSaveThread(QThread):
     def _perform_save(self) -> Optional[str]:
         """Actual save logic - to be implemented by subclasses."""
         raise NotImplementedError("Subclasses must implement _perform_save")
+    
+    def showEvent(self, event):
+        """Handle show event - ensure focus."""
+        super().showEvent(event)
+        # ✅ FIX: Set focus to dialog when shown
+        self.setFocus()
+        self.activateWindow()
+        self.raise_()
+
+    def _start_save_process(self, save_thread_instance):
+        """Start threaded save process with loading dialog."""
+        if self._is_saving:
+            QMessageBox.warning(self, "Save in Progress", "Please wait for current save to complete.")
+            return
+        
+        self._is_saving = True
+        
+        # Disable save button
+        if hasattr(self, 'btn_save'):
+            self.btn_save.setEnabled(False)
+            self.btn_save.setText("Saving...")
+        
+        # Create loading dialog
+        self._loading_dialog = LoadingDialog(
+            title="Saving",
+            message="Preparing to save...",
+            show_progress=True,
+            show_cancel=False,
+            parent=self
+        )
+        self._loading_dialog.show()
+        
+        # Start save thread
+        self._save_thread = save_thread_instance
+        self._save_thread.progress_updated.connect(self._on_save_progress)
+        self._save_thread.save_completed.connect(self._on_save_completed)
+        self._save_thread.start()    
+
+    def _on_save_progress(self, progress: int, message: str):
+        """Handle save progress updates."""
+        if self._loading_dialog:
+            self._loading_dialog.set_progress(progress)
+            self._loading_dialog.set_message(message)
+
+    def _on_save_completed(self, success: bool, message: str):
+        """Handle save completion."""
+        if self._loading_dialog:
+            self._loading_dialog.close()
+            self._loading_dialog = None
+        
+        self._is_saving = False
+        
+        # Re-enable save button
+        if hasattr(self, 'btn_save'):
+            self.btn_save.setEnabled(True)
+            self.btn_save.setText("Save")
+        
+        # Show result
+        if success:
+            QMessageBox.information(self, "Success", message)
+            self.accept()
+        else:
+            QMessageBox.critical(self, "Save Failed", message)
+        
+        # Clean up
+        if self._save_thread:
+            self._save_thread.deleteLater()
+            self._save_thread = None
