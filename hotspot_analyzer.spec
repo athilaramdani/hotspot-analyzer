@@ -19,7 +19,6 @@ block_cipher = None
 hiddenimports = [
     # ========== CORE APP MODULES ==========
     'app',
-    'app.main',
     'app.__main__',
     
     # ========== CORE MODULES ==========
@@ -123,7 +122,6 @@ hiddenimports = [
     'sklearn.utils',
     'sklearn.utils._cython_blas',
     'sklearn.neighbors',
-    'sklearn.neighbors._typedefs',
     'sklearn.neighbors._quad_tree',
     'sklearn.tree',
     'sklearn.tree._utils',
@@ -174,16 +172,6 @@ hiddenimports = [
     'torch.autograd.function',
     'torch.cuda',
     'torch.jit',
-    'torch._C',
-    'torch._C._nn',
-    'torch._C._autograd',
-    'torch._C._te',
-    'torch._C._fft',
-    'torch._C._linalg',
-    'torch._C._sparse',
-    'torch._C._special',
-    'torch._ops',
-    'torch._ops.ops',
     'torch.serialization',
     'torch.storage',
     'torch.tensor',
@@ -219,29 +207,6 @@ hiddenimports = [
     'torch.testing._internal.autograd_function_db',
     'torch.utils.checkpoint',
 
-    # ========== TORCH DYNAMO (for newer PyTorch) ==========
-    'torch._dynamo',
-    'torch._dynamo.config',
-    'torch._dynamo.convert_frame',
-    'torch._dynamo.eval_frame',
-    'torch._dynamo.resume_execution',
-    'torch._dynamo.symbolic_convert',
-    'torch._dynamo.trace_rules',
-    'torch._dynamo.variables',
-    'torch._dynamo.variables.base',
-    'torch._dynamo.guards',
-    'torch._dynamo.polyfills.fx',
-    'torch._dynamo.polyfills.loader',
-    'torch._dynamo.polyfills',
-    'torch._functorch.functional_call',
-    'torch._functorch.vmap',
-    'torch._functorch.compile',
-    
-    # Additional torch modules
-    'torch._inductor',
-    'torch._inductor.config',
-    'torch.compiler',
-
     # ========== TORCH COMPILE & JIT ==========
     'torch.compiler',
     'torch._inductor',
@@ -260,11 +225,19 @@ hiddenimports = [
     'timm.models',
     'timm.layers',
     
-    # TorchVision
+    # TorchVision - MINIMAL SAFE IMPORTS ONLY
     'torchvision',
+    'torchvision.extension',  # ✅ INCLUDE extension
+    'torchvision._extension', # ✅ INCLUDE private extension
     'torchvision.transforms',
+    'torchvision.transforms.functional',
+    'torchvision.transforms._transforms_video',
     'torchvision.models',
     'torchvision.utils',
+    'torchvision.datasets',
+    'torchvision.io',
+    'torchvision.ops',
+    'torchvision.ops._register_ops',
     
     # ========== NNUNET ==========
     'nnunetv2',
@@ -404,25 +377,71 @@ if config_path.exists():
 # Add models - CRITICAL for AI functionality
 models_path = current_dir / "models"
 if models_path.exists():
-    # Add the entire models directory
+    # FIX: Add the entire models directory with ALL subdirectories and files
     datas.append((str(models_path), 'models'))
     
-    # Explicitly add critical model files to ensure they're included
+    # NEW: Explicitly add ALL nnUNet files (not just checkpoint)
+    nnunet_path = models_path / "segmentation_2" / "nnUNet_results" / "Dataset001_BoneRegion" / "nnUNetTrainer_50epochs__nnUNetPlans__2d"
+    if nnunet_path.exists():
+        print(f"[SPEC] Adding complete nnUNet structure from: {nnunet_path}")
+        
+        # Add the entire nnUNet model directory structure
+        datas.append((str(nnunet_path), str(Path("models") / "segmentation_2" / "nnUNet_results" / "Dataset001_BoneRegion" / "nnUNetTrainer_50epochs__nnUNetPlans__2d")))
+        
+        # Also add dataset-level files if they exist
+        dataset_path = models_path / "segmentation_2" / "nnUNet_results" / "Dataset001_BoneRegion"
+        if dataset_path.exists():
+            datas.append((str(dataset_path), str(Path("models") / "segmentation_2" / "nnUNet_results" / "Dataset001_BoneRegion")))
+        
+        # List critical files to verify
+        critical_nnunet_files = [
+            nnunet_path / "dataset.json",
+            nnunet_path / "plans.json", 
+            nnunet_path / "fold_0" / "checkpoint_best.pth",
+            nnunet_path / "fold_0" / "checkpoint_final.pth",
+            dataset_path / "dataset.json"
+        ]
+        
+        for file_path in critical_nnunet_files:
+            if file_path.exists():
+                print(f"[SPEC] Found critical nnUNet file: {file_path.name}")
+            else:
+                print(f"[SPEC] Missing nnUNet file: {file_path}")
+    
+    # IMPROVED: More comprehensive critical model files check
     critical_models = [
         "models/hotspot_detection/models/model_detection_hs_yolov8.pt",
         "models/classification/model_classification_hs_xgboost_250724.pkl", 
         "models/classification/scaler_classification_32features.pkl",
-        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_best.pth"
+        # Add ALL nnUNet files that might be needed
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/dataset.json",
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/dataset.json",
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/plans.json",
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_best.pth",
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_final.pth"
     ]
     
     for model_file in critical_models:
         full_path = current_dir / model_file
         if full_path.exists():
+            # Ensure individual files are also explicitly added
             datas.append((str(full_path), str(Path(model_file).parent)))
             print(f"[SPEC] Added critical model: {model_file}")
         else:
             print(f"[SPEC] WARNING: Critical model not found: {model_file}")
 
+# NEW: Add special handling for nnUNet configuration files
+nnunet_configs = [
+    "models/segmentation_2/nnUNet_results",
+    "models/segmentation_2/nnUNet_preprocessed", 
+    "models/segmentation_2/nnUNet_raw"
+]
+
+for config_dir in nnunet_configs:
+    config_path = current_dir / config_dir
+    if config_path.exists():
+        datas.append((str(config_path), config_dir))
+        print(f"[SPEC] Added nnUNet config dir: {config_dir}")
 # Add assets (if exists)
 assets_path = current_dir / "assets"
 if assets_path.exists():
@@ -465,16 +484,28 @@ excludes = [
     'triton.compiler',
     'triton.runtime',
     'triton.ops',
+    # Exclude problematic torch modules
+    'torch._dynamo',  # ✅ BARU: Exclude dynamo untuk stability
+    'torch._inductor',  # ✅ BARU: Exclude inductor
 ]
 
 # Runtime hooks - EMPTY to let PyInstaller handle torch normally
-runtime_hooks = []  # Empty, no runtime hooks
+runtime_hooks = [
+    'hooks/runtime_hook.py',
+    'hooks/runtime_hook_nnunet.py',
+    'hooks/runtime_hook_torchvision.py',
+    'hooks/runtime_hook_xgboost.py'  # ✅ ADD THIS
+]
 
 # Analysis with improved settings
 a = Analysis(
     [main_script],
     pathex=[str(current_dir)],
-    binaries=[],
+    binaries=[
+        # ✅ ADD: XGBoost library binaries
+        (str(current_dir / '.venv' / 'Lib' / 'site-packages' / 'xgboost' / 'lib' / 'xgboost.dll'), 'xgboost/lib'),
+        (str(current_dir / '.venv' / 'Lib' / 'site-packages' / 'xgboost' / 'lib' / 'xgboost.dll'), 'lib'),
+    ],
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=['hooks'],
@@ -526,7 +557,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,  # Set to True for debugging, False for production
+    console=False,  # Set to True for debugging, False for production
     disable_windowed_traceback=False,
     target_arch=None,
     codesign_identity=None,

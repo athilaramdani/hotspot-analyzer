@@ -54,47 +54,25 @@ def create_torch_hooks():
     torch_hook_content = '''
 from PyInstaller.utils.hooks import collect_all, collect_submodules
 
-# Collect all torch modules
+# Kumpulkan semua resource utama dari torch
 datas, binaries, hiddenimports = collect_all('torch')
 
-# Add specific torch modules that might be missing
-hiddenimports += [
-    'torch._dynamo',
-    'torch._dynamo.config',
-    'torch._dynamo.convert_frame',
-    'torch._dynamo.eval_frame',
-    'torch._dynamo.resume_execution', 
-    'torch._dynamo.symbolic_convert',
-    'torch._dynamo.trace_rules',
-    'torch._dynamo.variables',
-    'torch._dynamo.variables.base',
-    'torch._dynamo.guards',
-    'torch._dynamo.polyfills',
-    'torch._dynamo.polyfills.fx',
-    'torch._dynamo.polyfills.loader',
-    'torch._functorch',
-    'torch._inductor',
-    'torch._C._nn',
-    'torch._C._autograd',
-    'torch._C._te',
-    'torch._C._fft',
-    'torch._C._linalg',
-    'torch._C._sparse',
-    'torch._C._special',
-    'torch._ops',
-    'torch._ops.ops',
-    'torch.utils.checkpoint',
-    'torch.testing._internal',
-    'torch.testing._internal.logging_tensor',
-    'torch.testing._internal.common_utils',
-    'torch.testing._internal.common_dtype',
-    'torch.testing._internal.common_device_type',
-]
+# Pastikan torch.testing (termasuk _comparison) ikut ter-bundle
+try:
+    hiddenimports += collect_submodules('torch.testing')
+except Exception:
+    pass
 
-# Exclude triton completely
+# (opsional) functorch kadang lazy-load; aman untuk ikutkan submodules-nya
+try:
+    hiddenimports += collect_submodules('torch._functorch')
+except Exception:
+    pass
+
+# Exclude triton sepenuhnya
 excludedimports = ['triton', 'triton.*']
 
-# Add nnUNet related modules  
+# Tambahan modul terkait nnUNet
 hiddenimports += [
     'nnunetv2',
     'dynamic_network_architectures',
@@ -102,7 +80,7 @@ hiddenimports += [
     'acvl_utils',
 ]
 
-# Add ultralytics modules
+# Tambahan modul ultralytics/YOLO
 hiddenimports += [
     'ultralytics',
     'ultralytics.models',
@@ -112,15 +90,14 @@ hiddenimports += [
     'ultralytics.nn',
 ]
 
-# Exclude tests and development files
+# Exclude paket test (JANGAN exclude torch.testing)
 excludedimports += [
-    'torch.test', 
-    'torch.testing',
+    'torch.test',
     'nnunetv2.tests',
     'ultralytics.tests',
 ]
 
-print(f"Torch hook: collected {len(hiddenimports)} hidden imports")
+print(f"Torch hook: collected {len(hiddenimports)} hidden imports, {len(datas)} datas, {len(binaries)} binaries")
 '''
     torch_hook.write_text(torch_hook_content)
     print("✅ Comprehensive torch hook created")
@@ -208,33 +185,110 @@ def check_model_files():
     return True
 
 def copy_models_explicitly():
-    """Explicitly copy model files to ensure they're included"""
-    # ✅ FIXED: Define model_files list in this function
+    """Explicitly copy model files to ensure they're included - COMPLETE nnUNet structure"""
+    
+    # ✅ NEW: Copy entire directories for nnUNet
+    nnunet_dirs_to_copy = [
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion"
+    ]
+    
+    for dir_path in nnunet_dirs_to_copy:
+        src_dir = Path(dir_path)
+        if src_dir.exists():
+            dest_dir = Path("dist/HotspotAnalyzer") / dir_path
+            dest_dir.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Copy entire directory structure
+            import shutil
+            if dest_dir.exists():
+                shutil.rmtree(dest_dir)
+            shutil.copytree(src_dir, dest_dir)
+            print(f"✅ Copied entire directory: {dir_path}")
+        else:
+            print(f"❌ Directory not found: {dir_path}")
+    
+    # ✅ IMPROVED: Individual critical files
     model_files = [
         "models/hotspot_detection/models/model_detection_hs_yolov8.pt",
         "models/classification/model_classification_hs_xgboost_250724.pkl",
-        "models/classification/scaler_classification_32features.pkl", 
-        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_best.pth"
+        "models/classification/scaler_classification_32features.pkl"
     ]
     
-    # Create models directory INSIDE HotspotAnalyzer folder
-    dist_models = Path("dist/HotspotAnalyzer/models")
-    dist_models.mkdir(parents=True, exist_ok=True)
+    # ✅ NEW: Verify nnUNet files after directory copy
+    nnunet_verification_files = [
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/dataset.json",
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/dataset.json",
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/plans.json",
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_best.pth",
+        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_final.pth"
+    ]
     
+    print("\n🔍 Verifying nnUNet files in build:")
+    for verification_file in nnunet_verification_files:
+        build_file_path = Path("dist/HotspotAnalyzer") / verification_file
+        src_file_path = Path(verification_file)
+        
+        if build_file_path.exists():
+            size_mb = build_file_path.stat().st_size / (1024 * 1024)
+            print(f"✅ {verification_file} ({size_mb:.1f} MB)")
+        elif src_file_path.exists():
+            # File exists in source but not in build - copy it explicitly
+            build_file_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src_file_path, build_file_path)
+            size_mb = build_file_path.stat().st_size / (1024 * 1024)
+            print(f"✅ Copied missing file: {verification_file} ({size_mb:.1f} MB)")
+        else:
+            print(f"❌ Missing: {verification_file}")
+    
+    # Copy individual model files
     for model_file in model_files:
         src_path = Path(model_file)
         if src_path.exists():
-            # Create destination directory structure INSIDE HotspotAnalyzer
             dest_path = Path("dist/HotspotAnalyzer") / model_file
             dest_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # Copy file
             shutil.copy2(src_path, dest_path)
             print(f"✅ Copied model: {model_file}")
         else:
             print(f"❌ Model not found: {model_file}")
     
-    print("✅ Model files explicitly copied")
+    print("✅ Model files explicitly copied with complete nnUNet structure")
+
+def verify_nnunet_structure():
+    """NEW: Verify complete nnUNet structure exists"""
+    print("\n🧪 Verifying complete nnUNet structure...")
+    
+    base_path = Path("dist/HotspotAnalyzer/models/segmentation_2/nnUNet_results/Dataset001_BoneRegion")
+    
+    required_structure = {
+        "dataset.json": "Dataset configuration",
+        "nnUNetTrainer_50epochs__nnUNetPlans__2d/dataset.json": "Training dataset config", 
+        "nnUNetTrainer_50epochs__nnUNetPlans__2d/plans.json": "Training plans",
+        "nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_best.pth": "Best model checkpoint",
+        "nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_final.pth": "Final model checkpoint"
+    }
+    
+    missing_files = []
+    total_size = 0
+    
+    for rel_path, description in required_structure.items():
+        full_path = base_path / rel_path
+        if full_path.exists():
+            size_mb = full_path.stat().st_size / (1024 * 1024)
+            total_size += size_mb
+            print(f"✅ {description}: {rel_path} ({size_mb:.1f} MB)")
+        else:
+            missing_files.append((rel_path, description))
+            print(f"❌ {description}: {rel_path}")
+    
+    if missing_files:
+        print(f"\n⚠️  Missing {len(missing_files)} critical nnUNet files:")
+        for rel_path, description in missing_files:
+            print(f"   - {description}: {rel_path}")
+        return False
+    else:
+        print(f"\n✅ All nnUNet files present (Total: {total_size:.1f} MB)")
+        return True
 
 def run_pyinstaller():
     """Run PyInstaller with the spec file"""
@@ -349,42 +403,10 @@ def main():
     # Step 4: Check model files
     if not check_model_files():
         sys.exit(1)
-    # Step 4.5: Create runtime hooks if they don't exist
+    # Step 4.5: Ensure hooks directory exists
     hooks_dir = Path("hooks")
     hooks_dir.mkdir(exist_ok=True)
-
-    # Create the early torch hook
-    torch_early_hook = hooks_dir / "hook-torch_early.py"
-    if not torch_early_hook.exists():
-        print("Creating early torch hook...")
-        hook_content = '''"""
-    Early hook to patch torch BEFORE it loads to prevent triton registration
-    """
-    import sys
-    import types
-    import os
-
-    os.environ['TRITON_DISABLE'] = '1'
-    os.environ['TORCH_DISABLE_TRITON_LIBRARY'] = '1'
-
-    class MockLibrary:
-        def __init__(self, name, kind):
-            if name == "triton":
-                self.m = None
-            else:
-                try:
-                    import torch._C
-                    self.m = torch._C._dispatch_library(name, kind)
-                except:
-                    self.m = None
-
-    mock_torch = types.ModuleType('torch')
-    mock_torch.library = types.ModuleType('torch.library')
-    mock_torch.library.Library = MockLibrary
-    sys.modules['torch.library'] = mock_torch.library
-    '''
-        torch_early_hook.write_text(hook_content)
-        print("✅ Early torch hook created")
+    print("✅ Hooks directory ready")
 
     # Step 5: Run PyInstaller
     if not run_pyinstaller():
@@ -396,6 +418,12 @@ def main():
     
     # Step 6.5: Copy models explicitly
     copy_models_explicitly()
+    
+    if not verify_nnunet_structure():
+        print("⚠️  nnUNet structure incomplete - segmentation may not work")
+        response = input("Continue anyway? (y/N): ")
+        if response.lower() != 'y':
+            sys.exit(1)
     
     # Step 7: Create installer
     create_installer_script()

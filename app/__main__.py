@@ -1,14 +1,100 @@
-# app/__main__.py - PRODUCTION READY VERSION
+# app/__main__.py - PRODUCTION READY VERSION with DEBUG
 """
 Main application entry point - Production Ready
 Handles PyInstaller compatibility and application startup
-Version: 2.0 - Production Ready
+Version: 2.0 - Production Ready + Debug
 """
 
 import sys
 import os
 from pathlib import Path
 import traceback
+from io import StringIO
+
+def setup_console_redirect():
+    """Setup stdout/stderr redirect for windowed mode"""
+    if hasattr(sys, '_MEIPASS') and not hasattr(sys.stdout, 'buffer'):
+        # Create log file for debugging
+        log_dir = Path(sys.executable).parent / "logs"
+        log_dir.mkdir(exist_ok=True)
+        log_file = log_dir / "hotspot_analyzer.log"
+        
+        # Redirect to file instead of void
+        log_handle = open(log_file, 'w', encoding='utf-8')
+        sys.stdout = log_handle
+        sys.stderr = log_handle
+        
+        print(f"[MAIN] Console redirected to: {log_file}")
+
+# Call BEFORE any AI imports
+if hasattr(sys, '_MEIPASS'):
+    setup_console_redirect()
+    
+# ========== CRITICAL: PYINSTALLER DEBUG ==========
+def debug_pyinstaller_state():
+    """Debug PyInstaller state untuk analyze masalah"""
+    if not hasattr(sys, '_MEIPASS'):
+        return
+    
+    print("\n🧪 [MAIN DEBUG] PyInstaller Environment Analysis")
+    print("=" * 60)
+    print(f"_MEIPASS: {sys._MEIPASS}")
+    print(f"executable: {sys.executable}")
+    
+    # Debug torch.library sebelum import apapun
+    if 'torch.library' in sys.modules:
+        lib = sys.modules['torch.library']
+        print(f"torch.library pre-loaded: {type(lib)}")
+        is_blocker = 'TritonBlocker' in str(type(lib))
+        print(f"Is TritonBlocker: {is_blocker}")
+        print(f"Has _register_fake: {hasattr(lib, '_register_fake')}")
+        print(f"Has register_fake: {hasattr(lib, 'register_fake')}")
+        
+        if hasattr(lib, 'Library'):
+            try:
+                test_lib = lib.Library("test")
+                print(f"Library class: {type(test_lib)}")
+                print(f"Library._register_fake: {hasattr(test_lib, '_register_fake')}")
+            except Exception as e:
+                print(f"Library test failed: {e}")
+        else:
+            print("No Library class found")
+        
+        if is_blocker:
+            print("⚠️  PROBLEM: torch.library is TritonBlocker!")
+    else:
+        print("torch.library not pre-loaded")
+    
+    # Count triton modules
+    triton_mods = [k for k in sys.modules.keys() if 'triton' in k.lower()]
+    blocker_mods = [k for k in triton_mods if 'TritonBlocker' in str(type(sys.modules[k]))]
+    print(f"Pre-existing triton modules: {len(triton_mods)} (Blockers: {len(blocker_mods)})")
+    
+    # Show some key modules
+    for mod in triton_mods[:8]:  # Show first 8
+        is_blocker = 'TritonBlocker' in str(type(sys.modules[mod]))
+        print(f"  {mod}: {'BLOCKER' if is_blocker else 'Normal'}")
+    
+    # Test torch.library creation
+    print("\nTesting torch.library functionality:")
+    try:
+        if 'torch.library' in sys.modules:
+            lib = sys.modules['torch.library']
+            if hasattr(lib, 'Library'):
+                test_lib = lib.Library("test_lib")
+                if hasattr(test_lib, '_register_fake'):
+                    print("✅ torch.library._register_fake works")
+                else:
+                    print("❌ torch.library._register_fake missing")
+            else:
+                print("❌ torch.library.Library missing")
+        else:
+            print("❌ torch.library not available")
+    except Exception as e:
+        print(f"❌ torch.library test failed: {e}")
+    
+    print("=" * 60)
+    print()
 
 # ========== CRITICAL: PYINSTALLER EARLY SETUP ==========
 def setup_pyinstaller_environment():
@@ -21,7 +107,6 @@ def setup_pyinstaller_environment():
     
     # Critical environment variables - set BEFORE any torch-related imports
     critical_env = {
-        'TORCH_LOGS': '',
         'TRITON_DISABLE': '1', 
         'TORCH_TRITON_DISABLE': '1',
         'USE_TRITON': '0',
@@ -36,6 +121,11 @@ def setup_pyinstaller_environment():
         'TORCH_FX_DISABLE': '1',
         'PYTHONDONTWRITEBYTECODE': '1',
         'PYTHONOPTIMIZE': '1',
+        # ✅ ENHANCED: Better torchvision fixes
+        'TORCHVISION_DISABLE_META_REGISTRATION': '1',
+        'TORCHVISION_DISABLE_EXTENSIONS': '1',  # NEW
+        'TORCHVISION_DISABLE_VIDEO_OPT': '1',   # NEW
+        'TORCH_LIBRARY_DISABLE': '1',
     }
     
     for key, value in critical_env.items():
@@ -46,6 +136,9 @@ def setup_pyinstaller_environment():
 
 # Apply environment setup immediately
 setup_pyinstaller_environment()
+
+# ✅ ADD: Debug state BEFORE any imports
+debug_pyinstaller_state()
 
 # ========== APPLY EARLY PATCHES ==========
 def apply_early_patches():
@@ -68,6 +161,18 @@ def apply_early_patches():
 
 # Apply early patches
 apply_early_patches()
+
+# ✅ ADD: Debug state AFTER patches
+if hasattr(sys, '_MEIPASS'):
+    print("\n🧪 [POST-PATCH DEBUG] State after patches:")
+    if 'torch.library' in sys.modules:
+        lib = sys.modules['torch.library']
+        is_blocker = 'TritonBlocker' in str(type(lib))
+        print(f"  torch.library after patches: {'BLOCKER' if is_blocker else 'Normal'}")
+        print(f"  Has _register_fake: {hasattr(lib, '_register_fake')}")
+    else:
+        print("  torch.library not yet loaded")
+    print()
 
 # ========== STANDARD LIBRARY IMPORTS (SAFE) ==========
 try:
@@ -107,6 +212,49 @@ except ImportError as e:
     print(f"[CRITICAL ERROR] Could not import application modules: {e}")
     print(f"[CRITICAL ERROR] Traceback: {traceback.format_exc()}")
     sys.exit(1)
+
+# ✅ ADD: Debug state AFTER imports
+if hasattr(sys, '_MEIPASS'):
+    print("\n🧪 [POST-IMPORT DEBUG] State after all imports:")
+    
+    # Test torch import
+    try:
+        import torch
+        print("  ✅ torch import: SUCCESS")
+        
+        if hasattr(torch, 'library'):
+            lib = torch.library
+            is_blocker = 'TritonBlocker' in str(type(lib))
+            print(f"  torch.library: {'BLOCKER' if is_blocker else 'Normal'}")
+            print(f"  torch.library._register_fake: {hasattr(lib, '_register_fake')}")
+        else:
+            print("  torch.library not available")
+            
+    except Exception as e:
+        print(f"  ❌ torch import failed: {e}")
+    
+    # Test torchvision import
+    try:
+        import torchvision
+        print("  ✅ torchvision import: SUCCESS")
+    except Exception as e:
+        print(f"  ❌ torchvision import failed: {type(e).__name__}")
+    
+    # Test ultralytics import
+    try:
+        from ultralytics import YOLO
+        print("  ✅ ultralytics import: SUCCESS")
+    except Exception as e:
+        print(f"  ❌ ultralytics import failed: {type(e).__name__}")
+    
+    # Test nnunet import
+    try:
+        from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
+        print("  ✅ nnunetv2 import: SUCCESS")
+    except Exception as e:
+        print(f"  ❌ nnunetv2 import failed: {type(e).__name__}")
+    
+    print()
 
 # ========== UI THEME CONFIGURATION ==========
 def make_light_palette() -> QPalette:

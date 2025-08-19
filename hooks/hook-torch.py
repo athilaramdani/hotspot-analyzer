@@ -1,47 +1,25 @@
 
 from PyInstaller.utils.hooks import collect_all, collect_submodules
 
-# Collect all torch modules
+# Kumpulkan semua resource utama dari torch
 datas, binaries, hiddenimports = collect_all('torch')
 
-# Add specific torch modules that might be missing
-hiddenimports += [
-    'torch._dynamo',
-    'torch._dynamo.config',
-    'torch._dynamo.convert_frame',
-    'torch._dynamo.eval_frame',
-    'torch._dynamo.resume_execution', 
-    'torch._dynamo.symbolic_convert',
-    'torch._dynamo.trace_rules',
-    'torch._dynamo.variables',
-    'torch._dynamo.variables.base',
-    'torch._dynamo.guards',
-    'torch._dynamo.polyfills',
-    'torch._dynamo.polyfills.fx',
-    'torch._dynamo.polyfills.loader',
-    'torch._functorch',
-    'torch._inductor',
-    'torch._C._nn',
-    'torch._C._autograd',
-    'torch._C._te',
-    'torch._C._fft',
-    'torch._C._linalg',
-    'torch._C._sparse',
-    'torch._C._special',
-    'torch._ops',
-    'torch._ops.ops',
-    'torch.utils.checkpoint',
-    'torch.testing._internal',
-    'torch.testing._internal.logging_tensor',
-    'torch.testing._internal.common_utils',
-    'torch.testing._internal.common_dtype',
-    'torch.testing._internal.common_device_type',
-]
+# Pastikan torch.testing (termasuk _comparison) ikut ter-bundle
+try:
+    hiddenimports += collect_submodules('torch.testing')
+except Exception:
+    pass
 
-# Exclude triton completely
+# (opsional) functorch kadang lazy-load; aman untuk ikutkan submodules-nya
+try:
+    hiddenimports += collect_submodules('torch._functorch')
+except Exception:
+    pass
+
+# Exclude triton sepenuhnya
 excludedimports = ['triton', 'triton.*']
 
-# Add nnUNet related modules  
+# Tambahan modul terkait nnUNet
 hiddenimports += [
     'nnunetv2',
     'dynamic_network_architectures',
@@ -49,7 +27,7 @@ hiddenimports += [
     'acvl_utils',
 ]
 
-# Add ultralytics modules
+# Tambahan modul ultralytics/YOLO
 hiddenimports += [
     'ultralytics',
     'ultralytics.models',
@@ -59,12 +37,11 @@ hiddenimports += [
     'ultralytics.nn',
 ]
 
-# Exclude tests and development files
+# Exclude paket test (JANGAN exclude torch.testing)
 excludedimports += [
-    'torch.test', 
-    'torch.testing',
+    'torch.test',
     'nnunetv2.tests',
     'ultralytics.tests',
 ]
 
-print(f"Torch hook: collected {len(hiddenimports)} hidden imports")
+print(f"Torch hook: collected {len(hiddenimports)} hidden imports, {len(datas)} datas, {len(binaries)} binaries")
