@@ -388,7 +388,7 @@ class MainWindowSpect(QMainWindow):
                     return
             # ===================================================================
             # <<< END of ADDED ROBUST LOGIC
-
+ 
             try:
                 dlg = SegmentationEditorDialog(scan, selected_view, parent=self)
                 
@@ -1067,13 +1067,13 @@ class MainWindowSpect(QMainWindow):
         print(f"[DEBUG] Layers changed to: {active_layers}")
         
         # Check if "Hotspot" was just activated and needs processing
-        if "Hotspot" in active_layers and not self.timeline_widget.is_layer_active("Hotspot"):
-            # Check if hotspot data is available
-            if not self.timeline_widget.has_layer_data("Hotspot"):
-                print("[DEBUG] Hotspot layer activated but no data found, triggering processing...")
-                self._run_hotspot_processing_on_demand()
-            else:
-                print("[DEBUG] Hotspot layer activated and data is available")
+        # if "Hotspot" in active_layers and not self.timeline_widget.is_layer_active("Hotspot"):
+        #     # Check if hotspot data is available
+        #     if not self.timeline_widget.has_layer_data("Hotspot"):
+        #         print("[DEBUG] Hotspot layer activated but no data found, triggering processing...")
+        #         self._run_hotspot_processing_on_demand()
+        #     else:
+        #         print("[DEBUG] Hotspot layer activated and data is available")
         
         # Update timeline with new layer selection
         self.timeline_widget.set_active_layers(active_layers)
