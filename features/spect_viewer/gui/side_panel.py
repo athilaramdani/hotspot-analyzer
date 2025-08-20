@@ -214,12 +214,21 @@ class BSISidePanel(QWidget):
     def load_patient_data(self, patient_folder: Path, patient_id: str, study_date: str) -> bool:
         """✅ FIXED: Load patient data tanpa scan selector"""
         try:
+            # ✅ FIXED: For table data, use exact study_date folder
             self.current_patient_folder = patient_folder
             self.current_patient_id = patient_id
-            self.current_study_date = study_date  # Set study_date langsung
+            self.current_study_date = study_date
             
-            # Test BSI canvas loading
-            canvas_success = self.bsi_canvas.load_bsi_data(patient_folder, patient_id, study_date)
+            # ✅ FIXED: For BSI canvas trend, pass patient base folder
+            if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
+                # Current folder is study_date folder, canvas needs parent for trend
+                canvas_patient_folder = patient_folder.parent
+            else:
+                # Current folder is already patient folder
+                canvas_patient_folder = patient_folder
+            
+            # Test BSI canvas loading with correct folder
+            canvas_success = self.bsi_canvas.load_bsi_data(canvas_patient_folder, patient_id, study_date)
             
             # Test quantification manager - langsung load untuk study_date yang diberikan
             quant_results = self.quant_manager.load_quantification_results(

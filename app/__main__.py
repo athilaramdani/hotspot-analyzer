@@ -17,7 +17,7 @@ def setup_console_redirect():
         # Create log file for debugging
         log_dir = Path(sys.executable).parent / "logs"
         log_dir.mkdir(exist_ok=True)
-        log_file = log_dir / "hotspot_analyzer.log"
+        log_file = log_dir / "telplastina.log"
         
         # Redirect to file instead of void
         log_handle = open(log_file, 'w', encoding='utf-8')
@@ -196,7 +196,7 @@ except ImportError as e:
 try:
     from PySide6.QtWidgets import QApplication, QMessageBox
     from PySide6.QtCore import QTimer, QThread
-    from PySide6.QtGui import QPalette, QColor, QFont
+    from PySide6.QtGui import QPalette, QColor, QFont, QIcon
     print("[DEBUG] PySide6 modules imported successfully")
 except ImportError as e:
     print(f"[CRITICAL ERROR] Could not import PySide6: {e}")
@@ -287,6 +287,25 @@ class ApplicationBootstrap:
             self.app.setStyle("Fusion")
             self.app.setPalette(make_light_palette())
             
+            # ✅ NEW: Set application icon
+            try:
+                from pathlib import Path
+                icon_path = Path("assets/icon.ico")
+                if icon_path.exists():
+                    self.app.setWindowIcon(QIcon(str(icon_path)))
+                    print(f"[UI] Application icon loaded: {icon_path}")
+                else:
+                    print(f"[UI] Icon file not found: {icon_path}")
+            except Exception as e:
+                print(f"[UI] Failed to load application icon: {e}")
+            
+            # ✅ NEW: Set application metadata
+            self.app.setApplicationName("TELPLASTINA")
+            self.app.setApplicationDisplayName(" Metastasis Analysis V1.0")
+            self.app.setApplicationVersion("1.0")
+            self.app.setOrganizationName("Telkom University & Universitas Padjadjaran")
+            self.app.setOrganizationDomain("telplastina.ai")
+            
             # Try to set Poppins font, fallback to system default
             try:
                 self.app.setFont(QFont("Poppins"))
@@ -294,7 +313,7 @@ class ApplicationBootstrap:
             except Exception:
                 print("[UI] Using system default font")
             
-            print("[DEBUG] Qt application created and configured")
+            print("[DEBUG] TELPLASTINA application created and configured")
             return True
             
         except Exception as e:
@@ -447,7 +466,7 @@ class ApplicationBootstrap:
     
     def run(self):
         """Main application run method"""
-        print("[DEBUG] Starting HotspotAnalyzer...")
+        print("[DEBUG] Starting TELPLASTINA...")
         
         # Apply post-import patches
         self.apply_post_import_patches()

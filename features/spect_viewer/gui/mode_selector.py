@@ -221,18 +221,17 @@ class ModeSelector(QWidget):
         self._active_layers = []
         
         if self._checkboxes["All"].isChecked():
-            # All mode - show all layers
-            self._active_layers = ["Image", "Segmentation", "Hotspot", "HotspotBBox"]
+            # All mode - show only layers that have visible checkboxes (no HotspotBBox)
+            self._active_layers = ["Image", "Segmentation", "Hotspot"]
         else:
             # Individual mode - show only checked layers
             for layer in ["Image", "Segmentation", "Hotspot"]:
                 if self._checkboxes[layer].isChecked():
                     self._active_layers.append(layer)
-
         
         print(f"[DEBUG] Active layers: {self._active_layers}")
         self.layers_changed.emit(self._active_layers)
-    
+        
     def _update_slider_states(self):
         """Update slider enabled/disabled states"""
         # Map display layers to internal layers

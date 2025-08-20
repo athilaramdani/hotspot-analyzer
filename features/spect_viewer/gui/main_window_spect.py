@@ -77,7 +77,7 @@ class MainWindowSpect(QMainWindow):
     
     def __init__(self, data_root: Path, parent=None, session_code: str | None = None):
         super().__init__()
-        self.setWindowTitle(f"Hotspot Analyzer - Session: {session_code or 'Unknown'}")
+        self.setWindowTitle(f"TELPLASTINA - Session: {session_code or 'Unknown'}")
         self.resize(1600, 900)
         self.session_code = session_code
         self.pool = multiprocessing.Pool(processes=1)

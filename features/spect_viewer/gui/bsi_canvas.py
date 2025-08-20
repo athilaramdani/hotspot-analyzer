@@ -51,7 +51,16 @@ class BSICanvas(FigureCanvas):
         
     def load_bsi_data(self, patient_folder: Path, patient_id: str, study_date: str) -> bool:
         """✅ FIXED: Load V1.2 BSI data and display 3-line trend chart with single view support"""
-        self.patient_folder = patient_folder
+        # ✅ FIXED: Ensure we use patient base folder for trend analysis
+        if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
+            # Current folder is study_date folder, go up to patient folder for trend
+            self.patient_folder = patient_folder.parent
+            print(f"[BSI CANVAS] Using patient base folder for trend: {self.patient_folder}")
+        else:
+            # Current folder is already patient folder
+            self.patient_folder = patient_folder
+            print(f"[BSI CANVAS] Using patient folder for trend: {self.patient_folder}")
+        
         self.patient_id = patient_id
         
         try:
@@ -59,7 +68,7 @@ class BSICanvas(FigureCanvas):
             return True
             
         except Exception as e:
-            print(f"[BSI CANVAS V1.2 SINGLE] Error loading BSI data: {e}")
+            print(f"[BSI CANVAS V1.0 SINGLE] Error loading BSI data: {e}")
             self._plot_error_chart(str(e))
             return False
     
