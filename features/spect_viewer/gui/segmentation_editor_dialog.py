@@ -39,7 +39,7 @@ from .editor_components import (
 
 # Import colorizer for mask processing
 from features.spect_viewer.logic.colorizer import label_mask_to_rgb, _PALETTE
-
+from core.gui.loading_dialog import LoadingDialog, show_loading_dialog
 
 class SegmentationEditorDialog(BaseEditorDialog):
     """Segmentation editor dialog using modular components."""
@@ -620,6 +620,16 @@ class SegmentationEditorDialog(BaseEditorDialog):
                 return  # User cancelled
             editor_session = session_choice
         
+        # Show loading dialog immediately after session selection
+        self.save_loading_dialog = LoadingDialog(
+            title="Saving Segmentation",
+            message="Preparing to save segmentation data...",
+            show_progress=True,
+            show_cancel=False,
+            parent=self
+        )
+        self.save_loading_dialog.show()
+        
         # Disable save button during save operation
         self.btn_save.setEnabled(False)
         
@@ -695,6 +705,11 @@ class SegmentationEditorDialog(BaseEditorDialog):
     def _on_save_error(self, error_message: str):
         """Handle save errors (same as hotspot editor)."""
         from PySide6.QtWidgets import QMessageBox
+        
+        # Close loading dialog
+        if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
+            self.save_loading_dialog.close()
+            self.save_loading_dialog = None
         
         QMessageBox.critical(self, "Save Error", error_message)
         
@@ -813,6 +828,11 @@ class SegmentationEditorDialog(BaseEditorDialog):
     def _update_progress(self, value: int, message: str):
         """Update progress bar and message (same as hotspot editor)."""
         print(f"Save progress: {value}% - {message}")
+        
+        # Update loading dialog if exists
+        if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
+            self.save_loading_dialog.set_progress(value)
+            self.save_loading_dialog.set_message(f"Saving segmentation data...\n{message}")
 
     def _on_save_finished(self):
         """Handle save thread completion (same as hotspot editor)."""
@@ -821,6 +841,11 @@ class SegmentationEditorDialog(BaseEditorDialog):
         print("🧪 [DEBUG SEGMENTATION] ===================")
         print("🧪 [DEBUG SEGMENTATION] Save finished!")
         print("🧪 [DEBUG SEGMENTATION] About to emit signal...")
+        
+        # Close loading dialog
+        if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
+            self.save_loading_dialog.close()
+            self.save_loading_dialog = None
         
         # Get save information
         if hasattr(self.save_thread, 'get_save_info'):
@@ -839,7 +864,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
         
         # Re-enable save button
         self.btn_save.setEnabled(True)
-        
+            
         # ✅ EMIT SIGNAL SEPERTI HOTSPOT EDITOR
         print("🧪 [DEBUG SEGMENTATION] Checking if signal exists...")
         if hasattr(self, 'editor_completed'):

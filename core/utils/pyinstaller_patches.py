@@ -1,8 +1,8 @@
 # core/utils/pyinstaller_patches.py - PRODUCTION READY VERSION
 """
-Production-ready PyInstaller compatibility patches
-Comprehensive fixes for inspect, torch, nnUNet, and other modules when running as compiled executable
-Version: 2.0 - Production Ready
+TELPLASTINA - PyInstaller Compatibility Patches
+Production-ready patches for inspect, torch, nnUNet, and other modules when running as compiled executable
+Telkom Enhanced Planar Scintigraphy Analysis - Version: 1.0 - Production Ready
 """
 
 import sys

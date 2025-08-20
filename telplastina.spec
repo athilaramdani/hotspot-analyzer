@@ -8,9 +8,17 @@ from pathlib import Path
 # Get the current directory
 current_dir = Path.cwd()
 
+icon_path = current_dir / "assets" / "icon.ico"
+if icon_path.exists():
+    print(f"[SPEC] Icon found: {icon_path}")
+    ICON_FILE = str(icon_path)
+else:
+    print(f"[SPEC] WARNING: Icon not found at {icon_path}")
+    ICON_FILE = None
+
 # Define paths
 main_script = 'main.py'
-app_name = 'HotspotAnalyzer'
+app_name = 'telplastina'
 
 # PyTorch compatibility fixes
 block_cipher = None
@@ -562,7 +570,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,  # Add icon path here if you have one
+    icon=ICON_FILE,  # ✅ FIXED: Add icon path
 )
 
 # Collect everything into dist folder

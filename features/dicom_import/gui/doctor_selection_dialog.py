@@ -520,7 +520,7 @@ class DoctorSelectionDialog(QDialog):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Hotspot Analyzer - Doctor Selection")
+        self.setWindowTitle("TELPLASTINA - Doctor Selection") 
         self.setModal(True)
         self.setMinimumSize(1000, 700)
         self.resize(1200, 800)
@@ -548,15 +548,28 @@ class DoctorSelectionDialog(QDialog):
         # Header
         header_layout = QVBoxLayout()
         
-        title = QLabel("🔐 Hotspot Analyzer")
+        title = QLabel("TELPLASTINA")
         title.setStyleSheet(VIEW_SELECTOR_TITLE_STYLE)
         title.setAlignment(Qt.AlignCenter)
         header_layout.addWidget(title)
         
-        subtitle = QLabel("Select your doctor code and modality to begin analysis")
-        subtitle.setStyleSheet(DIALOG_SUBTITLE_STYLE)
+        subtitle = QLabel("Telkom Enhanced Planar Scintigraphy Analysis")
+        subtitle.setStyleSheet(DIALOG_SUBTITLE_STYLE + "font-style: italic; margin-bottom: 8px;")
         subtitle.setAlignment(Qt.AlignCenter)
         header_layout.addWidget(subtitle)
+        
+        # ✅ NEW: Add description
+        description = QLabel("Advanced AI-powered bone scan metastasis detection and analysis platform")
+        description.setStyleSheet("""
+            QLabel {
+                color: #6c757d;
+                font-size: 11px;
+                font-style: italic;
+                margin-bottom: 16px;
+            }
+        """)
+        description.setAlignment(Qt.AlignCenter)
+        header_layout.addWidget(description)
         
         main_layout.addLayout(header_layout)
         
@@ -600,7 +613,11 @@ class DoctorSelectionDialog(QDialog):
         modality_group.setStyleSheet(GROUP_BOX_STYLE)
         modality_layout = QVBoxLayout(modality_group)
         
-        planar_info = QLabel("📋 Mode: Planar Imaging")
+        modality_group = QGroupBox("🔬 Analysis Modality")
+        modality_group.setStyleSheet(GROUP_BOX_STYLE)
+        modality_layout = QVBoxLayout(modality_group)
+
+        planar_info = QLabel("🩻 Planar Bone Scintigraphy - Metastasis Detection")
         planar_info.setStyleSheet(f"""
             QLabel {{
                 background: {Colors.SUCCESS}20;
@@ -614,8 +631,8 @@ class DoctorSelectionDialog(QDialog):
         """)
         planar_info.setAlignment(Qt.AlignCenter)
         modality_layout.addWidget(planar_info)
-        
-        modality_desc = QLabel("This application is optimized for planar nuclear medicine imaging analysis")
+
+        modality_desc = QLabel("AI-powered bone scan analysis for automated metastasis detection and BSI quantification")
         modality_desc.setStyleSheet(INFO_LABEL_STYLE)
         modality_layout.addWidget(modality_desc)
         

@@ -26,17 +26,28 @@ class QuantificationManager:
         all_scores = []
         found_study_dates = set()
         
-        # ✅ NEW: FLEXIBLE SEARCH - check multiple locations
+        # ✅ FIXED: Determine correct patient base folder
+        if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
+            # Current folder is study_date folder, go up to patient folder
+            patient_base_folder = patient_folder.parent
+            print(f"🔍 [DEBUG BSI] Detected study_date folder, using parent: {patient_base_folder}")
+        else:
+            # Current folder is already patient folder
+            patient_base_folder = patient_folder
+            print(f"🔍 [DEBUG BSI] Using patient folder directly: {patient_base_folder}")
+        
+        # ✅ FIXED: FLEXIBLE SEARCH - check multiple locations
         search_folders = []
         
-        # Location 1: Direct patient folder
-        search_folders.append(("Patient folder", patient_folder))
+        # Location 1: Patient base folder (for old structure files)
+        search_folders.append(("Patient base folder", patient_base_folder))
         
-        # Location 2: Study date subfolders
-        if patient_folder.exists():
-            for item in patient_folder.iterdir():
+        # Location 2: ALL Study date subfolders in patient base folder
+        if patient_base_folder.exists():
+            for item in patient_base_folder.iterdir():
                 if item.is_dir() and len(item.name) == 8 and item.name.isdigit():
                     search_folders.append(("Study date folder", item, item.name))
+                    print(f"🔍 [DEBUG BSI] Found study_date folder: {item.name}")
         
         # Location 3: If current folder is study_date folder, check parent
         if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
