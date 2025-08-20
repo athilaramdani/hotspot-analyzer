@@ -110,10 +110,10 @@ class SegmentationCanvas(BaseCanvas):
             self._save_layer_state(self._cur_label)
             print(f"🔄 Saved current state for active label {self._cur_label}")
 
-    def set_bg_opacity(self, alpha: float):
-        """Set background opacity."""
-        self._bg_alpha = alpha
-        self._refresh_mask()
+    # def set_bg_opacity(self, alpha: float):
+    #     """Set background opacity."""
+    #     self._bg_alpha = alpha
+    #     self._refresh_mask()
 
     def _mask_to_qimage(self, *, show_all: bool, label: int) -> QImage:
         """Convert mask to QImage with segmentation colors."""
@@ -295,11 +295,11 @@ class SegmentationOpacityPanel(QWidget):
         
         # self.original_opacity = BaseOpacitySlider("Original Opacity", 50)
         self.mask_opacity = BaseOpacitySlider("Mask Opacity", 100)
-        self.bg_opacity = BaseOpacitySlider("BG Opacity", 0)
+        # self.bg_opacity = BaseOpacitySlider("BG Opacity", 0)
         
         # layout.addWidget(self.original_opacity)
         layout.addWidget(self.mask_opacity)
-        layout.addWidget(self.bg_opacity)
+        # layout.addWidget(self.bg_opacity)
 
     def connect_to_canvas(self, canvas: SegmentationCanvas):
         """Connect opacity sliders to canvas."""
@@ -311,9 +311,9 @@ class SegmentationOpacityPanel(QWidget):
         self.mask_opacity.valueChanged.connect(
             lambda v: canvas.set_mask_opacity(v / 100.0)
         )
-        self.bg_opacity.valueChanged.connect(
-            lambda v: canvas.set_bg_opacity(v / 100.0)
-        )
+        # self.bg_opacity.valueChanged.connect(
+        #     lambda v: canvas.set_bg_opacity(v / 100.0)
+        # )
 
 
 class SegmentationPalette(QWidget):

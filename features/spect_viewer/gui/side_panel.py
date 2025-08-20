@@ -43,7 +43,7 @@ class BSISidePanel(QWidget):
         self.current_patient_folder = None
         self.current_patient_id = None
         self.current_study_date = None
-        self.scan_buttons = []
+        # self.scan_buttons = []
         self.quant_manager = QuantificationManager()
         self._build_ui()
 
@@ -63,7 +63,7 @@ class BSISidePanel(QWidget):
         self.bsi_canvas = BSICanvas()
         content_layout.addWidget(self.bsi_canvas)
         self._create_chart_controls_section(content_layout)
-        content_layout.addWidget(self._create_scan_selection_section())
+        # content_layout.addWidget(self._create_scan_selection_section())
         content_layout.addWidget(self._create_results_table_v2())
         content_layout.addWidget(self._create_controls_section())
         content_layout.addStretch()
@@ -81,10 +81,10 @@ class BSISidePanel(QWidget):
         title_frame = QFrame()
         title_frame.setStyleSheet("background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 8px;")
         title_layout = QVBoxLayout(title_frame)
-        self.title_label = QLabel("<b>BSI Quantification Analysis (V1.2)</b>")
+        self.title_label = QLabel("<b>BSI Quantification Analysis </b>")
         self.title_label.setStyleSheet("font-size: 14px; color: #2c3e50; font-weight: bold; margin-bottom: 4px;")
         title_layout.addWidget(self.title_label)
-        self.patient_info_label = QLabel("Select a patient to view V1.2 BSI analysis")
+        self.patient_info_label = QLabel("Select a patient to view BSI analysis")
         self.patient_info_label.setStyleSheet("font-size: 11px; color: #6c757d; font-style: italic;")
         title_layout.addWidget(self.patient_info_label)
         layout.addWidget(title_frame)
@@ -121,16 +121,16 @@ class BSISidePanel(QWidget):
         controls_layout.addLayout(checkboxes_layout)
         layout.addWidget(controls_frame)
         
-    def _create_scan_selection_section(self) -> QWidget:
-        section_widget = QFrame()
-        section_widget.setStyleSheet("padding: 8px 0px;")
-        self.scan_buttons_layout = QHBoxLayout(section_widget)
-        self.scan_buttons_layout.setContentsMargins(0, 0, 0, 0)
-        self.scan_buttons_layout.setSpacing(8)
-        label = QLabel("<b>Select Scan:</b>")
-        self.scan_buttons_layout.addWidget(label)
-        self.scan_buttons_layout.addStretch()
-        return section_widget
+    # def _create_scan_selection_section(self) -> QWidget:
+    #     section_widget = QFrame()
+    #     section_widget.setStyleSheet("padding: 8px 0px;")
+    #     self.scan_buttons_layout = QHBoxLayout(section_widget)
+    #     self.scan_buttons_layout.setContentsMargins(0, 0, 0, 0)
+    #     self.scan_buttons_layout.setSpacing(8)
+    #     label = QLabel("<b>Select Scan:</b>")
+    #     self.scan_buttons_layout.addWidget(label)
+    #     self.scan_buttons_layout.addStretch()
+    #     return section_widget
 
     def _create_results_table_v2(self) -> QWidget:
         """✅ FIXED: V1.2 table format with support for single view data"""
@@ -212,31 +212,35 @@ class BSISidePanel(QWidget):
         return controls_frame
 
     def load_patient_data(self, patient_folder: Path, patient_id: str, study_date: str) -> bool:
-        """✅ FIXED: Load patient data with detailed debugging"""
+        """✅ FIXED: Load patient data tanpa scan selector"""
         try:
             self.current_patient_folder = patient_folder
             self.current_patient_id = patient_id
+            self.current_study_date = study_date  # Set study_date langsung
             
             # Test BSI canvas loading
             canvas_success = self.bsi_canvas.load_bsi_data(patient_folder, patient_id, study_date)
             
-            # Test quantification manager
-            all_scans = self.quant_manager.load_all_quantification_scores(patient_folder, patient_id)
+            # Test quantification manager - langsung load untuk study_date yang diberikan
+            quant_results = self.quant_manager.load_quantification_results(
+                patient_folder, patient_id, study_date
+            )
             
-            
-            if all_scans:
-                all_scans = sorted(all_scans, key=lambda x: x["study_date"])
-                self._populate_scan_buttons(all_scans)
-                if self.scan_buttons:
-                    self._on_scan_selected(self.scan_buttons[0], all_scans[0], emit_signal=False)
+            if quant_results:
+                # Extract table data structure (handles single view)
+                anterior_data = quant_results.get('anterior_results', {}).get('bsi_results', {}) if quant_results.get('anterior_results') else {}
+                posterior_data = quant_results.get('posterior_results', {}).get('bsi_results', {}) if quant_results.get('posterior_results') else {}
+                processing_mode = quant_results.get('summary_statistics', {}).get('processing_mode', 'unknown')
+                
+                self._populate_results_table_v2(anterior_data, posterior_data, processing_mode)
+                self._update_patient_info(patient_id, study_date)
                 self._update_button_states(True)
             else:
-                self._populate_scan_buttons([])
                 if hasattr(self, 'results_table'):
                     self.results_table.setRowCount(0)
-                self._update_patient_info(patient_id, "No Scans Found")
+                self._update_patient_info(patient_id, "No Data Found")
                 self._update_button_states(False)
-                
+                    
             return True
             
         except Exception as e:
@@ -245,68 +249,68 @@ class BSISidePanel(QWidget):
             self.clear_patient_data()
             return False
     
-    def _populate_scan_buttons(self, all_scans: list):
-        """✅ UPDATED: Populate scan selection buttons without mode indicators"""
-        for btn in self.scan_buttons:
-            self.scan_buttons_layout.removeWidget(btn)
-            btn.deleteLater()
-        self.scan_buttons.clear()
+    # def _populate_scan_buttons(self, all_scans: list):
+    #     """✅ UPDATED: Populate scan selection buttons without mode indicators"""
+    #     for btn in self.scan_buttons:
+    #         self.scan_buttons_layout.removeWidget(btn)
+    #         btn.deleteLater()
+    #     self.scan_buttons.clear()
         
-        for i, scan_data in enumerate(all_scans):
-            # ✅ FIXED: Simple scan button without mode indicator
-            btn = QPushButton(f"Scan {i + 1}")
-            btn.clicked.connect(lambda checked, b=btn, data=scan_data: self._on_scan_selected(b, data))
+    #     for i, scan_data in enumerate(all_scans):
+    #         # ✅ FIXED: Simple scan button without mode indicator
+    #         btn = QPushButton(f"Scan {i + 1}")
+    #         btn.clicked.connect(lambda checked, b=btn, data=scan_data: self._on_scan_selected(b, data))
             
-            # ✅ FIXED: Use standard button style without color coding
-            btn.setStyleSheet(INACTIVE_BUTTON_STYLE)
+    #         # ✅ FIXED: Use standard button style without color coding
+    #         btn.setStyleSheet(INACTIVE_BUTTON_STYLE)
             
-            self.scan_buttons_layout.insertWidget(self.scan_buttons_layout.count() - 1, btn)
-            self.scan_buttons.append(btn)
+    #         self.scan_buttons_layout.insertWidget(self.scan_buttons_layout.count() - 1, btn)
+    #         self.scan_buttons.append(btn)
 
-    def _on_scan_selected(self, clicked_button: QPushButton, scan_data: dict, emit_signal: bool = True):
-        """✅ UPDATED: Handle scan selection - NO COMBINED BSI"""
-        # Update button styles
-        for btn in self.scan_buttons:
-            if btn is clicked_button:
-                btn.setStyleSheet(ACTIVE_BUTTON_STYLE)
-            else:
-                btn.setStyleSheet(INACTIVE_BUTTON_STYLE)
+    # def _on_scan_selected(self, clicked_button: QPushButton, scan_data: dict, emit_signal: bool = True):
+    #     """✅ UPDATED: Handle scan selection - NO COMBINED BSI"""
+    #     # Update button styles
+    #     for btn in self.scan_buttons:
+    #         if btn is clicked_button:
+    #             btn.setStyleSheet(ACTIVE_BUTTON_STYLE)
+    #         else:
+    #             btn.setStyleSheet(INACTIVE_BUTTON_STYLE)
         
-        study_date = scan_data.get("study_date")
-        if not study_date: 
-            return
+    #     study_date = scan_data.get("study_date")
+    #     if not study_date: 
+    #         return
         
-        self.current_study_date = study_date
-        processing_mode = scan_data.get('processing_mode', 'unknown')
-        self._update_patient_info(self.current_patient_id, self.current_study_date)
+    #     self.current_study_date = study_date
+    #     processing_mode = scan_data.get('processing_mode', 'unknown')
+    #     self._update_patient_info(self.current_patient_id, self.current_study_date)
         
-        # Load combined results (supports single view)
-        quant_results = self.quant_manager.load_quantification_results(
-            self.current_patient_folder, self.current_patient_id, study_date
-        )
+    #     # Load combined results (supports single view)
+    #     quant_results = self.quant_manager.load_quantification_results(
+    #         self.current_patient_folder, self.current_patient_id, study_date
+    #     )
         
-        if quant_results:
-            # Extract table data structure (handles single view)
-            anterior_data = quant_results.get('anterior_results', {}).get('bsi_results', {}) if quant_results.get('anterior_results') else {}
-            posterior_data = quant_results.get('posterior_results', {}).get('bsi_results', {}) if quant_results.get('posterior_results') else {}
-            self._populate_results_table_v2(anterior_data, posterior_data, processing_mode)
+    #     if quant_results:
+    #         # Extract table data structure (handles single view)
+    #         anterior_data = quant_results.get('anterior_results', {}).get('bsi_results', {}) if quant_results.get('anterior_results') else {}
+    #         posterior_data = quant_results.get('posterior_results', {}).get('bsi_results', {}) if quant_results.get('posterior_results') else {}
+    #         self._populate_results_table_v2(anterior_data, posterior_data, processing_mode)
         
-        if emit_signal:
-            self.scan_selected.emit(study_date)
+    #     if emit_signal:
+    #         self.scan_selected.emit(study_date)
 
-    def select_scan_by_index(self, scan_index: int):
-        """Select scan by index without emitting signals (called from main window)"""
-        if 0 <= scan_index < len(self.scan_buttons):
-            print(f"[BSI PANEL SINGLE] Selecting scan {scan_index + 1} from main window")
-            # Get scan data
-            all_scans = self.quant_manager.load_all_quantification_scores(
-                self.current_patient_folder, self.current_patient_id
-            )
-            if all_scans and scan_index < len(all_scans):
-                sorted_scans = sorted(all_scans, key=lambda x: x["study_date"])
-                scan_data = sorted_scans[scan_index]
-                # Call without emitting signal to prevent loop
-                self._on_scan_selected(self.scan_buttons[scan_index], scan_data, emit_signal=False)
+    # def select_scan_by_index(self, scan_index: int):
+    #     """Select scan by index without emitting signals (called from main window)"""
+    #     if 0 <= scan_index < len(self.scan_buttons):
+    #         print(f"[BSI PANEL SINGLE] Selecting scan {scan_index + 1} from main window")
+    #         # Get scan data
+    #         all_scans = self.quant_manager.load_all_quantification_scores(
+    #             self.current_patient_folder, self.current_patient_id
+    #         )
+    #         if all_scans and scan_index < len(all_scans):
+    #             sorted_scans = sorted(all_scans, key=lambda x: x["study_date"])
+    #             scan_data = sorted_scans[scan_index]
+    #             # Call without emitting signal to prevent loop
+    #             self._on_scan_selected(self.scan_buttons[scan_index], scan_data, emit_signal=False)
             
     def _populate_results_table_v2(self, anterior_data: dict, posterior_data: dict, processing_mode: str = "unknown"):
         """✅ FIXED: Populate table with single view support and proper sorting"""
@@ -473,10 +477,10 @@ class BSISidePanel(QWidget):
         
         # ✅ SIMPLIFIED: No processing mode parameter
         self._update_patient_info("N/A", "N/A")
-        for btn in self.scan_buttons:
-            self.scan_buttons_layout.removeWidget(btn)
-            btn.deleteLater()
-        self.scan_buttons.clear()
+        # for btn in self.scan_buttons:
+        #     self.scan_buttons_layout.removeWidget(btn)
+        #     btn.deleteLater()
+        # self.scan_buttons.clear()
         self._update_button_states(False)
 
     def set_session_code(self, session_code: str):

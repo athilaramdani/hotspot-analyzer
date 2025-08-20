@@ -525,12 +525,12 @@ class MainWindowSpect(QMainWindow):
         import_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
         import_btn.clicked.connect(self._show_import_dialog)
         
-        rescan_btn = QPushButton("Rescan Folder")
-        rescan_btn.setStyleSheet(SUCCESS_BUTTON_STYLE)
-        rescan_btn.clicked.connect(self._scan_folder)
+        # rescan_btn = QPushButton("Rescan Folder")
+        # rescan_btn.setStyleSheet(SUCCESS_BUTTON_STYLE)
+        # rescan_btn.clicked.connect(self._scan_folder)
         # Menambahkan tombol-tombol penting ke layout
         top_layout.addWidget(import_btn)
-        top_layout.addWidget(rescan_btn)
+        # top_layout.addWidget(rescan_btn)
 
         # Logout button
         logout_btn = QPushButton("Logout")
