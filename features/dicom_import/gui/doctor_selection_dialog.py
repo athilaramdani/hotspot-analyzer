@@ -526,7 +526,7 @@ class DoctorSelectionDialog(QDialog):
         self.resize(1200, 800)
         self.setSizeGripEnabled(True)
         # Remove close button
-        self.setWindowFlag(Qt.WindowCloseButtonHint, False)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.WindowSystemMenuHint)
         
         self.selected_doctor_id: str = None
         self.selected_modality: str = "Planar"
