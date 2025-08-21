@@ -1,8 +1,8 @@
-# app/__main__.py - PRODUCTION READY VERSION with DEBUG
+# app/__main__.py - PRODUCTION READY VERSION with ENHANCED DEBUG
 """
 Main application entry point - Production Ready
 Handles PyInstaller compatibility and application startup
-Version: 2.0 - Production Ready + Debug
+Version: 2.1 - Enhanced Debug + Auto-Close Detection
 """
 
 import sys
@@ -194,8 +194,8 @@ except ImportError as e:
 
 # ========== PYSIDE6 IMPORTS ==========
 try:
-    from PySide6.QtWidgets import QApplication, QMessageBox
-    from PySide6.QtCore import QTimer, QThread
+    from PySide6.QtWidgets import QApplication, QMessageBox, QDialog
+    from PySide6.QtCore import QTimer, QThread, Qt
     from PySide6.QtGui import QPalette, QColor, QFont, QIcon
     print("[DEBUG] PySide6 modules imported successfully")
 except ImportError as e:
@@ -279,6 +279,8 @@ class ApplicationBootstrap:
         self.app = None
         self.windows = []  # Keep references to prevent garbage collection
         self.is_shutting_down = False
+        self.dialog_attempts = 0  # Track dialog attempts
+        self.max_dialog_attempts = 3  # Maximum retry attempts
     
     def create_application(self):
         """Create and configure the Qt application"""
@@ -301,7 +303,7 @@ class ApplicationBootstrap:
             
             # ✅ NEW: Set application metadata
             self.app.setApplicationName("TELPLASTINA")
-            self.app.setApplicationDisplayName(" Metastasis Analysis V1.0")
+            self.app.setApplicationDisplayName("TELPLASTINA - Bone Metastasis Analysis V1.0")
             self.app.setApplicationVersion("1.0")
             self.app.setOrganizationName("Telkom University & Universitas Padjadjaran")
             self.app.setOrganizationDomain("telplastina.ai")
@@ -341,57 +343,250 @@ class ApplicationBootstrap:
             return False
     
     def start_new_session(self):
-        """Start a new session with doctor selection and error handling"""
+        """Start a new session with doctor selection and enhanced error handling"""
         if self.is_shutting_down:
+            print("[DEBUG] Shutdown in progress, skipping new session")
             return
         
         try:
-            # Show doctor selection dialog
-            dlg = DoctorSelectionDialog()
-            if not dlg.exec():
-                print("[DEBUG] Dialog cancelled, exiting application")
+            print("[DEBUG] === Starting new session ===")
+            
+            # ✅ ENHANCED: Add application state check
+            if not self.app:
+                print("[ERROR] Qt application not available")
                 self.shutdown_application()
                 return
-
-            session_code = dlg.selected_doctor_id
-            selected_modality = dlg.selected_modality
-            data_dir = Path("data")
-
-            # Only PLANAR modality is supported
-            if selected_modality == "Planar":
-                print(f"[DEBUG] Starting PLANAR session with code: {session_code}")
-                window = self.create_main_window(session_code, data_dir)
-                if window:
-                    self.setup_window_signals(window)
-                    window.show()
-                    self.windows.append(window)
-                else:
-                    # Failed to create window, try again
-                    QTimer.singleShot(1000, self.start_new_session)
+            
+            # ✅ ENHANCED: Ensure application is ready
+            self.app.processEvents()  # Process any pending events
+            
+            # ✅ ENHANCED: Add delay for PyInstaller environment
+            if hasattr(sys, '_MEIPASS'):
+                print("[DEBUG] PyInstaller mode - adding startup delay...")
+                QTimer.singleShot(500, self._create_dialog_delayed)
             else:
-                QMessageBox.critical(
-                    None, 
-                    "Modality Not Supported", 
-                    f"Modality '{selected_modality}' is not supported in this version.\n"
-                    f"Only 'Planar' modality is currently available."
-                )
-                QTimer.singleShot(500, self.start_new_session)
+                print("[DEBUG] Development mode - creating dialog immediately")
+                self._create_dialog_delayed()
                 
         except Exception as e:
-            print(f"[ERROR] Failed to start session: {e}")
+            print(f"[ERROR] Fatal error in start_new_session: {e}")
             print(f"[ERROR] Traceback: {traceback.format_exc()}")
             
-            # Show error dialog
-            error_msg = (
-                f"Failed to start application session.\n\n"
-                f"Error: {str(e)}\n\n"
-                f"Please check the console for more details."
-            )
-            QMessageBox.critical(None, "Application Error", error_msg)
+            # Show error dialog if possible
+            try:
+                if self.app:
+                    error_msg = (
+                        f"Failed to start application session.\n\n"
+                        f"Error: {str(e)}\n\n"
+                        f"Please check the console for more details."
+                    )
+                    QMessageBox.critical(None, "Application Error", error_msg)
+            except Exception:
+                pass  # Fallback if even error dialog fails
             
             # Try to restart session after delay
             if not self.is_shutting_down:
+                print("[DEBUG] Attempting to restart session in 3 seconds...")
+                QTimer.singleShot(3000, self.start_new_session)
+
+    def _create_dialog_delayed(self):
+        """Create and show doctor selection dialog with enhanced debugging"""
+        if self.is_shutting_down:
+            print("[DEBUG] Shutdown in progress, cancelling dialog creation")
+            return
+        
+        # Check attempt count
+        self.dialog_attempts += 1
+        if self.dialog_attempts > self.max_dialog_attempts:
+            print(f"[ERROR] Maximum dialog attempts ({self.max_dialog_attempts}) reached, shutting down")
+            self.shutdown_application()
+            return
+        
+        try:
+            print(f"[DEBUG] Creating doctor selection dialog (attempt {self.dialog_attempts}/{self.max_dialog_attempts})...")
+            
+            # ✅ ENHANCED: Import with error handling
+            try:
+                from features.dicom_import.gui.doctor_selection_dialog import DoctorSelectionDialog
+                print("[DEBUG] Dialog class imported successfully")
+            except ImportError as e:
+                print(f"[ERROR] Failed to import dialog: {e}")
+                self.shutdown_application()
+                return
+            
+            # ✅ ENHANCED: Create dialog with error handling
+            try:
+                dlg = DoctorSelectionDialog()
+                print("[DEBUG] Dialog instance created successfully")
+            except Exception as e:
+                print(f"[ERROR] Failed to create dialog instance: {e}")
+                print(f"[ERROR] Dialog creation traceback: {traceback.format_exc()}")
+                
+                # Show simpler error and retry
+                try:
+                    QMessageBox.critical(
+                        None, 
+                        "Dialog Creation Error", 
+                        f"Failed to create doctor selection dialog.\n\nError: {e}\n\nRetrying in 2 seconds..."
+                    )
+                except Exception:
+                    pass
+                
                 QTimer.singleShot(2000, self.start_new_session)
+                return
+            
+            # ✅ ENHANCED: Set dialog properties for better visibility
+            try:
+                dlg.setWindowState(dlg.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
+                dlg.raise_()
+                dlg.activateWindow()
+                print("[DEBUG] Dialog window properties set")
+            except Exception as e:
+                print(f"[WARNING] Failed to set dialog properties: {e}")
+            
+            # ✅ ENHANCED: Show dialog with debugging
+            print("[DEBUG] Showing dialog to user...")
+            try:
+                dlg.show()  # Show first to ensure visibility
+                self.app.processEvents()  # Process show event
+                print("[DEBUG] Dialog shown successfully")
+            except Exception as e:
+                print(f"[ERROR] Failed to show dialog: {e}")
+                self.shutdown_application()
+                return
+            
+            # ✅ ENHANCED: Execute dialog with timeout protection
+            print("[DEBUG] Waiting for user input...")
+            
+            # Add a timer to detect if dialog closes too quickly
+            dialog_timer = QTimer()
+            dialog_timer.setSingleShot(True)
+            dialog_closed_quickly = False
+            
+            def check_quick_close():
+                nonlocal dialog_closed_quickly
+                if not dlg.isVisible():
+                    dialog_closed_quickly = True
+                    print("[WARNING] Dialog closed very quickly - possible auto-close detected")
+            
+            dialog_timer.timeout.connect(check_quick_close)
+            dialog_timer.start(100)  # Check after 100ms
+            
+            # Execute dialog
+            try:
+                result = dlg.exec()
+                dialog_timer.stop()
+                print(f"[DEBUG] Dialog execution completed with result: {result}")
+                print(f"[DEBUG] Quick close detected: {dialog_closed_quickly}")
+            except Exception as e:
+                dialog_timer.stop()
+                print(f"[ERROR] Dialog execution failed: {e}")
+                self.shutdown_application()
+                return
+            
+            # ✅ ENHANCED: Handle dialog result
+            if not result or result == QDialog.Rejected:
+                if dialog_closed_quickly:
+                    print("[DEBUG] Dialog closed quickly - attempting retry...")
+                    # Retry after longer delay
+                    QTimer.singleShot(2000, self.start_new_session)
+                    return
+                else:
+                    print("[DEBUG] User cancelled dialog, exiting application")
+                    self.shutdown_application()
+                    return
+            
+            # ✅ ENHANCED: Process dialog results
+            try:
+                session_code = dlg.selected_doctor_id
+                selected_modality = dlg.selected_modality
+                
+                print(f"[DEBUG] Session selected - Code: {session_code}, Modality: {selected_modality}")
+                
+                if not session_code:
+                    print("[ERROR] No session code selected")
+                    QMessageBox.warning(None, "Selection Error", "No doctor code was selected.")
+                    QTimer.singleShot(1000, self.start_new_session)
+                    return
+                    
+            except Exception as e:
+                print(f"[ERROR] Failed to get dialog results: {e}")
+                QTimer.singleShot(1000, self.start_new_session)
+                return
+            
+            # ✅ ENHANCED: Create data directory
+            try:
+                data_dir = Path("data")
+                data_dir.mkdir(exist_ok=True)
+                print(f"[DEBUG] Data directory confirmed: {data_dir}")
+            except Exception as e:
+                print(f"[ERROR] Failed to create data directory: {e}")
+            
+            # ✅ ENHANCED: Handle modality selection
+            if selected_modality == "Planar":
+                print(f"[DEBUG] Starting PLANAR session with code: {session_code}")
+                # Reset dialog attempts on successful dialog
+                self.dialog_attempts = 0
+                self._create_main_window_safe(session_code, data_dir)
+            else:
+                print(f"[WARNING] Unsupported modality: {selected_modality}")
+                try:
+                    QMessageBox.critical(
+                        None, 
+                        "Modality Not Supported", 
+                        f"Modality '{selected_modality}' is not supported in this version.\n"
+                        f"Only 'Planar' modality is currently available."
+                    )
+                    # Return to dialog selection
+                    QTimer.singleShot(1000, self.start_new_session)
+                except Exception as e:
+                    print(f"[ERROR] Failed to show modality error: {e}")
+                    self.shutdown_application()
+                    
+        except Exception as e:
+            print(f"[ERROR] Fatal error in _create_dialog_delayed: {e}")
+            print(f"[ERROR] Traceback: {traceback.format_exc()}")
+            
+            # Last resort: try to restart
+            if not self.is_shutting_down:
+                print("[DEBUG] Fatal error occurred, attempting restart in 5 seconds...")
+                QTimer.singleShot(5000, self.start_new_session)
+
+    def _create_main_window_safe(self, session_code, data_dir):
+        """Safely create main window with comprehensive error handling"""
+        try:
+            print(f"[DEBUG] Creating main window for session: {session_code}")
+            
+            window = self.create_main_window(session_code, data_dir)
+            if window:
+                print("[DEBUG] Main window created successfully")
+                
+                # Setup window
+                self.setup_window_signals(window)
+                
+                # Show window
+                try:
+                    window.show()
+                    window.raise_()
+                    window.activateWindow()
+                    print("[DEBUG] Main window displayed")
+                    
+                    # Add to windows list
+                    self.windows.append(window)
+                    print(f"[DEBUG] Active windows count: {len(self.windows)}")
+                    
+                except Exception as e:
+                    print(f"[ERROR] Failed to show main window: {e}")
+                    window.deleteLater()
+                    QTimer.singleShot(2000, self.start_new_session)
+            else:
+                print("[ERROR] Failed to create main window - retrying session")
+                QTimer.singleShot(3000, self.start_new_session)
+                
+        except Exception as e:
+            print(f"[ERROR] Error in _create_main_window_safe: {e}")
+            print(f"[ERROR] Traceback: {traceback.format_exc()}")
+            QTimer.singleShot(3000, self.start_new_session)
     
     def create_main_window(self, session_code, data_dir):
         """Create main window with error handling"""
@@ -447,12 +642,23 @@ class ApplicationBootstrap:
     
     def shutdown_application(self):
         """Gracefully shutdown the application"""
+        # ✅ ADD: Prevent recursive calls (extra safety)
+        if self.is_shutting_down:
+            return
+            
         self.is_shutting_down = True
         print("[DEBUG] Shutting down application...")
         
         # Close all windows
         for window in self.windows[:]:  # Copy list to avoid modification during iteration
             try:
+                # ✅ ADD: Disconnect window signals to prevent additional triggers
+                if hasattr(window, 'logout_requested'):
+                    try:
+                        window.logout_requested.disconnect()
+                    except:
+                        pass
+                
                 window.close()
                 window.deleteLater()
             except Exception as e:
@@ -463,7 +669,7 @@ class ApplicationBootstrap:
         # Quit application
         if self.app:
             self.app.quit()
-    
+        
     def run(self):
         """Main application run method"""
         print("[DEBUG] Starting TELPLASTINA...")
@@ -475,11 +681,13 @@ class ApplicationBootstrap:
         if not self.create_application():
             return 1
         
-        # Setup application exit handler
-        self.app.aboutToQuit.connect(self.shutdown_application)
+        # ❌ REMOVED: aboutToQuit connection to prevent recursive loop
+        # self.app.aboutToQuit.connect(self.shutdown_application)
         
-        # Start the first session
-        QTimer.singleShot(100, self.start_new_session)
+        # Start the first session with longer delay for PyInstaller
+        startup_delay = 1500 if hasattr(sys, '_MEIPASS') else 100
+        print(f"[DEBUG] Starting session with {startup_delay}ms delay...")
+        QTimer.singleShot(startup_delay, self.start_new_session)
         
         # Run the application event loop
         try:
