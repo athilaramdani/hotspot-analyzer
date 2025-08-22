@@ -32,8 +32,9 @@ from .editor_components import (
 )
 from .editor_components.base_components import BaseBrushSizeControl
 from datetime import datetime
+import time
+import csv
 from core.config.paths import PLANAR_DATA_PATH, generate_edit_date, generate_edit_timestamp
-
 from core.config.paths import generate_edit_date, generate_edit_timestamp
 
 from features.spect_viewer.logic.hotspot_processor import parse_xml_annotations, create_hotspot_mask
@@ -118,6 +119,11 @@ class HotspotEditorDialog(BaseEditorDialog):
         # 7. SETUP ZOOM SYNC
         self._sync_zoom_in_progress = False
         self._setup_zoom_sync()
+
+        # 8. INITIALIZE TIMER
+        self._setup_editing_timer()
+        # 9. INITIALIZE EDITOR SESSION
+        self.editor_session = None
 
     def _load_existing_mask(self) -> np.ndarray:
         """Load existing mask with proper priority using NEWEST paths."""
@@ -259,6 +265,9 @@ class HotspotEditorDialog(BaseEditorDialog):
         instructions = self._create_instructions_label()
         self.toolbar_layout.addWidget(instructions)
         
+        # Timer display
+        self.timer_widget = self._create_timer_widget()
+        self.toolbar_layout.addWidget(self.timer_widget)
         # Save/Cancel buttons
         btn_save = QPushButton("Save")
         btn_cancel = QPushButton("Cancel")
@@ -711,13 +720,22 @@ class HotspotEditorDialog(BaseEditorDialog):
 
     def _save_all(self):
         """Save hotspot classification data with proper session handling."""
+        # Stop timer and get duration
+        if hasattr(self, 'update_timer'):
+            self.update_timer.stop()
+        
+        elapsed_seconds, formatted_time = self._get_editing_duration()
+        
         # Handle session selection for ALL users
-        editor_session = None
+        self.editor_session = None
         if self.session_code == "ALL":
             session_choice = self._show_session_selector_dialog()
             if not session_choice:
+                # Resume timer if user cancels
+                if hasattr(self, 'update_timer'):
+                    self.update_timer.start(1000)
                 return  # User cancelled
-            editor_session = session_choice
+            self.editor_session = session_choice
         
         # Show loading dialog immediately after session selection (or immediately for individual sessions)
         self.save_loading_dialog = LoadingDialog(
@@ -743,7 +761,7 @@ class HotspotEditorDialog(BaseEditorDialog):
                 dicom_path=self.dicom_path,
                 study_date=self.study_date,
                 current_session=self.session_code,
-                editor_session=editor_session  # Pass the selected editor session
+                editor_session=self.editor_session  # Pass the selected editor session
             )
             
             # Connect signals
@@ -771,6 +789,10 @@ class HotspotEditorDialog(BaseEditorDialog):
         """Handle successful save with message."""
         from PySide6.QtWidgets import QMessageBox
         
+        # Save editing time to log
+        elapsed_seconds, formatted_time = self._get_editing_duration()
+        self._save_editing_time_log(elapsed_seconds, formatted_time)
+        
         # Get save information if available
         if hasattr(self.save_thread, 'get_save_info'):
             save_info = self.save_thread.get_save_info()
@@ -780,12 +802,13 @@ class HotspotEditorDialog(BaseEditorDialog):
                     f"Location: {save_info.get('date_dir', 'Unknown')}\n"
                     f"Files:\n"
                     f"• {save_info.get('png_path', {}).name if save_info.get('png_path') else 'PNG file'}\n"
-                    f"• {save_info.get('xml_path', {}).name if save_info.get('xml_path') else 'XML file'}"
+                    f"• {save_info.get('xml_path', {}).name if save_info.get('xml_path') else 'XML file'}\n\n"
+                    f"⏱️ Editing Time: {formatted_time}"
                 )
             else:
-                detailed_message = success_message
+                detailed_message = f"{success_message}\n\n⏱️ Editing Time: {formatted_time}"
         else:
-            detailed_message = success_message
+            detailed_message = f"{success_message}\n\n⏱️ Editing Time: {formatted_time}"
         
         QMessageBox.information(self, "Save Complete", detailed_message)
         
@@ -865,3 +888,144 @@ class HotspotEditorDialog(BaseEditorDialog):
         
         # Close dialog
         self.accept()
+    
+    def _create_timer_widget(self) -> QWidget:
+        """Create compact timer widget."""
+        timer_widget = QWidget()
+        timer_layout = QVBoxLayout(timer_widget)
+        timer_layout.setContentsMargins(0, 0, 0, 0)
+        timer_layout.setSpacing(2)
+        
+        # Timer label
+        timer_header = QLabel("⏱️ Editing Time")
+        timer_header.setAlignment(Qt.AlignCenter)
+        timer_header.setStyleSheet("""
+            QLabel {
+                font-size: 10px;
+                font-weight: bold;
+                color: #666;
+                padding: 2px;
+            }
+        """)
+        
+        self.timer_display = QLabel("00:00:00")
+        self.timer_display.setAlignment(Qt.AlignCenter)
+        self.timer_display.setStyleSheet("""
+            QLabel {
+                font-family: 'Courier New', monospace;
+                font-size: 14px;
+                font-weight: bold;
+                color: #2c5282;
+                background: #f0f8ff;
+                border: 1px solid #4a90e2;
+                border-radius: 4px;
+                padding: 4px;
+                min-width: 70px;
+            }
+        """)
+        
+        timer_layout.addWidget(timer_header)
+        timer_layout.addWidget(self.timer_display)
+        
+        return timer_widget
+
+    def _setup_editing_timer(self):
+        """Initialize editing timer."""
+        from PySide6.QtCore import QTimer
+        import time
+        
+        self.start_time = time.time()
+        self.editing_start_time = datetime.now()
+        
+        # Create update timer
+        self.update_timer = QTimer()
+        self.update_timer.timeout.connect(self._update_timer_display)
+        self.update_timer.start(1000)  # Update every second
+
+    def _update_timer_display(self):
+        """Update timer display."""
+        import time
+        
+        elapsed = int(time.time() - self.start_time)
+        hours = elapsed // 3600
+        minutes = (elapsed % 3600) // 60
+        seconds = elapsed % 60
+        
+        time_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+        self.timer_display.setText(time_str)
+
+    # hotspot_editor_dialog.py -> _get_editing_duration()
+
+    def _get_editing_duration(self) -> tuple[float, str]:
+        """Get editing duration with millisecond precision."""
+        import time
+        
+        elapsed_seconds_float = time.time() - self.start_time
+        
+        # Calculate components
+        total_seconds_int = int(elapsed_seconds_float)
+        hours = total_seconds_int // 3600
+        minutes = (total_seconds_int % 3600) // 60
+        seconds = total_seconds_int % 60
+        milliseconds = int((elapsed_seconds_float - total_seconds_int) * 1000)
+        
+        # Format the string as HH:MM:SS:ms
+        formatted_time = f"{hours:02d}:{minutes:02d}:{seconds:02d}:{milliseconds:03d}"
+        
+        return elapsed_seconds_float, formatted_time
+
+    # hotspot_editor_dialog.py -> _save_editing_time_log()
+
+    def _save_editing_time_log(self, elapsed_seconds: float, formatted_time: str):
+        """Save editing time to a CSV log file."""
+        try:
+            from pathlib import Path
+            import csv
+            from datetime import datetime
+
+            # 1. Definisikan path dan buat direktori jika belum ada
+            time_log_dir = Path(__file__).parent.parent.parent.parent / "data" / "PLANAR" / "timeEdit"
+            time_log_dir.mkdir(parents=True, exist_ok=True)
+            log_file = time_log_dir / "time_editing.csv"
+
+            # 2. Tentukan kode dokter untuk log
+            doctor_code = self.editor_session if self.session_code == "ALL" else self.session_code
+
+            # 3. Siapkan data log
+            log_entry = {
+                'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'session': self.session_code,
+                'kode_dokter': doctor_code,
+                'patient_id': self.patient_id,
+                'study_date': self.study_date,
+                'view': self.view_short,
+                'duration_seconds': f"{elapsed_seconds:.3f}",
+                'duration_formatted': formatted_time,
+                'edit_type' : 'hotpsot'
+            }
+            
+            fieldnames = list(log_entry.keys())
+
+            # 4. Cek apakah file sudah ada untuk menentukan perlu header atau tidak
+            file_exists = log_file.exists()
+
+            # 5. Tambahkan (append) ke file CSV
+            with open(log_file, 'a', newline='', encoding='utf-8') as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                
+                if not file_exists:
+                    writer.writeheader()
+                
+                writer.writerow(log_entry)
+            
+            print(f"✅ Editing time logged to '{log_file.name}': {formatted_time} for patient {self.patient_id}")
+
+        except Exception as e:
+            print(f"❌ Failed to save editing time log: {e}")
+
+    def closeEvent(self, event):
+        """Handle dialog close to stop timer."""
+        if hasattr(self, 'update_timer'):
+            self.update_timer.stop()
+        super().closeEvent(event)
+    
