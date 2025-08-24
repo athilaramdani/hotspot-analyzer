@@ -561,11 +561,11 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name=app_name,
-    debug=False,  # Set to True for debugging
+    debug=True,  # Set to True for debugging
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,  # Set to True for debugging, False for production
+    console=True,  # Set to True for debugging, False for production
     disable_windowed_traceback=False,
     target_arch=None,
     codesign_identity=None,
