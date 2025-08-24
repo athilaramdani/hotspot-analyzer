@@ -1,4 +1,4 @@
-# Buat file: hooks/runtime_hook_nnunet.py
+#hooks/runtime_hook_nnunet.py
 """
 Runtime hook for nnUNet to setup environment and handle trainer classes
 """
@@ -64,17 +64,30 @@ def preregister_nnunet_trainers():
     try:
         print("[RUNTIME-NNUNET] Attempting to pre-register nnUNet trainers...")
         
+        # ✅ ADD DEBUG: Check multiprocessing state
+        import multiprocessing
+        print(f"[DEBUG-NNUNET] Current process PID: {os.getpid()}")
+        print(f"[DEBUG-NNUNET] Parent PID: {os.getppid()}")
+        print(f"[DEBUG-NNUNET] Multiprocessing method: {multiprocessing.get_start_method()}")
+        
+        # ✅ ADD DEBUG: Check before import
+        print("[DEBUG-NNUNET] About to import nnunetv2.training...")
+        
         # ✅ WORKAROUND: Instead of importing specific trainers, 
         # just ensure the training module is available
         import nnunetv2.training.nnUNetTrainer.nnUNetTrainer
+        
         print("[RUNTIME-NNUNET] ✅ nnUNet training module imported")
         
-        # ✅ Don't try to import specific trainer variants in runtime hook
-        # Let the application handle this when actually needed
+        # ✅ ADD DEBUG: Success confirmation
+        print("[DEBUG-NNUNET] Import successful, continuing...")
         
     except Exception as e:
         print(f"[RUNTIME-NNUNET] Note: Trainer pre-registration failed: {e}")
         print("[RUNTIME-NNUNET] Will attempt dynamic loading during inference")
+        # ✅ ADD DEBUG: Exception details
+        import traceback
+        print(f"[DEBUG-NNUNET] Full traceback: {traceback.format_exc()}")
 
 # Run fixes
 if hasattr(sys, '_MEIPASS'):

@@ -1,0 +1,643 @@
+================================================================================
+📂 File: hook-nnunetv2.py
+================================================================================
+
+# Buat file: hooks/hook-nnunetv2.py
+"""
+PyInstaller hook for nnUNetv2 to handle dynamic trainer class imports
+"""
+
+from PyInstaller.utils.hooks import collect_all, collect_submodules
+
+# Collect all nnunetv2 resources
+datas, binaries, hiddenimports = collect_all('nnunetv2')
+
+# ✅ CRITICAL: Add specific trainer classes yang di-import secara dynamic
+trainer_classes = []
+try:
+    # Try to import base trainer
+    import nnunetv2.training.nnUNetTrainer.nnUNetTrainer
+    trainer_classes.append('nnunetv2.training.nnUNetTrainer.nnUNetTrainer')
+except ImportError:
+    pass
+
+hiddenimports.extend(trainer_classes)
+
+# ✅ Add semua training submodules
+training_modules = collect_submodules('nnunetv2.training')
+hiddenimports.extend(training_modules)
+
+# ✅ Add modules yang dibutuhkan untuk inference
+inference_modules = [
+    'nnunetv2.inference.predict_from_raw_data',
+    'nnunetv2.inference.sliding_window_prediction',
+    'nnunetv2.imageio',
+    'nnunetv2.utilities.file_path_utilities',
+    'nnunetv2.utilities.utils',
+    'nnunetv2.utilities.plans_handling',
+    'nnunetv2.utilities.label_handling',
+    'nnunetv2.configuration',
+    'nnunetv2.paths'
+]
+
+hiddenimports.extend(inference_modules)
+
+# ✅ Add dependencies
+dependency_modules = collect_submodules('dynamic_network_architectures')
+hiddenimports.extend(dependency_modules)
+
+dependency_modules = collect_submodules('batchgenerators')
+hiddenimports.extend(dependency_modules)
+
+try:
+    dependency_modules = collect_submodules('acvl_utils')
+    hiddenimports.extend(dependency_modules)
+except:
+    pass
+
+print(f"[HOOK-NNUNET] Added {len(hiddenimports)} hidden imports for nnUNetv2")
+print(f"[HOOK-NNUNET] Trainer classes included for dynamic loading")
+
+# ✅ Exclude test modules
+excludedimports = [
+    'nnunetv2.tests',
+    'nnunetv2.testing',
+    'nnunetv2.evaluation.test'
+]
+
+================================================================================
+📂 File: hook-scipy._lib._docscrape.py
+================================================================================
+
+
+# Hook for scipy._lib._docscrape
+from PyInstaller.utils.hooks import collect_submodules
+
+# Collect all pydoc related modules
+hiddenimports = [
+    'pydoc',
+    'pydoc_data',
+    'pydoc_data.topics',
+    'textwrap',
+    'linecache',
+    'tokenize',
+    'keyword',
+    'pkgutil',
+    'warnings',
+    'collections.abc',
+    'inspect',
+    'doctest'
+]
+
+# Also collect scipy._lib submodules
+hiddenimports += collect_submodules('scipy._lib')
+
+
+================================================================================
+📂 File: hook-skimage.py
+================================================================================
+
+
+# Hook for scikit-image
+from PyInstaller.utils.hooks import collect_submodules, collect_data_files
+
+# Collect all skimage submodules
+hiddenimports = collect_submodules('skimage')
+datas = collect_data_files('skimage')
+
+# Add specific modules that might be missing
+hiddenimports += [
+    'skimage.filters.thresholding',
+    'skimage._shared.utils',
+    'skimage._shared.coord',
+    'lazy_loader',
+]
+
+
+================================================================================
+📂 File: hook-torch.py
+================================================================================
+
+
+from PyInstaller.utils.hooks import collect_all, collect_submodules
+
+# Kumpulkan semua resource utama dari torch
+datas, binaries, hiddenimports = collect_all('torch')
+
+# Pastikan torch.testing (termasuk _comparison) ikut ter-bundle
+try:
+    hiddenimports += collect_submodules('torch.testing')
+except Exception:
+    pass
+
+# (opsional) functorch kadang lazy-load; aman untuk ikutkan submodules-nya
+try:
+    hiddenimports += collect_submodules('torch._functorch')
+except Exception:
+    pass
+
+# Exclude triton sepenuhnya
+excludedimports = ['triton', 'triton.*']
+
+# Tambahan modul terkait nnUNet
+hiddenimports += [
+    'nnunetv2',
+    'dynamic_network_architectures',
+    'batchgenerators',
+    'acvl_utils',
+]
+
+# Tambahan modul ultralytics/YOLO
+hiddenimports += [
+    'ultralytics',
+    'ultralytics.models',
+    'ultralytics.models.yolo',
+    'ultralytics.utils',
+    'ultralytics.engine',
+    'ultralytics.nn',
+]
+
+# Exclude paket test (JANGAN exclude torch.testing)
+excludedimports += [
+    'torch.test',
+    'nnunetv2.tests',
+    'ultralytics.tests',
+]
+
+print(f"Torch hook: collected {len(hiddenimports)} hidden imports, {len(datas)} datas, {len(binaries)} binaries")
+
+
+================================================================================
+📂 File: hook-torchvision.py
+================================================================================
+
+"""
+PyInstaller hook for torchvision with comprehensive extension support
+FIXED VERSION - handles missing extensions gracefully
+"""
+
+from PyInstaller.utils.hooks import collect_all, collect_submodules, collect_data_files
+import os
+import sys
+
+print("[HOOK] torchvision: Starting comprehensive collection...")
+
+# Collect ALL torchvision modules including extensions
+try:
+    datas, binaries, hiddenimports = collect_all('torchvision')
+    print(f"[HOOK] torchvision: base collection successful")
+except Exception as e:
+    print(f"[HOOK] torchvision: base collection failed: {e}")
+    datas, binaries, hiddenimports = [], [], []
+
+# Core torchvision modules that should always be included
+core_modules = [
+    'torchvision.transforms',
+    'torchvision.transforms.functional', 
+    'torchvision.transforms._transforms_video',
+    'torchvision.models',
+    'torchvision.utils',
+    'torchvision.datasets',
+    'torchvision.io',
+    'torchvision.ops',
+]
+
+# Extension modules - try to include but don't fail if missing
+extension_modules = [
+    'torchvision.extension',
+    'torchvision._extension',
+    'torchvision.ops._extension',
+    'torchvision.ops._register_ops',
+    'torchvision._C',
+]
+
+# Add core modules
+for module in core_modules:
+    if module not in hiddenimports:
+        hiddenimports.append(module)
+
+# Try to add extension modules - but handle failures gracefully
+extensions_found = []
+for module in extension_modules:
+    try:
+        # Test if module can be imported
+        __import__(module)
+        if module not in hiddenimports:
+            hiddenimports.append(module)
+        extensions_found.append(module)
+        print(f"[HOOK] torchvision: ✅ Found extension: {module}")
+    except ImportError:
+        print(f"[HOOK] torchvision: ⚠️ Extension not available: {module}")
+    except Exception as e:
+        print(f"[HOOK] torchvision: ❌ Error testing {module}: {e}")
+
+# Collect torchvision binary files (DLLs, shared libraries)
+try:
+    import torchvision
+    tv_path = os.path.dirname(torchvision.__file__)
+    
+    # Add extension DLLs and shared libraries
+    extension_files = []
+    binary_extensions = ('.dll', '.so', '.dylib', '.pyd', '.so.*')
+    
+    for root, dirs, files in os.walk(tv_path):
+        for file in files:
+            if any(file.endswith(ext) for ext in binary_extensions):
+                src_path = os.path.join(root, file)
+                rel_path = os.path.relpath(src_path, tv_path)
+                dest_dir = f'torchvision/{os.path.dirname(rel_path)}'.replace('\\', '/')
+                
+                # Clean up destination directory path
+                if dest_dir.endswith('/'):
+                    dest_dir = dest_dir[:-1]
+                if dest_dir == 'torchvision/':
+                    dest_dir = 'torchvision'
+                
+                extension_files.append((src_path, dest_dir))
+                
+    datas.extend(extension_files)
+    print(f"[HOOK] torchvision: ✅ Found {len(extension_files)} binary extension files")
+    
+    # Log some example extension files for debugging
+    for i, (src, dest) in enumerate(extension_files[:3]):
+        print(f"[HOOK] torchvision: Extension file {i+1}: {os.path.basename(src)} -> {dest}")
+    
+except Exception as e:
+    print(f"[HOOK] torchvision: ⚠️ Binary collection failed: {e}")
+
+# Try to collect additional data files that might be needed
+try:
+    # Collect any additional data files from torchvision
+    additional_datas = collect_data_files('torchvision', include_py_files=False)
+    datas.extend(additional_datas)
+    print(f"[HOOK] torchvision: ✅ Found {len(additional_datas)} additional data files")
+except Exception as e:
+    print(f"[HOOK] torchvision: ⚠️ Additional data collection failed: {e}")
+
+# Special handling for torchvision.ops which often contains extensions
+try:
+    ops_modules = collect_submodules('torchvision.ops')
+    for module in ops_modules:
+        if module not in hiddenimports:
+            hiddenimports.append(module)
+    print(f"[HOOK] torchvision: ✅ Collected {len(ops_modules)} ops modules")
+except Exception as e:
+    print(f"[HOOK] torchvision: ⚠️ Ops modules collection failed: {e}")
+
+# Remove duplicates from hiddenimports
+hiddenimports = list(set(hiddenimports))
+
+# Final summary
+print(f"[HOOK] torchvision: FINAL SUMMARY:")
+print(f"[HOOK] torchvision:   - {len(hiddenimports)} hidden imports")
+print(f"[HOOK] torchvision:   - {len(datas)} data files") 
+print(f"[HOOK] torchvision:   - {len(binaries)} binaries")
+print(f"[HOOK] torchvision:   - {len(extensions_found)} extensions found: {extensions_found}")
+
+# Export for PyInstaller
+excludedimports = [
+    # Don't exclude anything - let PyInstaller handle unused modules
+]
+
+================================================================================
+📂 File: hook-triton.py
+================================================================================
+
+# hooks/hook-triton.py
+"""
+Hook to completely disable triton imports in PyInstaller
+This hook runs BEFORE torch and ensures triton is blocked completely
+"""
+
+import sys
+import types
+
+# Create comprehensive dummy triton structure
+triton_dummy = types.ModuleType('triton')
+triton_language = types.ModuleType('triton.language')
+triton_compiler = types.ModuleType('triton.compiler')
+triton_runtime = types.ModuleType('triton.runtime')
+triton_ops = types.ModuleType('triton.ops')
+triton_testing = types.ModuleType('triton.testing')
+triton_backends = types.ModuleType('triton.backends')
+triton_c = types.ModuleType('triton._C')
+
+# Register ALL possible triton modules as dummies
+sys.modules['triton'] = triton_dummy
+sys.modules['triton.language'] = triton_language
+sys.modules['triton.compiler'] = triton_compiler
+sys.modules['triton.runtime'] = triton_runtime
+sys.modules['triton.ops'] = triton_ops
+sys.modules['triton.testing'] = triton_testing
+sys.modules['triton.backends'] = triton_backends
+sys.modules['triton._C'] = triton_c
+
+# Completely exclude triton to prevent conflicts
+excludedimports = [
+    'triton',
+    'triton.language', 
+    'triton.compiler',
+    'triton.runtime',
+    'triton.ops',
+    'triton.testing',
+    'triton.backends',
+    'triton._C',
+    'triton.backends.cuda',
+    'triton.backends.driver',
+]
+
+print("[HOOK] Triton modules completely blocked and excluded")
+print(f"[HOOK] Registered {len(sys.modules)} triton dummy modules")
+
+================================================================================
+📂 File: hook-xgboost.py
+================================================================================
+
+"""
+PyInstaller hook for XGBoost to include native libraries and VERSION file
+"""
+from PyInstaller.utils.hooks import collect_dynamic_libs, collect_data_files
+import os
+
+# Collect XGBoost dynamic libraries
+binaries = collect_dynamic_libs('xgboost')
+
+# Collect XGBoost data files including VERSION
+datas = collect_data_files('xgboost', include_py_files=False)
+
+# Additional manual collection for XGBoost files
+try:
+    import xgboost
+    xgb_path = os.path.dirname(xgboost.__file__)
+    
+    # Collect VERSION file
+    version_file = os.path.join(xgb_path, 'VERSION')
+    if os.path.exists(version_file):
+        datas.append((version_file, 'xgboost'))
+        print(f"[HOOK-XGBOOST] Found VERSION file: {version_file}")
+    else:
+        # Create dummy VERSION file if not found
+        print("[HOOK-XGBOOST] VERSION file not found, will create dummy")
+    
+    # Look for xgboost.dll in common locations
+    potential_dll_paths = [
+        os.path.join(xgb_path, 'lib', 'xgboost.dll'),
+        os.path.join(xgb_path, '..', 'Library', 'bin', 'xgboost.dll'),
+        os.path.join(xgb_path, '..', 'Library', 'lib', 'xgboost.dll'),
+    ]
+    
+    for dll_path in potential_dll_paths:
+        if os.path.exists(dll_path):
+            binaries.append((dll_path, 'lib'))
+            binaries.append((dll_path, 'xgboost/lib'))
+            print(f"[HOOK-XGBOOST] Found XGBoost DLL: {dll_path}")
+            break
+    else:
+        print("[HOOK-XGBOOST] XGBoost DLL not found in common locations")
+        
+except Exception as e:
+    print(f"[HOOK-XGBOOST] Error collecting XGBoost files: {e}")
+
+print(f"[HOOK-XGBOOST] Collected {len(binaries)} binaries and {len(datas)} data files")
+
+================================================================================
+📂 File: runtime_hook.py
+================================================================================
+
+"""
+Runtime hook for PyInstaller - Applied during executable execution
+Simple environment setup only
+"""
+import sys
+import os
+
+def setup_runtime_environment():
+    """Setup environment at runtime - SIMPLE VERSION"""
+    if hasattr(sys, '_MEIPASS'):
+        # Hanya set environment variables, jangan ganggu imports
+        env_vars = {
+            'TRITON_DISABLE': '1',
+            'TORCH_DISABLE_TRITON_LIBRARY': '1', 
+            'TORCH_COMPILE_DISABLE': '1',
+            'TORCH_JIT': '0',
+        }
+        
+        for key, value in env_vars.items():
+            if key not in os.environ:
+                os.environ[key] = value
+        
+        print("[RUNTIME] PyInstaller environment configured")
+
+# Run setup
+setup_runtime_environment()
+
+================================================================================
+📂 File: runtime_hook_nnunet.py
+================================================================================
+
+#hooks/runtime_hook_nnunet.py
+"""
+Runtime hook for nnUNet to setup environment and handle trainer classes
+"""
+
+import sys
+import os
+from pathlib import Path
+
+def setup_nnunet_environment():
+    """Setup nnUNet environment variables for PyInstaller"""
+    if hasattr(sys, '_MEIPASS'):
+        # Set base paths untuk nnUNet
+        meipass = Path(sys._MEIPASS)
+        exe_dir = Path(sys.executable).parent
+        
+        # Try to find models directory
+        models_dir = None
+        for potential_path in [meipass / "models", exe_dir / "models"]:
+            if potential_path.exists():
+                models_dir = potential_path
+                break
+        
+        if models_dir:
+            seg_models = models_dir / "segmentation_2"
+            
+            # Set nnUNet environment variables
+            os.environ["nnUNet_raw"] = str(seg_models / "_nn_raw")
+            os.environ["nnUNet_preprocessed"] = str(seg_models / "_nn_pre") 
+            os.environ["nnUNet_results"] = str(seg_models / "nnUNet_results")
+            
+            print(f"[RUNTIME-NNUNET] Set nnUNet paths:")
+            print(f"[RUNTIME-NNUNET]   nnUNet_raw: {os.environ['nnUNet_raw']}")
+            print(f"[RUNTIME-NNUNET]   nnUNet_preprocessed: {os.environ['nnUNet_preprocessed']}")
+            print(f"[RUNTIME-NNUNET]   nnUNet_results: {os.environ['nnUNet_results']}")
+        else:
+            print("[RUNTIME-NNUNET] ❌ Models directory not found")
+
+def fix_triton_conflicts():
+    """Fix triton conflicts that cause _register_fake errors"""
+    
+    # ✅ CRITICAL: Remove any existing triton modules that might conflict
+    triton_modules = [key for key in sys.modules.keys() if key.startswith('triton')]
+    for module in triton_modules:
+        if 'TritonBlocker' in str(sys.modules[module]):
+            print(f"[RUNTIME-NNUNET] Removing conflicting triton module: {module}")
+            del sys.modules[module]
+    
+    # ✅ Set additional triton disable flags
+    os.environ.update({
+        'TRITON_DISABLE': '1',
+        'TORCH_DISABLE_TRITON_LIBRARY': '1',
+        'TORCH_COMPILE_DISABLE': '1',
+        'TORCH_TRITON_DISABLE': '1',
+        'USE_TRITON': '0',
+        'TORCH_DISABLE_TRITON_OPS': '1',
+        'TORCH_DISABLE_TRITON_REGISTRATION': '1'
+    })
+    
+    print("[RUNTIME-NNUNET] ✅ Triton conflicts resolved")
+
+def preregister_nnunet_trainers():
+    """Pre-register nnUNet trainer classes - SIMPLIFIED VERSION"""
+    try:
+        print("[RUNTIME-NNUNET] Attempting to pre-register nnUNet trainers...")
+        
+        # ✅ WORKAROUND: Instead of importing specific trainers, 
+        # just ensure the training module is available
+        import nnunetv2.training.nnUNetTrainer.nnUNetTrainer
+        print("[RUNTIME-NNUNET] ✅ nnUNet training module imported")
+        
+        # ✅ Don't try to import specific trainer variants in runtime hook
+        # Let the application handle this when actually needed
+        
+    except Exception as e:
+        print(f"[RUNTIME-NNUNET] Note: Trainer pre-registration failed: {e}")
+        print("[RUNTIME-NNUNET] Will attempt dynamic loading during inference")
+
+# Run fixes
+if hasattr(sys, '_MEIPASS'):
+    setup_nnunet_environment()
+    fix_triton_conflicts()
+    preregister_nnunet_trainers()
+
+================================================================================
+📂 File: runtime_hook_torchvision.py
+================================================================================
+
+"""
+Runtime hook for comprehensive torchvision stub creation
+"""
+
+import sys
+import types
+
+def create_comprehensive_torchvision_stub():
+    """Create complete torchvision stub with all required modules"""
+    if hasattr(sys, '_MEIPASS'):
+        print("[RUNTIME-TORCHVISION] Creating comprehensive torchvision stub...")
+        
+        try:
+            # Test if torchvision is working
+            import torchvision
+            if hasattr(torchvision, 'ops') and hasattr(torchvision.ops, 'nms'):
+                print("[RUNTIME-TORCHVISION] ✅ torchvision already working")
+                return
+        except:
+            pass
+        
+        # Create comprehensive stub
+        import torch
+        
+        # Main torchvision module
+        tv = types.ModuleType('torchvision')
+        tv.__file__ = '<runtime_torchvision_stub>'
+        tv.__version__ = '0.0.0'
+        
+        # ops module with NMS
+        ops = types.ModuleType('torchvision.ops')
+        def nms_fallback(boxes, scores, iou_threshold):
+            """Simple NMS fallback"""
+            try:
+                return torch.arange(len(boxes)) if len(boxes) > 0 else torch.tensor([])
+            except:
+                return []
+        ops.nms = nms_fallback
+        
+        # transforms module
+        transforms = types.ModuleType('torchvision.transforms')
+        class ToTensorStub:
+            def __call__(self, x): return torch.tensor(x) if hasattr(torch, 'tensor') else x
+        transforms.ToTensor = ToTensorStub
+        
+        # Other modules
+        models = types.ModuleType('torchvision.models')
+        utils = types.ModuleType('torchvision.utils')
+        io = types.ModuleType('torchvision.io')
+        datasets = types.ModuleType('torchvision.datasets')
+        
+        # Link everything
+        tv.ops = ops
+        tv.transforms = transforms
+        tv.models = models
+        tv.utils = utils
+        tv.io = io
+        tv.datasets = datasets
+        
+        # Register in sys.modules
+        sys.modules['torchvision'] = tv
+        sys.modules['torchvision.ops'] = ops
+        sys.modules['torchvision.transforms'] = transforms
+        sys.modules['torchvision.models'] = models
+        sys.modules['torchvision.utils'] = utils
+        sys.modules['torchvision.io'] = io
+        sys.modules['torchvision.datasets'] = datasets
+        
+        print("[RUNTIME-TORCHVISION] ✅ Comprehensive stub created")
+
+# Run the stub creation
+create_comprehensive_torchvision_stub()
+
+================================================================================
+📂 File: runtime_hook_xgboost.py
+================================================================================
+
+"""
+Runtime hook for XGBoost to handle missing VERSION file
+"""
+
+import sys
+import os
+
+def fix_xgboost_version():
+    """Create missing XGBoost VERSION file at runtime"""
+    if hasattr(sys, '_MEIPASS'):
+        try:
+            # Find xgboost directory in the bundle
+            xgb_paths = [
+                os.path.join(sys._MEIPASS, 'xgboost'),
+                os.path.join(os.path.dirname(sys.executable), '_internal', 'xgboost')
+            ]
+            
+            for xgb_path in xgb_paths:
+                if os.path.exists(xgb_path):
+                    version_file = os.path.join(xgb_path, 'VERSION')
+                    
+                    if not os.path.exists(version_file):
+                        # Create VERSION file with default version
+                        try:
+                            with open(version_file, 'w') as f:
+                                f.write('2.0.0')  # Default version
+                            print(f"[RUNTIME-XGBOOST] Created VERSION file: {version_file}")
+                        except Exception as e:
+                            print(f"[RUNTIME-XGBOOST] Failed to create VERSION file: {e}")
+                    else:
+                        print(f"[RUNTIME-XGBOOST] VERSION file already exists: {version_file}")
+                    break
+            else:
+                print("[RUNTIME-XGBOOST] XGBoost directory not found")
+                
+        except Exception as e:
+            print(f"[RUNTIME-XGBOOST] Error: {e}")
+
+# Run the fix
+fix_xgboost_version()
+
