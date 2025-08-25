@@ -80,7 +80,7 @@ class MainWindowSpect(QMainWindow):
         self.setWindowTitle(f"TELPLASTINA - Session: {session_code or 'Unknown'}")
         self.resize(1600, 900)
         self.session_code = session_code
-        self.pool = multiprocessing.Pool(processes=1)
+        self.pool = None
         self.data_root = data_root
         self.invert_original = False
         self._last_invert_state = False
@@ -97,7 +97,18 @@ class MainWindowSpect(QMainWindow):
         self._build_ui()
         self._scan_folder()
     
-
+    def get_pool(self):
+        """
+        Membuat dan mengembalikan multiprocessing Pool.
+        Dibuat hanya sekali saat pertama kali dibutuhkan.
+        """
+        if self._pool is None:
+            print("[DEBUG] Creating multiprocessing.Pool for the first time...")
+            # Set start method, penting untuk stabilitas
+            # multiprocessing.set_start_method("spawn", force=True) # Opsional, coba jika masih gagal
+            self._pool = multiprocessing.Pool(processes=1)
+        return self._pool
+    
     def _setup_timeline_connections(self):
         """✅ Setup timeline connections with proper view synchronization"""
         
@@ -1206,8 +1217,12 @@ class MainWindowSpect(QMainWindow):
     def closeEvent(self, event: QCloseEvent):
         print("[DEBUG] Membersihkan sumber daya di MainWindow (SPECT)...")
         print("[DEBUG] Menutup process pool...")
-        self.pool.close()
-        self.pool.join()
+        if self._pool is not None:
+            print("[DEBUG] Menutup process pool...")
+            self._pool.close()
+            self._pool.join()
+            print("[DEBUG] Process pool ditutup.")
+            
         print("[DEBUG] Process pool ditutup.")
         if hasattr(self, 'timeline_widget') and hasattr(self.timeline_widget, 'cleanup'):
             self.timeline_widget.cleanup()
@@ -1268,7 +1283,9 @@ class MainWindowSpect(QMainWindow):
 
             hotspot_jobs = []
             for dicom_file in missing_hotspot_files:
-                job = self.pool.apply_async(
+                # ✅ GUNAKAN FUNGSI get_pool()
+                pool = self.get_pool()
+                job = pool.apply_async(
                     run_hotspot_processing_in_process, 
                     args=(dicom_file, patient_id)
                 )

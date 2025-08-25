@@ -203,15 +203,15 @@ except ImportError as e:
     sys.exit(1)
 
 # ========== APPLICATION IMPORTS ==========
-try:
-    # Import main application modules
-    from features.spect_viewer.gui.main_window_spect import MainWindowSpect
-    from features.dicom_import.gui.doctor_selection_dialog import DoctorSelectionDialog
-    print("[DEBUG] Application modules imported successfully")
-except ImportError as e:
-    print(f"[CRITICAL ERROR] Could not import application modules: {e}")
-    print(f"[CRITICAL ERROR] Traceback: {traceback.format_exc()}")
-    sys.exit(1)
+# try:
+#     # Import main application modules
+#     from features.spect_viewer.gui.main_window_spect import MainWindowSpect
+#     from features.dicom_import.gui.doctor_selection_dialog import DoctorSelectionDialog
+#     print("[DEBUG] Application modules imported successfully")
+# except ImportError as e:
+#     print(f"[CRITICAL ERROR] Could not import application modules: {e}")
+#     print(f"[CRITICAL ERROR] Traceback: {traceback.format_exc()}")
+#     sys.exit(1)
 
 # ✅ ADD: Debug state AFTER imports
 if hasattr(sys, '_MEIPASS'):
@@ -591,6 +591,11 @@ class ApplicationBootstrap:
     def create_main_window(self, session_code, data_dir):
         """Create main window with error handling"""
         try:
+            # ✅ PINDAHKAN IMPOR KE SINI
+            # Impor hanya akan terjadi saat fungsi ini dipanggil oleh proses utama,
+            # bukan oleh child process.
+            from features.spect_viewer.gui.main_window_spect import MainWindowSpect
+            
             window = MainWindowSpect(session_code=session_code, data_root=data_dir)
             print(f"[DEBUG] Main window created successfully for session: {session_code}")
             return window
