@@ -60,34 +60,45 @@ def fix_triton_conflicts():
     print("[RUNTIME-NNUNET] ✅ Triton conflicts resolved")
 
 def preregister_nnunet_trainers():
-    """Pre-register nnUNet trainer classes - SIMPLIFIED VERSION"""
+    """BYPASS nnUNet trainer pre-registration to prevent loops"""
     try:
         print("[RUNTIME-NNUNET] Attempting to pre-register nnUNet trainers...")
-        
-        # ✅ ADD DEBUG: Check multiprocessing state
-        import multiprocessing
         print(f"[DEBUG-NNUNET] Current process PID: {os.getpid()}")
         print(f"[DEBUG-NNUNET] Parent PID: {os.getppid()}")
-        print(f"[DEBUG-NNUNET] Multiprocessing method: {multiprocessing.get_start_method()}")
         
-        # ✅ ADD DEBUG: Check before import
+        # ✅ CHECK: Skip in spawned processes
+        if len(sys.argv) > 1 and '--multiprocessing-fork' in sys.argv:
+            print("[DEBUG-NNUNET] Skipping nnUNet import in multiprocessing fork")
+            return
+        
+        # ✅ CHECK: Skip if already spawned process detected
+        current_pid = os.getpid()
+        parent_pid = os.getppid() 
+        if current_pid != parent_pid and parent_pid > 0:
+            print(f"[DEBUG-NNUNET] Skipping nnUNet import in spawned process (PID: {current_pid})")
+            return
+        
         print("[DEBUG-NNUNET] About to import nnunetv2.training...")
         
-        # ✅ WORKAROUND: Instead of importing specific trainers, 
-        # just ensure the training module is available
-        import nnunetv2.training.nnUNetTrainer.nnUNetTrainer
+        # ✅ SAFE IMPORT: Add timeout protection
+        import signal
+        def timeout_handler(signum, frame):
+            raise TimeoutError("nnUNet import timeout")
         
-        print("[RUNTIME-NNUNET] ✅ nnUNet training module imported")
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(10)  # 10 second timeout
         
-        # ✅ ADD DEBUG: Success confirmation
-        print("[DEBUG-NNUNET] Import successful, continuing...")
+        try:
+            import nnunetv2.training.nnUNetTrainer.nnUNetTrainer
+            print("[RUNTIME-NNUNET] ✅ nnUNet training module imported")
+        finally:
+            signal.alarm(0)  # Cancel timeout
         
+    except TimeoutError:
+        print("[RUNTIME-NNUNET] ⚠️ nnUNet import timeout - skipping for safety")
     except Exception as e:
         print(f"[RUNTIME-NNUNET] Note: Trainer pre-registration failed: {e}")
         print("[RUNTIME-NNUNET] Will attempt dynamic loading during inference")
-        # ✅ ADD DEBUG: Exception details
-        import traceback
-        print(f"[DEBUG-NNUNET] Full traceback: {traceback.format_exc()}")
 
 # Run fixes
 if hasattr(sys, '_MEIPASS'):
