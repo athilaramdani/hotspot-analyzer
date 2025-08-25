@@ -119,12 +119,15 @@ hiddenimports = [
     'scipy.interpolate',
     'scipy.integrate',
     'scipy.stats',
+    'scipy.signal',
+    'scipy.special',
     
     'pandas',
     'pandas._libs',
     'pandas._libs.tslibs',
     'pandas.io',
     'pandas.io.formats',
+    'pandas._libs.tslibs.timedeltas',
     
     'sklearn',
     'sklearn.utils',
@@ -227,6 +230,10 @@ hiddenimports = [
     'ultralytics.utils',
     'ultralytics.engine',
     'ultralytics.nn',
+    'ultralytics.data',
+    'ultralytics.utils.checks',
+    'ultralytics.utils.ops',
+    'ultralytics.utils.torch_utils',
     
     # Timm (for model architectures)
     'timm',
@@ -303,6 +310,7 @@ hiddenimports = [
     'yaml',
     'json',
     'pathlib',
+    'pydicom',
     'dotenv',
     'threading',
     'multiprocessing',
@@ -527,7 +535,8 @@ a = Analysis(
     runtime_hooks=runtime_hooks,
     excludes=excludes,
     noarchive=False,
-    optimize=1,  # Changed to 1 for better compatibility
+    optimize=1, 
+    debug='all', # Changed to 1 for better compatibility
     # Ensure torch is treated as a package
     module_collection_mode={
         'torch': 'pyz+py',
