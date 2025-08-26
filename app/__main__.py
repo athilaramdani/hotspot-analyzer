@@ -36,7 +36,7 @@ def debug_pyinstaller_state():
     if not hasattr(sys, '_MEIPASS'):
         return
     
-    print("\n🧪 [MAIN DEBUG] PyInstaller Environment Analysis")
+    print("\n  [MAIN DEBUG] PyInstaller Environment Analysis")
     print("=" * 60)
     print(f"_MEIPASS: {sys._MEIPASS}")
     print(f"executable: {sys.executable}")
@@ -164,7 +164,7 @@ apply_early_patches()
 
 # ✅ ADD: Debug state AFTER patches
 if hasattr(sys, '_MEIPASS'):
-    print("\n🧪 [POST-PATCH DEBUG] State after patches:")
+    print("\n  [POST-PATCH DEBUG] State after patches:")
     if 'torch.library' in sys.modules:
         lib = sys.modules['torch.library']
         is_blocker = 'TritonBlocker' in str(type(lib))
@@ -215,7 +215,7 @@ except ImportError as e:
 
 # ✅ ADD: Debug state AFTER imports
 if hasattr(sys, '_MEIPASS'):
-    print("\n🧪 [POST-IMPORT DEBUG] State after all imports:")
+    print("\n  [POST-IMPORT DEBUG] State after all imports:")
     
     # Test torch import
     try:

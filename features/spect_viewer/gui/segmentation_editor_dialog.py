@@ -928,9 +928,9 @@ class SegmentationEditorDialog(BaseEditorDialog):
         """Handle save thread completion (same as hotspot editor)."""
         from PySide6.QtWidgets import QMessageBox
         
-        print("🧪 [DEBUG SEGMENTATION] ===================")
-        print("🧪 [DEBUG SEGMENTATION] Save finished!")
-        print("🧪 [DEBUG SEGMENTATION] About to emit signal...")
+        print("  [DEBUG SEGMENTATION] ===================")
+        print("  [DEBUG SEGMENTATION] Save finished!")
+        print("  [DEBUG SEGMENTATION] About to emit signal...")
         
         # Close loading dialog
         if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
@@ -956,13 +956,13 @@ class SegmentationEditorDialog(BaseEditorDialog):
         self.btn_save.setEnabled(True)
             
         # ✅ EMIT SIGNAL SEPERTI HOTSPOT EDITOR
-        print("🧪 [DEBUG SEGMENTATION] Checking if signal exists...")
+        print("  [DEBUG SEGMENTATION] Checking if signal exists...")
         if hasattr(self, 'editor_completed'):
-            print("🧪 [DEBUG SEGMENTATION] Signal exists, emitting...")
+            print("  [DEBUG SEGMENTATION] Signal exists, emitting...")
             self.editor_completed.emit()
-            print("🧪 [DEBUG SEGMENTATION] Signal emitted!")
+            print("  [DEBUG SEGMENTATION] Signal emitted!")
         else:
-            print("🧪 [DEBUG SEGMENTATION] ❌ Signal does not exist!")
+            print("  [DEBUG SEGMENTATION] ❌ Signal does not exist!")
         
         # Close dialog
         self.accept()

@@ -256,7 +256,7 @@ def copy_models_explicitly():
 
 def verify_nnunet_structure():
     """NEW: Verify complete nnUNet structure exists"""
-    print("\n🧪 Verifying complete nnUNet structure...")
+    print("\nVerifying complete nnUNet structure...")
     
     base_path = Path("dist/HotspotAnalyzer/models/segmentation_2/nnUNet_results/Dataset001_BoneRegion")
     

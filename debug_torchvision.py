@@ -69,7 +69,7 @@ def debug_triton_blockers():
             print(f"    ⚠️  CONTAINS TRITONBLOCKER")
 
 if __name__ == "__main__":
-    print("🧪 [DEBUG] PyInstaller TorchVision Debug Analysis")
+    print("  [DEBUG] PyInstaller TorchVision Debug Analysis")
     print("=" * 60)
     
     if hasattr(sys, '_MEIPASS'):

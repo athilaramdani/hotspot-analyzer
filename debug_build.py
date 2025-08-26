@@ -7,7 +7,7 @@ import sys
 import os
 from pathlib import Path
 
-print("🧪 [DEBUG] PyInstaller Build Analysis")
+print("  [DEBUG] PyInstaller Build Analysis")
 print("=" * 60)
 
 # Check if PyInstaller mode
@@ -118,7 +118,7 @@ if __name__ == "__main__":
         test_critical_imports()
         
         print("\n" + "=" * 60)
-        print("🧪 [DEBUG] Analysis complete!")
+        print("  [DEBUG] Analysis complete!")
         
     except Exception as e:
         print(f"\n❌ [ERROR] Debug script failed: {e}")

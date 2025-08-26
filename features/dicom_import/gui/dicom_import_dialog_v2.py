@@ -412,12 +412,12 @@ class DicomImportDialog(QDialog):
                 
                 # Test manual
                 if self.session_code:
-                    self._log_message(f"🧪 [MANUAL TEST] Testing duplicate check function...")
+                    self._log_message(f"  [MANUAL TEST] Testing duplicate check function...")
                     test_result = check_dicom_exists("ATL", "0001158915", "20241204")
-                    self._log_message(f"🧪 [MANUAL TEST] check_dicom_exists('ATL', '0001158915', '20241204') = {test_result}")
+                    self._log_message(f"  [MANUAL TEST] check_dicom_exists('ATL', '0001158915', '20241204') = {test_result}")
                     
                     existing_info = get_existing_dicom_info("ATL", "0001158915", "20241204")
-                    self._log_message(f"🧪 [MANUAL TEST] Existing info: {existing_info}")
+                    self._log_message(f"  [MANUAL TEST] Existing info: {existing_info}")
                 
             except ImportError as e:
                 self._log_message(f"🔍 [DUPLICATE DEBUG] ❌ Import error: {e}")
