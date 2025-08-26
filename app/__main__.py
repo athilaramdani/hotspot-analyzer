@@ -6,6 +6,7 @@ Version: 2.1 - Enhanced Debug + Auto-Close Detection
 """
 
 import sys
+import logging
 import os
 from pathlib import Path
 import traceback
@@ -707,6 +708,16 @@ class ApplicationBootstrap:
 # ========== MAIN FUNCTION ==========
 def main():
     """Main application entry point with comprehensive error handling"""
+     # ==========================================================
+    # ✅ KONFIGURASI LOGGING DITAMBAHKAN DI SINI
+    # ==========================================================
+    log_format = "%(asctime)s - [%(levelname)s] - %(message)s"
+    log_level = logging.DEBUG  # Tampilkan semua pesan saat development
+    
+    logging.basicConfig(level=log_level, format=log_format, datefmt="%Y-%m-%d %H:%M:%S")
+    
+    logging.info("Logger berhasil dikonfigurasi. Memulai aplikasi...")
+    # ==========================================================
     try:
         # Validate Python version
         if sys.version_info < (3, 8):
