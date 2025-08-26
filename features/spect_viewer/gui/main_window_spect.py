@@ -59,13 +59,13 @@ from core.gui.searchable_combobox import SearchableComboBox
 from core.gui.patient_info_bar import PatientInfoBar
 from .scan_timeline import ScanTimelineWidget  # UPDATED: Use modular timeline widget
 
-# ✅ FIXED: Import BSISidePanel instead of SidePanel
+#   FIXED: Import BSISidePanel instead of SidePanel
 from .side_panel import BSISidePanel
 from ..logic.adjust_contrast import ContrastDialog
 from .mode_selector import ModeSelector
 from features.spect_viewer.logic.processing_wrapper import run_yolo_detection_for_patient, run_hotspot_processing_in_process,run_segmentation_in_process
 
-# ✅ NEW: Import BSI integration
+#   NEW: Import BSI integration
 from features.spect_viewer.logic.bsi_timeline_integration import (
     get_bsi_integration,
     load_bsi_for_selected_patient,
@@ -91,7 +91,7 @@ class MainWindowSpect(QMainWindow):
         self._loaded: Dict[str, List[Dict]] = {}
         self.scan_buttons: List[QPushButton] = []
         
-        # ✅ NEW: BSI integration
+        #   NEW: BSI integration
         self.bsi_integration = get_bsi_integration()
 
         self._build_ui()
@@ -110,7 +110,7 @@ class MainWindowSpect(QMainWindow):
         return self._pool
     
     def _setup_timeline_connections(self):
-        """✅ Setup timeline connections with proper view synchronization"""
+        """  Setup timeline connections with proper view synchronization"""
         
         # Timeline scan selection already connected in __init__
         # Just ensure session code is set
@@ -120,7 +120,7 @@ class MainWindowSpect(QMainWindow):
         print("[MainWindow] Timeline connections established")
 
     def _setup_keyboard_shortcuts(self):
-        """✅ Setup global keyboard shortcuts with error handling"""
+        """  Setup global keyboard shortcuts with error handling"""
         
         try:
             # Timeline zoom shortcuts (global) - with safety checks
@@ -135,7 +135,7 @@ class MainWindowSpect(QMainWindow):
                 zoom_out_shortcut = QShortcut(QKeySequence("Ctrl+-"), self)
                 zoom_out_shortcut.activated.connect(self._safe_zoom_out)
                 
-                # ✅ FIXED: Safe zoom reset with fallback
+                #   FIXED: Safe zoom reset with fallback
                 zoom_reset_shortcut = QShortcut(QKeySequence("Ctrl+0"), self)
                 zoom_reset_shortcut.activated.connect(self._safe_zoom_reset)
             
@@ -146,7 +146,7 @@ class MainWindowSpect(QMainWindow):
             posterior_shortcut = QShortcut(QKeySequence("Ctrl+2"), self)
             posterior_shortcut.activated.connect(lambda: self._sync_view_across_components("Posterior"))
             
-            print("[MainWindow] ✅ Global keyboard shortcuts setup complete")
+            print("[MainWindow]   Global keyboard shortcuts setup complete")
             
         except Exception as e:
             print(f"[MainWindow] ⚠️ Error setting up keyboard shortcuts: {e}")
@@ -155,7 +155,7 @@ class MainWindowSpect(QMainWindow):
         """Safe zoom in with error handling"""
         try:
             if hasattr(self, 'timeline_widget') and hasattr(self.timeline_widget, 'zoom_in'):
-                # ✅ OPTIMIZED: Now uses smooth scaling instead of rebuild
+                #   OPTIMIZED: Now uses smooth scaling instead of rebuild
                 self.timeline_widget.zoom_in()
             else:
                 print("[MainWindow] Timeline widget or zoom_in method not available")
@@ -180,13 +180,13 @@ class MainWindowSpect(QMainWindow):
                 if hasattr(self.timeline_widget, 'zoom_reset'):
                     self.timeline_widget.zoom_reset()
                 else:
-                    # ✅ FALLBACK: Manual zoom reset if method doesn't exist
+                    #   FALLBACK: Manual zoom reset if method doesn't exist
                     print("[MainWindow] zoom_reset method not found, using fallback")
                     if hasattr(self.timeline_widget, '_zoom_factor'):
                         self.timeline_widget._zoom_factor = 1.0
                         if hasattr(self.timeline_widget, '_rebuild'):
                             self.timeline_widget._rebuild()
-                        print("[MainWindow] ✅ Zoom reset via fallback method")
+                        print("[MainWindow]   Zoom reset via fallback method")
                     else:
                         print("[MainWindow] Cannot reset zoom - no zoom_factor attribute")
             else:
@@ -195,7 +195,7 @@ class MainWindowSpect(QMainWindow):
             print(f"[MainWindow] Error in zoom reset: {e}")
 
     def _sync_view_across_components(self, view_name: str):
-        """"✅ Synchronize view across all components"""
+        """"  Synchronize view across all components"""
         print(f"[MainWindow] Syncing view '{view_name}' across all components")
 
         try:
@@ -203,24 +203,24 @@ class MainWindowSpect(QMainWindow):
             if hasattr(self, 'timeline_widget'):
                 self.timeline_widget.set_active_view(view_name)
 
-            print(f"[MainWindow] ✅ View sync completed")
+            print(f"[MainWindow]   View sync completed")
 
         except Exception as e:
             print(f"[MainWindow] Error syncing view: {e}")
 
     def update_timeline_with_scans_enhanced(self, scans_data: list, active_index: int = -1):
-        """✅ FIXED: Enhanced timeline update with BSI integration"""
+        """  FIXED: Enhanced timeline update with BSI integration"""
         try:
             print(f"[MainWindow] Updating timeline with {len(scans_data)} scans")
             
-            # ✅ MANDATORY: Update scans with BSI information using existing infrastructure
+            #   MANDATORY: Update scans with BSI information using existing infrastructure
             updated_scans = []
             for scan in scans_data:
-                # ✅ CALL: BSI integration to update meta
+                #   CALL: BSI integration to update meta
                 updated_scan = self.bsi_integration.update_scan_meta_with_bsi(scan, self.session_code)
                 updated_scans.append(updated_scan)
             
-            print(f"[MainWindow] ✅ BSI integration completed for {len(updated_scans)} scans")
+            print(f"[MainWindow]   BSI integration completed for {len(updated_scans)} scans")
             
             # Debug: Check first scan meta
             if updated_scans:
@@ -238,7 +238,7 @@ class MainWindowSpect(QMainWindow):
             # Update timeline display
             self.timeline_widget.display_timeline(updated_scans, active_index)
             
-            print(f"[MainWindow] ✅ Timeline updated with BSI integration")
+            print(f"[MainWindow]   Timeline updated with BSI integration")
             
         except Exception as e:
             print(f"[MainWindow] Error updating timeline: {e}")
@@ -248,7 +248,7 @@ class MainWindowSpect(QMainWindow):
             self.timeline_widget.display_timeline(scans_data, active_index)
         
     def complete_initialization_setup(self):
-        """✅ Complete initialization sequence - CALL THIS AT END OF __init__"""
+        """  Complete initialization sequence - CALL THIS AT END OF __init__"""
         
         # 3. Setup keyboard shortcuts
         self._setup_keyboard_shortcuts()
@@ -257,7 +257,7 @@ class MainWindowSpect(QMainWindow):
         default_view = "Anterior"
         self._sync_view_across_components(default_view)
         
-        print("[MainWindow] ✅ Complete integration initialization finished")
+        print("[MainWindow]   Complete integration initialization finished")
     def _update_active_layers_display(self):
         """Update the active layers display in control panel"""
         if not self.timeline_widget._active_layers:
@@ -294,23 +294,23 @@ class MainWindowSpect(QMainWindow):
         # Check if we have any scan loaded
         has_scan = bool(self.timeline_widget._scans_cache and self.timeline_widget.active_scan_index >= 0)
         
-        # ✅ FIXED: For segmentation - check if segmentation files exist (required for editing)
+        #   FIXED: For segmentation - check if segmentation files exist (required for editing)
         has_segmentation_data = self.timeline_widget.has_layer_data("Segmentation") if has_scan else False
         
-        # ✅ FIXED: For hotspot - always allow editing if scan exists (can create hotspot files)
+        #   FIXED: For hotspot - always allow editing if scan exists (can create hotspot files)
         # User should be able to edit hotspot even if classification files don't exist yet
         can_edit_hotspot = has_scan
         
         # Enable buttons based on editability
         self.seg_edit_btn.setEnabled(has_segmentation_data and has_scan)
-        self.hotspot_edit_btn.setEnabled(can_edit_hotspot)  # ✅ Always enabled if scan exists
+        self.hotspot_edit_btn.setEnabled(can_edit_hotspot)  #   Always enabled if scan exists
         
         # Debug output
         print(f"[EDIT BUTTONS] Has scan: {has_scan}, Has seg data: {has_segmentation_data}, Can edit hotspot: {can_edit_hotspot}")
         print(f"[EDIT BUTTONS] Seg button enabled: {self.seg_edit_btn.isEnabled()}, Hotspot button enabled: {self.hotspot_edit_btn.isEnabled()}")
         
     def _update_scan_info_display(self):
-        """✅ FIXED: Update scan information with BSI data per frame (no combined)"""
+        """  FIXED: Update scan information with BSI data per frame (no combined)"""
         if not self.timeline_widget._scans_cache or self.timeline_widget.active_scan_index < 0:
             self.scan_info_label.setText("No scan selected")
             return
@@ -329,12 +329,12 @@ class MainWindowSpect(QMainWindow):
             except ValueError:
                 formatted_date = date
             
-            # ✅ UPDATED: Get BSI per frame (no combined)
+            #   UPDATED: Get BSI per frame (no combined)
             if meta.get("has_bsi", False):
                 bsi_anterior = meta.get("bsi_anterior", 0.0)
                 bsi_posterior = meta.get("bsi_posterior", 0.0)
                 
-                # ✅ FORMAT: 10 decimal places with truncation
+                #   FORMAT: 10 decimal places with truncation
                 ant_str = f"{bsi_anterior:.10f}".rstrip('0').rstrip('.')
                 if len(ant_str.split('.')[-1]) > 10:
                     ant_str = f"{bsi_anterior:.10f}..."
@@ -343,13 +343,13 @@ class MainWindowSpect(QMainWindow):
                 if len(post_str.split('.')[-1]) > 10:
                     post_str = f"{bsi_posterior:.10f}..."
                 
-                # ✅ UPDATED: Show BSI values without percent
+                #   UPDATED: Show BSI values without percent
                 bsi_info = f"<br><span style='color: #ff6b6b;'>Anterior BSI: {ant_str}</span><br><span style='color: #4ecdc4;'>Posterior BSI: {post_str}</span>"
             else:
-                # ✅ NEW: Show views without BSI
+                #   NEW: Show views without BSI
                 bsi_info = f"<br><span style='color: #ff6b6b;'>Anterior</span><br><span style='color: #4ecdc4;'>Posterior</span>"
             
-            # ✅ UPDATED: Always show both views
+            #   UPDATED: Always show both views
             info_text = f"""
             <b>Scan {scan_num}/{total_scans}</b><br>
             Date: {formatted_date}<br>
@@ -389,7 +389,7 @@ class MainWindowSpect(QMainWindow):
                     if image_pil:
                         # If successful, add the loaded data back into the scan object
                         scan['frames'][view_key] = np.array(image_pil)
-                        print(f"✅ Successfully loaded '{view_key}' from PNG into scan object.")
+                        print(f"  Successfully loaded '{view_key}' from PNG into scan object.")
                     else:
                         raise FileNotFoundError("Original PNG could not be loaded.")
                         
@@ -403,22 +403,22 @@ class MainWindowSpect(QMainWindow):
             try:
                 dlg = SegmentationEditorDialog(scan, selected_view, parent=self)
                 
-                # ✅ CONNECT SIGNAL WITH DEBUG
+                #   CONNECT SIGNAL WITH DEBUG
                 print("🔗 [DEBUG CONNECTION] Connecting segmentation editor signal...")
                 dlg.editor_completed.connect(self._on_editor_completed)
-                print("🔗 [DEBUG CONNECTION] ✅ Segmentation editor signal connected!")
+                print("🔗 [DEBUG CONNECTION]   Segmentation editor signal connected!")
                 
                 result = dlg.exec()
                 if result:
                     print("🔗 [DEBUG CONNECTION] Segmentation dialog accepted")
-                    # ✅ TAMBAHAN: Manual refresh jika signal tidak bekerja
+                    #   TAMBAHAN: Manual refresh jika signal tidak bekerja
                     print("🔗 [DEBUG CONNECTION] Manual refresh trigger...")
                     self._on_editor_completed()
                 else:
                     print("🔗 [DEBUG CONNECTION] Segmentation dialog cancelled")
                     
             except Exception as e:
-                print(f"🔗 [DEBUG CONNECTION] ❌ Error: {e}")
+                print(f"🔗 [DEBUG CONNECTION]  Error: {e}")
                 import traceback
                 traceback.print_exc()
 
@@ -435,7 +435,7 @@ class MainWindowSpect(QMainWindow):
             scan = self.timeline_widget._scans_cache[self.timeline_widget.active_scan_index]
             view_key = selected_view.lower()
 
-            # ✅ NEW ROBUST LOGIC - MIRRORS THE TIMELINE'S BEHAVIOR
+            #   NEW ROBUST LOGIC - MIRRORS THE TIMELINE'S BEHAVIOR
             # ===================================================================
             # If the frame data is missing from the dictionary, load it from the PNG
             if view_key not in scan['frames']:
@@ -452,7 +452,7 @@ class MainWindowSpect(QMainWindow):
                     if image_pil:
                         # If successful, add the loaded data back into the scan object
                         scan['frames'][view_key] = np.array(image_pil)
-                        print(f"✅ Successfully loaded '{view_key}' from PNG into scan object.")
+                        print(f"  Successfully loaded '{view_key}' from PNG into scan object.")
                     else:
                         raise FileNotFoundError("Original PNG could not be loaded.")
                         
@@ -465,10 +465,10 @@ class MainWindowSpect(QMainWindow):
             try:
                 dlg = HotspotEditorDialog(scan, selected_view, parent=self)
                 
-                # ✅ CONNECT SIGNAL WITH DEBUG
+                #   CONNECT SIGNAL WITH DEBUG
                 print("🔗 [DEBUG CONNECTION] Connecting hotspot editor signal...")
                 dlg.editor_completed.connect(self._on_editor_completed)
-                print("🔗 [DEBUG CONNECTION] ✅ Hotspot editor signal connected!")
+                print("🔗 [DEBUG CONNECTION]   Hotspot editor signal connected!")
                 
                 if dlg.exec():
                     print("🔗 [DEBUG CONNECTION] Dialog accepted")
@@ -476,7 +476,7 @@ class MainWindowSpect(QMainWindow):
                     print("🔗 [DEBUG CONNECTION] Dialog cancelled")
                     
             except Exception as e:
-                print(f"🔗 [DEBUG CONNECTION] ❌ Error: {e}")
+                print(f"🔗 [DEBUG CONNECTION]  Error: {e}")
                 import traceback
                 traceback.print_exc()
 
@@ -501,9 +501,9 @@ class MainWindowSpect(QMainWindow):
         if hasattr(self, 'timeline_widget') and self.timeline_widget is not None:
             print(f"[DEBUG] Calling timeline_widget.set_invert_original({self.invert_original})")
             self.timeline_widget.set_invert_original(self.invert_original)
-            print(f"[DEBUG] ✅ Timeline invert method called successfully")
+            print(f"[DEBUG]   Timeline invert method called successfully")
         else:
-            print(f"[DEBUG] ❌ Timeline widget not ready!")
+            print(f"[DEBUG]  Timeline widget not ready!")
 
     # Add this to the end of your _build_ui method or call it after window is shown
     def test_checkbox_connection(self):
@@ -595,18 +595,18 @@ class MainWindowSpect(QMainWindow):
         # FIXED: Connect timeline scan selection signal to sync with scan buttons
         self.timeline_widget.scan_selected.connect(self._on_timeline_scan_selected)
 
-        # ✅ NEW: Connect editor completion signals to refresh BSI panel
+        #   NEW: Connect editor completion signals to refresh BSI panel
         self.timeline_widget.editor_completed.connect(self._on_editor_completed)
 
         # NOW CREATE AND CONNECT INVERT CHECKBOX (after timeline exists)
         self.invert_checkbox = QCheckBox("Invert Image Colors")
         self.invert_checkbox.setStyleSheet("margin-top: 8px; font-weight: bold;")
         
-        # ✅ Connect the checkbox AFTER timeline widget exists
+        #   Connect the checkbox AFTER timeline widget exists
         print(f"[DEBUG] Connecting invert checkbox...")
         self.invert_checkbox.stateChanged.connect(self._on_invert_changed)
         
-        # ✅ Test the connection immediately
+        #   Test the connection immediately
         print(f"[DEBUG] Testing checkbox connection...")
         print(f"[DEBUG] Timeline widget exists: {hasattr(self, 'timeline_widget')}")
         if hasattr(self, 'timeline_widget'):
@@ -683,11 +683,11 @@ class MainWindowSpect(QMainWindow):
         # Add timeline widget to splitter (it's already created above)
         main_splitter.addWidget(self.timeline_widget)
 
-        # ✅ FIXED: RIGHT PANEL: BSI Side Panel instead of old SidePanel
+        #   FIXED: RIGHT PANEL: BSI Side Panel instead of old SidePanel
         self.bsi_panel = BSISidePanel()
         self.bsi_panel.set_session_code(self.session_code)
         
-        # ✅ NEW: Connect BSI panel signals
+        #   NEW: Connect BSI panel signals
         self.bsi_panel.export_requested.connect(self._on_bsi_export_requested)
         self.bsi_panel.analysis_requested.connect(self._on_bsi_analysis_requested)
         
@@ -749,7 +749,7 @@ class MainWindowSpect(QMainWindow):
                                                 "Which view would you like to adjust?", views, 0, False)
 
         if ok and selected_view:
-            # ✅ FIX: Use the new getter method to get the initial state for the SELECTED view
+            #   FIX: Use the new getter method to get the initial state for the SELECTED view
             initial_state = self.timeline_widget.get_brightness_contrast(selected_view)
             initial_b = initial_state["brightness"]
             initial_c = initial_state["contrast"]
@@ -777,7 +777,7 @@ class MainWindowSpect(QMainWindow):
             # Disconnect the signal to be safe
             dialog.adjustment_changed.disconnect(preview_connection)
 
-    # ✅ NEW: BSI panel event handlers
+    #   NEW: BSI panel event handlers
     def _on_bsi_export_requested(self, export_type: str):
         """Handle BSI export requests"""
         print(f"[BSI] Export requested: {export_type}")
@@ -899,13 +899,13 @@ class MainWindowSpect(QMainWindow):
         # Update scan buttons to reflect selection
         print(f"[DEBUG] Timeline scan selected signal received: {scan_index}")
         
-        # ✅ FIXED: Block signals to prevent recursive updates
+        #   FIXED: Block signals to prevent recursive updates
         for i, btn in enumerate(self.scan_buttons):
             btn.blockSignals(True)
             btn.setChecked(i == scan_index)
             btn.blockSignals(False)
             
-        # ✅ NEW: Update BSI panel with selected scan data
+        #   NEW: Update BSI panel with selected scan data
         try:
             patient_id, session_code = self._get_current_patient_info()
             
@@ -919,7 +919,7 @@ class MainWindowSpect(QMainWindow):
             if scans and scan_index < len(scans):
                 selected_scan = scans[scan_index]
                 
-                # ✅ NEW: Load BSI data for selected scan
+                #   NEW: Load BSI data for selected scan
                 self._load_bsi_for_scan(selected_scan, session_code)
                 
                 print(f"[DEBUG] Updated BSI panel for scan {scan_index + 1}")
@@ -932,62 +932,62 @@ class MainWindowSpect(QMainWindow):
 
     def _on_editor_completed(self):
         """Handle editor completion - refresh BSI panel and timeline"""
-        print("🔥 [DEBUG SIGNAL] ===================")
-        print("🔥 [DEBUG SIGNAL] _on_editor_completed() called!")
-        print("🔥 [DEBUG SIGNAL] Editor completion signal received")
+        print("  [DEBUG SIGNAL] ===================")
+        print("  [DEBUG SIGNAL] _on_editor_completed() called!")
+        print("  [DEBUG SIGNAL] Editor completion signal received")
         
         try:
             # Get current patient info
             patient_id, session_code = self._get_current_patient_info()
-            print(f"🔥 [DEBUG SIGNAL] Patient: {patient_id}, Session: {session_code}")
+            print(f"  [DEBUG SIGNAL] Patient: {patient_id}, Session: {session_code}")
             
             if not patient_id or not session_code:
-                print("🔥 [DEBUG SIGNAL] ❌ No patient selected, skipping refresh")
+                print("  [DEBUG SIGNAL]  No patient selected, skipping refresh")
                 return
             
-            # ✅ CRITICAL: Clear timeline cache to force reload of new files
-            print("🔥 [DEBUG SIGNAL] Clearing timeline cache...")
+            #   CRITICAL: Clear timeline cache to force reload of new files
+            print("  [DEBUG SIGNAL] Clearing timeline cache...")
             if hasattr(self.timeline_widget, '_clear_layer_cache'):
                 self.timeline_widget._clear_layer_cache()
-                print("🔥 [DEBUG SIGNAL] ✅ Timeline cache cleared")
+                print("  [DEBUG SIGNAL]   Timeline cache cleared")
             else:
-                print("🔥 [DEBUG SIGNAL] ❌ Timeline cache clear method not found")
+                print("  [DEBUG SIGNAL]  Timeline cache clear method not found")
             
-            # ✅ CRITICAL: Clear patient cache to force reload
+            #   CRITICAL: Clear patient cache to force reload
             cache_key = f"{patient_id}_{session_code}"
             if cache_key in self._loaded:
-                print(f"🔥 [DEBUG SIGNAL] Clearing patient cache: {cache_key}")
+                print(f"  [DEBUG SIGNAL] Clearing patient cache: {cache_key}")
                 del self._loaded[cache_key]
-                print("🔥 [DEBUG SIGNAL] ✅ Patient cache cleared")
+                print("  [DEBUG SIGNAL]   Patient cache cleared")
             else:
-                print(f"🔥 [DEBUG SIGNAL] ❌ Patient cache key not found: {cache_key}")
+                print(f"  [DEBUG SIGNAL]  Patient cache key not found: {cache_key}")
             
-            # ✅ CRITICAL: Reload patient data
-            print("🔥 [DEBUG SIGNAL] Reloading patient data...")
+            #   CRITICAL: Reload patient data
+            print("  [DEBUG SIGNAL] Reloading patient data...")
             self._load_patient(patient_id, session_code)
             
-            print("🔥 [DEBUG SIGNAL] ✅ Auto-refresh completed")
+            print("  [DEBUG SIGNAL]   Auto-refresh completed")
             
         except Exception as e:
-            print(f"🔥 [DEBUG SIGNAL] ❌ Error in auto-refresh: {e}")
+            print(f"  [DEBUG SIGNAL]  Error in auto-refresh: {e}")
             import traceback
             traceback.print_exc()
 
     def _refresh_bsi_panel_for_current_patient(self):
         """Refresh BSI panel for currently selected patient"""
         try:
-            # ✅ IMPROVED: Use BSI panel's own refresh method
+            #   IMPROVED: Use BSI panel's own refresh method
             if hasattr(self, 'bsi_panel'):
                 self.bsi_panel.refresh_current_patient()
             
-            print(f"[MainWindow] ✅ BSI panel auto-refreshed")
+            print(f"[MainWindow]   BSI panel auto-refreshed")
             
         except Exception as e:
             print(f"[MainWindow] Error refreshing BSI panel: {e}")
             
     def _load_bsi_for_scan(self, scan_data: Dict, session_code: str):
         """Load BSI data for selected scan with debugging"""
-        success = False  # ✅ INITIALIZE SUCCESS VARIABLE
+        success = False  #   INITIALIZE SUCCESS VARIABLE
         
         try:
             print(f"\n🏠 [DEBUG MAIN GANTENG] ===================")
@@ -1021,7 +1021,7 @@ class MainWindowSpect(QMainWindow):
                 print(f"🏠 [DEBUG MAIN] Corrected patient ID: {actual_patient_id}")
                 print(f"🏠 [DEBUG MAIN] Corrected study date: {actual_study_date}")
                 
-                # ✅ PRIORITY 1: Check BSI files in study_date folder first
+                #   PRIORITY 1: Check BSI files in study_date folder first
                 from core.config.paths import get_planar_quantification_files
                 study_date_quant_files = get_planar_quantification_files(patient_folder)
                 print(f"🏠 [DEBUG MAIN] BSI files in study_date folder:")
@@ -1033,7 +1033,7 @@ class MainWindowSpect(QMainWindow):
                     success = self.bsi_panel.load_patient_data(patient_folder, actual_patient_id, actual_study_date)
                 else:
                     print(f"🏠 [DEBUG MAIN] No BSI files in study_date folder, trying patient folder")
-                    # ✅ PRIORITY 2: Check patient folder
+                    #   PRIORITY 2: Check patient folder
                     patient_quant_files = get_planar_quantification_files(actual_patient_folder)
                     print(f"🏠 [DEBUG MAIN] BSI files in patient folder:")
                     print(f"🏠 [DEBUG MAIN]   Anterior: {patient_quant_files['bsi_json_ant'].exists()}")
@@ -1043,7 +1043,7 @@ class MainWindowSpect(QMainWindow):
                         print(f"🏠 [DEBUG MAIN] Found BSI files in patient folder")
                         success = self.bsi_panel.load_patient_data(actual_patient_folder, actual_patient_id, actual_study_date)
                     else:
-                        print(f"🏠 [DEBUG MAIN] ❌ No BSI files found anywhere!")
+                        print(f"🏠 [DEBUG MAIN]  No BSI files found anywhere!")
                         success = False
             else:
                 print(f"🏠 [DEBUG MAIN] Standard patient folder structure")
@@ -1063,11 +1063,11 @@ class MainWindowSpect(QMainWindow):
             print(f"🏠 [DEBUG MAIN] BSI panel load result: {success}")
             
             if not success:
-                print(f"🏠 [DEBUG MAIN] ❌ BSI loading failed, clearing panel")
+                print(f"🏠 [DEBUG MAIN]  BSI loading failed, clearing panel")
                 self.bsi_panel.clear_patient_data()
             
         except Exception as e:
-            print(f"🏠 [DEBUG MAIN] ❌ Failed to load BSI data: {e}")
+            print(f"🏠 [DEBUG MAIN]  Failed to load BSI data: {e}")
             import traceback
             traceback.print_exc()
             if hasattr(self, 'bsi_panel'):
@@ -1101,10 +1101,10 @@ class MainWindowSpect(QMainWindow):
 
     # UPDATED: Enhanced scan button click handler for checkbox system
     def _on_scan_button_clicked(self, index: int) -> None:
-        """✅ FIXED: Handle scan button click with proper synchronization"""
+        """  FIXED: Handle scan button click with proper synchronization"""
         print(f"[DEBUG] Scan button {index + 1} clicked")
         
-        # ✅ FIXED: Block signals to prevent lag and sync issues
+        #   FIXED: Block signals to prevent lag and sync issues
         for i, btn in enumerate(self.scan_buttons):
             btn.blockSignals(True)
             btn.setChecked(i == index)
@@ -1140,13 +1140,13 @@ class MainWindowSpect(QMainWindow):
         
         selected_scan = scans[index]
 
-        # ✅ ENHANCED: Update timeline display with BSI integration
+        #   ENHANCED: Update timeline display with BSI integration
         self.update_timeline_with_scans_enhanced(scans, active_index=index)
 
         # Update BSI panel with selected scan
         self._load_bsi_for_scan(selected_scan, session_code)
     
-        # ✅ NEW: Sync BSI panel scan selection without signal loop
+        #   NEW: Sync BSI panel scan selection without signal loop
         if hasattr(self, 'bsi_panel') and hasattr(self.bsi_panel, 'select_scan_by_index'):
             self.bsi_panel.select_scan_by_index(index)
         
@@ -1285,7 +1285,7 @@ class MainWindowSpect(QMainWindow):
 
             hotspot_jobs = []
             for dicom_file in missing_hotspot_files:
-                # ✅ GUNAKAN FUNGSI get_pool()
+                #   GUNAKAN FUNGSI get_pool()
                 pool = self.get_pool()
                 job = pool.apply_async(
                     run_hotspot_processing_in_process, 
@@ -1383,44 +1383,44 @@ class MainWindowSpect(QMainWindow):
         self.patient_bar.clear_info(keep_id_list=True)
         self.timeline_widget.display_timeline([])
         
-        # ✅ NEW: Clear BSI panel
+        #   NEW: Clear BSI panel
         self.bsi_panel.clear_patient_data()
         
         print("[DEBUG] Folder scan completed")
     
     def _on_patient_selected(self, txt: str) -> None:
         """Handle patient selection with debugging"""
-        print(f"\n🎯 [DEBUG SELECT GANTENG] ===================")
-        print(f"🎯 [DEBUG SELECT] Patient selected: {txt}")
+        print(f"\n  [DEBUG SELECT GANTENG] ===================")
+        print(f"  [DEBUG SELECT] Patient selected: {txt}")
         
         try:
             # Parse patient selection
             if not txt.startswith("ID: "):
-                print(f"🎯 [DEBUG SELECT] Invalid format: {txt}")
+                print(f"  [DEBUG SELECT] Invalid format: {txt}")
                 return
                 
             remainder = txt[4:]  # Remove "ID: "
             
             if " (" not in remainder:
-                print(f"🎯 [DEBUG SELECT] No session found in: {remainder}")
+                print(f"  [DEBUG SELECT] No session found in: {remainder}")
                 return
                 
             patient_id = remainder.split(" (")[0]  # "12"
             session_part = remainder.split(" (")[1]  # "NSY)"
             session = session_part.rstrip(")")  # "NSY"
             
-            print(f"🎯 [DEBUG SELECT] Parsed - Patient: {patient_id}, Session: {session}")
+            print(f"  [DEBUG SELECT] Parsed - Patient: {patient_id}, Session: {session}")
             
             # Test path resolution
             from core.config.paths import get_patient_planar_path, debug_quantification_paths
             patient_path = get_patient_planar_path(session, patient_id)
-            print(f"🎯 [DEBUG SELECT] Patient path from paths.py: {patient_path}")
-            print(f"🎯 [DEBUG SELECT] Patient path exists: {patient_path.exists()}")
+            print(f"  [DEBUG SELECT] Patient path from paths.py: {patient_path}")
+            print(f"  [DEBUG SELECT] Patient path exists: {patient_path.exists()}")
             
             if patient_path.exists():
-                print(f"🎯 [DEBUG SELECT] Patient path contents:")
+                print(f"  [DEBUG SELECT] Patient path contents:")
                 for item in patient_path.iterdir():
-                    print(f"🎯 [DEBUG SELECT]   - {item.name} ({'DIR' if item.is_dir() else 'FILE'})")
+                    print(f"  [DEBUG SELECT]   - {item.name} ({'DIR' if item.is_dir() else 'FILE'})")
             
             # Call debug function
             debug_quantification_paths(patient_path, patient_id)
@@ -1428,24 +1428,24 @@ class MainWindowSpect(QMainWindow):
             # Check for DICOM files to understand structure
             from features.dicom_import.logic.directory_scanner import get_patient_dicom_files
             dicom_files = get_patient_dicom_files(session, patient_id, primary_only=True)
-            print(f"🎯 [DEBUG SELECT] Found DICOM files: {len(dicom_files)}")
+            print(f"  [DEBUG SELECT] Found DICOM files: {len(dicom_files)}")
             
             for dicom_file in dicom_files:
-                print(f"🎯 [DEBUG SELECT]   DICOM: {dicom_file}")
+                print(f"  [DEBUG SELECT]   DICOM: {dicom_file}")
                 dicom_folder = dicom_file.parent
-                print(f"🎯 [DEBUG SELECT]   DICOM folder: {dicom_folder}")
+                print(f"  [DEBUG SELECT]   DICOM folder: {dicom_folder}")
                 
                 # Check if BSI files exist near DICOM
                 from core.config.paths import get_planar_quantification_files
                 dicom_quant_files = get_planar_quantification_files(dicom_folder)
-                print(f"🎯 [DEBUG SELECT]   BSI files near DICOM:")
-                print(f"🎯 [DEBUG SELECT]     Anterior: {dicom_quant_files['bsi_json_ant'].exists()}")
-                print(f"🎯 [DEBUG SELECT]     Posterior: {dicom_quant_files['bsi_json_post'].exists()}")
+                print(f"  [DEBUG SELECT]   BSI files near DICOM:")
+                print(f"  [DEBUG SELECT]     Anterior: {dicom_quant_files['bsi_json_ant'].exists()}")
+                print(f"  [DEBUG SELECT]     Posterior: {dicom_quant_files['bsi_json_post'].exists()}")
             
             self._load_patient(patient_id, session)
             
         except Exception as e:
-            print(f"🎯 [DEBUG SELECT] ❌ Error: {e}")
+            print(f"  [DEBUG SELECT]  Error: {e}")
             import traceback
             traceback.print_exc()
     
@@ -1480,7 +1480,7 @@ class MainWindowSpect(QMainWindow):
             dicom_files = get_patient_dicom_files(session_code, patient_id, primary_only=True)
             print(f"[DEBUG] Found {len(dicom_files)} DICOM files for patient {patient_id}")
             
-            # ❌ NO MORE YOLO DETECTION - IT'S ALREADY DONE DURING IMPORT
+            #  NO MORE YOLO DETECTION - IT'S ALREADY DONE DURING IMPORT
             
             loading_dialog.update_loading_step("Loading DICOM files...", 40)
             QApplication.processEvents()
@@ -1490,7 +1490,7 @@ class MainWindowSpect(QMainWindow):
                     frames, meta = load_frames_and_metadata(dicom_file)
                     scan_data = {"meta": meta, "frames": frames, "path": dicom_file}
                     
-                    # ✅ ENRICH THE SCAN OBJECT HERE
+                    #   ENRICH THE SCAN OBJECT HERE
                     # =========================================================================
                     patient_folder = dicom_file.parent
                     # Get all workflow files for BOTH views using your new paths.py function
@@ -1498,7 +1498,7 @@ class MainWindowSpect(QMainWindow):
                         patient_folder=patient_folder,
                         original_dicom_name=dicom_file.name,
                         with_priority=True, # Always get the latest edited versions
-                        session_code=session_code  # ✅ TAMBAH session_code
+                        session_code=session_code  #   TAMBAH session_code
                     )
                     # =========================================================================
 
@@ -1514,7 +1514,7 @@ class MainWindowSpect(QMainWindow):
             loading_dialog.update_loading_step("Finalizing data...", 90)
             QApplication.processEvents()
             
-            # ❌ NO MORE ASYNC PROCESSING - EVERYTHING IS ALREADY DONE
+            #  NO MORE ASYNC PROCESSING - EVERYTHING IS ALREADY DONE
             processed_scans = initial_scans
             
             # Get study date for file checking (for debug info)
@@ -1538,7 +1538,7 @@ class MainWindowSpect(QMainWindow):
                     
                     print(f"[DEBUG] Available files: {', '.join(files_status) if files_status else 'None'}")
                     
-                    # ✅ TAMBAHKAN KODE DEBUG PNG DI SINI
+                    #   TAMBAHKAN KODE DEBUG PNG DI SINI
                     # Debug: Check if original PNG files exist
                     patient_folder = scan_data["path"].parent
                     anterior_png = patient_folder / f"{filename_stem}_anterior_original.png"

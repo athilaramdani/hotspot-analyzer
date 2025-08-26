@@ -51,7 +51,7 @@ def load_xml_bounding_boxes(xml_path: Path) -> list:
 def create_classification_xml(classification_json_path: Path, output_xml_path: Path, 
                             original_image_width: int = 512, original_image_height: int = 512) -> bool:
     """
-    ✅ NEW: Convert classification JSON to XML format
+      NEW: Convert classification JSON to XML format
     
     Args:
         classification_json_path: Path to classification JSON file
@@ -113,7 +113,7 @@ def create_classification_xml(classification_json_path: Path, output_xml_path: P
             
             # Object name (prediction result)
             name = ET.SubElement(obj, "name")
-            name.text = hotspot.get("prediction", "Unknown")  # ✅ Abnormal or Normal from classification
+            name.text = hotspot.get("prediction", "Unknown")  #   Abnormal or Normal from classification
             
             # Pose
             pose = ET.SubElement(obj, "pose")
@@ -143,7 +143,7 @@ def create_classification_xml(classification_json_path: Path, output_xml_path: P
             ymax = ET.SubElement(bndbox, "ymax")
             ymax.text = str(bounding_box.get("ymax", 0))
             
-            # ✅ NEW: Add classification-specific attributes as comments
+            #   NEW: Add classification-specific attributes as comments
             # (Can't use custom attributes in standard PASCAL VOC, but we can add comments)
             comment_data = {
                 "segment": hotspot.get("segment", "unknown"),
@@ -164,13 +164,13 @@ def create_classification_xml(classification_json_path: Path, output_xml_path: P
         # Write XML file
         tree.write(output_xml_path, encoding="utf-8", xml_declaration=True)
         
-        _log(f"[XML CREATE] ✅ Created classification XML: {output_xml_path.name}")
+        _log(f"[XML CREATE]   Created classification XML: {output_xml_path.name}")
         _log(f"[XML CREATE] Converted {len(hotspots)} classified hotspots")
         
         return True
         
     except Exception as e:
-        _log(f"[XML CREATE] ❌ Failed to create classification XML: {e}")
+        _log(f"[XML CREATE]  Failed to create classification XML: {e}")
         return False
 
 def get_image_dimensions_from_files(patient_folder: Path, filename_stem: str, view: str) -> tuple[int, int]:
@@ -287,8 +287,9 @@ def run_classification_inference(raw_path: str, segment_path: str, hotspot_path:
         _log(f"[DEBUG] Module imported successfully")
         
         # Update model paths
-        clf_module.MODEL_PATH = str(CLASSIFICATION_MODEL_PATH / "model_classification_hs_xgboost_250724.pkl")
-        clf_module.SCALER_PATH = str(CLASSIFICATION_MODEL_PATH / "scaler_classification_32features.pkl")
+        from core.config.paths import CLASSIFICATION_XGBOOST_MODEL, CLASSIFICATION_SCALER_MODEL
+        clf_module.MODEL_PATH = str(CLASSIFICATION_XGBOOST_MODEL)
+        clf_module.SCALER_PATH = str(CLASSIFICATION_SCALER_MODEL)
         _log(f"[DEBUG] Model paths updated")
         
         # Check model files
@@ -336,7 +337,7 @@ def run_classification_inference(raw_path: str, segment_path: str, hotspot_path:
             _log(f"[ERROR] Image loading test failed: {e}")
             return [], None
         
-        # ✅ Use inference_classification with automatic conversion
+        #   Use inference_classification with automatic conversion
         _log(f"[DEBUG] Starting inference_classification with automatic colored-to-grayscale conversion...")
         _log(f"[DEBUG] Conversion will create: {Path(segment_path).stem}_grayscaledSegmentation.png if needed")
         result_list, result_mask = clf_module.inference_classification(
@@ -365,7 +366,7 @@ def run_classification_inference(raw_path: str, segment_path: str, hotspot_path:
 
 def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date: str, source_is_editor: bool = False) -> bool:
     """
-    ✅ FIXED: Run hotspot classification with proper temp directory file checking
+      FIXED: Run hotspot classification with proper temp directory file checking
     """
     try:
         session_code = dicom_path.parent.parent.name
@@ -385,16 +386,16 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
             
             _log(f"     Processing {view} view with grayscale conversion...")
             
-            # ✅ FIXED: Get file paths for current working directory (temp folder)
+            #   FIXED: Get file paths for current working directory (temp folder)
             paths = get_classification_input_paths(patient_folder, filename_stem, view, view_short)
             
-            # ✅ FIXED: Check if all required files exist in CURRENT DIRECTORY
+            #   FIXED: Check if all required files exist in CURRENT DIRECTORY
             missing_files = []
             for file_type, file_path in paths.items():
                 if not file_path.exists():
                     missing_files.append(f"{file_type} ({file_path.name})")
                 else:
-                    # ✅ DEBUG: Log found files
+                    #   DEBUG: Log found files
                     _log(f"       Found {file_type}: {file_path.name}")
             
             if missing_files:
@@ -402,7 +403,7 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
                 results.append(False)
                 continue
             
-            # ✅ Run classification with files in current directory
+            #   Run classification with files in current directory
             classification_result, classification_mask = run_classification_inference(
                 raw_path=str(paths['raw_original']),      # Direct filename in temp dir
                 segment_path=str(paths['region_mask']),   # Direct filename in temp dir
@@ -437,11 +438,11 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
     
 def get_classification_input_paths(patient_folder: Path, filename_stem: str, view: str, view_short: str) -> dict:
     """
-    ✅ FIXED: Get input file paths for current working directory (temp folder)
+      FIXED: Get input file paths for current working directory (temp folder)
     When running in temp directory, all files use the old naming convention
     """
     
-    # ✅ FIXED: Since we're running in temp directory, use old naming directly
+    #   FIXED: Since we're running in temp directory, use old naming directly
     # These files were already mapped in run_classification_with_new_paths
     
     return {
@@ -453,10 +454,10 @@ def get_classification_input_paths(patient_folder: Path, filename_stem: str, vie
 
 def save_classification_results(patient_folder: Path, filename_stem: str, view: str, results: list, mask: any, source_is_editor: bool = False):
     """
-    ✅ FIXED: Save classification results in current working directory (temp folder)
+      FIXED: Save classification results in current working directory (temp folder)
     """
     try:
-        # ✅ FIXED: Save in current directory (temp folder) using old naming
+        #   FIXED: Save in current directory (temp folder) using old naming
         view_short = "ant" if "anterior" in view.lower() else "post"
         
         # Old naming convention for temp directory
@@ -496,7 +497,7 @@ def save_classification_results(patient_folder: Path, filename_stem: str, view: 
         with open(json_path, 'w') as f:
             json.dump(json_data, f, indent=2)
         
-        # ✅ Create classification XML from JSON results
+        #   Create classification XML from JSON results
         # Get actual image dimensions (fallback to default)
         img_width, img_height = 512, 512  # Default SPECT dimensions
         
@@ -508,7 +509,7 @@ def save_classification_results(patient_folder: Path, filename_stem: str, view: 
             original_image_height=img_height
         )
         
-        # ✅ Save mask with PIL (RGB mode)
+        #   Save mask with PIL (RGB mode)
         if mask is not None:
             from PIL import Image
             
@@ -517,14 +518,14 @@ def save_classification_results(patient_folder: Path, filename_stem: str, view: 
                 mask_pil = Image.fromarray(mask, mode='RGB')
                 # Save with PIL - preserves RGB order
                 mask_pil.save(mask_path)
-                _log(f"       ✅ Saved mask with PIL RGB mode")
+                _log(f"         Saved mask with PIL RGB mode")
             else:
                 # Fallback for non-RGB masks
                 import cv2
                 cv2.imwrite(str(mask_path), mask)
                 _log(f"       ⚠️ Saved mask without RGB conversion")
         
-        _log(f"       ✅ Classification results saved successfully")
+        _log(f"         Classification results saved successfully")
         
     except Exception as e:
         _log(f"Failed to save classification results: {e}")

@@ -8,8 +8,8 @@ Pindai folder `data/…` dan kembalikan mapping untuk NEW directory structure:
 NEW Structure: data/SPECT/[session_code]/[patient_id]/files...
 OLD Structure: data/SPECT/[patient_id]_[session_code]/files...
 
-✅ FIXED: Hapus filtering _is_primary() - baca semua DICOM input tanpa filter
-✅ FIXED: Tidak ada pembedaan primary/secondary - semua DICOM dibaca
+  FIXED: Hapus filtering _is_primary() - baca semua DICOM input tanpa filter
+  FIXED: Tidak ada pembedaan primary/secondary - semua DICOM dibaca
 """
 from pathlib import Path
 from typing  import Dict, List, Tuple
@@ -19,7 +19,7 @@ import pydicom
 # Use centralized path configuration
 from core.config.paths import PLANAR_DATA_PATH, get_patient_planar_path, get_session_planar_path
 
-# ✅ REMOVED: _UID_SC constant and _is_primary() function
+#   REMOVED: _UID_SC constant and _is_primary() function
 # No more filtering - read all DICOM files
 
 # ---------------------------------------------------------------- helpers
@@ -63,7 +63,7 @@ def _extract_session_patient_from_path(dicom_path: Path) -> Tuple[str, str]:
 
 def scan_dicom_directory(directory: Path) -> Dict[str, List[Path]]:
     """
-    ✅ FIXED: Scan directory without any filtering
+      FIXED: Scan directory without any filtering
     Returns: {PatientID: [file_paths]}
     """
     patient_map: Dict[str, List[Path]] = {}
@@ -78,7 +78,7 @@ def scan_dicom_directory(directory: Path) -> Dict[str, List[Path]]:
             print(f"[WARN] Tidak bisa baca {p}: {e}")
             continue
 
-        # ✅ REMOVED: _is_primary() filter
+        #   REMOVED: _is_primary() filter
         # Read ALL DICOM files without any filtering
 
         pid = ds.get("PatientID")
@@ -93,7 +93,7 @@ def scan_dicom_directory(directory: Path) -> Dict[str, List[Path]]:
 
 def scan_spect_directory_new_structure(directory: Path = None) -> Dict[str, Dict[str, List[Path]]]:
     """
-    ✅ FIXED: Scan SPECT directory with NEW structure - NO FILTERING
+      FIXED: Scan SPECT directory with NEW structure - NO FILTERING
     Returns: {SessionCode: {PatientID: [file_paths]}}
     """
     if directory is None:
@@ -115,7 +115,7 @@ def scan_spect_directory_new_structure(directory: Path = None) -> Dict[str, Dict
             print(f"[WARN] Tidak bisa baca {p}: {e}")
             continue
 
-        # ✅ REMOVED: _is_primary() filter
+        #   REMOVED: _is_primary() filter
         # Read ALL DICOM files without any filtering
 
         pid = ds.get("PatientID")
@@ -149,13 +149,13 @@ def scan_spect_directory_new_structure(directory: Path = None) -> Dict[str, Dict
     for session_code, patients in session_patient_map.items():
         patient_count = len(patients)
         scan_count = sum(len(files) for files in patients.values())
-        print(f"  📁 {session_code}: {patient_count} pasien, {scan_count} file")
+        print(f"    {session_code}: {patient_count} pasien, {scan_count} file")
     
     return session_patient_map
 
 def get_session_patients(session_code: str) -> Dict[str, List[Path]]:
     """
-    ✅ FIXED: Get all patients and their files for a specific session - NO FILTERING
+      FIXED: Get all patients and their files for a specific session - NO FILTERING
     Returns: {PatientID: [file_paths]}
     """
     session_path = get_session_planar_path(session_code)
@@ -177,7 +177,7 @@ def get_session_patients(session_code: str) -> Dict[str, List[Path]]:
         # Find all DICOM files for this patient
         for dicom_file in patient_dir.glob("*.dcm"):
             try:
-                # ✅ REMOVED: _is_primary() check
+                #   REMOVED: _is_primary() check
                 # Add ALL DICOM files
                 ds = pydicom.dcmread(dicom_file, stop_before_pixels=True)
                 patient_files.append(dicom_file)
@@ -233,7 +233,7 @@ def get_patient_dicom_files(session_code: str, patient_id: str, primary_only: bo
     
     dicom_files = []
     
-    # ✅ TAMBAHAN: Cari DICOM files di subdirektori study_date juga
+    #   TAMBAHAN: Cari DICOM files di subdirektori study_date juga
     for item in patient_path.iterdir():
         if item.is_dir() and len(item.name) == 8 and item.name.isdigit():
             # Ini adalah direktori study_date (YYYYMMDD)
@@ -278,7 +278,7 @@ def validate_directory_structure() -> bool:
     """
     try:
         if not PLANAR_DATA_PATH.exists():
-            print("❌ SPECT data directory does not exist")
+            print(" SPECT data directory does not exist")
             return False
         
         sessions = get_all_sessions()
@@ -286,13 +286,13 @@ def validate_directory_structure() -> bool:
             print("⚠️  No sessions found")
             return True  # Empty is valid
         
-        print(f"✅ Found {len(sessions)} sessions: {', '.join(sessions)}")
+        print(f"  Found {len(sessions)} sessions: {', '.join(sessions)}")
         
         # Check each session
         for session in sessions:
             session_path = get_session_planar_path(session)
             patients = get_session_patients(session)
-            print(f"  📁 {session}: {len(patients)} patients")
+            print(f"    {session}: {len(patients)} patients")
             
             # Check if any patients have files
             total_files = sum(len(files) for files in patients.values())
@@ -302,7 +302,7 @@ def validate_directory_structure() -> bool:
         return True
         
     except Exception as e:
-        print(f"❌ Directory validation failed: {e}")
+        print(f" Directory validation failed: {e}")
         return False
 
 # Compatibility functions for old code

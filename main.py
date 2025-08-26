@@ -12,7 +12,7 @@ import sys
 import os
 from pathlib import Path
 
-# ✅ NEW: Ensure assets directory is accessible
+#   NEW: Ensure assets directory is accessible
 def setup_assets_path():
     """Setup assets path for icon loading"""
     try:

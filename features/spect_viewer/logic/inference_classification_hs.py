@@ -22,11 +22,11 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from core.config.paths import CLASSIFICATION_XGBOOST_MODEL, CLASSIFICATION_SCALER_MODEL
 
-# ✅ FIXED: Use correct path from config
+#   FIXED: Use correct path from config
 MODEL_PATH = str(CLASSIFICATION_XGBOOST_MODEL)
 SCALER_PATH = str(CLASSIFICATION_SCALER_MODEL)
 
-# ✅ RGB to ID mapping from backup classification (for colored-to-grayscale conversion)
+#   RGB to ID mapping from backup classification (for colored-to-grayscale conversion)
 KEY_VALUES = {
     (0, 0, 0): 0,              # background
     (176, 230, 13): 1,         # skull
@@ -136,7 +136,7 @@ def region_to_key_value(image_region_path):
 
 def convert_colored_segmentation_if_needed(segment_path):
     """
-    ✅ NEW: Convert colored segmentation to grayscale if needed and save with naming convention
+      NEW: Convert colored segmentation to grayscale if needed and save with naming convention
     
     Args:
         segment_path: Path to segmentation file (colored or grayscale)
@@ -182,7 +182,7 @@ def convert_colored_segmentation_if_needed(segment_path):
 
 def get_exact_segment_name(segment_id):
     """
-    ✅ SIMPLIFIED: Use only original 0-12 segment mapping
+      SIMPLIFIED: Use only original 0-12 segment mapping
     
     Map segment ID to anatomical names, unknown for others
     """
@@ -257,7 +257,7 @@ def create_hotspot_mask(image_shape, results):
     print(f"[DEBUG] Processing {len(results)} results")
     
     for i, result in enumerate(results):
-        # ✅ FIXED: Use correct values for _HOTSPOT_PALLETTE
+        #   FIXED: Use correct values for _HOTSPOT_PALLETTE
         if result['prediction'] == 'Abnormal':
             pixel_value = 1  # Index 1 in _HOTSPOT_PALLETTE = [255, 0, 0] (Red)
         else:
@@ -285,7 +285,7 @@ def extractFeatures(image_raw, image_segment, image_hotspot, bb, file_path):
 
     segmentID = findSegment(coordinate, image_segment)
     
-    # ✅ FIXED: Use exact segment mapping
+    #   FIXED: Use exact segment mapping
     segment_name = get_exact_segment_name(segmentID)
     
     print(f"[SEGMENT MAPPING] ID {segmentID} → {segment_name}")
@@ -417,11 +417,11 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
     print(f"  Hotspot: {path_hotspot}")
     print(f"  XML: {len(path_xml) if isinstance(path_xml, list) else path_xml}")
     
-    # ✅ STEP 1: Convert colored segmentation to grayscale if needed
+    #   STEP 1: Convert colored segmentation to grayscale if needed
     converted_segment_path = convert_colored_segmentation_if_needed(path_segment)
     print(f"[INFERENCE DEBUG] Using segmentation: {Path(converted_segment_path).name}")
     
-    # ✅ STEP 2: Load images using OpenCV (same as backup)
+    #   STEP 2: Load images using OpenCV (same as backup)
     image_raw = cv2.imread(path_raw, cv2.IMREAD_GRAYSCALE)
     image_segment = cv2.imread(converted_segment_path, cv2.IMREAD_GRAYSCALE)
     
@@ -510,7 +510,7 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
         
     print(f"[INFERENCE DEBUG] Final output: {len(output_list)} classifications")
     
-    # ✅ Create output mask with RGB format (will be converted to BGR in save function)
+    #   Create output mask with RGB format (will be converted to BGR in save function)
     if output_list:
         hotspot_mask_gray = create_hotspot_mask(image_raw.shape, output_list)
         
@@ -551,11 +551,11 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
     print(f"  Hotspot: {path_hotspot}")
     print(f"  XML: {len(path_xml) if isinstance(path_xml, list) else path_xml}")
     
-    # ✅ STEP 1: Convert colored segmentation to grayscale if needed
+    #   STEP 1: Convert colored segmentation to grayscale if needed
     converted_segment_path = convert_colored_segmentation_if_needed(path_segment)
     print(f"[INFERENCE DEBUG] Using segmentation: {Path(converted_segment_path).name}")
     
-    # ✅ STEP 2: Load images using OpenCV (same as backup)
+    #   STEP 2: Load images using OpenCV (same as backup)
     image_raw = cv2.imread(path_raw, cv2.IMREAD_GRAYSCALE)
     image_segment = cv2.imread(converted_segment_path, cv2.IMREAD_GRAYSCALE)
     
@@ -664,11 +664,11 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
     print(f"  Hotspot: {path_hotspot}")
     print(f"  XML: {len(path_xml) if isinstance(path_xml, list) else path_xml}")
     
-    # ✅ STEP 1: Convert colored segmentation to grayscale if needed
+    #   STEP 1: Convert colored segmentation to grayscale if needed
     converted_segment_path = convert_colored_segmentation_if_needed(path_segment)
     print(f"[INFERENCE DEBUG] Using segmentation: {Path(converted_segment_path).name}")
     
-    # ✅ STEP 2: Load images using OpenCV (same as backup)
+    #   STEP 2: Load images using OpenCV (same as backup)
     image_raw = cv2.imread(path_raw, cv2.IMREAD_GRAYSCALE)
     image_segment = cv2.imread(converted_segment_path, cv2.IMREAD_GRAYSCALE)
     
@@ -757,7 +757,7 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
         
     print(f"[INFERENCE DEBUG] Final output: {len(output_list)} classifications")
     
-    # ✅ Create output mask with RGB format for PIL save
+    #   Create output mask with RGB format for PIL save
     if output_list:
         hotspot_mask_gray = create_hotspot_mask(image_raw.shape, output_list)
         

@@ -42,7 +42,7 @@ def analyze_background_type(frame_data: np.ndarray) -> dict:
         return {"background_type": "white", "confidence": confidence}
 
 
-# ✅ NEW: Simple inversion function for user toggle
+#   NEW: Simple inversion function for user toggle
 def simple_invert_image(frame_data: np.ndarray) -> np.ndarray:
     """
     Simple image inversion: black becomes white, white becomes black.
@@ -93,11 +93,11 @@ def convert_to_white_background(frame_data: np.ndarray, current_bg: str = "auto"
     if current_bg == "auto":
         analysis = analyze_background_type(frame_data)
         current_bg = analysis["background_type"]
-        print(f"🔍 Auto-detected background: {current_bg} (confidence: {analysis['confidence']}%)")
+        print(f"  Auto-detected background: {current_bg} (confidence: {analysis['confidence']}%)")
     
     # If already white background, return as-is
     if current_bg == "white":
-        print(f"✅ Keeping white background (skeleton already black)")
+        print(f"  Keeping white background (skeleton already black)")
         return frame_data
     
     # If black background, invert to make it white background with black skeleton
@@ -115,7 +115,7 @@ def convert_to_white_background(frame_data: np.ndarray, current_bg: str = "auto"
         # This will make black background -> white, and bright skeleton areas -> dark
         inverted = 255 - frame_uint8
         
-        print(f"✅ Black background inverted to white (skeleton now black)")
+        print(f"  Black background inverted to white (skeleton now black)")
         print(f"[DEBUG] Output range: [{inverted.min()}, {inverted.max()}]")
         return inverted
     
@@ -153,7 +153,7 @@ def convert_pil_to_white_background(image, current_bg: str = "auto"):
     return result
 
 
-# ✅ NEW: Simple PIL inversion for user toggle
+#   NEW: Simple PIL inversion for user toggle
 def simple_invert_pil_image(image: Optional[Image.Image]) -> Optional[Image.Image]:
     """
     Simple PIL Image inversion: black becomes white, white becomes black.

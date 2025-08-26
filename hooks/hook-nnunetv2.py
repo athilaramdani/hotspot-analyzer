@@ -8,7 +8,7 @@ from PyInstaller.utils.hooks import collect_all, collect_submodules
 # Collect all nnunetv2 resources
 datas, binaries, hiddenimports = collect_all('nnunetv2')
 
-# ✅ CRITICAL: Add specific trainer classes yang di-import secara dynamic
+#   CRITICAL: Add specific trainer classes yang di-import secara dynamic
 trainer_classes = []
 try:
     # Try to import base trainer
@@ -19,11 +19,11 @@ except ImportError:
 
 hiddenimports.extend(trainer_classes)
 
-# ✅ Add semua training submodules
+#   Add semua training submodules
 training_modules = collect_submodules('nnunetv2.training')
 hiddenimports.extend(training_modules)
 
-# ✅ Add modules yang dibutuhkan untuk inference
+#   Add modules yang dibutuhkan untuk inference
 inference_modules = [
     'nnunetv2.inference.predict_from_raw_data',
     'nnunetv2.inference.sliding_window_prediction',
@@ -38,7 +38,7 @@ inference_modules = [
 
 hiddenimports.extend(inference_modules)
 
-# ✅ Add dependencies
+#   Add dependencies
 dependency_modules = collect_submodules('dynamic_network_architectures')
 hiddenimports.extend(dependency_modules)
 
@@ -54,7 +54,7 @@ except:
 print(f"[HOOK-NNUNET] Added {len(hiddenimports)} hidden imports for nnUNetv2")
 print(f"[HOOK-NNUNET] Trainer classes included for dynamic loading")
 
-# ✅ Exclude test modules
+#   Exclude test modules
 excludedimports = [
     'nnunetv2.tests',
     'nnunetv2.testing',

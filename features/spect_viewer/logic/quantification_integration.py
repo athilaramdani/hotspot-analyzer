@@ -13,7 +13,7 @@ from core.config.paths import (
 class QuantificationManager:
     """
     Manager class for handling quantification results (Backend only - no GUI)
-    ✅ FIXED: Now supports single view quantification
+      FIXED: Now supports single view quantification
     """
     
     def __init__(self):
@@ -26,17 +26,17 @@ class QuantificationManager:
         all_scores = []
         found_study_dates = set()
         
-        # ✅ FIXED: Determine correct patient base folder
+        #   FIXED: Determine correct patient base folder
         if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
             # Current folder is study_date folder, go up to patient folder
             patient_base_folder = patient_folder.parent
-            print(f"🔍 [DEBUG BSI] Detected study_date folder, using parent: {patient_base_folder}")
+            print(f"  [DEBUG BSI] Detected study_date folder, using parent: {patient_base_folder}")
         else:
             # Current folder is already patient folder
             patient_base_folder = patient_folder
-            print(f"🔍 [DEBUG BSI] Using patient folder directly: {patient_base_folder}")
+            print(f"  [DEBUG BSI] Using patient folder directly: {patient_base_folder}")
         
-        # ✅ FIXED: FLEXIBLE SEARCH - check multiple locations
+        #   FIXED: FLEXIBLE SEARCH - check multiple locations
         search_folders = []
         
         # Location 1: Patient base folder (for old structure files)
@@ -47,7 +47,7 @@ class QuantificationManager:
             for item in patient_base_folder.iterdir():
                 if item.is_dir() and len(item.name) == 8 and item.name.isdigit():
                     search_folders.append(("Study date folder", item, item.name))
-                    print(f"🔍 [DEBUG BSI] Found study_date folder: {item.name}")
+                    print(f"  [DEBUG BSI] Found study_date folder: {item.name}")
         
         # Location 3: If current folder is study_date folder, check parent
         if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
@@ -60,7 +60,7 @@ class QuantificationManager:
             else:
                 desc, folder = folder_info
         
-        # ✅ SEARCH ALL LOCATIONS
+        #   SEARCH ALL LOCATIONS
         for folder_info in search_folders:
             if len(folder_info) == 3:
                 desc, search_folder, folder_study_date = folder_info
@@ -74,7 +74,7 @@ class QuantificationManager:
                 
             # List contents
             for item in search_folder.iterdir():
-                print(f"🔍 [DEBUG BSI]     - {item.name} ({'DIR' if item.is_dir() else 'FILE'})")
+                print(f"  [DEBUG BSI]     - {item.name} ({'DIR' if item.is_dir() else 'FILE'})")
             
             # Try both old and new patterns
             anterior_files_old = list(search_folder.glob(f"{patient_id}_*_bsi_quantification_anterior.json"))
@@ -83,12 +83,12 @@ class QuantificationManager:
             anterior_files_new = list(search_folder.glob("bsi_quantification_anterior.json"))
             posterior_files_new = list(search_folder.glob("bsi_quantification_posterior.json"))
 
-            # ✅ TAMBAH pattern untuk ant/post naming:
+            #   TAMBAH pattern untuk ant/post naming:
             anterior_files_short = list(search_folder.glob("bsi_quantification_ant.json"))
             posterior_files_short = list(search_folder.glob("bsi_quantification_post.json"))
 
 
-            # ✅ GANTI logic pemilihan pattern:
+            #   GANTI logic pemilihan pattern:
             # Use whichever pattern found files - priority: short > new > old
             if anterior_files_short or posterior_files_short:
                 anterior_files = anterior_files_short
@@ -115,7 +115,7 @@ class QuantificationManager:
                     if use_folder_study_date and folder_study_date != "unknown":
                         study_date = folder_study_date
                     else:
-                        # ✅ FIX: For short pattern files, extract from JSON content not filename
+                        #   FIX: For short pattern files, extract from JSON content not filename
                         if anterior_files_short:
                             # Read JSON file to get actual study_date
                             with open(file_path, 'r') as f:
@@ -132,7 +132,7 @@ class QuantificationManager:
                                 
                     anterior_by_date[study_date] = file_path
                 except Exception as e:
-                    print(f"🔍 [DEBUG BSI]   Error parsing anterior file {file_path.name}: {e}")
+                    print(f"  [DEBUG BSI]   Error parsing anterior file {file_path.name}: {e}")
 
             # Parse posterior files  
             for file_path in posterior_files:
@@ -140,7 +140,7 @@ class QuantificationManager:
                     if use_folder_study_date and folder_study_date != "unknown":
                         study_date = folder_study_date
                     else:
-                        # ✅ FIX: For short pattern files, extract from JSON content not filename
+                        #   FIX: For short pattern files, extract from JSON content not filename
                         if posterior_files_short:
                             # Read JSON file to get actual study_date
                             with open(file_path, 'r') as f:
@@ -157,7 +157,7 @@ class QuantificationManager:
                                 
                     posterior_by_date[study_date] = file_path
                 except Exception as e:
-                    print(f"🔍 [DEBUG BSI]   Error parsing posterior file {file_path.name}: {e}")
+                    print(f"  [DEBUG BSI]   Error parsing posterior file {file_path.name}: {e}")
             
             # Process all study dates found in this location
             location_study_dates = set(anterior_by_date.keys()) | set(posterior_by_date.keys())
@@ -256,7 +256,7 @@ class QuantificationManager:
         
     def load_quantification_results(self, patient_folder: Path, patient_id: str, study_date: str) -> Optional[Dict]:
         """
-        ✅ FIXED: Load V1.2 quantification results with debugging - SUPPORTS SINGLE VIEW
+          FIXED: Load V1.2 quantification results with debugging - SUPPORTS SINGLE VIEW
         """
         
         try:
@@ -380,11 +380,11 @@ class QuantificationManager:
             self.current_patient_id = patient_id
             self.current_study_date = study_date
             
-            print(f"📖 [DEBUG RESULTS] ✅ Successfully loaded V1.2 results")
+            print(f"📖 [DEBUG RESULTS]   Successfully loaded V1.2 results")
             return combined_results
             
         except Exception as e:
-            print(f"📖 [DEBUG RESULTS] ❌ Failed to load V1.2 quantification results: {e}")
+            print(f"📖 [DEBUG RESULTS]  Failed to load V1.2 quantification results: {e}")
             import traceback
             traceback.print_exc()
             return None
@@ -403,7 +403,7 @@ class QuantificationManager:
         
     def get_bsi_summary(self) -> Dict[str, Any]:
         """
-        ✅ UPDATED: Get BSI summary statistics - handles single view data
+          UPDATED: Get BSI summary statistics - handles single view data
         """
         if not self.current_results:
             return {"error": "No quantification results loaded"}
@@ -411,7 +411,7 @@ class QuantificationManager:
         summary = self.current_results.get('summary_statistics', {})
         patient_info = self.current_results.get('patient_info', {})
         
-        # ✅ Get processing mode for display
+        #   Get processing mode for display
         processing_mode = summary.get('processing_mode', 'unknown')
         view_info = patient_info.get('view', 'unknown')
         
@@ -522,7 +522,7 @@ def run_quantification_for_patient_integrated(dicom_path: Path, patient_id: str,
 
 def get_quantification_status(dicom_path: Path, patient_id: str, study_date: str = None) -> Dict:
     """
-    ✅ FIXED: Check quantification status for a patient - SUPPORTS SINGLE VIEW
+      FIXED: Check quantification status for a patient - SUPPORTS SINGLE VIEW
     """
     try:
         if not study_date:
@@ -544,19 +544,19 @@ def get_quantification_status(dicom_path: Path, patient_id: str, study_date: str
         output_file_posterior = patient_folder / f"{filename_stem}_bsi_quantification_posterior.json"
         output_file_old = patient_folder / f"{filename_stem}_bsi_quantification.json"
 
-        # ✅ FIXED: Quantification complete if we have at least ONE V1.2 file OR old file exists
+        #   FIXED: Quantification complete if we have at least ONE V1.2 file OR old file exists
         v2_anterior_exists = output_file_anterior.exists()
         v2_posterior_exists = output_file_posterior.exists()
         v1_complete = output_file_old.exists()
         quantification_complete = v2_anterior_exists or v2_posterior_exists or v1_complete
 
-        # ✅ Check which input files are missing
+        #   Check which input files are missing
         missing_inputs = []
         for name, path in required_files.items():
             if not path.exists():
                 missing_inputs.append(name)
 
-        # ✅ FIXED: Can run quantification if we have at least ONE complete pair
+        #   FIXED: Can run quantification if we have at least ONE complete pair
         has_anterior_pair = (required_files["segment_anterior"].exists() and 
                            required_files["hotspot_anterior"].exists())
         has_posterior_pair = (required_files["segment_posterior"].exists() and 
@@ -592,7 +592,7 @@ def get_quantification_status(dicom_path: Path, patient_id: str, study_date: str
                 status["total_abnormal_hotspots"] = summary.get("total_abnormal_hotspots", 0)
                 status["processing_mode"] = summary.get("processing_mode", "unknown")
                 
-                # ✅ DEBUG: Print what we're returning
+                #   DEBUG: Print what we're returning
                 print(f"[BSI STATUS DEBUG] Returning status with:")
                 print(f"[BSI STATUS DEBUG]   anterior_bsi: {status['anterior_bsi']}")
                 print(f"[BSI STATUS DEBUG]   posterior_bsi: {status['posterior_bsi']}")
@@ -615,7 +615,7 @@ def get_quantification_status(dicom_path: Path, patient_id: str, study_date: str
 
 def format_quantification_report(patient_folder: Path, patient_id: str, study_date: str) -> str:
     """
-    ✅ UPDATED: Format quantification results into a readable report - handles single view
+      UPDATED: Format quantification results into a readable report - handles single view
     """
     try:
         manager = QuantificationManager()
@@ -643,7 +643,7 @@ def format_quantification_report(patient_folder: Path, patient_id: str, study_da
         report.append("OVERALL STATISTICS:")
         report.append("-" * 30)
         
-        # ✅ Show different stats based on processing mode
+        #   Show different stats based on processing mode
         processing_mode = summary.get('processing_mode', 'unknown')
         
         if processing_mode == 'dual_view':

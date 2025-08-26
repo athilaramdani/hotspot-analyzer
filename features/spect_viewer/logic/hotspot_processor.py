@@ -143,7 +143,7 @@ def parse_xml_annotations(xml_file: str) -> List[Tuple[int, int, int, int, str]]
 def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, int, int, str]], 
                        patient_id: str, view: str, study_date: str = None, output_dir: str = None) -> Tuple[np.ndarray, Image.Image, Image.Image]:
     """
-    ✅ FIXED: Create hotspot mask using paths.py for proper file naming
+      FIXED: Create hotspot mask using paths.py for proper file naming
     """
     with Image.open(image_file) as img:
         # Convert to grayscale for mask creation
@@ -224,7 +224,7 @@ def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, in
                     if matching_neighbors >= 3:
                         mask[y, x] = mask_value
         
-        # ✅ NEW: Create PURE colored image (palette colors only)
+        #   NEW: Create PURE colored image (palette colors only)
         pure_colored_array = np.zeros((height, width, 3), dtype=np.uint8)
         
         # Apply pure palette colors
@@ -235,7 +235,7 @@ def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, in
         
         pure_colored_image = Image.fromarray(pure_colored_array)
         
-        # ✅ Create BLENDED overlayed image (original logic)
+        #   Create BLENDED overlayed image (original logic)
         overlayed_array = rgb_array.copy()
         
         # Apply color overlay where mask is non-black
@@ -269,13 +269,13 @@ def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, in
         
         overlayed_image = Image.fromarray(overlayed_array)
         
-        # ✅ SAVE using paths.py naming convention
+        #   SAVE using paths.py naming convention
         if output_dir:
             from core.config.paths import get_planar_hotspot_files
             
             output_path = Path(output_dir)
             
-            # ✅ USE paths.py for proper file naming
+            #   USE paths.py for proper file naming
             hotspot_files = get_planar_hotspot_files(output_path, view, with_priority=False)
             
             # Save files using correct naming from paths.py
@@ -552,13 +552,13 @@ class HotspotProcessor:
             temp_path = self.temp_dir / f"temp_{patient_id}_{view}.png"
             temp_image.save(temp_path)
             
-            # ✅ FIX: Use provided study_date instead of extracting
+            #   FIX: Use provided study_date instead of extracting
             if study_date is None:
                 _, study_date = self._extract_patient_and_study_info(str(temp_path), patient_id)
             
             print(f"[DEBUG] Processing frame with study_date: {study_date}")
             
-            # ✅ FIX: Process with create_hotspot_mask - now returns 3 values
+            #   FIX: Process with create_hotspot_mask - now returns 3 values
             
             session_code = get_current_session_code()
             if session_code == "unknown":
@@ -566,7 +566,7 @@ class HotspotProcessor:
 
             patient_folder = get_patient_planar_path(session_code, patient_id, study_date)
 
-            # ✅ FIX: Process with create_hotspot_mask using correct patient folder
+            #   FIX: Process with create_hotspot_mask using correct patient folder
             mask, overlayed_image, pure_colored_image = create_hotspot_mask(
                 str(temp_path),
                 bounding_boxes,
@@ -579,7 +579,7 @@ class HotspotProcessor:
             # Clean up temp file
             temp_path.unlink(missing_ok=True)
             
-            # ✅ Return blended version for compatibility (overlayed_image)
+            #   Return blended version for compatibility (overlayed_image)
             return np.array(overlayed_image)
             
         except Exception as e:

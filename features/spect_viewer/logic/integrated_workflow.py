@@ -76,49 +76,49 @@ class SPECTAnalysisWorkflow:
             status = get_patient_analysis_status(dicom_path, patient_id, study_date)
             
             if not status["completion"]["segmentation"]:
-                _log(f"❌ Segmentation files missing - run DICOM import first")
+                _log(f" Segmentation files missing - run DICOM import first")
                 workflow_result["errors"].append("Segmentation files missing")
                 return workflow_result
             else:
-                _log(f"✅ Segmentation files found")
+                _log(f"  Segmentation files found")
                 workflow_result["steps_completed"]["segmentation"] = True
                 workflow_result["files_generated"].extend(["Segmentation PNG files"])
             
             # Step 2: YOLO Detection
-            _log(f"🎯 Step 2: YOLO Detection...")
+            _log(f"  Step 2: YOLO Detection...")
             if not status["completion"]["yolo_detection"]:
                 yolo_result = run_yolo_detection_wrapper(dicom_path, patient_id)
                 yolo_success = any(yolo_result.values())
                 workflow_result["steps_completed"]["yolo_detection"] = yolo_success
                 
                 if yolo_success:
-                    _log(f"✅ YOLO detection completed")
+                    _log(f"  YOLO detection completed")
                     workflow_result["files_generated"].extend(["XML detection files"])
                 else:
-                    _log(f"❌ YOLO detection failed")
+                    _log(f" YOLO detection failed")
                     workflow_result["errors"].append("YOLO detection failed")
                     return workflow_result
             else:
-                _log(f"✅ YOLO detection already complete")
+                _log(f"  YOLO detection already complete")
                 workflow_result["steps_completed"]["yolo_detection"] = True
                 workflow_result["files_generated"].extend(["XML detection files"])
             
             # Step 3: Otsu Hotspot Processing
-            _log(f"🔥 Step 3: Otsu Hotspot Processing...")
+            _log(f"  Step 3: Otsu Hotspot Processing...")
             if not status["completion"]["otsu_processing"]:
                 otsu_result = run_hotspot_processing_in_process(dicom_path, patient_id)
                 otsu_success = len(otsu_result.get("frames", [])) > 0
                 workflow_result["steps_completed"]["otsu_processing"] = otsu_success
                 
                 if otsu_success:
-                    _log(f"✅ Otsu processing completed")
+                    _log(f"  Otsu processing completed")
                     workflow_result["files_generated"].extend(["Hotspot PNG files"])
                 else:
-                    _log(f"❌ Otsu processing failed")
+                    _log(f" Otsu processing failed")
                     workflow_result["errors"].append("Otsu processing failed")
                     return workflow_result
             else:
-                _log(f"✅ Otsu processing already complete")
+                _log(f"  Otsu processing already complete")
                 workflow_result["steps_completed"]["otsu_processing"] = True
                 workflow_result["files_generated"].extend(["Hotspot PNG files"])
             
@@ -129,14 +129,14 @@ class SPECTAnalysisWorkflow:
                 workflow_result["steps_completed"]["classification"] = classification_result
                 
                 if classification_result:
-                    _log(f"✅ Classification completed")
+                    _log(f"  Classification completed")
                     workflow_result["files_generated"].extend(["Classification JSON", "Classification mask PNG"])
                 else:
-                    _log(f"❌ Classification failed")
+                    _log(f" Classification failed")
                     workflow_result["errors"].append("Classification failed")
                     return workflow_result
             else:
-                _log(f"✅ Classification already complete")
+                _log(f"  Classification already complete")
                 workflow_result["steps_completed"]["classification"] = True
                 workflow_result["files_generated"].extend(["Classification JSON", "Classification mask PNG"])
             
@@ -147,7 +147,7 @@ class SPECTAnalysisWorkflow:
                 workflow_result["steps_completed"]["quantification"] = quantification_result
                 
                 if quantification_result:
-                    _log(f"✅ BSI quantification completed")
+                    _log(f"  BSI quantification completed")
                     workflow_result["files_generated"].extend(["BSI quantification JSON"])
                     
                     # Load quantification results
@@ -155,11 +155,11 @@ class SPECTAnalysisWorkflow:
                         dicom_path.parent, patient_id, study_date
                     )
                 else:
-                    _log(f"❌ BSI quantification failed")
+                    _log(f" BSI quantification failed")
                     workflow_result["errors"].append("BSI quantification failed")
                     return workflow_result
             else:
-                _log(f"✅ BSI quantification already complete")
+                _log(f"  BSI quantification already complete")
                 workflow_result["steps_completed"]["quantification"] = True
                 workflow_result["files_generated"].extend(["BSI quantification JSON"])
                 
@@ -176,7 +176,7 @@ class SPECTAnalysisWorkflow:
             workflow_result["workflow_complete"] = completed_steps == total_steps
             
             _log(f"🎉 Workflow completed: {completed_steps}/{total_steps} steps successful")
-            _log(f"📁 Files generated: {', '.join(workflow_result['files_generated'])}")
+            _log(f"  Files generated: {', '.join(workflow_result['files_generated'])}")
             
             if workflow_result["quantification_results"]:
                 bsi_score = workflow_result["quantification_results"].get("bsi_score", 0)
@@ -185,7 +185,7 @@ class SPECTAnalysisWorkflow:
             return workflow_result
             
         except Exception as e:
-            _log(f"❌ Workflow error: {e}")
+            _log(f" Workflow error: {e}")
             workflow_result["errors"].append(f"Workflow error: {e}")
             workflow_result["workflow_complete"] = False
             return workflow_result
@@ -290,7 +290,7 @@ class SPECTAnalysisWorkflow:
             }
             
             for step_key, step_name in step_names.items():
-                status_icon = "✅" if steps.get(step_key, False) else "❌"
+                status_icon = " " if steps.get(step_key, False) else "❌"
                 report.append(f"{status_icon} {step_name}")
             
             report.append("")
@@ -344,22 +344,22 @@ def run_batch_workflow(dicom_paths: List[Path], session_code: str) -> Dict:
             # Extract patient info
             patient_id = dicom_path.stem.split('_')[0]  # Assume filename format: patientid_date.dcm
             
-            _log(f"📁 Processing file {i}/{len(dicom_paths)}: {dicom_path.name}")
+            _log(f"  Processing file {i}/{len(dicom_paths)}: {dicom_path.name}")
             
             # Run workflow
             result = workflow_manager.run_full_workflow(dicom_path, patient_id, session_code)
             
             if result.get("workflow_complete", False):
                 batch_results["successful"] += 1
-                _log(f"✅ File {i} completed successfully")
+                _log(f"  File {i} completed successfully")
             else:
                 batch_results["failed"] += 1
-                _log(f"❌ File {i} failed")
+                _log(f" File {i} failed")
             
             batch_results["results"].append(result)
             
         except Exception as e:
-            _log(f"❌ Error processing file {i}: {e}")
+            _log(f" Error processing file {i}: {e}")
             batch_results["failed"] += 1
             batch_results["results"].append({
                 "dicom_path": str(dicom_path),

@@ -92,7 +92,7 @@ import torch
 if hasattr(torch.jit, '_state'):
     try:
         torch.jit._state.disable()
-        print("  [TEST] ✅ Torch JIT disabled")
+        print("  [TEST]   Torch JIT disabled")
     except:
         print("  [TEST] ⚠️ Could not disable torch JIT")
 
@@ -107,16 +107,16 @@ try:
     # Try to import the specific trainer
     try:
         from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer_50epochs
-        print("  [TEST] ✅ nnUNetTrainer_50epochs imported successfully")
+        print("  [TEST]   nnUNetTrainer_50epochs imported successfully")
     except ImportError as e:
-        print(f"  [TEST] ❌ Failed to import nnUNetTrainer_50epochs: {e}")
+        print(f"  [TEST]  Failed to import nnUNetTrainer_50epochs: {e}")
         print("  [TEST] Available trainers:")
         for attr in dir(trainer_module):
             if 'Trainer' in attr and not attr.startswith('_'):
                 print(f"  [TEST]   - {attr}")
     
 except Exception as e:
-    print(f"  [TEST] ❌ Failed to import trainer module: {e}")
+    print(f"  [TEST]  Failed to import trainer module: {e}")
 
 def create_predictor():
     """Create nnUNet predictor"""
@@ -133,10 +133,10 @@ def create_predictor():
             device=device,
             allow_tqdm=True
         )
-        print("  [TEST] ✅ Predictor created successfully")
+        print("  [TEST]   Predictor created successfully")
         return predictor
     except Exception as e:
-        print(f"  [TEST] ❌ Failed to create predictor: {e}")
+        print(f"  [TEST]  Failed to create predictor: {e}")
         raise
 
 def test_model_loading():
@@ -150,7 +150,7 @@ def test_model_loading():
     print(f"  [TEST] Model path exists: {model_path.exists()}")
     
     if not model_path.exists():
-        print("  [TEST] ❌ Model path does not exist!")
+        print("  [TEST]  Model path does not exist!")
         return None
     
     # Check critical files
@@ -164,7 +164,7 @@ def test_model_loading():
     for file_path in critical_files:
         exists = file_path.exists()
         size = file_path.stat().st_size / (1024*1024) if exists else 0
-        print(f"  [TEST]   {file_path.name}: {'✅' if exists else '❌'} ({size:.1f} MB)")
+        print(f"  [TEST]   {file_path.name}: {' ' if exists else '❌'} ({size:.1f} MB)")
     
     try:
         predictor = create_predictor()
@@ -176,11 +176,11 @@ def test_model_loading():
             checkpoint_name="checkpoint_best.pth"
         )
         
-        print("  [TEST] ✅ Model loaded successfully!")
+        print("  [TEST]   Model loaded successfully!")
         return predictor
         
     except Exception as e:
-        print(f"  [TEST] ❌ Model loading failed: {e}")
+        print(f"  [TEST]  Model loading failed: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -190,7 +190,7 @@ def test_segmentation(predictor, image_path):
     print(f"\n  [TEST] Testing segmentation on: {image_path}")
     
     if not Path(image_path).exists():
-        print(f"  [TEST] ❌ Image not found: {image_path}")
+        print(f"  [TEST]  Image not found: {image_path}")
         return None
     
     try:
@@ -225,7 +225,7 @@ def test_segmentation(predictor, image_path):
         prediction = torch.argmax(logits, dim=0).cpu().numpy().astype(np.uint8)
         
         elapsed = time.time() - start_time
-        print(f"  [TEST] ✅ Segmentation completed in {elapsed:.2f}s")
+        print(f"  [TEST]   Segmentation completed in {elapsed:.2f}s")
         print(f"  [TEST] Output shape: {prediction.shape}")
         print(f"  [TEST] Unique labels: {np.unique(prediction)}")
         
@@ -237,7 +237,7 @@ def test_segmentation(predictor, image_path):
         return prediction
         
     except Exception as e:
-        print(f"  [TEST] ❌ Segmentation failed: {e}")
+        print(f"  [TEST]  Segmentation failed: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -251,7 +251,7 @@ def main():
     test_image = Path("data/PLANAR/ATL/0000085709/20250305/ant_original.png")
     
     if not test_image.exists():
-        print(f"  [TEST] ❌ Test image not found: {test_image}")
+        print(f"  [TEST]  Test image not found: {test_image}")
         print("  [TEST] Please ensure the test image exists")
         return
     
@@ -261,16 +261,16 @@ def main():
     # Test model loading
     predictor = test_model_loading()
     if predictor is None:
-        print("  [TEST] ❌ Cannot proceed without model")
+        print("  [TEST]  Cannot proceed without model")
         return
     
     # Test segmentation
     result = test_segmentation(predictor, test_image)
     if result is not None:
-        print("\n  [TEST] ✅ Segmentation test completed successfully!")
+        print("\n  [TEST]   Segmentation test completed successfully!")
         print("  [TEST] Model and environment are working correctly")
     else:
-        print("\n  [TEST] ❌ Segmentation test failed")
+        print("\n  [TEST]  Segmentation test failed")
     
     print("=" * 60)
 

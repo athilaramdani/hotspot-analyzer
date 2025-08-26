@@ -59,14 +59,14 @@ class SegmentationCanvas(BaseCanvas):
 
     def _init_history(self):
         """Initialize history for segmentation layers."""
-        # ✅ FIX: Initialize _layer_history if it doesn't exist
+        #   FIX: Initialize _layer_history if it doesn't exist
         if not hasattr(self, '_layer_history'):
             self._layer_history = {}
             
         for label_id in range(len(_PALETTE)):
             self._layer_history[label_id] = {'undo': [], 'redo': []}
         
-        # ✅ FIX: DON'T save states here - layers might not be ready yet
+        #   FIX: DON'T save states here - layers might not be ready yet
         # _save_all_states() will be called later when layers are properly initialized
 
     def _save_all_states(self):
@@ -75,21 +75,21 @@ class SegmentationCanvas(BaseCanvas):
         for label_id in range(len(_PALETTE)):
             if label_id in self._layers:
                 self._save_layer_state(label_id)
-        print(f"✅ Initial states saved for {len(_PALETTE)} layers")
+        print(f"  Initial states saved for {len(_PALETTE)} layers")
 
     def _save_layer_state(self, label_id: int):
         """Save state for specific layer."""
-        # ✅ FIX: Ensure _layer_history exists
+        #   FIX: Ensure _layer_history exists
         if not hasattr(self, '_layer_history'):
             self._layer_history = {}
         
-        # ✅ FIX: Ensure the label_id exists in _layer_history
+        #   FIX: Ensure the label_id exists in _layer_history
         if label_id not in self._layer_history:
             self._layer_history[label_id] = {'undo': [], 'redo': []}
         
         history = self._layer_history[label_id]
         
-        # ✅ FIX: Use layers if available
+        #   FIX: Use layers if available
         if hasattr(self, '_layers') and label_id in self._layers:
             state = self._layers[label_id].copy()
         else:
@@ -154,7 +154,7 @@ class SegmentationCanvas(BaseCanvas):
         x, y = self._get_pixel_coordinates(scene_pos)
         targets = self._get_brush_targets(x, y)
 
-        # ✅ FIX: Save state BEFORE making changes (not after)
+        #   FIX: Save state BEFORE making changes (not after)
         if not hasattr(self, '_drawing') or not self._drawing:
             # This is the start of a new drawing operation
             self._save_current_state()
@@ -192,18 +192,18 @@ class SegmentationCanvas(BaseCanvas):
         """Undo for specific layer - IMPROVED implementation."""
         print(f"🔄 Undo called for label {label_id}")
         
-        # ✅ FIX: Add comprehensive safety checks
+        #   FIX: Add comprehensive safety checks
         if not hasattr(self, '_layer_history'):
-            print("❌ No layer history available")
+            print(" No layer history available")
             return
             
         history = self._layer_history.get(label_id)
         if not history:
-            print(f"❌ No history for label {label_id}")
+            print(f" No history for label {label_id}")
             return
             
         if len(history['undo']) < 2:
-            print(f"❌ Not enough history for label {label_id} (need at least 2, have {len(history['undo'])})")
+            print(f" Not enough history for label {label_id} (need at least 2, have {len(history['undo'])})")
             return
         
         # Pop current state and move to redo
@@ -221,18 +221,18 @@ class SegmentationCanvas(BaseCanvas):
         """Redo for specific layer - IMPROVED implementation."""
         print(f"🔄 Redo called for label {label_id}")
         
-        # ✅ FIX: Add comprehensive safety checks
+        #   FIX: Add comprehensive safety checks
         if not hasattr(self, '_layer_history'):
-            print("❌ No layer history available")
+            print(" No layer history available")
             return
             
         history = self._layer_history.get(label_id)
         if not history:
-            print(f"❌ No history for label {label_id}")
+            print(f" No history for label {label_id}")
             return
             
         if not history['redo']:
-            print(f"❌ No redo history for label {label_id}")
+            print(f" No redo history for label {label_id}")
             return
         
         # Get state from redo and move to undo
@@ -246,9 +246,9 @@ class SegmentationCanvas(BaseCanvas):
         """Restore state for specific layer - IMPROVED implementation."""
         print(f"🔄 Restoring layer {label_id} with state shape: {state.shape}")
         
-        # ✅ FIX: Add safety checks
+        #   FIX: Add safety checks
         if not hasattr(self, '_layers') or label_id not in self._layers:
-            print(f"❌ Layer {label_id} not found in _layers")
+            print(f" Layer {label_id} not found in _layers")
             return
         
         # Restore the layer
@@ -261,12 +261,12 @@ class SegmentationCanvas(BaseCanvas):
         print(f"🔄 Refreshing mask display...")
         self._refresh_mask()
         
-        print(f"✅ Successfully restored layer {label_id}")
+        print(f"  Successfully restored layer {label_id}")
 
     def mousePressEvent(self, ev):
         """Handle mouse press - IMPROVED for proper drawing state."""
         if ev.button() == Qt.LeftButton and not self._pan_mode:
-            # ✅ FIX: Reset drawing state and start new operation
+            #   FIX: Reset drawing state and start new operation
             self._drawing = False  # Reset first
             scene_pos = self.mapToScene(ev.position().toPoint())
             self._apply_brush(scene_pos)
@@ -328,8 +328,8 @@ class SegmentationPalette(QWidget):
         
         self.list_palette = QListWidget()
         
-        # ✅ BEFORE: Tidak ada setMinimumHeight
-        # ✅ AFTER: Set minimum height untuk palette lebih panjang
+        #   BEFORE: Tidak ada setMinimumHeight
+        #   AFTER: Set minimum height untuk palette lebih panjang
         self.list_palette.setMinimumHeight(300)  # Tambah tinggi palette
         
         for rgb, (name, desc) in zip(_PALETTE, _SEGMENTATION_LABEL_INFO):
@@ -476,7 +476,7 @@ class SegmentationSaveThread(BaseSaveThread):
                 'edit_time': edit_time
             }
             
-            print(f"✅ Segmentation save paths initialized:")
+            print(f"  Segmentation save paths initialized:")
             print(f"   Base: {base_patient_study_folder}")
             print(f"   Save dir: {save_dir}")
             print(f"   Mask: {mask_filename}")
@@ -486,7 +486,7 @@ class SegmentationSaveThread(BaseSaveThread):
             
         except Exception as e:
             error_msg = f"Failed to initialize segmentation save paths: {e}"
-            print(f"❌ {error_msg}")
+            print(f" {error_msg}")
             print(f"   DICOM path: {self.dicom_path}")
             print(f"   Current session: {self.current_session}")
             print(f"   Editor session: {getattr(self, 'editor_session', 'Not set')}")
@@ -665,7 +665,7 @@ class SegmentationSaveThread(BaseSaveThread):
         
         self.progress_updated.emit(100, "Save completed!")
         
-        # ✅ FIX: Build success message properly
+        #   FIX: Build success message properly
         success_msg = (
             f"Segmentation edits saved successfully!\n\n"
             f"Files saved to: {self.segmentation_mask_edited.parent}\n"
@@ -674,13 +674,13 @@ class SegmentationSaveThread(BaseSaveThread):
         )
         
         if quant_success:
-            success_msg += "\n✅ Quantification pipeline completed successfully"
+            success_msg += "\n  Quantification pipeline completed successfully"
         else:
             success_msg += "\n⚠️ Quantification pipeline failed (check logs for details)"
 
-        # ✅ FIX: Use custom signal instead of built-in finished signal
+        #   FIX: Use custom signal instead of built-in finished signal
         if hasattr(self, 'save_completed'):
-            self.save_completed.emit(success_msg)  # ✅ NOW success_msg IS DEFINED
+            self.save_completed.emit(success_msg)  #   NOW success_msg IS DEFINED
             print(f"[DEBUG] save_completed signal emitted: {len(success_msg)} chars")
         else:
             # Fallback if save_completed signal doesn't exist

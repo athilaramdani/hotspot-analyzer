@@ -17,12 +17,12 @@ def setup_environment():
     os.environ['TORCH_JIT'] = '0'
     os.environ['TORCH_JIT_LOG_LEVEL'] = 'ERROR'
     
-    # ✅ CRITICAL: Disable triton completely
+    # CRITICAL: Disable triton completely
     os.environ['TRITON_DISABLE'] = '1'
     os.environ['TORCH_TRITON_DISABLE'] = '1'
     os.environ['USE_TRITON'] = '0'
     
-    # ✅ NEW: Completely disable triton to prevent library registration conflicts
+    # NEW: Completely disable triton to prevent library registration conflicts
     os.environ['TORCH_DISABLE_TRITON_OPS'] = '1'
     os.environ['TORCH_DISABLE_TRITON_LIBRARY'] = '1'
     os.environ['TORCH_DISABLE_TRITON_REGISTRATION'] = '1'
@@ -38,11 +38,11 @@ def setup_environment():
     os.environ['TORCH_COMPILE_DISABLE'] = '1'
     os.environ['TORCH_DYNAMO_DISABLE'] = '1'
     
-    # ✅ ADD: Additional environment variables for nnUNet compatibility
+    # ADD: Additional environment variables for nnUNet compatibility
     os.environ['TORCH_FX_DISABLE'] = '1'
     os.environ['NNUNET_DISABLE_COMPILE'] = '1'
     
-    print("✅ Environment configured with torch._dynamo disabled")
+    print("Environment configured with torch._dynamo disabled")
 
 def create_torch_hooks():
     """Create comprehensive torch hooks for PyInstaller"""
@@ -100,7 +100,7 @@ excludedimports += [
 print(f"Torch hook: collected {len(hiddenimports)} hidden imports, {len(datas)} datas, {len(binaries)} binaries")
 '''
     torch_hook.write_text(torch_hook_content)
-    print("✅ Comprehensive torch hook created")
+    print("  Comprehensive torch hook created")
 
 def clean_previous_builds():
     """Clean previous build artifacts"""
@@ -115,7 +115,7 @@ def clean_previous_builds():
     for pyc_file in Path('.').rglob('*.pyc'):
         pyc_file.unlink()
     
-    print("✅ Previous builds cleaned")
+    print("  Previous builds cleaned")
 
 def verify_dependencies():
     """Verify that all required dependencies are available"""
@@ -139,17 +139,17 @@ def verify_dependencies():
     for module in required_modules:
         try:
             __import__(module)
-            print(f"✅ {module}")
+            print(f" {module}")
         except ImportError:
             missing_modules.append(module)
-            print(f"❌ {module} - MISSING")
+            print(f" {module} - MISSING")
     
     if missing_modules:
-        print(f"\n⚠️  Missing modules: {', '.join(missing_modules)}")
+        print(f"\n  Missing modules: {', '.join(missing_modules)}")
         print("Please install missing dependencies before building")
         return False
     
-    print("✅ All dependencies verified")
+    print("All dependencies verified")
     return True
 
 def check_model_files():
@@ -169,10 +169,10 @@ def check_model_files():
         if path.exists():
             size_mb = path.stat().st_size / (1024 * 1024)
             total_size += size_mb
-            print(f"✅ {model_path} ({size_mb:.1f} MB)")
+            print(f"  {model_path} ({size_mb:.1f} MB)")
         else:
             missing_models.append(model_path)
-            print(f"❌ {model_path} - MISSING")
+            print(f" {model_path} - MISSING")
     
     if missing_models:
         print(f"\n⚠️  Missing model files: {len(missing_models)}")
@@ -181,13 +181,13 @@ def check_model_files():
         if response.lower() != 'y':
             return False
     
-    print(f"✅ Total model size: {total_size:.1f} MB")
+    print(f"  Total model size: {total_size:.1f} MB")
     return True
 
 def copy_models_explicitly():
     """Explicitly copy model files to ensure they're included - COMPLETE nnUNet structure"""
     
-    # ✅ NEW: Copy entire directories for nnUNet
+    #   NEW: Copy entire directories for nnUNet
     nnunet_dirs_to_copy = [
         "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion"
     ]
@@ -203,18 +203,18 @@ def copy_models_explicitly():
             if dest_dir.exists():
                 shutil.rmtree(dest_dir)
             shutil.copytree(src_dir, dest_dir)
-            print(f"✅ Copied entire directory: {dir_path}")
+            print(f"  Copied entire directory: {dir_path}")
         else:
-            print(f"❌ Directory not found: {dir_path}")
+            print(f" Directory not found: {dir_path}")
     
-    # ✅ IMPROVED: Individual critical files
+    #   IMPROVED: Individual critical files
     model_files = [
         "models/hotspot_detection/models/model_detection_hs_yolov8.pt",
         "models/classification/model_classification_hs_xgboost_250724.pkl",
         "models/classification/scaler_classification_32features.pkl"
     ]
     
-    # ✅ NEW: Verify nnUNet files after directory copy
+    #   NEW: Verify nnUNet files after directory copy
     nnunet_verification_files = [
         "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/dataset.json",
         "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/dataset.json",
@@ -223,22 +223,22 @@ def copy_models_explicitly():
         "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_final.pth"
     ]
     
-    print("\n🔍 Verifying nnUNet files in build:")
+    print("\n  Verifying nnUNet files in build:")
     for verification_file in nnunet_verification_files:
         build_file_path = Path("dist/HotspotAnalyzer") / verification_file
         src_file_path = Path(verification_file)
         
         if build_file_path.exists():
             size_mb = build_file_path.stat().st_size / (1024 * 1024)
-            print(f"✅ {verification_file} ({size_mb:.1f} MB)")
+            print(f"  {verification_file} ({size_mb:.1f} MB)")
         elif src_file_path.exists():
             # File exists in source but not in build - copy it explicitly
             build_file_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src_file_path, build_file_path)
             size_mb = build_file_path.stat().st_size / (1024 * 1024)
-            print(f"✅ Copied missing file: {verification_file} ({size_mb:.1f} MB)")
+            print(f"  Copied missing file: {verification_file} ({size_mb:.1f} MB)")
         else:
-            print(f"❌ Missing: {verification_file}")
+            print(f" Missing: {verification_file}")
     
     # Copy individual model files
     for model_file in model_files:
@@ -248,11 +248,11 @@ def copy_models_explicitly():
             dest_path.parent.mkdir(parents=True, exist_ok=True)
             
             shutil.copy2(src_path, dest_path)
-            print(f"✅ Copied model: {model_file}")
+            print(f"  Copied model: {model_file}")
         else:
-            print(f"❌ Model not found: {model_file}")
+            print(f" Model not found: {model_file}")
     
-    print("✅ Model files explicitly copied with complete nnUNet structure")
+    print("  Model files explicitly copied with complete nnUNet structure")
 
 def verify_nnunet_structure():
     """NEW: Verify complete nnUNet structure exists"""
@@ -276,10 +276,10 @@ def verify_nnunet_structure():
         if full_path.exists():
             size_mb = full_path.stat().st_size / (1024 * 1024)
             total_size += size_mb
-            print(f"✅ {description}: {rel_path} ({size_mb:.1f} MB)")
+            print(f"  {description}: {rel_path} ({size_mb:.1f} MB)")
         else:
             missing_files.append((rel_path, description))
-            print(f"❌ {description}: {rel_path}")
+            print(f" {description}: {rel_path}")
     
     if missing_files:
         print(f"\n⚠️  Missing {len(missing_files)} critical nnUNet files:")
@@ -287,7 +287,7 @@ def verify_nnunet_structure():
             print(f"   - {description}: {rel_path}")
         return False
     else:
-        print(f"\n✅ All nnUNet files present (Total: {total_size:.1f} MB)")
+        print(f"\n  All nnUNet files present (Total: {total_size:.1f} MB)")
         return True
 
 def run_pyinstaller():
@@ -295,7 +295,7 @@ def run_pyinstaller():
     spec_file = "hotspot_analyzer.spec"
     
     if not Path(spec_file).exists():
-        print(f"❌ Spec file not found: {spec_file}")
+        print(f" Spec file not found: {spec_file}")
         return False
     
     print(f"🚀 Starting PyInstaller build with {spec_file}")
@@ -310,10 +310,10 @@ def run_pyinstaller():
     
     try:
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-        print("✅ PyInstaller build completed successfully")
+        print("  PyInstaller build completed successfully")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ PyInstaller build failed with exit code {e.returncode}")
+        print(f" PyInstaller build failed with exit code {e.returncode}")
         print(f"STDOUT:\n{e.stdout}")
         print(f"STDERR:\n{e.stderr}")
         return False
@@ -323,7 +323,7 @@ def post_build_cleanup():
     dist_dir = Path("dist/HotspotAnalyzer")
     
     if not dist_dir.exists():
-        print("❌ Build directory not found")
+        print(" Build directory not found")
         return False
     
     # Calculate build size
@@ -382,7 +382,7 @@ pause
     with open(installer_path, 'w') as f:
         f.write(installer_content)
     
-    print(f"✅ Created installer script: {installer_path}")
+    print(f"  Created installer script: {installer_path}")
 
 def main():
     """Main build process"""
@@ -406,7 +406,7 @@ def main():
     # Step 4.5: Ensure hooks directory exists
     hooks_dir = Path("hooks")
     hooks_dir.mkdir(exist_ok=True)
-    print("✅ Hooks directory ready")
+    print("  Hooks directory ready")
 
     # Step 5: Run PyInstaller
     if not run_pyinstaller():

@@ -5,11 +5,6 @@ import cv2
 from pathlib import Path
 import json
 from core.logger import _log
-from core.config.paths import (
-    get_classification_files, 
-    get_quantification_files,
-    get_segmentation_files_with_edited
-)
 
 # Import V1.2 algorithm
 from .algorithm_quantification import (
@@ -64,7 +59,7 @@ def get_quantification_input_paths_v2(patient_folder: Path, filename_stem: str) 
             'hotspot_anterior': ant_mask_to_use,
             'hotspot_posterior': post_mask_to_use,
             
-            # ✅ UPDATED: Output files using correct short naming (ant/post)
+            #   UPDATED: Output files using correct short naming (ant/post)
             'output_anterior': quant_files['bsi_json_ant'],
             'output_posterior': quant_files['bsi_json_post']
         }
@@ -77,7 +72,7 @@ def get_quantification_input_paths_v2(patient_folder: Path, filename_stem: str) 
         return paths
         
     except Exception as e:
-        print(f"🔧 [DEBUG WRAPPER] ❌ Error getting paths: {e}")
+        print(f"🔧 [DEBUG WRAPPER]  Error getting paths: {e}")
         import traceback
         traceback.print_exc()
         
@@ -93,7 +88,7 @@ def get_quantification_input_paths_v2(patient_folder: Path, filename_stem: str) 
         }
 
 def check_available_files_v2(paths):
-    """✅ FIXED: Check file availability for V1.2 quantification - ALLOW SINGLE VIEW"""
+    """  FIXED: Check file availability for V1.2 quantification - ALLOW SINGLE VIEW"""
     available_paths = {}
     missing_files = []
     
@@ -109,20 +104,20 @@ def check_available_files_v2(paths):
         else:
             missing_files.append(f"{name} ({path.name})")
     
-    # ✅ FIXED: Check for anterior OR posterior pair (not both required)
+    #   FIXED: Check for anterior OR posterior pair (not both required)
     has_anterior_pair = ('segmentation_anterior' in available_paths and 
                         'hotspot_anterior' in available_paths)
     has_posterior_pair = ('segmentation_posterior' in available_paths and 
                          'hotspot_posterior' in available_paths)
     
-    # ✅ NEW: Can proceed if we have at least ONE complete pair
+    #   NEW: Can proceed if we have at least ONE complete pair
     can_proceed = has_anterior_pair or has_posterior_pair
     
     return available_paths, missing_files, can_proceed, has_anterior_pair, has_posterior_pair
 
 def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_date: str) -> bool:
     """
-    ✅ FIXED: Run V1.2 BSI quantification - SUPPORTS SINGLE VIEW (anterior OR posterior)
+      FIXED: Run V1.2 BSI quantification - SUPPORTS SINGLE VIEW (anterior OR posterior)
     """
     try:
         patient_folder = dicom_path.parent
@@ -134,7 +129,7 @@ def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_d
         # Get file paths
         paths = get_quantification_input_paths_v2(patient_folder, filename_stem)
         
-        # ✅ FIXED: Check available files with new return values
+        #   FIXED: Check available files with new return values
         available_paths, missing_files, can_proceed, has_anterior_pair, has_posterior_pair = check_available_files_v2(paths)
         
         if not can_proceed:
@@ -142,7 +137,7 @@ def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_d
             _log(f"     Need at least ONE complete pair (anterior OR posterior segmentation + classification)")
             return False
         
-        # ✅ NEW: Log what we have available
+        #   NEW: Log what we have available
         _log(f"     File availability check:")
         _log(f"       Anterior pair available: {has_anterior_pair}")
         _log(f"       Posterior pair available: {has_posterior_pair}")
@@ -152,7 +147,7 @@ def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_d
         
         _log(f"     Processing V1.2 quantification with color-based segmentation...")
         
-        # ✅ NEW: Process available views only
+        #   NEW: Process available views only
         anterior_results = None
         posterior_results = None
         
@@ -164,9 +159,9 @@ def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_d
                     str(available_paths['segmentation_anterior']),
                     str(available_paths['hotspot_anterior'])
                 )
-                _log(f"     ✅ Anterior processing completed")
+                _log(f"       Anterior processing completed")
             except Exception as e:
-                _log(f"     ❌ Anterior processing failed: {e}")
+                _log(f"      Anterior processing failed: {e}")
                 anterior_results = None
         else:
             _log(f"     ⏭️ Skipping anterior view (files not available)")
@@ -179,19 +174,19 @@ def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_d
                     str(available_paths['segmentation_posterior']),
                     str(available_paths['hotspot_posterior'])
                 )
-                _log(f"     ✅ Posterior processing completed")
+                _log(f"       Posterior processing completed")
             except Exception as e:
-                _log(f"     ❌ Posterior processing failed: {e}")
+                _log(f"      Posterior processing failed: {e}")
                 posterior_results = None
         else:
             _log(f"     ⏭️ Skipping posterior view (files not available)")
         
-        # ✅ Check if we got at least one result
+        #   Check if we got at least one result
         if not anterior_results and not posterior_results:
-            _log(f"     ❌ No views processed successfully")
+            _log(f"      No views processed successfully")
             return False
         
-        # ✅ NEW: Calculate combined BSI based on available data
+        #   NEW: Calculate combined BSI based on available data
         _log(f"     Calculating BSI scores...")
         
         # Prepare base metadata
@@ -203,7 +198,7 @@ def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_d
             "algorithm_version": "1.2"
         }
         
-        # ✅ NEW: Handle different scenarios
+        #   NEW: Handle different scenarios
         
         # Scenario 1: Both anterior and posterior available
         if anterior_results and posterior_results:
@@ -261,7 +256,7 @@ def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_d
             with open(paths['output_posterior'], 'w') as f:
                 json.dump(posterior_final, f, indent=2)
                 
-            _log(f"     ✅ Dual-view BSI quantification completed")
+            _log(f"       Dual-view BSI quantification completed")
             _log(f"     Anterior BSI: {combined_results['anterior_bsi']:.3f}")
             _log(f"     Posterior BSI: {combined_results['posterior_bsi']:.3f}")
             _log(f"     Combined BSI: {combined_results['combined_bsi']:.3f}")
@@ -298,7 +293,7 @@ def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_d
             with open(paths['output_anterior'], 'w') as f:
                 json.dump(anterior_final, f, indent=2)
                 
-            _log(f"     ✅ Single-view (anterior) BSI quantification completed")
+            _log(f"       Single-view (anterior) BSI quantification completed")
             _log(f"     Anterior BSI: {anterior_bsi:.3f}")
             _log(f"     Note: Posterior files not available")
             
@@ -334,7 +329,7 @@ def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_d
             with open(paths['output_posterior'], 'w') as f:
                 json.dump(posterior_final, f, indent=2)
                 
-            _log(f"     ✅ Single-view (posterior) BSI quantification completed")
+            _log(f"       Single-view (posterior) BSI quantification completed")
             _log(f"     Posterior BSI: {posterior_bsi:.3f}")
             _log(f"     Note: Anterior files not available")
         
@@ -347,7 +342,7 @@ def run_quantification_for_patient_v2(dicom_path: Path, patient_id: str, study_d
         _log(f"     Full traceback: {traceback.format_exc()}")
         return False
 
-# ✅ Update the main entry point to use V1.2
+#   Update the main entry point to use V1.2
 def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date: str) -> bool:
     """Main entry point - now uses V1.2 algorithm with single view support"""
     return run_quantification_for_patient_v2(dicom_path, patient_id, study_date)

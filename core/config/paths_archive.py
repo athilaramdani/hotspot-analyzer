@@ -220,15 +220,15 @@ def migrate_old_to_new_structure():
             if not new_path.exists():
                 new_path.parent.mkdir(parents=True, exist_ok=True)
                 old_dir.rename(new_path)
-                print(f"✅ Migrated: {old_dir} → {new_path}")
+                print(f"  Migrated: {old_dir} → {new_path}")
                 migrated_count += 1
             else:
                 print(f"⚠️  Target already exists: {new_path}")
                 
         except Exception as e:
-            print(f"❌ Failed to migrate {old_dir}: {e}")
+            print(f" Failed to migrate {old_dir}: {e}")
     
-    print(f"📁 Migration completed: {migrated_count} directories migrated")
+    print(f"  Migration completed: {migrated_count} directories migrated")
 
 def migrate_filenames_to_study_date():
     """ARCHIVED: Migrate existing files to include study date in filenames"""
@@ -283,13 +283,13 @@ def migrate_filenames_to_study_date():
                         
                         if new_path != file_path:
                             file_path.rename(new_path)
-                            print(f"✅ Renamed: {old_name} → {new_name}")
+                            print(f"  Renamed: {old_name} → {new_name}")
                             migrated_count += 1
                     
             except Exception as e:
-                print(f"❌ Failed to migrate files in {patient_dir}: {e}")
+                print(f" Failed to migrate files in {patient_dir}: {e}")
     
-    print(f"📁 Filename migration completed: {migrated_count} files renamed")
+    print(f"  Filename migration completed: {migrated_count} files renamed")
 
 def migrate_spect_to_planar():
     """ARCHIVED: Migrate SPECT directory structure to PLANAR structure"""
@@ -334,13 +334,13 @@ def migrate_spect_to_planar():
                             if not new_file_path.exists():
                                 import shutil
                                 shutil.copy2(file_path, new_file_path)
-                                print(f"✅ Migrated: {file_path} → {new_file_path}")
+                                print(f"  Migrated: {file_path} → {new_file_path}")
                                 migrated_count += 1
                     
                 except Exception as e:
-                    print(f"❌ Failed to migrate {patient_dir}: {e}")
+                    print(f" Failed to migrate {patient_dir}: {e}")
     
-    print(f"📁 SPECT to PLANAR migration completed: {migrated_count} files migrated")
+    print(f"  SPECT to PLANAR migration completed: {migrated_count} files migrated")
 
 # ===== ARCHIVED FILE FUNCTIONS =====
 def get_original_image_files(patient_folder: Path, filename_stem: str) -> dict:

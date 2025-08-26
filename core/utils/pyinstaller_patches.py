@@ -322,7 +322,7 @@ def patch_torch_post_import():
         except Exception as e:
             print(f"[PATCH] JIT disable failed: {e}")
 
-        # 4) ✅ NEW: Patch torchvision to prevent extension conflicts
+        # 4)   NEW: Patch torchvision to prevent extension conflicts
         try:
             import sys
             # Remove any problematic torchvision modules

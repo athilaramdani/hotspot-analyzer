@@ -8,13 +8,13 @@ from PIL import Image
 
 def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
     """Enhanced with extensive debugging"""
-    print(f"\n🔍 === BACKGROUND ANALYSIS DEBUG ===")
+    print(f"\n  === BACKGROUND ANALYSIS DEBUG ===")
     print(f"Frame shape: {frame_data.shape}")
     print(f"Frame dtype: {frame_data.dtype}")
     print(f"Frame range: {frame_data.min()} to {frame_data.max()}")
     
     if frame_data is None or frame_data.size == 0:
-        print("❌ ERROR: Empty or None frame data")
+        print(" ERROR: Empty or None frame data")
         return {"background_type": "black", "confidence": 0}
     
     # Normalize to uint8 if needed
@@ -24,7 +24,7 @@ def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
         print(f"🔄 Normalized to uint8: {frame_uint8.min()} to {frame_uint8.max()}")
     else:
         frame_uint8 = frame_data.copy()
-        print(f"✅ Already uint8: {frame_uint8.min()} to {frame_uint8.max()}")
+        print(f"  Already uint8: {frame_uint8.min()} to {frame_uint8.max()}")
     
     height, width = frame_uint8.shape
     total_pixels = height * width
@@ -96,17 +96,17 @@ def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
     background_type = "black"  # Default
     decision_factors = []
     
-    print(f"\n🎯 DECISION PROCESS:")
+    print(f"\n  DECISION PROCESS:")
     
     # Rule 1: Corner analysis
     if corner_mean < 50:
         background_type = "black"
         confidence += 40
-        decision_factors.append(f"✅ Dark corners ({corner_mean:.1f} < 50) → BLACK (+40)")
+        decision_factors.append(f"  Dark corners ({corner_mean:.1f} < 50) → BLACK (+40)")
     elif corner_mean > 200:
         background_type = "white"
         confidence += 40
-        decision_factors.append(f"✅ Bright corners ({corner_mean:.1f} > 200) → WHITE (+40)")
+        decision_factors.append(f"  Bright corners ({corner_mean:.1f} > 200) → WHITE (+40)")
     else:
         decision_factors.append(f"⚠️ Neutral corners ({corner_mean:.1f}) → No strong signal")
     
@@ -114,14 +114,14 @@ def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
     if dark_edge_ratio > 0.7:
         if background_type == "black":
             confidence += 30
-            decision_factors.append(f"✅ Dark edges ({dark_edge_ratio:.1%}) support BLACK (+30)")
+            decision_factors.append(f"  Dark edges ({dark_edge_ratio:.1%}) support BLACK (+30)")
         else:
             confidence += 15
             decision_factors.append(f"⚠️ Dark edges ({dark_edge_ratio:.1%}) weak support (+15)")
     elif bright_edge_ratio > 0.7:
         if background_type == "white":
             confidence += 30
-            decision_factors.append(f"✅ Bright edges ({bright_edge_ratio:.1%}) support WHITE (+30)")
+            decision_factors.append(f"  Bright edges ({bright_edge_ratio:.1%}) support WHITE (+30)")
         else:
             confidence += 15
             decision_factors.append(f"⚠️ Bright edges ({bright_edge_ratio:.1%}) weak support (+15)")
@@ -132,11 +132,11 @@ def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
     if image_mean < 80:
         if background_type == "black":
             confidence += 10
-            decision_factors.append(f"✅ Dark image ({image_mean:.1f} < 80) supports BLACK (+10)")
+            decision_factors.append(f"  Dark image ({image_mean:.1f} < 80) supports BLACK (+10)")
     elif image_mean > 180:
         if background_type == "white":
             confidence += 10
-            decision_factors.append(f"✅ Bright image ({image_mean:.1f} > 180) supports WHITE (+10)")
+            decision_factors.append(f"  Bright image ({image_mean:.1f} > 180) supports WHITE (+10)")
     else:
         decision_factors.append(f"⚠️ Mid-brightness image ({image_mean:.1f})")
     
@@ -147,7 +147,7 @@ def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
     for factor in decision_factors:
         print(f"   {factor}")
     
-    print(f"\n🎯 FINAL DECISION:")
+    print(f"\n  FINAL DECISION:")
     print(f"   Background Type: {background_type.upper()}")
     print(f"   Confidence: {confidence}%")
     print(f"   Reasoning: {len(decision_factors)} factors analyzed")
@@ -178,7 +178,7 @@ def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
     }
     
     print(f"📊 RESULT: {result}")
-    print(f"🔍 === END BACKGROUND ANALYSIS ===\n")
+    print(f"  === END BACKGROUND ANALYSIS ===\n")
     
     return result
 
@@ -200,11 +200,11 @@ def convert_to_black_background(frame_data: np.ndarray, current_bg: str = "auto"
     if current_bg == "auto":
         analysis = analyze_background_type(frame_data)
         current_bg = analysis["background_type"]
-        print(f"🔍 Auto-detected background: {current_bg} (confidence: {analysis['confidence']}%)")
+        print(f"  Auto-detected background: {current_bg} (confidence: {analysis['confidence']}%)")
     
     # If already black background, return as-is
     if current_bg == "black":
-        print(f"✅ Keeping black background")
+        print(f"  Keeping black background")
         return frame_data
     
     # If white background, invert to make it black background  
@@ -220,7 +220,7 @@ def convert_to_black_background(frame_data: np.ndarray, current_bg: str = "auto"
         
         # Invert: white becomes black, black becomes white
         inverted = 255 - frame_uint8
-        print(f"✅ White background inverted to black")
+        print(f"  White background inverted to black")
         return inverted
     
     return frame_data

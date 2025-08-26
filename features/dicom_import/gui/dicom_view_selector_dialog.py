@@ -69,22 +69,22 @@ class ZoomableImageLabel(QLabel):
     def __init__(self, frame_data: np.ndarray):
         super().__init__()
     
-        # ✅ FIXED: Validate frame_data first
+        #   FIXED: Validate frame_data first
         if frame_data is None:
-            print("❌ ERROR: ZoomableImageLabel received None frame_data")
+            print(" ERROR: ZoomableImageLabel received None frame_data")
             raise ValueError("Frame data cannot be None")
         
         if not isinstance(frame_data, np.ndarray):
-            print(f"❌ ERROR: Frame data is not numpy array: {type(frame_data)}")
+            print(f" ERROR: Frame data is not numpy array: {type(frame_data)}")
             raise ValueError("Frame data must be numpy array")
         
         if frame_data.size == 0:
-            print("❌ ERROR: Frame data is empty")
+            print(" ERROR: Frame data is empty")
             raise ValueError("Frame data cannot be empty")
         
-        print(f"🔍 DEBUG: ZoomableImageLabel init - shape: {frame_data.shape}, dtype: {frame_data.dtype}")
+        print(f"  DEBUG: ZoomableImageLabel init - shape: {frame_data.shape}, dtype: {frame_data.dtype}")
         
-        # ✅ FIXED: Detect if this is likely a medical image
+        #   FIXED: Detect if this is likely a medical image
         height, width = frame_data.shape[:2]
         
         # Heuristics for medical image detection
@@ -96,7 +96,7 @@ class ZoomableImageLabel(QLabel):
         )
         
         self._is_medical_image = is_medical
-        print(f"🔍 DEBUG: Medical image detected: {is_medical}")
+        print(f"  DEBUG: Medical image detected: {is_medical}")
         
         self.frame_data = frame_data
         self.zoom_factor = 1.0
@@ -124,15 +124,15 @@ class ZoomableImageLabel(QLabel):
         # Enable mouse tracking for pan
         self.setMouseTracking(True)
         
-        # ✅ FIXED: Wrap image creation with error handling
+        #   FIXED: Wrap image creation with error handling
         try:
-            print("🔍 DEBUG: Creating pixmap...")
+            print("  DEBUG: Creating pixmap...")
             self._create_pixmap()
-            print("🔍 DEBUG: Updating display...")
+            print("  DEBUG: Updating display...")
             self._update_display()
-            print("✅ ZoomableImageLabel initialized successfully")
+            print("  ZoomableImageLabel initialized successfully")
         except Exception as e:
-            print(f"❌ ERROR in ZoomableImageLabel init: {e}")
+            print(f" ERROR in ZoomableImageLabel init: {e}")
             import traceback
             traceback.print_exc()
             self._create_error_pixmap()
@@ -140,19 +140,19 @@ class ZoomableImageLabel(QLabel):
     def _create_pixmap(self):
         """Create QPixmap from frame data with proper orientation"""
         try:
-            print(f"🔍 DEBUG: Starting pixmap creation - shape: {self.frame_data.shape}")
+            print(f"  DEBUG: Starting pixmap creation - shape: {self.frame_data.shape}")
             
-            # ✅ FIXED: Validate frame data shape
+            #   FIXED: Validate frame data shape
             if len(self.frame_data.shape) not in [2, 3]:
-                print(f"❌ ERROR: Invalid frame data shape: {self.frame_data.shape}")
+                print(f" ERROR: Invalid frame data shape: {self.frame_data.shape}")
                 raise ValueError(f"Frame data must be 2D or 3D, got {len(self.frame_data.shape)}D")
             
             frame_data = self.frame_data.copy()
-            print(f"🔍 DEBUG: Frame data copied - dtype: {frame_data.dtype}")
+            print(f"  DEBUG: Frame data copied - dtype: {frame_data.dtype}")
             
-            # ✅ FIXED: Handle different data types more safely
+            #   FIXED: Handle different data types more safely
             if frame_data.dtype != np.uint8:
-                print(f"🔍 DEBUG: Converting from {frame_data.dtype} to uint8...")
+                print(f"  DEBUG: Converting from {frame_data.dtype} to uint8...")
                 
                 # Check for invalid values
                 if np.any(np.isnan(frame_data)) or np.any(np.isinf(frame_data)):
@@ -162,7 +162,7 @@ class ZoomableImageLabel(QLabel):
                 # Safe normalization
                 data_min = frame_data.min()
                 data_max = frame_data.max()
-                print(f"🔍 DEBUG: Data range: {data_min} to {data_max}")
+                print(f"  DEBUG: Data range: {data_min} to {data_max}")
                 
                 if data_max > data_min:
                     frame_norm = (frame_data.astype(np.float32) - data_min) / (data_max - data_min)
@@ -171,50 +171,50 @@ class ZoomableImageLabel(QLabel):
                     frame_norm = np.zeros_like(frame_data, dtype=np.float32)
                 
                 frame_data = (frame_norm * 255).astype(np.uint8)
-                print(f"✅ Normalization completed")
+                print(f"  Normalization completed")
             
-            # ✅ FIXED: Handle 2D vs 3D data
+            #   FIXED: Handle 2D vs 3D data
             if len(frame_data.shape) == 3:
-                print(f"🔍 DEBUG: 3D data detected, shape: {frame_data.shape}")
+                print(f"  DEBUG: 3D data detected, shape: {frame_data.shape}")
                 if frame_data.shape[2] == 1:
                     frame_data = frame_data[:, :, 0]  # Remove single channel dimension
-                    print("🔍 DEBUG: Removed single channel dimension")
+                    print("  DEBUG: Removed single channel dimension")
                 elif frame_data.shape[2] == 3:
                     # Convert RGB to grayscale
                     frame_data = np.dot(frame_data[...,:3], [0.2989, 0.5870, 0.1140]).astype(np.uint8)
-                    print("🔍 DEBUG: Converted RGB to grayscale")
+                    print("  DEBUG: Converted RGB to grayscale")
             
             height, width = frame_data.shape
-            print(f"🔍 DEBUG: Final frame dimensions: {width}x{height}")
+            print(f"  DEBUG: Final frame dimensions: {width}x{height}")
             
-            # ✅ FIXED: Validate dimensions
+            #   FIXED: Validate dimensions
             if width <= 0 or height <= 0:
                 raise ValueError(f"Invalid dimensions: {width}x{height}")
             
-            # ✅ FIXED: Apply medical image enhancement if needed
+            #   FIXED: Apply medical image enhancement if needed
             if hasattr(self, '_is_medical_image') and self._is_medical_image:
                 frame_data = self._enhance_medical_image_display(frame_data)
-                print("✅ Medical image enhancement applied")
+                print("  Medical image enhancement applied")
             
             # Convert to PIL Image with error handling
             try:
-                print("🔍 DEBUG: Creating PIL Image...")
+                print("  DEBUG: Creating PIL Image...")
                 image = Image.fromarray(frame_data, mode='L')
-                print("✅ PIL Image created")
+                print("  PIL Image created")
             except Exception as pil_error:
-                print(f"❌ ERROR creating PIL Image: {pil_error}")
+                print(f" ERROR creating PIL Image: {pil_error}")
                 raise
             
-            # ✅ FIXED: For DICOM medical images, check if we need rotation
+            #   FIXED: For DICOM medical images, check if we need rotation
             # Medical scans are sometimes stored in different orientations
             if hasattr(self, '_is_medical_image') and self._is_medical_image and height > width and height > 512:
                 # Likely a medical scan that might need orientation adjustment
-                print("🔍 DEBUG: Detected potential medical scan")
+                print("  DEBUG: Detected potential medical scan")
                 
                 # Check if image seems to be rotated (very tall and narrow)
                 aspect_ratio = height / width
                 if aspect_ratio > 3.0:
-                    print(f"🔍 DEBUG: High aspect ratio ({aspect_ratio:.1f}), checking for rotation...")
+                    print(f"  DEBUG: High aspect ratio ({aspect_ratio:.1f}), checking for rotation...")
                     
                     # Try rotating and see if it looks more reasonable
                     rotated_90 = image.rotate(90, expand=True)
@@ -222,16 +222,16 @@ class ZoomableImageLabel(QLabel):
                     rotated_aspect = rotated_height / rotated_width
                     
                     if rotated_aspect < aspect_ratio and rotated_aspect > 0.5:
-                        print("🔍 DEBUG: Rotation improved aspect ratio, applying 90° rotation")
+                        print("  DEBUG: Rotation improved aspect ratio, applying 90° rotation")
                         image = rotated_90
                         width, height = rotated_width, rotated_height
                     else:
-                        print("🔍 DEBUG: Rotation did not improve, keeping original orientation")
+                        print("  DEBUG: Rotation did not improve, keeping original orientation")
             
-            print(f"✅ PIL Image finalized - size: {image.size}")
+            print(f"  PIL Image finalized - size: {image.size}")
             
-            # ✅ FIXED: Handle DICOM medical image orientation properly
-            print(f"🔍 DEBUG: Original dimensions: {width}x{height}")
+            #   FIXED: Handle DICOM medical image orientation properly
+            print(f"  DEBUG: Original dimensions: {width}x{height}")
 
             # For medical images, often height > width (like bone scans)
             # We need to preserve aspect ratio and proper orientation
@@ -239,39 +239,39 @@ class ZoomableImageLabel(QLabel):
                 # Tall image (typical medical scan)
                 display_height = 280
                 display_width = max(1, int((width / height) * display_height))
-                print(f"🔍 DEBUG: Tall image - resize to {display_width}x{display_height}")
+                print(f"  DEBUG: Tall image - resize to {display_width}x{display_height}")
             else:
                 # Wide image 
                 display_width = 280
                 display_height = max(1, int((height / width) * display_width))
-                print(f"🔍 DEBUG: Wide image - resize to {display_width}x{display_height}")
+                print(f"  DEBUG: Wide image - resize to {display_width}x{display_height}")
 
-            # ✅ FIXED: Ensure minimum dimensions
+            #   FIXED: Ensure minimum dimensions
             display_width = max(50, min(400, display_width))  # Clamp between 50-400
             display_height = max(50, min(400, display_height))  # Clamp between 50-400
 
-            print(f"🔍 DEBUG: Final resize dimensions: {display_width}x{display_height}")
+            print(f"  DEBUG: Final resize dimensions: {display_width}x{display_height}")
 
-            # ✅ FIXED: Use different resampling for medical vs regular images
+            #   FIXED: Use different resampling for medical vs regular images
             # Medical images often need nearest neighbor to preserve sharp edges
             if hasattr(self, '_is_medical_image') and self._is_medical_image:
                 # Medical scan - use nearest neighbor for sharp edges
                 resampling_method = Image.Resampling.NEAREST
-                print("🔍 DEBUG: Using NEAREST resampling for medical image")
+                print("  DEBUG: Using NEAREST resampling for medical image")
             else:
                 # Regular image - use LANCZOS for smooth scaling
                 resampling_method = Image.Resampling.LANCZOS
-                print("🔍 DEBUG: Using LANCZOS resampling for regular image")
+                print("  DEBUG: Using LANCZOS resampling for regular image")
             
-            # ✅ FIXED: Safe resize with error handling
+            #   FIXED: Safe resize with error handling
             try:
                 image_resized = image.resize((display_width, display_height), resampling_method)
-                print("✅ Image resized")
+                print("  Image resized")
             except Exception as resize_error:
-                print(f"❌ ERROR resizing image: {resize_error}")
+                print(f" ERROR resizing image: {resize_error}")
                 # Fallback to nearest neighbor
                 image_resized = image.resize((display_width, display_height), Image.Resampling.NEAREST)
-                print("✅ Fallback resize completed")
+                print("  Fallback resize completed")
             
             # Convert to QPixmap with error handling
             try:
@@ -279,20 +279,20 @@ class ZoomableImageLabel(QLabel):
                 w, h = image_rgb.size
                 buf = image_rgb.tobytes()           # panjang = w*h*3
                 qimg = QImage(buf, w, h, w * 3, QImage.Format_RGB888)
-                qimg = qimg.copy()                  # ✅ deep copy, aman dari lifetime buffer
+                qimg = qimg.copy()                  #   deep copy, aman dari lifetime buffer
                 self.original_pixmap = QPixmap.fromImage(qimg)
                 
                 if self.original_pixmap.isNull():
                     raise ValueError("QPixmap creation failed - pixmap is null")
                 
-                print("✅ QPixmap created successfully")
+                print("  QPixmap created successfully")
                 
             except Exception as qt_error:
-                print(f"❌ ERROR in Qt conversion: {qt_error}")
+                print(f" ERROR in Qt conversion: {qt_error}")
                 raise
             
         except Exception as e:
-            print(f"❌ CRITICAL ERROR creating pixmap: {e}")
+            print(f" CRITICAL ERROR creating pixmap: {e}")
             import traceback
             traceback.print_exc()
             self._create_error_pixmap()
@@ -310,13 +310,13 @@ class ZoomableImageLabel(QLabel):
         painter.setFont(QFont("Arial", 12, QFont.Bold))
         painter.drawText(self.original_pixmap.rect(), Qt.AlignCenter, "ERROR\nLoading\nImage")
         painter.end()
-        print("✅ Error pixmap created")
+        print("  Error pixmap created")
     def _enhance_medical_image_display(self, frame_data: np.ndarray) -> np.ndarray:
         """Enhance medical image for better display"""
         try:
-            print("🔍 DEBUG: Enhancing medical image display...")
+            print("  DEBUG: Enhancing medical image display...")
             
-            # ✅ FIXED: Apply histogram equalization for better contrast
+            #   FIXED: Apply histogram equalization for better contrast
             if frame_data.dtype != np.uint8:
                 # For 16-bit medical images, apply adaptive histogram equalization
                 from scipy import ndimage
@@ -333,10 +333,10 @@ class ZoomableImageLabel(QLabel):
                 
                 # Convert back to uint8
                 result = (enhanced * 255).astype(np.uint8)
-                print("✅ Applied contrast enhancement for medical image")
+                print("  Applied contrast enhancement for medical image")
                 return result
             else:
-                print("✅ Image already uint8, no enhancement needed")
+                print("  Image already uint8, no enhancement needed")
                 return frame_data
                 
         except Exception as e:
@@ -351,11 +351,11 @@ class ZoomableImageLabel(QLabel):
         # Calculate zoomed size
         zoomed_size = self.original_pixmap.size() * self.zoom_factor
 
-        # ✅ FIXED: Use appropriate scaling for different image types
+        #   FIXED: Use appropriate scaling for different image types
         if hasattr(self, '_is_medical_image') and self._is_medical_image:
             # Medical images need sharp edges preserved
             transformation = Qt.FastTransformation if self.zoom_factor < 1.0 else Qt.SmoothTransformation
-            print(f"🔍 DEBUG: Using {'Fast' if transformation == Qt.FastTransformation else 'Smooth'} transformation for medical image")
+            print(f"  DEBUG: Using {'Fast' if transformation == Qt.FastTransformation else 'Smooth'} transformation for medical image")
         else:
             # Regular images always use smooth
             transformation = Qt.SmoothTransformation
@@ -367,7 +367,7 @@ class ZoomableImageLabel(QLabel):
             transformation
         )
         
-        # ✅ FIX 2: Implement proper panning with offset
+        #   FIX 2: Implement proper panning with offset
         if self.zoom_factor > 1.0 and not self.pan_offset.isNull():
             # Create a canvas for panning
             canvas_size = self.size()
@@ -441,7 +441,7 @@ class ZoomableImageLabel(QLabel):
     def mouseMoveEvent(self, event: QMouseEvent):
         """Handle mouse move for panning"""
         if self.dragging and self.zoom_factor > 1.0:
-            # ✅ FIX 2: Implement actual panning
+            #   FIX 2: Implement actual panning
             delta = event.pos() - self.last_pan_point
             self.pan_offset += delta
             self.last_pan_point = event.pos()
@@ -507,12 +507,12 @@ class DicomPreviewThread(QThread):
         reliable_detections = 0
         total_frames = len(frames_dict)
         
-        print(f"🔍 DEBUG: Processing {total_frames} frames from {file_path.name}")
+        print(f"  DEBUG: Processing {total_frames} frames from {file_path.name}")
         
         for frame_index, (view_name, frame_data) in enumerate(frames_dict.items()):
             print(f"  Frame {frame_index}: '{view_name}'")
             
-            # ✅ FIX 3: Enhanced view detection with confidence
+            #   FIX 3: Enhanced view detection with confidence
             detected_view, confidence = self._enhanced_view_detection_with_confidence(view_name)
             print(f"    Detected: {detected_view} (confidence: {confidence})")
             
@@ -524,7 +524,7 @@ class DicomPreviewThread(QThread):
                 detection_confidence=confidence
             )
             
-            # ✅ FIX 3: Auto-set only for HIGH confidence detections
+            #   FIX 3: Auto-set only for HIGH confidence detections
             if confidence == "high" and detected_view in ["Anterior", "Posterior"]:
                 frame_info.user_selected_view = detected_view
                 if detected_view == "Anterior":
@@ -535,14 +535,14 @@ class DicomPreviewThread(QThread):
                     frame_info.is_anterior_checked = False
                 
                 reliable_detections += 1
-                print(f"    ✅ AUTO-CONFIGURED: {detected_view} (high confidence)")
+                print(f"      AUTO-CONFIGURED: {detected_view} (high confidence)")
             else:
                 frame_info.is_anterior_checked = False
                 frame_info.is_posterior_checked = False
                 frame_info.user_selected_view = None
             from features.dicom_import.logic.pixel_analyzer import analyze_background_type
         
-            print(f"\n🔍 STARTING BACKGROUND ANALYSIS FOR FRAME {frame_index}...")
+            print(f"\n  STARTING BACKGROUND ANALYSIS FOR FRAME {frame_index}...")
             background_analysis = analyze_background_type(frame_data)
             
             if background_analysis:
@@ -553,7 +553,7 @@ class DicomPreviewThread(QThread):
                 bg_type = background_analysis["background_type"]
                 bg_percentage = background_analysis["background_percentage"]
                 
-                print(f"✅ BACKGROUND ANALYSIS RESULT:")
+                print(f"  BACKGROUND ANALYSIS RESULT:")
                 print(f"   Type: {bg_type}")
                 print(f"   Confidence: {confidence}%")
                 print(f"   Background area: {bg_percentage:.1f}%")
@@ -564,7 +564,7 @@ class DicomPreviewThread(QThread):
                     debug = background_analysis["debug_info"]
                     print(f"   Factors: {len(debug.get('decision_factors', []))}")
             else:
-                print(f"❌ BACKGROUND ANALYSIS FAILED!")
+                print(f" BACKGROUND ANALYSIS FAILED!")
                 frame_info.pixel_analysis = None
                 frame_info.selected_background = "black"  # Fallback
 
@@ -583,7 +583,7 @@ class DicomPreviewThread(QThread):
                 # Apply bone scan convention but mark as needing confirmation
                 frame_infos[0].detected_view = "Anterior"
                 frame_infos[1].detected_view = "Posterior"
-                print(f"    🎯 Applied bone scan convention (needs manual confirmation)")
+                print(f"      Applied bone scan convention (needs manual confirmation)")
                 needs_manual_config = True
                 has_reliable_detection = False
         
@@ -645,28 +645,28 @@ class FrameWidget(QWidget):
     def __init__(self, frame_info: FrameInfo, dicom_path: Path):
         super().__init__()
         
-        # ✅ FIXED: Validate frame_info
+        #   FIXED: Validate frame_info
         if not frame_info:
-            print("❌ ERROR: FrameWidget received None frame_info")
+            print(" ERROR: FrameWidget received None frame_info")
             raise ValueError("FrameInfo cannot be None")
         
         if frame_info.frame_data is None:
-            print(f"❌ ERROR: FrameWidget received None frame_data for frame {frame_info.frame_index}")
+            print(f" ERROR: FrameWidget received None frame_data for frame {frame_info.frame_index}")
             raise ValueError("Frame data cannot be None")
         
-        print(f"🔍 DEBUG: Initializing FrameWidget for frame {frame_info.frame_index} from {dicom_path.name}")
+        print(f"  DEBUG: Initializing FrameWidget for frame {frame_info.frame_index} from {dicom_path.name}")
         
         self.frame_info = frame_info
         self.dicom_path = dicom_path
         
         try:
-            print(f"🔍 DEBUG: Setting up UI for frame {frame_info.frame_index}...")
+            print(f"  DEBUG: Setting up UI for frame {frame_info.frame_index}...")
             self._setup_ui()
-            print(f"🔍 DEBUG: Connecting signals for frame {frame_info.frame_index}...")
+            print(f"  DEBUG: Connecting signals for frame {frame_info.frame_index}...")
             self._connect_signals()
-            print(f"✅ FrameWidget setup completed for frame {frame_info.frame_index}")
+            print(f"  FrameWidget setup completed for frame {frame_info.frame_index}")
         except Exception as e:
-            print(f"❌ ERROR in FrameWidget.__init__ for frame {frame_info.frame_index}: {e}")
+            print(f" ERROR in FrameWidget.__init__ for frame {frame_info.frame_index}: {e}")
             import traceback
             traceback.print_exc()
             print(f"🔄 Using fallback UI for frame {frame_info.frame_index}")
@@ -707,7 +707,7 @@ class FrameWidget(QWidget):
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(12)
         
-        # ✅ FIX 1: Use enhanced ZoomableImageLabel
+        #   FIX 1: Use enhanced ZoomableImageLabel
         self.preview_label = ZoomableImageLabel(self.frame_info.frame_data)
         self.preview_label.setMinimumSize(250, 250)
         layout.addWidget(self.preview_label)
@@ -718,10 +718,10 @@ class FrameWidget(QWidget):
         
         info_text = f"Frame {self.frame_info.frame_index + 1}\nSize: {dimensions}"
         
-        # ✅ FIX 3: Show detection confidence
+        #   FIX 3: Show detection confidence
         if self.frame_info.detected_view:
             confidence_icon = {
-                "high": "✅",
+                "high": " ",
                 "low": "⚠️", 
                 "none": "❌"
             }.get(self.frame_info.detection_confidence, "❓")
@@ -729,7 +729,7 @@ class FrameWidget(QWidget):
             info_text += f"\nDetected: {self.frame_info.detected_view}"
             info_text += f"\nConfidence: {confidence_icon} {self.frame_info.detection_confidence.title()}"
         else:
-            info_text += f"\nDetected: None\nConfidence: ❌ None"
+            info_text += f"\nDetected: None\nConfidence:  None"
         
         info_label = QLabel(info_text)
         info_label.setAlignment(Qt.AlignCenter)
@@ -751,7 +751,7 @@ class FrameWidget(QWidget):
         zoom_layout = QHBoxLayout()
         zoom_layout.setSpacing(6)
         
-        zoom_out_btn = QPushButton("🔍-")
+        zoom_out_btn = QPushButton(" -")
         zoom_out_btn.setFixedSize(30, 25)
         zoom_out_btn.setToolTip("Zoom Out")
         zoom_out_btn.clicked.connect(lambda: self._zoom_control(-1))
@@ -761,7 +761,7 @@ class FrameWidget(QWidget):
         zoom_reset_btn.setToolTip("Reset Zoom & Pan")
         zoom_reset_btn.clicked.connect(lambda: self._zoom_control(0))
         
-        zoom_in_btn = QPushButton("🔍+")
+        zoom_in_btn = QPushButton(" +")
         zoom_in_btn.setFixedSize(30, 25)
         zoom_in_btn.setToolTip("Zoom In")
         zoom_in_btn.clicked.connect(lambda: self._zoom_control(1))
@@ -795,12 +795,12 @@ class FrameWidget(QWidget):
         
         layout.addLayout(zoom_layout)
         
-        # ✅ FIX 3: Enhanced checkboxes with auto-config status
+        #   FIX 3: Enhanced checkboxes with auto-config status
         checkbox_frame = QFrame()
         
         # Simple status determination
         if self.frame_info.detection_confidence == "high":
-            status_text = "✅ Auto-configured"
+            status_text = "  Auto-configured"
             status_color = Colors.SUCCESS
         elif self.frame_info.detection_confidence == "low":
             status_text = "⚠️ Please confirm"
@@ -809,7 +809,7 @@ class FrameWidget(QWidget):
             status_text = "⚙️ Manual selection required"
             status_color = Colors.SECONDARY
         
-        # ✅ FIXED: Use consistent styling without variables
+        #   FIXED: Use consistent styling without variables
         checkbox_frame.setStyleSheet(f"""
             QFrame {{
                 background: rgba(248, 249, 250, 0.9);
@@ -823,7 +823,7 @@ class FrameWidget(QWidget):
         
         # Status indicator for auto-configuration
         if self.frame_info.detection_confidence == "high":
-            status_text = "✅ Auto-configured"
+            status_text = "  Auto-configured"
             status_color = Colors.SUCCESS
         elif self.frame_info.detection_confidence == "low":
             status_text = "⚠️ Please confirm"
@@ -878,7 +878,7 @@ class FrameWidget(QWidget):
         self.anterior_checkbox.setStyleSheet(checkbox_style)
         self.posterior_checkbox.setStyleSheet(checkbox_style)
         
-        # ✅ FIX 3: Set initial state properly based on confidence
+        #   FIX 3: Set initial state properly based on confidence
         self.anterior_checkbox.setChecked(self.frame_info.is_anterior_checked)
         self.posterior_checkbox.setChecked(self.frame_info.is_posterior_checked)
         
@@ -939,7 +939,7 @@ class FrameWidget(QWidget):
         detected_bg = self.frame_info.selected_background
         pixel_analysis = self.frame_info.pixel_analysis
         
-        print(f"\n🔍 FRAME {self.frame_info.frame_index} AUTO-SELECTION DEBUG:")
+        print(f"\n  FRAME {self.frame_info.frame_index} AUTO-SELECTION DEBUG:")
         print(f"   detected_bg: '{detected_bg}'")
         print(f"   pixel_analysis exists: {pixel_analysis is not None}")
         
@@ -956,17 +956,17 @@ class FrameWidget(QWidget):
                 print(f"   image_mean: {debug.get('image_mean', 'N/A')}")
         else:
             confidence = 0
-            print(f"   ❌ NO PIXEL ANALYSIS DATA!")
+            print(f"    NO PIXEL ANALYSIS DATA!")
         
         # Auto-selection logic with detailed logging
         if detected_bg == "black":
             self.black_bg_radio.setChecked(True)
             self.white_bg_radio.setChecked(False)
-            print(f"✅ AUTO-SELECTED: BLACK background radio button")
+            print(f"  AUTO-SELECTED: BLACK background radio button")
         elif detected_bg == "white":
             self.white_bg_radio.setChecked(True) 
             self.black_bg_radio.setChecked(False)
-            print(f"✅ AUTO-SELECTED: WHITE background radio button")
+            print(f"  AUTO-SELECTED: WHITE background radio button")
         else:
             # Fallback dengan logging
             self.black_bg_radio.setChecked(True)
@@ -1076,7 +1076,7 @@ class FrameWidget(QWidget):
             QTimer.singleShot(0, self.selection_changed.emit)
             
         except Exception as e:
-            print(f"❌ ERROR in _on_anterior_toggled: {e}")
+            print(f" ERROR in _on_anterior_toggled: {e}")
             self.posterior_checkbox.blockSignals(False)
     def _on_posterior_toggled(self, checked: bool):
         try:
@@ -1109,7 +1109,7 @@ class FrameWidget(QWidget):
             QTimer.singleShot(0, self.selection_changed.emit)
             
         except Exception as e:
-            print(f"❌ ERROR in _on_posterior_toggled: {e}")
+            print(f" ERROR in _on_posterior_toggled: {e}")
             self.anterior_checkbox.blockSignals(False)
     
     def get_selection(self) -> Optional[str]:
@@ -1151,33 +1151,33 @@ class DicomFileWidget(QWidget):
     def __init__(self, dicom_info: DicomInfo):
         super().__init__()
         
-        # ✅ FIXED: Validate input first
+        #   FIXED: Validate input first
         if not dicom_info:
-            print("❌ ERROR: DicomFileWidget received None dicom_info")
+            print(" ERROR: DicomFileWidget received None dicom_info")
             raise ValueError("DicomInfo cannot be None")
         
         if not dicom_info.frames:
-            print(f"❌ ERROR: DicomFileWidget received empty frames for {dicom_info.file_path}")
+            print(f" ERROR: DicomFileWidget received empty frames for {dicom_info.file_path}")
             raise ValueError("DicomInfo must have frames")
         
-        print(f"🔍 DEBUG: Initializing DicomFileWidget for {dicom_info.file_path.name} with {len(dicom_info.frames)} frames")
+        print(f"  DEBUG: Initializing DicomFileWidget for {dicom_info.file_path.name} with {len(dicom_info.frames)} frames")
         
         self.dicom_info = dicom_info
         self.frame_widgets: List[FrameWidget] = []
         
         try:
-            print(f"🔍 DEBUG: Setting up UI for {dicom_info.file_path.name}...")
+            print(f"  DEBUG: Setting up UI for {dicom_info.file_path.name}...")
             self._setup_ui()
-            print(f"✅ UI setup completed for {dicom_info.file_path.name}")
+            print(f"  UI setup completed for {dicom_info.file_path.name}")
         except Exception as e:
-            print(f"❌ ERROR in DicomFileWidget.__init__ for {dicom_info.file_path.name}: {e}")
+            print(f" ERROR in DicomFileWidget.__init__ for {dicom_info.file_path.name}: {e}")
             import traceback
             traceback.print_exc()
             print(f"🔄 Falling back to minimal UI for {dicom_info.file_path.name}")
             try:
                 self._setup_fallback_ui()
             except Exception as fallback_error:
-                print(f"❌ CRITICAL: Fallback UI also failed: {fallback_error}")
+                print(f" CRITICAL: Fallback UI also failed: {fallback_error}")
                 raise
         
     def _setup_fallback_ui(self):
@@ -1203,7 +1203,7 @@ class DicomFileWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(15)
         
-        # ✅ FIX 3: Enhanced file header with detection status
+        #   FIX 3: Enhanced file header with detection status
         header_frame = QFrame()
         
         # Color-code header based on detection status
@@ -1211,7 +1211,7 @@ class DicomFileWidget(QWidget):
             # Fully auto-configured
             header_bg = "linear-gradient(135deg, #d4edda 0%, rgba(212, 237, 218, 0.8) 100%)"
             header_border = "#c3e6cb"
-            status_icon = "✅"
+            status_icon = " "
             status_text = "Auto-configured"
         elif self.dicom_info.has_reliable_detection and self.dicom_info.needs_manual_config:
             # Partially auto-configured
@@ -1268,7 +1268,7 @@ class DicomFileWidget(QWidget):
         
         # Check if we have valid frames
         if not self.dicom_info.frames:
-            error_label = QLabel("❌ No frames found in DICOM file")
+            error_label = QLabel(" No frames found in DICOM file")
             error_label.setStyleSheet(f"""
                 QLabel {{
                     color: #dc3545;
@@ -1452,25 +1452,25 @@ class DicomViewSelectorDialog(QDialog):
 
     def closeEvent(self, event):
         """Handle dialog close event with proper cleanup"""
-        print("🔍 DEBUG: DicomViewSelectorDialog closing, cleaning up...")
+        print("  DEBUG: DicomViewSelectorDialog closing, cleaning up...")
         
-        # ✅ FIXED: Stop threads
+        #   FIXED: Stop threads
         if hasattr(self, 'preview_thread') and self.preview_thread:
             if self.preview_thread.isRunning():
-                print("🔍 DEBUG: Terminating preview thread...")
+                print("  DEBUG: Terminating preview thread...")
                 self.preview_thread.terminate()
                 self.preview_thread.wait(1000)  # Wait max 1 second
         
-        # ✅ FIXED: Close loading dialog
+        #   FIXED: Close loading dialog
         if self.loading_dialog:
             self.loading_dialog.close()
             self.loading_dialog = None
         
-        # ✅ FIXED: Clear widget references
+        #   FIXED: Clear widget references
         self.dicom_widgets.clear()
         self.dicom_infos.clear()
     
-        print("✅ DicomViewSelectorDialog cleanup completed")
+        print("  DicomViewSelectorDialog cleanup completed")
         super().closeEvent(event)
     
     def _setup_ui(self):
@@ -1479,7 +1479,7 @@ class DicomViewSelectorDialog(QDialog):
         main_layout.setSpacing(12)
         
         # Enhanced title
-        title_label = QLabel("🔍 Select Anterior/Posterior Views - Enhanced Auto-Detection")
+        title_label = QLabel("  Select Anterior/Posterior Views - Enhanced Auto-Detection")
         title_label.setStyleSheet(f"""
             {DIALOG_TITLE_STYLE}
             font-size: 18px;
@@ -1501,12 +1501,12 @@ class DicomViewSelectorDialog(QDialog):
         subtitle_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(subtitle_label)
         
-        # ✅ FIX 3: Enhanced instructions with detection status explanation
+        #   FIX 3: Enhanced instructions with detection status explanation
         instructions = QLabel(
-            "🎯 Selection Guide:\n"
-            "• ✅ Auto-configured: Clear DICOM tags found, auto-selected\n"
+            "  Selection Guide:\n"
+            "•   Auto-configured: Clear DICOM tags found, auto-selected\n"
             "• ⚠️ Please confirm: Partial tags found, verify selection\n" 
-            "• ❌ Manual required: No tags found, select manually\n"
+            "•  Manual required: No tags found, select manually\n"
             "• Minimum requirement: 1 Anterior + 1 Posterior frame\n"
             "• Extra frames can be left unselected\n"
             "• Use zoom/pan to examine images before confirming"
@@ -1587,7 +1587,7 @@ class DicomViewSelectorDialog(QDialog):
         button_layout.addStretch()
         
         # Cancel button
-        self.cancel_btn = QPushButton("❌ Cancel")
+        self.cancel_btn = QPushButton(" Cancel")
         self.cancel_btn.setStyleSheet(f"""
             {DIALOG_CANCEL_BUTTON_STYLE}
             font-size: 13px;
@@ -1596,7 +1596,7 @@ class DicomViewSelectorDialog(QDialog):
         button_layout.addWidget(self.cancel_btn)
         
         # Enhanced OK button
-        self.ok_btn = QPushButton("✅ Confirm & Process")
+        self.ok_btn = QPushButton("  Confirm & Process")
         self.ok_btn.setEnabled(False)
         self.ok_btn.setStyleSheet(f"""
             {SUCCESS_BUTTON_STYLE}
@@ -1634,11 +1634,11 @@ class DicomViewSelectorDialog(QDialog):
         """Handle loaded DICOM info"""
         if dicom_info:
             self.dicom_infos[file_path] = dicom_info
-            print(f"✅ Loaded DICOM info for: {file_path.name}")
+            print(f"  Loaded DICOM info for: {file_path.name}")
             print(f"    Reliable detection: {dicom_info.has_reliable_detection}")
             print(f"    Needs manual config: {dicom_info.needs_manual_config}")
         else:
-            print(f"❌ Failed to load: {file_path}")
+            print(f" Failed to load: {file_path}")
     
     def _on_loading_progress(self, current: int, total: int):
         """Update loading progress"""
@@ -1649,36 +1649,36 @@ class DicomViewSelectorDialog(QDialog):
     
     def _on_loading_finished(self):
         """Finish loading and setup UI"""
-        print(f"🔍 DEBUG: Loading finished. Loaded {len(self.dicom_infos)} DICOM info objects")
+        print(f"  DEBUG: Loading finished. Loaded {len(self.dicom_infos)} DICOM info objects")
         
         if self.loading_dialog:
             self.loading_dialog.close()
             self.loading_dialog = None
         
-        # ✅ FIXED: Added more robust error handling with step-by-step execution
+        #   FIXED: Added more robust error handling with step-by-step execution
         try:
-            print("🔍 DEBUG: Starting widget setup...")
+            print("  DEBUG: Starting widget setup...")
             self._setup_dicom_widgets()
-            print("🔍 DEBUG: Widget setup completed, updating validation...")
+            print("  DEBUG: Widget setup completed, updating validation...")
             self._update_validation_status()
-            print("✅ DICOM widgets setup completed successfully")
+            print("  DICOM widgets setup completed successfully")
             
         except Exception as e:
-            print(f"❌ CRITICAL ERROR in _on_loading_finished: {e}")
+            print(f" CRITICAL ERROR in _on_loading_finished: {e}")
             import traceback
             traceback.print_exc()
             
-            # ✅ FIXED: More detailed error recovery
+            #   FIXED: More detailed error recovery
             try:
                 # Try to at least show some UI
                 error_widget = self._create_critical_error_widget(str(e))
                 self.scroll_layout.addWidget(error_widget)
                 self._update_load_summary_status(0, len(self.file_paths), 0, 0)
             except Exception as recovery_error:
-                print(f"❌ Recovery also failed: {recovery_error}")
+                print(f" Recovery also failed: {recovery_error}")
             
-            # ✅ FIXED: Don't show error dialog that might cause another crash
-            print("❌ Setup failed - check console for details")
+            #   FIXED: Don't show error dialog that might cause another crash
+            print(" Setup failed - check console for details")
                 
     
     def _setup_dicom_widgets(self):
@@ -1689,7 +1689,7 @@ class DicomViewSelectorDialog(QDialog):
         manual_required_count = 0
         
         try:
-            # ✅ FIXED: Sort files by detection status to process auto-detected files first
+            #   FIXED: Sort files by detection status to process auto-detected files first
             sorted_file_paths = sorted(
                 [fp for fp in self.file_paths if fp in self.dicom_infos],
                 key=lambda fp: (
@@ -1699,7 +1699,7 @@ class DicomViewSelectorDialog(QDialog):
                 )
             )
 
-            print(f"🔍 DEBUG: Processing {len(sorted_file_paths)} files in optimized order...")
+            print(f"  DEBUG: Processing {len(sorted_file_paths)} files in optimized order...")
             for fp in sorted_file_paths:
                 info = self.dicom_infos[fp]
                 status = "auto" if info.has_reliable_detection and not info.needs_manual_config else "manual"
@@ -1707,28 +1707,28 @@ class DicomViewSelectorDialog(QDialog):
 
             for i, file_path in enumerate(sorted_file_paths):
                 try:
-                    print(f"🔍 DEBUG: Creating widget {i+1}/{len(sorted_file_paths)} for {file_path.name}...")
+                    print(f"  DEBUG: Creating widget {i+1}/{len(sorted_file_paths)} for {file_path.name}...")
                     
-                    # ✅ FIXED: Check if widget already exists (prevent duplicates)
+                    #   FIXED: Check if widget already exists (prevent duplicates)
                     if any(w.dicom_info.file_path == file_path for w in self.dicom_widgets):
                         print(f"⚠️ WARNING: Widget for {file_path.name} already exists, skipping...")
                         continue
                     
                     dicom_info = self.dicom_infos[file_path]
                     
-                    # ✅ FIXED: Validate dicom_info before creating widget
+                    #   FIXED: Validate dicom_info before creating widget
                     if not dicom_info or not dicom_info.frames:
-                        print(f"❌ ERROR: Invalid dicom_info for {file_path.name}")
+                        print(f" ERROR: Invalid dicom_info for {file_path.name}")
                         error_count += 1
                         continue
                     
-                    print(f"🔍 DEBUG: Creating DicomFileWidget with {len(dicom_info.frames)} frames...")
+                    print(f"  DEBUG: Creating DicomFileWidget with {len(dicom_info.frames)} frames...")
                     
-                    # ✅ FIXED: Wrap widget creation with specific error handling
+                    #   FIXED: Wrap widget creation with specific error handling
                     try:
                         dicom_widget = DicomFileWidget(dicom_info)
                     except Exception as widget_error:
-                        print(f"❌ ERROR creating DicomFileWidget for {file_path.name}: {widget_error}")
+                        print(f" ERROR creating DicomFileWidget for {file_path.name}: {widget_error}")
                         import traceback
                         traceback.print_exc()
                         error_count += 1
@@ -1738,28 +1738,28 @@ class DicomViewSelectorDialog(QDialog):
                         self.scroll_layout.addWidget(error_widget)
                         continue
                     
-                    print(f"🔍 DEBUG: Widget created successfully, connecting signals...")
+                    print(f"  DEBUG: Widget created successfully, connecting signals...")
                     
-                    # ✅ FIXED: Wrap signal connection with error handling
+                    #   FIXED: Wrap signal connection with error handling
                     try:
                         # Use queued connection to prevent order dependency crashes
                         dicom_widget.selection_changed.connect(
                             lambda: QTimer.singleShot(0, self._safe_update_validation_status)
                         )
                     except Exception as signal_error:
-                        print(f"❌ ERROR connecting signals for {file_path.name}: {signal_error}")
+                        print(f" ERROR connecting signals for {file_path.name}: {signal_error}")
                         error_count += 1
                         continue
                     
-                    print(f"🔍 DEBUG: Signals connected, adding to layout...")
+                    print(f"  DEBUG: Signals connected, adding to layout...")
                     
-                    # ✅ FIXED: Wrap layout addition with error handling
+                    #   FIXED: Wrap layout addition with error handling
                     try:
                         self.scroll_layout.addWidget(dicom_widget)
                         self.dicom_widgets.append(dicom_widget)
                         success_count += 1
                     except Exception as layout_error:
-                        print(f"❌ ERROR adding widget to layout for {file_path.name}: {layout_error}")
+                        print(f" ERROR adding widget to layout for {file_path.name}: {layout_error}")
                         error_count += 1
                         continue
                     
@@ -1769,16 +1769,16 @@ class DicomViewSelectorDialog(QDialog):
                     elif dicom_info.needs_manual_config:
                         manual_required_count += 1
                     
-                    print(f"✅ Successfully created widget for {file_path.name}")
+                    print(f"  Successfully created widget for {file_path.name}")
                     
-                    # ✅ FIXED: Process events more carefully
+                    #   FIXED: Process events more carefully
                     try:
                         QCoreApplication.processEvents()
                     except Exception as process_error:
                         print(f"⚠️ WARNING: processEvents failed: {process_error}")
                         
                 except Exception as e:
-                    print(f"❌ ERROR creating widget for {file_path.name}: {e}")
+                    print(f" ERROR creating widget for {file_path.name}: {e}")
                     import traceback
                     traceback.print_exc()
                     error_count += 1
@@ -1788,7 +1788,7 @@ class DicomViewSelectorDialog(QDialog):
                         error_widget = self._create_error_widget(file_path, str(e))
                         self.scroll_layout.addWidget(error_widget)
                     except Exception as error_widget_error:
-                        print(f"❌ ERROR creating error widget: {error_widget_error}")
+                        print(f" ERROR creating error widget: {error_widget_error}")
             
             # Add stretch to push content to top
             self.scroll_layout.addStretch()
@@ -1803,7 +1803,7 @@ class DicomViewSelectorDialog(QDialog):
             print(f"  Manual required: {manual_required_count}")
             
         except Exception as e:
-            print(f"❌ CRITICAL ERROR in _setup_dicom_widgets: {e}")
+            print(f" CRITICAL ERROR in _setup_dicom_widgets: {e}")
             import traceback
             traceback.print_exc()
             
@@ -1812,18 +1812,18 @@ class DicomViewSelectorDialog(QDialog):
                 critical_error_widget = self._create_critical_error_widget(str(e))
                 self.scroll_layout.addWidget(critical_error_widget)
             except Exception as critical_error:
-                print(f"❌ Critical error widget creation also failed: {critical_error}")
+                print(f" Critical error widget creation also failed: {critical_error}")
 
     def _safe_update_validation_status(self):
         """Safe wrapper for validation status update with crash recovery"""
         try:
             self._update_validation_status()
         except Exception as e:
-            print(f"❌ ERROR in validation status update: {e}")
+            print(f" ERROR in validation status update: {e}")
             import traceback
             traceback.print_exc()
             
-            # ✅ Recovery: Set default state
+            #   Recovery: Set default state
             try:
                 self.ok_btn.setEnabled(False)
                 self.status_label.setText("⚠️ Validation error - please retry")
@@ -1839,7 +1839,7 @@ class DicomViewSelectorDialog(QDialog):
                     }}
                 """)
             except Exception as recovery_error:
-                print(f"❌ Recovery also failed: {recovery_error}")
+                print(f" Recovery also failed: {recovery_error}")
     
     def _create_error_widget(self, file_path: Path, error_msg: str) -> QFrame:
         """Create enhanced error widget for failed files"""
@@ -1854,7 +1854,7 @@ class DicomViewSelectorDialog(QDialog):
         """)
         error_layout = QVBoxLayout(error_widget)
         
-        error_title = QLabel(f"❌ Error Loading: {file_path.name}")
+        error_title = QLabel(f" Error Loading: {file_path.name}")
         error_title.setStyleSheet("""
             QLabel {
                 color: #721c24;
@@ -1931,7 +1931,7 @@ class DicomViewSelectorDialog(QDialog):
                 }}
             """)
         else:
-            status_text = f"✅ Loaded {success} files"
+            status_text = f"  Loaded {success} files"
             if auto_config > 0:
                 status_text += f" • {auto_config} auto-configured"
             if manual_req > 0:
@@ -1952,13 +1952,13 @@ class DicomViewSelectorDialog(QDialog):
     
     def _update_validation_status(self):
         """Enhanced validation status with detailed breakdown - FIXED to only require minimum views"""
-        # ✅ FIXED: Add safety checks to prevent crashes
+        #   FIXED: Add safety checks to prevent crashes
         try:
             if not self.dicom_widgets:
-                print("🔍 DEBUG: No dicom widgets to validate")
+                print("  DEBUG: No dicom widgets to validate")
                 return
             
-            print(f"🔍 DEBUG: Validating {len(self.dicom_widgets)} widgets...")
+            print(f"  DEBUG: Validating {len(self.dicom_widgets)} widgets...")
             
             total_files = len(self.dicom_widgets)
             files_with_both_views = 0
@@ -1966,24 +1966,24 @@ class DicomViewSelectorDialog(QDialog):
             files_missing_views = []
             
         except Exception as e:
-            print(f"❌ ERROR in validation start: {e}")
+            print(f" ERROR in validation start: {e}")
             return
         
         for i, dicom_widget in enumerate(self.dicom_widgets):
             try:
-                print(f"🔍 DEBUG: Validating widget {i+1}/{total_files}...")
+                print(f"  DEBUG: Validating widget {i+1}/{total_files}...")
                 
-                # ✅ FIXED: More comprehensive widget validation
+                #   FIXED: More comprehensive widget validation
                 if not dicom_widget:
                     print(f"⚠️ WARNING: Widget {i} is None")
                     continue
                 
-                # ✅ FIXED: Check if widget is still valid (not deleted)
+                #   FIXED: Check if widget is still valid (not deleted)
                 if not dicom_widget.isVisible() or dicom_widget.parent() is None:
                     print(f"⚠️ WARNING: Widget {i} is not valid/visible")
                     continue
                     
-                # ✅ FIXED: Safe method calls with try-catch
+                #   FIXED: Safe method calls with try-catch
                 try:
                     detection_status = dicom_widget.get_detection_status()
                 except Exception as status_error:
@@ -2004,7 +2004,7 @@ class DicomViewSelectorDialog(QDialog):
                     print(f"⚠️ WARNING: No assignments for widget {i}")
                     assignments = {}
                     
-                # ✅ FIXED: Safe set creation
+                #   FIXED: Safe set creation
                 try:
                     views = set(assignments.values()) if assignments else set()
                     has_minimum_views = "Anterior" in views and "Posterior" in views
@@ -2013,7 +2013,7 @@ class DicomViewSelectorDialog(QDialog):
                     has_minimum_views = False
                 
             except Exception as widget_error:
-                print(f"❌ ERROR validating widget {i}: {widget_error}")
+                print(f" ERROR validating widget {i}: {widget_error}")
                 continue
             
             if has_minimum_views:
@@ -2034,7 +2034,7 @@ class DicomViewSelectorDialog(QDialog):
             if detection_status["has_reliable_detection"] and not detection_status["needs_manual_config"]:
                 auto_configured_files += 1
         
-        # ✅ FIXED: Simplified validation logic
+        #   FIXED: Simplified validation logic
         ready_to_process = (files_with_both_views == total_files)
         
         if ready_to_process:
@@ -2067,7 +2067,7 @@ class DicomViewSelectorDialog(QDialog):
                 background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             """)
         else:
-            # ✅ FIXED: More specific error messages
+            #   FIXED: More specific error messages
             files_missing_count = total_files - files_with_both_views
             if files_missing_count == 1:
                 missing_file = files_missing_views[0]
@@ -2095,7 +2095,7 @@ class DicomViewSelectorDialog(QDialog):
     
     def _confirm_selections(self):
         """Confirm selections and emit signal"""
-        print("🔍 DEBUG: Confirming selections...")
+        print("  DEBUG: Confirming selections...")
         
         # Collect all view assignments
         view_assignments = {}
@@ -2114,11 +2114,11 @@ class DicomViewSelectorDialog(QDialog):
         
         # Final validation
         if not self._validate_assignments(view_assignments):
-            print("❌ Validation failed!")
+            print(" Validation failed!")
             return
         
-        print("✅ Validation passed - emitting signal")
-        print(f"🔍 DEBUG: About to emit views_confirmed signal with {len(view_assignments)} files")
+        print("  Validation passed - emitting signal")
+        print(f"  DEBUG: About to emit views_confirmed signal with {len(view_assignments)} files")
         
         # Emit signal dengan path sebagai string (lebih aman)
         payload = {str(fp): assign for fp, assign in view_assignments.items()}
@@ -2129,13 +2129,13 @@ class DicomViewSelectorDialog(QDialog):
             "view_assignments": payload,
             "background_assignments": background_payload
         }
-        print("🔍 DEBUG: Emitting views_confirmed signal (string paths)...")
-        print("🔍 DEBUG: Emitting views_confirmed signal with background data...")
+        print("  DEBUG: Emitting views_confirmed signal (string paths)...")
+        print("  DEBUG: Emitting views_confirmed signal with background data...")
         self.views_confirmed.emit(combined_payload)
-        print("🔍 DEBUG: Signal emitted, closing dialog...")
+        print("  DEBUG: Signal emitted, closing dialog...")
         
         self.accept()
-        print("🔍 DEBUG: Dialog accepted and closed")
+        print("  DEBUG: Dialog accepted and closed")
     
     def _validate_assignments(self, assignments: dict) -> bool:
         """Enhanced final validation - only need 1 Anterior + 1 Posterior frame minimum"""
@@ -2175,11 +2175,11 @@ class DicomViewSelectorDialog(QDialog):
         try:
             self._update_validation_status()
         except Exception as e:
-            print(f"❌ ERROR in validation status update: {e}")
+            print(f" ERROR in validation status update: {e}")
             import traceback
             traceback.print_exc()
             
-            # ✅ Recovery: Set default state
+            #   Recovery: Set default state
             try:
                 self.ok_btn.setEnabled(False)
                 self.status_label.setText("⚠️ Validation error - please retry")
@@ -2195,4 +2195,4 @@ class DicomViewSelectorDialog(QDialog):
                     }}
                 """)
             except Exception as recovery_error:
-                print(f"❌ Recovery also failed: {recovery_error}")
+                print(f" Recovery also failed: {recovery_error}")

@@ -94,7 +94,7 @@ def extract_view_labels(ds) -> list:
    if all(lbl is None for lbl in labels):
        if n_frames == 2:
            labels = ["Anterior", "Posterior"]
-           print(f"   🎯 Using bone scan assumption: [Anterior, Posterior]")
+           print(f"     Using bone scan assumption: [Anterior, Posterior]")
        else:
            labels = [f"Frame_{i+1}" for i in range(n_frames)]
            print(f"   ⚠️  Generic fallback: {labels}")
@@ -132,7 +132,7 @@ def convert_dicom_to_png(dicom_path: Path, output_dir: Path = None, prefix: str 
        prefix = dicom_path.stem
    
    print(f"🏥 Processing DICOM: {dicom_path.name}")
-   print(f"📁 Output directory: {output_dir}")
+   print(f"  Output directory: {output_dir}")
    print(f"🏷️  Filename prefix: {prefix}")
    
    try:
@@ -190,10 +190,10 @@ def convert_dicom_to_png(dicom_path: Path, output_dir: Path = None, prefix: str 
                pil_image = Image.fromarray(frame_uint8, mode="L")
                pil_image.save(output_path)
                created_files.append(output_path)
-               print(f"   ✅ Saved: {filename}")
+               print(f"     Saved: {filename}")
                print(f"   📏 Image size: {pil_image.size}")
            except Exception as e:
-               print(f"   ❌ Failed to save {filename}: {e}")
+               print(f"    Failed to save {filename}: {e}")
        
        print(f"\n🎉 Conversion completed!")
        print(f"📊 Created {len(created_files)} PNG files:")
@@ -204,7 +204,7 @@ def convert_dicom_to_png(dicom_path: Path, output_dir: Path = None, prefix: str 
        return created_files
        
    except Exception as e:
-       print(f"❌ Error processing DICOM file: {e}")
+       print(f" Error processing DICOM file: {e}")
        import traceback
        traceback.print_exc()
        raise
@@ -265,14 +265,14 @@ Examples:
            prefix=args.prefix
        )
        
-       print("\n✅ Conversion successful!")
+       print("\n  Conversion successful!")
        return 0
        
    except FileNotFoundError as e:
-       print(f"❌ File not found: {e}")
+       print(f" File not found: {e}")
        return 1
    except Exception as e:
-       print(f"❌ Error: {e}")
+       print(f" Error: {e}")
        if args.verbose:
            import traceback
            traceback.print_exc()

@@ -28,7 +28,7 @@ from core.gui.ui_constants import Colors
 
 class BSICanvas(FigureCanvas):
     """
-    ✅ FIXED: V1.2 BSI Canvas with 3-line chart - SUPPORTS SINGLE VIEW
+      FIXED: V1.2 BSI Canvas with 3-line chart - SUPPORTS SINGLE VIEW
     """
     
     chart_clicked = Signal(str)
@@ -44,14 +44,14 @@ class BSICanvas(FigureCanvas):
         # Line visibility controls (default all visible)
         self.anterior_visible = True
         self.posterior_visible = True
-        # ✅ REMOVED: combined_visible - simplify to per-frame only
+        #   REMOVED: combined_visible - simplify to per-frame only
         
         self.setMinimumSize(400, 300)
         self._plot_empty_chart()
         
     def load_bsi_data(self, patient_folder: Path, patient_id: str, study_date: str) -> bool:
-        """✅ FIXED: Load V1.2 BSI data and display 3-line trend chart with single view support"""
-        # ✅ FIXED: Ensure we use patient base folder for trend analysis
+        """  FIXED: Load V1.2 BSI data and display 3-line trend chart with single view support"""
+        #   FIXED: Ensure we use patient base folder for trend analysis
         if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
             # Current folder is study_date folder, go up to patient folder for trend
             self.patient_folder = patient_folder.parent
@@ -109,7 +109,7 @@ class BSICanvas(FigureCanvas):
         self.draw()
     
     def _plot_bsi_trend_chart_v2(self):
-        """✅ FIXED: Plot 3-line chart for BSI with single view support and better date handling"""
+        """  FIXED: Plot 3-line chart for BSI with single view support and better date handling"""
         if not self.patient_folder or not self.patient_id:
             self._plot_empty_chart()
             return
@@ -145,7 +145,7 @@ class BSICanvas(FigureCanvas):
                     
                     print(f"[DEBUG BSI CANVAS] Processing date: {date_str}, mode: {processing_mode}")
                     
-                    # ✅ FIX: Better date validation and parsing
+                    #   FIX: Better date validation and parsing
                     try:
                         # Try to parse as YYYYMMDD format
                         if len(date_str) == 8 and date_str.isdigit():
@@ -153,7 +153,7 @@ class BSICanvas(FigureCanvas):
                             formatted_date = date_obj.strftime("%d %b %Y")
                         else:
                             print(f"[WARN] Invalid date format in BSI data: {date_str}, using current date")
-                            # ✅ FIX: Use current date as fallback instead of skipping
+                            #   FIX: Use current date as fallback instead of skipping
                             date_obj = datetime.now()
                             formatted_date = f"{date_str} (Invalid)"
                             
@@ -235,7 +235,7 @@ class BSICanvas(FigureCanvas):
         """Control visibility of BSI lines"""
         self.anterior_visible = anterior_visible
         self.posterior_visible = posterior_visible
-        # ✅ REMOVED: combined_visible parameter - simplify interface
+        #   REMOVED: combined_visible parameter - simplify interface
         # Redraw chart with new visibility settings
         self._plot_bsi_trend_chart_v2()
     
@@ -251,7 +251,7 @@ class BSICanvas(FigureCanvas):
 
 class BSIInfoPanel(QWidget):
     """
-    ✅ FIXED: Info panel for V1.2 BSI summary with single view support
+      FIXED: Info panel for V1.2 BSI summary with single view support
     """
     
     def __init__(self, parent: QWidget = None):
@@ -285,7 +285,7 @@ class BSIInfoPanel(QWidget):
         self.info_layout = QVBoxLayout(self.info_frame)
         self.info_layout.setContentsMargins(8, 8, 8, 8)
         
-        # ✅ V1.2 Info labels (3 BSI scores + processing mode)
+        #   V1.2 Info labels (3 BSI scores + processing mode)
         self.combined_bsi_label = QLabel("Combined BSI: N/A")
         self.anterior_bsi_label = QLabel("Anterior BSI: N/A")
         self.posterior_bsi_label = QLabel("Posterior BSI: N/A")
@@ -294,7 +294,7 @@ class BSIInfoPanel(QWidget):
         self.normal_hotspots_label = QLabel("Total Normal: N/A")
         self.analysis_method_label = QLabel("Method: Color-based")
         
-        # ✅ Make Combined BSI most prominent
+        #   Make Combined BSI most prominent
         self.combined_bsi_label.setStyleSheet("""
             QLabel {
                 font-size: 14px;
@@ -339,14 +339,14 @@ class BSIInfoPanel(QWidget):
         self._show_no_data()
     
     def update_info(self, summary_data: Dict[str, Any]):
-        """✅ FIXED: Update info panel with V1.2 BSI summary data including single view support"""
+        """  FIXED: Update info panel with V1.2 BSI summary data including single view support"""
         self.summary_data = summary_data
         
         if not summary_data:
             self._show_no_data()
             return
         
-        # ✅ Extract V1.2 data with single view support
+        #   Extract V1.2 data with single view support
         anterior_bsi = summary_data.get('anterior_bsi', 0)
         posterior_bsi = summary_data.get('posterior_bsi', 0)
         combined_bsi = summary_data.get('combined_bsi', 0)
@@ -354,7 +354,7 @@ class BSIInfoPanel(QWidget):
         total_abnormal = summary_data.get('total_abnormal_hotspots', 0)
         total_normal = summary_data.get('total_normal_hotspots', 0)
         
-        # ✅ Update labels with V1.2 data and processing mode awareness
+        #   Update labels with V1.2 data and processing mode awareness
         self.combined_bsi_label.setText(f"Combined BSI: {combined_bsi:.2f}%")
         
         if processing_mode == 'dual_view':
@@ -374,7 +374,7 @@ class BSIInfoPanel(QWidget):
             self.posterior_bsi_label.setText(f"Posterior BSI: {posterior_bsi:.2f}%")
             self.processing_mode_label.setText(f"Mode: {processing_mode}")
         
-        # ✅ Color-code combined BSI
+        #   Color-code combined BSI
         if combined_bsi > 5:
             score_color = "#d32f2f"  # High BSI - red
         elif combined_bsi > 2:
@@ -395,7 +395,7 @@ class BSIInfoPanel(QWidget):
             }}
         """)
         
-        # ✅ Color-code processing mode label
+        #   Color-code processing mode label
         if processing_mode == 'dual_view':
             mode_color = "#4caf50"  # Green for dual view
         elif processing_mode in ['single_view_anterior', 'single_view_posterior']:

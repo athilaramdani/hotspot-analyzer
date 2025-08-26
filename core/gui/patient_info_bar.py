@@ -16,10 +16,10 @@ class PatientInfoBar(QWidget):
         self.grid_layout.setHorizontalSpacing(24)
         self.grid_layout.setVerticalSpacing(6)
 
-        # ✅ Detect available font family for CSS
+        #   Detect available font family for CSS
         self.font_family = "Poppins" if "Poppins" in QFont().families() else "Arial"
 
-        # ✅ Define CSS styles with font included
+        #   Define CSS styles with font included
         self.label_style = f"""
             QLabel {{
                 color: #000;
@@ -31,7 +31,7 @@ class PatientInfoBar(QWidget):
             }}
         """
 
-        # ✅ Alternative: Combine with existing style constant
+        #   Alternative: Combine with existing style constant
         base_field_style = PATIENT_INFO_FIELD_STYLE if PATIENT_INFO_FIELD_STYLE else ""
         
         self.field_style = f"""
@@ -117,12 +117,12 @@ class PatientInfoBar(QWidget):
     def _create_label(self, text, row, col):
         l = QLabel(text, self)
         l.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        l.setStyleSheet(self.label_style)  # ✅ Use CSS styling
+        l.setStyleSheet(self.label_style)  #   Use CSS styling
         self.grid_layout.addWidget(l, row, col)
 
     def set_id_combobox(self, combobox: SearchableComboBox):
         self.id_combo = combobox
-        # ✅ Apply CSS styling to combobox
+        #   Apply CSS styling to combobox
         self.id_combo.setStyleSheet(self.combo_style)
         self.id_combo.setMinimumWidth(150)
         self.grid_layout.addWidget(self.id_combo, 0, 1)
@@ -192,7 +192,7 @@ class PatientInfoBar(QWidget):
         # For PET mode, create a simple field for patient ID
         if not hasattr(self, 'id_combo') and not hasattr(self, 'id_edit'):
             self.id_edit = QLineEdit(readOnly=True)
-            self.id_edit.setStyleSheet(self.field_style)  # ✅ Use CSS styling
+            self.id_edit.setStyleSheet(self.field_style)  #   Use CSS styling
             self.id_edit.setMinimumWidth(150)
             self.grid_layout.addWidget(self.id_edit, 0, 1)
 

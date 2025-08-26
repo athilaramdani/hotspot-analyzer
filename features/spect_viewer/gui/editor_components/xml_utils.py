@@ -16,19 +16,19 @@ _SEGMENT_NAMES = {
     9: "lumbar_vertebrae", 10: "sacrum", 11: "pelvis", 12: "femur"
 }
 
-# ✅ NEW: Label mappings for UI vs XML compatibility
+#   NEW: Label mappings for UI vs XML compatibility
 _UI_TO_XML_LABELS = {
     # UI Display -> XML Output (for saving)
     "Background": "background",
-    "Malignant": "abnormal",  # ✅ UI shows "Malignant", XML saves "abnormal"
-    "Benign": "normal"        # ✅ UI shows "Benign", XML saves "normal"
+    "Malignant": "abnormal",  #   UI shows "Malignant", XML saves "abnormal"
+    "Benign": "normal"        #   UI shows "Benign", XML saves "normal"
 }
 
 _XML_TO_UI_LABELS = {
     # XML Input -> UI Display (for loading)
     "background": "Background",
-    "abnormal": "Malignant",  # ✅ XML "abnormal" displays as "Malignant"
-    "normal": "Benign"        # ✅ XML "normal" displays as "Benign"
+    "abnormal": "Malignant",  #   XML "abnormal" displays as "Malignant"
+    "normal": "Benign"        #   XML "normal" displays as "Benign"
 }
 
 def mask_to_bounding_boxes(mask: np.ndarray, segmentation_arr: np.ndarray = None, 
@@ -36,7 +36,7 @@ def mask_to_bounding_boxes(mask: np.ndarray, segmentation_arr: np.ndarray = None
     """
     Convert mask annotations to bounding boxes with XML-compatible labels.
     
-    ✅ UPDATED: Always outputs 'normal'/'abnormal' for XML compatibility
+      UPDATED: Always outputs 'normal'/'abnormal' for XML compatibility
     regardless of UI terminology.
     """
     bounding_boxes = []
@@ -76,7 +76,7 @@ def mask_to_bounding_boxes(mask: np.ndarray, segmentation_arr: np.ndarray = None
                     dominant_segment_id = unique_segments[non_bg_mask][np.argmax(counts[non_bg_mask])]
                     segment_name = _SEGMENT_NAMES.get(dominant_segment_id, "unknown")
             
-            # ✅ CRITICAL: Always use XML-compatible labels for file output
+            #   CRITICAL: Always use XML-compatible labels for file output
             # label_value 1 = Malignant (UI) -> "abnormal" (XML)
             # label_value 2 = Benign (UI) -> "normal" (XML)
             xml_label = 'abnormal' if label_value == 1 else 'normal'
@@ -87,17 +87,17 @@ def mask_to_bounding_boxes(mask: np.ndarray, segmentation_arr: np.ndarray = None
                 'y': int(y_min),
                 'width': int(x_max - x_min + 1),
                 'height': int(y_max - y_min + 1),
-                'label': xml_label,  # ✅ Always 'abnormal'/'normal' for XML
+                'label': xml_label,  #   Always 'abnormal'/'normal' for XML
                 'confidence': 1.0,   # Manual annotation = high confidence
                 'hotspot_pixels': int(np.sum(region)),
                 'segment': segment_name,
-                # ✅ NEW: Add UI label for reference (optional)
+                #   NEW: Add UI label for reference (optional)
                 'ui_label': 'Malignant' if label_value == 1 else 'Benign'
             }
             
             bounding_boxes.append(bbox)
             
-            # ✅ DEBUG: Show label conversion
+            #   DEBUG: Show label conversion
             ui_term = 'Malignant' if label_value == 1 else 'Benign'
             print(f"[XML] Converted {ui_term} (UI) -> {xml_label} (XML) for bbox at ({x_min},{y_min})")
     
@@ -108,7 +108,7 @@ def create_xml_from_bboxes(bounding_boxes: List[Dict], img_width: int, img_heigh
     """
     Create XML content from bounding boxes with classification results format.
     
-    ✅ UPDATED: Ensures XML always uses 'Normal'/'Abnormal' for compatibility
+      UPDATED: Ensures XML always uses 'Normal'/'Abnormal' for compatibility
     even when UI shows 'Benign'/'Malignant'.
     """
     
@@ -136,10 +136,10 @@ def create_xml_from_bboxes(bounding_boxes: List[Dict], img_width: int, img_heigh
     for bbox in bounding_boxes:
         obj = ET.SubElement(root, 'object')
         
-        # ✅ ENSURE XML COMPATIBILITY: Force standard labels
+        #   ENSURE XML COMPATIBILITY: Force standard labels
         xml_label = bbox['label']  # Should already be 'normal'/'abnormal'
         
-        # ✅ SAFETY CHECK: Convert if somehow UI labels got through
+        #   SAFETY CHECK: Convert if somehow UI labels got through
         if xml_label.lower() == 'malignant':
             xml_label = 'abnormal'
         elif xml_label.lower() == 'benign':
@@ -160,7 +160,7 @@ def create_xml_from_bboxes(bounding_boxes: List[Dict], img_width: int, img_heigh
         ET.SubElement(bndbox, 'xmax').text = str(bbox['x'] + bbox['width'])
         ET.SubElement(bndbox, 'ymax').text = str(bbox['y'] + bbox['height'])
         
-        # ✅ DEBUG: Show final XML label
+        #   DEBUG: Show final XML label
         ui_label = bbox.get('ui_label', 'Unknown')
         print(f"[XML] Saved as <name>{label_name}</name> (from UI: {ui_label})")
     
@@ -172,7 +172,7 @@ def load_xml_annotations(xml_path: Path) -> List[Dict]:
     """
     Load XML annotations and convert to internal format.
     
-    ✅ NEW: Converts XML labels to UI-compatible format for display.
+      NEW: Converts XML labels to UI-compatible format for display.
     """
     annotations = []
     
@@ -187,7 +187,7 @@ def load_xml_annotations(xml_path: Path) -> List[Dict]:
                 
             xml_label = name_elem.text.strip().lower()  # Get XML label
             
-            # ✅ CONVERT: XML label -> UI label for display
+            #   CONVERT: XML label -> UI label for display
             if xml_label == 'abnormal':
                 ui_label = 'Malignant'
                 mask_value = 1
@@ -220,7 +220,7 @@ def load_xml_annotations(xml_path: Path) -> List[Dict]:
                 
                 annotations.append(annotation)
                 
-                # ✅ DEBUG: Show conversion
+                #   DEBUG: Show conversion
                 print(f"[XML LOAD] {xml_label} (XML) -> {ui_label} (UI) at ({xmin},{ymin})")
     
     except Exception as e:
@@ -240,7 +240,7 @@ def get_ui_label_from_xml(xml_label: str) -> str:
     """
     Convert XML label to UI display label.
     
-    ✅ NEW: Helper function for label conversion.
+      NEW: Helper function for label conversion.
     """
     return _XML_TO_UI_LABELS.get(xml_label.lower(), "Background")
 
@@ -248,7 +248,7 @@ def get_xml_label_from_ui(ui_label: str) -> str:
     """
     Convert UI display label to XML label.
     
-    ✅ NEW: Helper function for label conversion.
+      NEW: Helper function for label conversion.
     """
     return _UI_TO_XML_LABELS.get(ui_label, "background")
 
@@ -256,7 +256,7 @@ def validate_xml_compatibility(file_path: Path) -> Dict[str, any]:
     """
     Validate that XML file uses compatible labels.
     
-    ✅ NEW: Validation function to ensure XML format compatibility.
+      NEW: Validation function to ensure XML format compatibility.
     """
     try:
         tree = ET.parse(file_path)
@@ -292,7 +292,7 @@ def validate_xml_compatibility(file_path: Path) -> Dict[str, any]:
             'file_path': str(file_path)
         }
 
-# ✅ EXAMPLE USAGE:
+#   EXAMPLE USAGE:
 """
 # In your hotspot editor when saving:
 mask = canvas.current_mask()  # Contains 1=Malignant, 2=Benign

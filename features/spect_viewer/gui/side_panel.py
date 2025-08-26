@@ -32,7 +32,7 @@ ACTIVE_BUTTON_STYLE = """
 
 class BSISidePanel(QWidget):
     """
-    ✅ FIXED: BSI Side Panel that supports single view quantification
+      FIXED: BSI Side Panel that supports single view quantification
     """
     export_requested = Signal(str)
     analysis_requested = Signal()
@@ -74,7 +74,7 @@ class BSISidePanel(QWidget):
         anterior_visible = self.anterior_checkbox.isChecked()
         posterior_visible = self.posterior_checkbox.isChecked()
         
-        # ✅ SIMPLIFIED: Update chart visibility without combined
+        #   SIMPLIFIED: Update chart visibility without combined
         self.bsi_canvas.set_line_visibility(anterior_visible, posterior_visible)
 
     def _create_title_section(self, layout):
@@ -133,7 +133,7 @@ class BSISidePanel(QWidget):
     #     return section_widget
 
     def _create_results_table_v2(self) -> QWidget:
-        """✅ FIXED: V1.2 table format with support for single view data"""
+        """  FIXED: V1.2 table format with support for single view data"""
         table_container = QFrame()
         table_layout = QVBoxLayout(table_container)
         table_layout.setContentsMargins(0, 0, 0, 0)
@@ -143,7 +143,7 @@ class BSISidePanel(QWidget):
         table_title.setStyleSheet("font-size: 12px; color: #495057; font-weight: bold; margin-bottom: 8px;")
         table_layout.addWidget(table_title)
         
-        # ✅ V1.2 table structure
+        #   V1.2 table structure
         self.results_table = QTableWidget()
         self.results_table.setColumnCount(5)
         self.results_table.setHorizontalHeaderLabels([
@@ -212,14 +212,14 @@ class BSISidePanel(QWidget):
         return controls_frame
 
     def load_patient_data(self, patient_folder: Path, patient_id: str, study_date: str) -> bool:
-        """✅ FIXED: Load patient data tanpa scan selector"""
+        """  FIXED: Load patient data tanpa scan selector"""
         try:
-            # ✅ FIXED: For table data, use exact study_date folder
+            #   FIXED: For table data, use exact study_date folder
             self.current_patient_folder = patient_folder
             self.current_patient_id = patient_id
             self.current_study_date = study_date
             
-            # ✅ FIXED: For BSI canvas trend, pass patient base folder
+            #   FIXED: For BSI canvas trend, pass patient base folder
             if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
                 # Current folder is study_date folder, canvas needs parent for trend
                 canvas_patient_folder = patient_folder.parent
@@ -259,25 +259,25 @@ class BSISidePanel(QWidget):
             return False
     
     # def _populate_scan_buttons(self, all_scans: list):
-    #     """✅ UPDATED: Populate scan selection buttons without mode indicators"""
+    #     """  UPDATED: Populate scan selection buttons without mode indicators"""
     #     for btn in self.scan_buttons:
     #         self.scan_buttons_layout.removeWidget(btn)
     #         btn.deleteLater()
     #     self.scan_buttons.clear()
         
     #     for i, scan_data in enumerate(all_scans):
-    #         # ✅ FIXED: Simple scan button without mode indicator
+    #         #   FIXED: Simple scan button without mode indicator
     #         btn = QPushButton(f"Scan {i + 1}")
     #         btn.clicked.connect(lambda checked, b=btn, data=scan_data: self._on_scan_selected(b, data))
             
-    #         # ✅ FIXED: Use standard button style without color coding
+    #         #   FIXED: Use standard button style without color coding
     #         btn.setStyleSheet(INACTIVE_BUTTON_STYLE)
             
     #         self.scan_buttons_layout.insertWidget(self.scan_buttons_layout.count() - 1, btn)
     #         self.scan_buttons.append(btn)
 
     # def _on_scan_selected(self, clicked_button: QPushButton, scan_data: dict, emit_signal: bool = True):
-    #     """✅ UPDATED: Handle scan selection - NO COMBINED BSI"""
+    #     """  UPDATED: Handle scan selection - NO COMBINED BSI"""
     #     # Update button styles
     #     for btn in self.scan_buttons:
     #         if btn is clicked_button:
@@ -322,7 +322,7 @@ class BSISidePanel(QWidget):
     #             self._on_scan_selected(self.scan_buttons[scan_index], scan_data, emit_signal=False)
             
     def _populate_results_table_v2(self, anterior_data: dict, posterior_data: dict, processing_mode: str = "unknown"):
-        """✅ FIXED: Populate table with single view support and proper sorting"""
+        """  FIXED: Populate table with single view support and proper sorting"""
         if not anterior_data and not posterior_data:
             self.results_table.setRowCount(0)
             return
@@ -406,7 +406,7 @@ class BSISidePanel(QWidget):
                 
                 self.results_table.setItem(row, col, item)
         
-        # ✅ FIXED: ADD TOTAL ROW at the bottom (handles table sorting properly)
+        #   FIXED: ADD TOTAL ROW at the bottom (handles table sorting properly)
         total_row = len(sorted_regions)
         
         # Handle totals for single view mode
@@ -435,7 +435,7 @@ class BSISidePanel(QWidget):
                 QTableWidgetItem(str(total_post_malignant))
             ]
         
-        # ✅ FIXED: Set custom sort role to ensure TOTAL always stays at bottom
+        #   FIXED: Set custom sort role to ensure TOTAL always stays at bottom
         for col, item in enumerate(total_items):
             if item.text() == "N/A":
                 item.setBackground(QColor(220, 220, 220))  # Darker gray for N/A in totals
@@ -447,7 +447,7 @@ class BSISidePanel(QWidget):
                 font = QFont()
                 font.setBold(True)
                 item.setFont(font)
-                # ✅ CRITICAL: Set custom sort role to keep TOTAL at bottom
+                #   CRITICAL: Set custom sort role to keep TOTAL at bottom
                 item.setData(Qt.UserRole, "zzz_total")  # This ensures it sorts to the bottom
             else:
                 # For numeric columns, set a very high sort value to keep at bottom
@@ -455,13 +455,13 @@ class BSISidePanel(QWidget):
             self.results_table.setItem(total_row, col, item)
 
     def _update_patient_info(self, patient_id: str, study_date: str):
-        """✅ SIMPLIFIED: Update patient info display"""
+        """  SIMPLIFIED: Update patient info display"""
         try:
             formatted_date = datetime.strptime(study_date, "%Y%m%d").strftime("%b %d, %Y")
         except (ValueError, TypeError):
             formatted_date = study_date or "N/A"
         
-        # ✅ SIMPLE: Clean patient info
+        #   SIMPLE: Clean patient info
         self.patient_info_label.setText(f"Patient: {patient_id} | Study: {formatted_date} | BSI Analysis")
     
     def _update_button_states(self, has_data: bool):
@@ -484,7 +484,7 @@ class BSISidePanel(QWidget):
         if hasattr(self, 'results_table'):
             self.results_table.setRowCount(0)
         
-        # ✅ SIMPLIFIED: No processing mode parameter
+        #   SIMPLIFIED: No processing mode parameter
         self._update_patient_info("N/A", "N/A")
         # for btn in self.scan_buttons:
         #     self.scan_buttons_layout.removeWidget(btn)
@@ -506,14 +506,14 @@ class BSISidePanel(QWidget):
                 self.current_study_date or "latest"
             )
             if success:
-                print("[BSI PANEL] ✅ Refresh successful")
+                print("[BSI PANEL]   Refresh successful")
             else:
-                print("[BSI PANEL] ❌ Refresh failed")
+                print("[BSI PANEL]  Refresh failed")
         else:
             print("[BSI PANEL] No patient data to refresh")
     
     def _export_csv_data_v2(self):
-        """✅ UPDATED: Export CSV data with single view support"""
+        """  UPDATED: Export CSV data with single view support"""
         if not self.current_patient_id or not self.current_study_date:
             print("[BSI EXPORT] No patient data to export")
             return
@@ -607,7 +607,7 @@ class BSISidePanel(QWidget):
         return self.bsi_canvas.export_chart(file_path)
 
     def export_report_to_file(self, file_path: Path) -> bool:
-        """✅ UPDATED: Export V1.2 report to text file with single view support"""
+        """  UPDATED: Export V1.2 report to text file with single view support"""
         try:
             if not self.current_patient_id or not self.current_study_date:
                 return False
@@ -621,7 +621,7 @@ class BSISidePanel(QWidget):
                 f.write(f"Analysis Method: BSI Color-based Separate Views\n")
                 f.write(f"Export Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 
-                # ✅ Add processing mode info
+                #   Add processing mode info
                 if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
                     summary_stats = self.quant_manager.current_results.get('summary_statistics', {})
                     processing_mode = summary_stats.get('processing_mode', 'unknown')
@@ -634,7 +634,7 @@ class BSISidePanel(QWidget):
                 
                 f.write("\n")
                 
-                # ✅ Add V1.2 BSI scores with single view support
+                #   Add V1.2 BSI scores with single view support
                 if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
                     summary_stats = self.quant_manager.current_results.get('summary_statistics', {})
                     anterior_bsi = summary_stats.get('anterior_bsi', 0.0)
