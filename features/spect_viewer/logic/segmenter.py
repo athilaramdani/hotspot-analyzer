@@ -249,7 +249,6 @@ if hasattr(sys, '_MEIPASS'):
         print("[SEGMENTER] ✅ Created comprehensive torchvision stub with all submodules")
         print("[SEGMENTER] ✅ torchvision.ops.nms fallback created")
 
-from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 from core.logger import _log
 from core.gui.ui_constants import truncate_text
 
@@ -277,8 +276,11 @@ os.environ["nnUNet_results"] = str(SEG_DIR)
 
 
 # ------------------------------------------------------------------ HELPERS
-def create_predictor() -> nnUNetPredictor:
+def create_predictor():
     """Creates the nnUNet predictor with standardized settings."""
+    # ✅ FIXED: Import nnUNet di dalam function
+    from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
+    
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:0" if use_cuda else "cpu")
     _log(f"[INFO]  CUDA available: {use_cuda} – using {device}")
@@ -303,8 +305,11 @@ def create_predictor() -> nnUNetPredictor:
     return nnUNetPredictor(**settings)
 
 
-def load_bone_model() -> nnUNetPredictor:
+def load_bone_model():
     """Lazy-load + cache the bone segmentation model with ENHANCED torchvision fixes."""
+    # ✅ FIXED: Import nnUNet di dalam function
+    from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
+    
     if not hasattr(load_bone_model, "_cache"):
         load_bone_model._cache = {}
     cache = load_bone_model._cache
@@ -359,72 +364,50 @@ def load_bone_model() -> nnUNetPredictor:
         if not model_path.exists():
             raise FileNotFoundError(f"Model directory not found: {model_path}")
 
-        predictor = create_predictor()
-        _log(f"[INFO]  Initializing model from trained weights...")
-        
-        if "bone" not in cache:
-            # ... (kode reset environment) ...
+        # 1. Tentukan konfigurasi terlebih dahulu, JANGAN langsung eksekusi
+        use_cuda = torch.cuda.is_available()
+        primary_config_works = use_cuda  # Asumsi sementara kita bisa pakai CUDA
 
-            # ==========================================================
-            # BAGIAN YANG DIUBAH - START
-            # ==========================================================
-            
-            _log(f"[INFO]  Loading bone segmentation model...")
-            model_path = SEG_DIR / "Dataset001_BoneRegion" / "nnUNetTrainer_50epochs__nnUNetPlans__2d"
-            _log(f"[INFO]  Model path: {truncate_text(str(model_path), 60)}")
+        # 2. Coba buat prediktor utama. Jika gagal, tandai untuk pakai fallback
+        try:
+            predictor = create_predictor() # create_predictor akan mencoba pakai CUDA jika tersedia
+            _log(f"[INFO]  Primary predictor created successfully (Device: {predictor.device})")
+        except Exception as e:
+            _log(f"[WARN]  Failed to create primary predictor: {e}. Forcing CPU fallback.")
+            primary_config_works = False
 
-            if not model_path.exists():
-                raise FileNotFoundError(f"Model directory not found: {model_path}")
+        # 3. Jika konfigurasi utama gagal, siapkan konfigurasi fallback (CPU)
+        if not primary_config_works:
+            _log("[INFO]  Switching to CPU-only fallback configuration.")
+            # Buat ulang predictor dengan paksa menggunakan CPU
+            cpu_device = torch.device("cpu")
+            predictor = nnUNetPredictor(
+                tile_step_size=0.5,
+                use_gaussian=True,
+                use_mirroring=False,
+                perform_everything_on_device=False,
+                device=cpu_device,
+                allow_tqdm=False
+            )
 
-            # 1. Tentukan konfigurasi terlebih dahulu, JANGAN langsung eksekusi
-            use_cuda = torch.cuda.is_available()
-            primary_config_works = use_cuda  # Asumsi sementara kita bisa pakai CUDA
-
-            # 2. Coba buat prediktor utama. Jika gagal, tandai untuk pakai fallback
-            try:
-                predictor = create_predictor() # create_predictor akan mencoba pakai CUDA jika tersedia
-                _log(f"[INFO]  Primary predictor created successfully (Device: {predictor.device})")
-            except Exception as e:
-                _log(f"[WARN]  Failed to create primary predictor: {e}. Forcing CPU fallback.")
-                primary_config_works = False
-
-            # 3. Jika konfigurasi utama gagal, siapkan konfigurasi fallback (CPU)
-            if not primary_config_works:
-                _log("[INFO]  Switching to CPU-only fallback configuration.")
-                # Buat ulang predictor dengan paksa menggunakan CPU
-                cpu_device = torch.device("cpu")
-                predictor = nnUNetPredictor(
-                    tile_step_size=0.5,
-                    use_gaussian=True,
-                    use_mirroring=False,
-                    perform_everything_on_device=False,
-                    device=cpu_device,
-                    allow_tqdm=False
-                )
-
-            # 4. SEKARANG, jalankan proses pemuatan model HANYA SATU KALI
-            # dengan konfigurasi yang sudah terpilih (CUDA atau CPU).
-            try:
-                _log(f"[INFO]  Initializing model from trained weights on device: {predictor.device}...")
-                predictor.initialize_from_trained_model_folder(
-                    str(model_path), use_folds=(0,), checkpoint_name="checkpoint_best.pth"
-                )
-            except Exception as e:
-                _log(f"[ERROR]  FATAL: Failed to load model even with selected configuration.")
-                # Jika ini GAGAL, maka seluruh proses gagal. Lemparkan error ke atas.
-                raise RuntimeError(f"Could not initialize model from {model_path}") from e
-
-            # ==========================================================
-            # BAGIAN YANG DIUBAH - END
-            # ==========================================================
-
+        # 4. SEKARANG, jalankan proses pemuatan model HANYA SATU KALI
+        # dengan konfigurasi yang sudah terpilih (CUDA atau CPU).
+        try:
+            _log(f"[INFO]  Initializing model from trained weights on device: {predictor.device}...")
+            predictor.initialize_from_trained_model_folder(
+                str(model_path), use_folds=(0,), checkpoint_name="checkpoint_best.pth"
+            )
+        except Exception as e:
+            _log(f"[ERROR]  FATAL: Failed to load model even with selected configuration.")
+            # Jika ini GAGAL, maka seluruh proses gagal. Lemparkan error ke atas.
+            raise RuntimeError(f"Could not initialize model from {model_path}") from e
         
         cache["bone"] = predictor
         _log(f"[INFO]  Bone segmentation model loaded successfully")
     return cache["bone"]
 
 
-def run_prediction(image: np.ndarray, model: nnUNetPredictor) -> np.ndarray:
+def run_prediction(image: np.ndarray, model) -> np.ndarray:
     """Runs sliding window inference on a pre-processed image."""
     _log(f"[INFO]  Running sliding window inference...")
     _log(f"[INFO]  Input image shape: {image.shape}")

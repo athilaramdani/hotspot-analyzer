@@ -327,6 +327,11 @@ class SegmentationPalette(QWidget):
         layout.addWidget(QLabel("<b>Palette / Layers</b>"))
         
         self.list_palette = QListWidget()
+        
+        # ✅ BEFORE: Tidak ada setMinimumHeight
+        # ✅ AFTER: Set minimum height untuk palette lebih panjang
+        self.list_palette.setMinimumHeight(300)  # Tambah tinggi palette
+        
         for rgb, (name, desc) in zip(_PALETTE, _SEGMENTATION_LABEL_INFO):
             item = QListWidgetItem()
             widget = QWidget()
@@ -352,7 +357,7 @@ class SegmentationPalette(QWidget):
         self.list_palette.setCurrentRow(1)
         self.list_palette.currentRowChanged.connect(self.currentRowChanged.emit)
         
-        layout.addWidget(self.list_palette, 1)
+        layout.addWidget(self.list_palette, 1)  # Stretch factor 1 untuk mengisi ruang
 
 
 
@@ -660,7 +665,7 @@ class SegmentationSaveThread(BaseSaveThread):
         
         self.progress_updated.emit(100, "Save completed!")
         
-        # Build success message
+        # ✅ FIX: Build success message properly
         success_msg = (
             f"Segmentation edits saved successfully!\n\n"
             f"Files saved to: {self.segmentation_mask_edited.parent}\n"
@@ -673,9 +678,10 @@ class SegmentationSaveThread(BaseSaveThread):
         else:
             success_msg += "\n⚠️ Quantification pipeline failed (check logs for details)"
 
-        # Use custom signal instead of built-in finished signal (same as hotspot)
+        # ✅ FIX: Use custom signal instead of built-in finished signal
         if hasattr(self, 'save_completed'):
-            self.save_completed.emit(success_msg)
+            self.save_completed.emit(success_msg)  # ✅ NOW success_msg IS DEFINED
+            print(f"[DEBUG] save_completed signal emitted: {len(success_msg)} chars")
         else:
             # Fallback if save_completed signal doesn't exist
             print(f"Segmentation save completed: {success_msg}")

@@ -171,11 +171,19 @@ class ScanTimelineWidget(QWidget):
         return f"{scan_path}_{view}_{layer}{invert_suffix}"
 
     def _clear_layer_cache(self):
-        """✅ NEW: Clear layer cache (memory management)"""
-        cache_size = len(self._layer_image_cache)
+        """✅ IMPROVED: Clear layer cache dengan logging yang lebih baik"""
+        cache_size_before = len(self._layer_image_cache)
         self._layer_image_cache.clear()
-        print(f"[CACHE] Cleared layer cache ({cache_size} entries)")
+        
+        # Reset cache stats
         self._cache_stats = {"hits": 0, "misses": 0}
+        
+        # ✅ TAMBAHAN: Clear zoom cache juga karena gambar berubah
+        self._image_labels.clear()
+        self._original_pixmaps.clear()
+        
+        print(f"[CACHE CLEAR] Cleared {cache_size_before} layer cache entries")
+        print(f"[CACHE CLEAR] Cleared zoom cache ({len(self._image_labels)} labels)")
 
     def _print_cache_stats(self):
         """✅ NEW: Print cache performance statistics"""
@@ -380,22 +388,22 @@ class ScanTimelineWidget(QWidget):
         return self._adjustments.get(view_name, {"brightness": 0.0, "contrast": 1.0})
     
     def set_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
-        """
-        ✅ Sets the B/C values for a specific view and rebuilds the timeline.
-        """
+        """✅ Sets the B/C values for a specific view and rebuilds the timeline."""
         if view_name in self._adjustments:
             print(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
             self._adjustments[view_name]["brightness"] = brightness
             self._adjustments[view_name]["contrast"] = contrast
             
-            # ✅ NEW: Clear cache since B/C affects images
+            # ✅ PENTING: Clear cache karena B/C mempengaruhi gambar
             self._clear_layer_cache()
+            print(f"[DEBUG] Cleared layer cache due to B/C change")
             
+            # ✅ PENTING: Force rebuild dengan cache kosong
             self._rebuild()
+            print(f"[DEBUG] Rebuilt timeline with new B/C values")
         else:
             print(f"[WARN] View '{view_name}' not found in adjustments dictionary. Cannot set contrast.")
 
- 
     def preview_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
         """✅ FIXED: Applies a temporary B/C adjustment using the new override logic."""
         if not self._scans_cache or self.active_scan_index < 0:
@@ -1361,21 +1369,36 @@ class ScanTimelineWidget(QWidget):
             return None
     
     def _get_layer_images(self, scan: Dict, override_b: float = None, override_c: float = None) -> Dict[str, Image.Image]:
+        """
+        ✅ COMPLETE: Get all layer images for a scan with caching, invert, and B/C support
+        """
         frame_map = scan["frames"]
         dicom_path = Path(scan["path"])
         scan_path_str = str(dicom_path)
 
-        # ✅ TAMBAHAN: Debug print
+        # ✅ DEBUG: Print current state
         print(f"[DEBUG] DICOM path: {dicom_path}")
         print(f"[DEBUG] Current view: {self.current_view}")
         
-        # ✅ NEW: Check cache first for non-adjusted images
-        use_cache = (override_b is None and override_c is None)  # Remove invert check
-        invert_suffix = "_inverted" if self.invert_original else "_normal"
-        print(f"[CACHE DEBUG] use_cache={use_cache}, override_b={override_b}, override_c={override_c}, invert={self.invert_original}")
+        # ✅ IMPROVED: Check if we should use cache
+        current_adjustments = self._adjustments[self.current_view]
+        has_adjustments = (current_adjustments["brightness"] != 0.0 or current_adjustments["contrast"] != 1.0)
+        has_overrides = (override_b is not None and override_c is not None)
+        
+        # Don't use cache if:
+        # - Has brightness/contrast adjustments
+        # - Has override parameters (preview mode)
+        # - Invert is enabled
+        use_cache = not (has_adjustments or has_overrides or self.invert_original)
+        
+        print(f"[CACHE DEBUG] use_cache={use_cache}")
+        print(f"[CACHE DEBUG] has_adjustments={has_adjustments} (B={current_adjustments['brightness']:.2f}, C={current_adjustments['contrast']:.2f})")
+        print(f"[CACHE DEBUG] has_overrides={has_overrides} (override_b={override_b}, override_c={override_c})")
+        print(f"[CACHE DEBUG] invert_original={self.invert_original}")
 
+        # ✅ CACHE CHECK: Try to get cached layers if conditions allow
         if use_cache:
-            print(f"[CACHE DEBUG] Checking cache for scan: {scan_path_str}, view: {self.current_view}, invert: {self.invert_original}")
+            print(f"[CACHE DEBUG] Checking cache for scan: {scan_path_str}, view: {self.current_view}")
             cached_layers = self._get_cached_layers(scan_path_str, self.current_view)
             if cached_layers:
                 print(f"[CACHE HIT] Using cached layers for {self.current_view}: {list(cached_layers.keys())}")
@@ -1383,86 +1406,112 @@ class ScanTimelineWidget(QWidget):
             else:
                 print(f"[CACHE MISS] No cached layers found for {self.current_view}")
         else:
-            print(f"[CACHE SKIP] Skipping cache due to adjustments")
+            print(f"[CACHE SKIP] Skipping cache due to adjustments/overrides/invert")
 
+        # ✅ PATH EXTRACTION: Get correct paths for loading files
         try:
             study_date = extract_study_date_from_dicom(dicom_path)
             patient_id, session_code = self._get_patient_session_from_scan(scan)
             filename_with_date = generate_filename_stem(patient_id, study_date)
             
-            # ✅ PERBAIKAN: Dapatkan path yang benar untuk study_date
+            # ✅ PATH RESOLUTION: Get correct study_date_folder
             if session_code and session_code != "UNKNOWN":
-                # ✅ VALIDASI: Jika patient_id adalah study_date, gunakan path dari DICOM
+                # Validate patient_id is not actually study_date (8 digit number)
                 if len(patient_id) == 8 and patient_id.isdigit():
                     print(f"[DEBUG] Patient ID is study_date, using DICOM path directly")
-                    study_date_folder = dicom_path.parent  # langsung gunakan folder dimana DICOM berada
+                    study_date_folder = dicom_path.parent  # Use folder where DICOM is located
                 else:
                     study_date_folder = get_patient_planar_path(session_code, patient_id, study_date)
             else:
                 study_date_folder = dicom_path.parent
 
-            # ✅ TAMBAHAN: Validasi path exists
+            # ✅ PATH VALIDATION: Ensure path exists
             if not study_date_folder.exists():
                 print(f"[WARN] Study date folder does not exist: {study_date_folder}")
                 print(f"[DEBUG] Fallback to DICOM parent: {dicom_path.parent}")
                 study_date_folder = dicom_path.parent
                         
-            # ✅ TAMBAHAN: Debug print
+            # ✅ DEBUG: Print path resolution results
             print(f"[DEBUG] Study date: {study_date}")
             print(f"[DEBUG] Patient ID: {patient_id}")
             print(f"[DEBUG] Session code: {session_code}")
             print(f"[DEBUG] Study date folder: {study_date_folder}")
-                
+                    
         except Exception as e:
             print(f"[DEBUG] Exception in path extraction: {e}")
             filename_with_date = dicom_path.stem
             study_date_folder = dicom_path.parent
             print(f"[DEBUG] Fallback study_date_folder: {study_date_folder}")
 
+        # ✅ LAYER LOADING: Initialize layers dictionary
         layers = {}
         view_normalized = self.current_view.lower()
         
-        # ✅ GANTI: Gunakan fungsi dari paths.py
+        # ✅ IMAGE LAYER: Load original DICOM image
+        print(f"[DEBUG] Loading original image for {self.current_view}")
         original_image = load_original_image_from_path(dicom_path, self.current_view, frame_map)
         
         if original_image:
+            print(f"[DEBUG] Original image loaded: {original_image.size}")
+            
+            # ✅ INVERT: Apply invert if enabled
             if self.invert_original:
+                print(f"[DEBUG] Applying invert to original image")
                 original_image = simple_invert_pil_image(original_image)
             
-            # Determine which brightness/contrast values to use
+            # ✅ BRIGHTNESS/CONTRAST: Determine which B/C values to use
             if override_b is not None and override_c is not None:
+                # Preview mode - use override values
                 brightness, contrast = override_b, override_c
+                print(f"[DEBUG] Using OVERRIDE B/C values: B={brightness:.2f}, C={contrast:.2f}")
             else:
+                # Normal mode - use stored adjustments
                 adjustments = self._adjustments[self.current_view]
                 brightness = adjustments["brightness"]
                 contrast = adjustments["contrast"]
+                print(f"[DEBUG] Using STORED B/C values: B={brightness:.2f}, C={contrast:.2f}")
 
-            # Apply adjustment if needed
+            # ✅ BRIGHTNESS/CONTRAST: Apply adjustment if needed
             if brightness != 0.0 or contrast != 1.0:
-                print(f"[DEBUG] Applying B/C adjustment to {self.current_view} (B={brightness:.2f}, C={contrast:.2f})")
+                print(f"[DEBUG] Applying B/C adjustment to {self.current_view}")
                 original_image = apply_brightness_contrast(
                     original_image, brightness, contrast
                 )
+                print(f"[DEBUG] B/C adjustment applied successfully")
 
             layers["Image"] = original_image
+            print(f"[DEBUG] ✅ Image layer loaded and processed")
+        else:
+            print(f"[WARN] ❌ Failed to load original image for {self.current_view}")
         
-        # ✅ GUNAKAN study_date_folder yang benar
+        # ✅ SEGMENTATION LAYER: Load segmentation overlay
+        print(f"[DEBUG] Loading segmentation layer for {self.current_view}")
         self._load_segmentation_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder, self.session_code)
+        
+        # ✅ HOTSPOT LAYER: Load hotspot classification overlay
+        print(f"[DEBUG] Loading hotspot layer for {self.current_view}")
         self._load_hotspot_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder, self.session_code)  
+        
+        # ✅ BBOX LAYER: Load bounding box overlay (hidden from UI but loaded)
+        print(f"[DEBUG] Loading bbox layer for {self.current_view}")
         self._load_bbox_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder, self.session_code)
 
-        # ✅ NEW: Cache loaded layers if not using overrides
+        # ✅ CACHE STORAGE: Store loaded layers if caching is enabled
         if use_cache and layers:
-            print(f"[CACHE STORE] Storing {len(layers)} layers in cache")
+            print(f"[CACHE STORE] Storing {len(layers)} layers in cache for {self.current_view}")
             for layer_name, layer_image in layers.items():
                 self._cache_layer_image(scan_path_str, self.current_view, layer_name, layer_image)
-                print(f"[CACHE STORE] Cached {layer_name} for {self.current_view}")
+                print(f"[CACHE STORE] Cached {layer_name}")
             print(f"[CACHE STORE] Cache now has {len(self._layer_image_cache)} total entries")
-        else:
-            print(f"[CACHE STORE] Not caching: use_cache={use_cache}, layers_count={len(layers) if layers else 0}")
+        elif not use_cache:
+            print(f"[CACHE STORE] Not caching due to adjustments/overrides/invert")
+        elif not layers:
+            print(f"[CACHE STORE] Not caching - no layers loaded")
 
+        # ✅ FINAL RESULT: Return all loaded layers
+        print(f"[DEBUG] ✅ Loaded {len(layers)} layers for {self.current_view}: {list(layers.keys())}")
         return layers
-        
+    
     def _make_layered_card(self, scan: Dict, w: int, idx: int) -> QFrame:
         """✅ FIXED: Create card with proper view-specific layered display"""
         card = QFrame()

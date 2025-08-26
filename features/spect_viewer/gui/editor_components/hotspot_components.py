@@ -380,6 +380,11 @@ class HotspotPalette(QWidget):
         layout.addWidget(QLabel("<b>Classification Palette</b>"))
         
         self.list_palette = QListWidget()
+        
+        # ✅ BEFORE: Tidak ada setMinimumHeight
+        # ✅ AFTER: Set minimum height untuk palette lebih panjang
+        self.list_palette.setMinimumHeight(200)  # Tambah tinggi palette
+        
         for rgb, (name, desc) in zip(_HOTSPOT_PALLETTE, _HOTSPOT_LABEL_INFO):
             item = QListWidgetItem()
             widget = QWidget()
@@ -393,7 +398,6 @@ class HotspotPalette(QWidget):
                 "border:1px solid #000;"
             )
 
-             # ✅ IMPROVED: Better styling for medical terminology
             name_label = QLabel(name)
             name_label.setStyleSheet("""
                 QLabel {
@@ -424,8 +428,9 @@ class HotspotPalette(QWidget):
         self.list_palette.setCurrentRow(1)
         self.list_palette.currentRowChanged.connect(self.currentRowChanged.emit)
         
-        layout.addWidget(self.list_palette, 1)
-         # ✅ NEW: Add instruction label
+        layout.addWidget(self.list_palette, 1)  # Stretch factor 1 untuk mengisi ruang
+        
+        # Instruction label tetap di bawah
         instruction_label = QLabel(
             "<i>Click to select classification type.<br/>"
             "Paint regions as Benign or Malignant.</i>"
@@ -731,7 +736,7 @@ class HotspotSaveThread(BaseSaveThread):
             self.error_occurred.emit("Save cancelled: No session selected")
             return
         
-        # ✅ FIX: Add safety check for canvas and its current_mask method
+        # Add safety check for canvas and its current_mask method
         if not self.canvas or not hasattr(self.canvas, 'current_mask'):
             self.error_occurred.emit("Canvas not properly initialized")
             return
@@ -769,7 +774,7 @@ class HotspotSaveThread(BaseSaveThread):
         
         self.progress_updated.emit(100, "Save completed!")
         
-        # Build success message
+        # ✅ FIX: Build success message properly
         success_msg = (
             f"Classification edits saved successfully!\n\n"
             f"Files saved to: {self.classification_mask_edited.parent}\n"
@@ -787,10 +792,11 @@ class HotspotSaveThread(BaseSaveThread):
 
         # ✅ FIX: Use custom signal instead of built-in finished signal
         if hasattr(self, 'save_completed'):
-            self.save_completed.emit(success_msg)
+            self.save_completed.emit(success_msg)  # ✅ NOW success_msg IS DEFINED
+            print(f"[DEBUG] save_completed signal emitted: {len(success_msg)} chars")
         else:
             # Fallback if save_completed signal doesn't exist
-            print(f"Save completed: {success_msg}")
+            print(f"Hotspot save completed: {success_msg}")
             
         # Store save info for get_save_info() method
         self.save_info = {

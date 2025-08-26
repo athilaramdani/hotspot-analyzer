@@ -32,9 +32,9 @@ AVAILABLE_MODALITIES = [
 
 # Session code descriptions (optional)
 SESSION_CODE_DESCRIPTIONS = {
-    "NSY": "Neurological Surgery Department",
-    "ATL": "Atlantic Medical Center", 
-    "NBL": "Neurobiology Laboratory",
+    "NSY": "Nasywa Kamila",
+    "ATL": "Athila Ramdani Saputra", 
+    "NBL": "Nabila Putri Azhari",
     "ALL": "Shared Access (All Users)"
 }
 

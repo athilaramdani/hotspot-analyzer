@@ -620,14 +620,16 @@ class MainWindowSpect(QMainWindow):
         self.active_layers_label.setWordWrap(True)
         left_layout.addWidget(self.active_layers_label)
 
-        # 4. Tombol Edit (PINDAHAN)
+        # 4. Tombol Edit (PINDAHAN) - DENGAN FONT KECIL
         self.seg_edit_btn = QPushButton("Edit Segmentation")
         self.seg_edit_btn.clicked.connect(self._open_segmentation_editor)
         self.seg_edit_btn.setStyleSheet(SUCCESS_BUTTON_STYLE + """
+            QPushButton { font-size: 11px; }
             QPushButton:disabled {
                 background-color: #d3d3d3;
                 color: #888;
                 border-color: #aaa;
+                font-size: 11px;
             }
         """)
 

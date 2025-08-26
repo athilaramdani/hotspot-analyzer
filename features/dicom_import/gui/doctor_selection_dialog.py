@@ -30,9 +30,9 @@ class DoctorTagManager:
     def __init__(self, config_path: Path = None):
         self.config_path = config_path or Path("config/doctor_tags.json")
         self.default_tags = [
-            {"code": "NSY", "name": "Neurological Surgery Department", "color": "#4e73ff"},
-            {"code": "ATL", "name": "Atlantic Medical Center", "color": "#28a745"},
-            {"code": "NBL", "name": "Neurobiology Laboratory", "color": "#dc3545"},
+            {"code": "NSY", "name": "Nasywa Kamila", "color": "#4e73ff"},
+            {"code": "ATL", "name": "Athila Ramdani Saputra", "color": "#28a745"},
+            {"code": "NBL", "name": "Nabila Putri Azhari", "color": "#dc3545"},
             {"code": "ALL", "name": "Shared Access (All Users)", "color": "#ffc107", "shared": True}
         ]
         self._load_tags()
