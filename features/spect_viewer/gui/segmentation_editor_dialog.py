@@ -16,7 +16,7 @@ import csv
 from core.config.paths import PLANAR_DATA_PATH, generate_edit_date, generate_edit_timestamp
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFrame, QCheckBox
+    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFrame, QCheckBox,QScrollArea  
 )
 from PySide6.QtGui import QGuiApplication
 
@@ -434,7 +434,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
         self.btn_save = btn_save
         self.btn_cancel = btn_cancel
 
-    def _create_instructions_label(self) -> QLabel:
+    def _create_instructions_label(self) -> QWidget:
         """Create instructions with current data info using NEWEST file logic."""
         data_source = "Original PNG loaded" if self.has_orig_png else "DICOM frames used"
         
@@ -464,7 +464,36 @@ class SegmentationEditorDialog(BaseEditorDialog):
         patient_id = getattr(self, 'patient_id', 'Unknown')
         study_date = getattr(self, 'study_date', 'Unknown')
 
-        instructions = QLabel(
+        # ✅ CREATE COMPACT SCROLLABLE INSTRUCTIONS
+        # Create main container
+        container = QWidget()
+        container_layout = QVBoxLayout(container)
+        container_layout.setContentsMargins(5, 5, 5, 5)
+        container_layout.setSpacing(3)
+        
+        # Header label
+        header_label = QLabel("<b>Instructions & Data Info</b>")
+        header_label.setStyleSheet("""
+            QLabel {
+                font-size: 11px;
+                color: #333;
+                padding: 3px;
+                background: #e8f4f8;
+                border-radius: 3px;
+            }
+        """)
+        container_layout.addWidget(header_label)
+        
+        # Create scrollable area for instructions
+        scroll_area = QScrollArea()
+        scroll_area.setMaximumHeight(120)  # ✅ Compact height
+        scroll_area.setMinimumHeight(100)  # ✅ Minimum height
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
+        # Instructions content
+        instructions_content = QLabel(
             "<b>Controls:</b><br>"
             "• Left click/drag: Paint<br>"
             "• Middle click/drag: Pan<br>"
@@ -478,12 +507,36 @@ class SegmentationEditorDialog(BaseEditorDialog):
             f"• Session: {session_code}<br>"
             f"• Patient: {patient_id}<br>"
             f"• Study Date: {study_date}<br>"
-            f"• Size: {self.orig_arr.shape[1]}×{self.orig_arr.shape[0]}<br>"
+            f"• Size: {self.processed_image_data.shape[1]}×{self.processed_image_data.shape[0]}<br>"
             f"• Save: Creates new timestamped file"
         )
-        instructions.setWordWrap(True)
-        instructions.setStyleSheet("QLabel { background: #f0f0f0; padding: 8px; border-radius: 4px; }")
-        return instructions
+        instructions_content.setWordWrap(True)
+        instructions_content.setStyleSheet("""
+            QLabel {
+                background: #f9f9f9;
+                padding: 6px;
+                border-radius: 4px;
+                font-size: 12px;        /* ✅ BIGGER FONT: 10px -> 12px */
+                line-height: 1.4;       /* ✅ BETTER SPACING */
+                color: #333;            /* ✅ DARKER COLOR */
+                font-weight: 500;       /* ✅ MEDIUM WEIGHT */
+            }
+        """)
+        
+        scroll_area.setWidget(instructions_content)
+        container_layout.addWidget(scroll_area)
+        
+        # Style the container with height limit
+        container.setMaximumHeight(180)  # ✅ LIMIT TOTAL HEIGHT
+        container.setStyleSheet("""
+            QWidget {
+                background: #f0f0f0;
+                border-radius: 4px;
+            }
+        """)
+        
+        return container
+
 
     def _create_main_area(self):
         """✅ MODULAR: Create main canvas area using modular components."""
@@ -662,18 +715,19 @@ class SegmentationEditorDialog(BaseEditorDialog):
                 dicom_path=self.dicom_path,
                 study_date=self.study_date,
                 current_session=self.session_code,
-                editor_session=self.editor_session  # Pass the selected editor session
+                editor_session=self.editor_session
             )
             
-            # Connect signals (same pattern as hotspot editor)
+            # ✅ FIX: Connect signals - HANYA GUNAKAN SATU COMPLETION SIGNAL
             if hasattr(self.save_thread, 'progress_updated'):
                 self.save_thread.progress_updated.connect(self._update_progress)
 
-            # ✅ PERBAIKI: Gunakan _on_save_finished seperti hotspot editor
-            self.save_thread.finished.connect(self._on_save_finished)
-
+            # ✅ GUNAKAN HANYA save_completed (yang ada editing time)
             if hasattr(self.save_thread, 'save_completed'):
                 self.save_thread.save_completed.connect(self._on_save_success)
+
+            # ✅ HAPUS finished connection untuk avoid duplicate dialog
+            # self.save_thread.finished.connect(self._on_save_finished)  # HAPUS INI
 
             if hasattr(self.save_thread, 'error_occurred'):
                 self.save_thread.error_occurred.connect(self._on_save_error)
@@ -686,23 +740,30 @@ class SegmentationEditorDialog(BaseEditorDialog):
             self.btn_save.setEnabled(True)
             from PySide6.QtWidgets import QMessageBox
             QMessageBox.critical(self, "Save Error", f"Failed to start save operation: {str(e)}")
-
+            
     def _on_save_success(self, success_message: str):
-        """Handle successful save with message (same as hotspot editor)."""
+        """Handle successful save with message."""
         from PySide6.QtWidgets import QMessageBox
-         # Save editing time to log
+        
+        # Close loading dialog
+        if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
+            self.save_loading_dialog.close()
+            self.save_loading_dialog = None
+        
+        # Save editing time to log
         elapsed_seconds, formatted_time = self._get_editing_duration()
         self._save_editing_time_log(elapsed_seconds, formatted_time)
+        
         # Get save information if available
         if hasattr(self.save_thread, 'get_save_info'):
             save_info = self.save_thread.get_save_info()
-            if save_info and save_info:  # Check if save_info is not empty
+            if save_info and save_info:
                 detailed_message = (
                     f"Files saved successfully!\n\n"
                     f"Location: {save_info.get('date_dir', 'Unknown')}\n"
                     f"Files:\n"
-                    f"• {save_info.get('mask_path', {}).name if save_info.get('mask_path') else 'Mask file'}\n"
-                    f"• {save_info.get('colored_path', {}).name if save_info.get('colored_path') else 'Segmentation file'}"
+                    f"• {save_info.get('png_path', {}).name if save_info.get('png_path') else 'File 1'}\n"
+                    f"• {save_info.get('xml_path', {}).name if save_info.get('xml_path') else 'File 2'}\n\n"
                     f"⏱️ Editing Time: {formatted_time}"
                 )
             else:
@@ -710,7 +771,15 @@ class SegmentationEditorDialog(BaseEditorDialog):
         else:
             detailed_message = f"{success_message}\n\n⏱️ Editing Time: {formatted_time}"
         
+        # Re-enable save button
+        self.btn_save.setEnabled(True)
+        
+        # Show ONE dialog with editing time
         QMessageBox.information(self, "Save Complete", detailed_message)
+        
+        # Emit signal and close
+        if hasattr(self, 'editor_completed'):
+            self.editor_completed.emit()
         
         # Close dialog
         self.accept()

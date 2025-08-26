@@ -12,7 +12,7 @@ from PIL import Image
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QCheckBox, QSlider, QWidget, QGraphicsView
+    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QCheckBox, QSlider, QWidget, QGraphicsView, QScrollArea 
 )
 from PySide6.QtGui import QGuiApplication
 from core.gui.ui_constants import OPACITY_SLIDER_STYLE, OPACITY_VALUE_LABEL_STYLE
@@ -280,7 +280,7 @@ class HotspotEditorDialog(BaseEditorDialog):
         self.btn_save = btn_save
         self.btn_cancel = btn_cancel
 
-    def _create_instructions_label(self) -> QLabel:
+    def _create_instructions_label(self) -> QWidget:
         """Create instructions with current data info using NEWEST file logic."""
         data_source = "Original PNG loaded" if self.has_orig_png else "DICOM frames used"
         
@@ -329,7 +329,36 @@ class HotspotEditorDialog(BaseEditorDialog):
         else:
             segmentation_status = f"No segmentation found"
 
-        instructions = QLabel(
+        # ✅ CREATE COMPACT SCROLLABLE INSTRUCTIONS
+        # Create main container
+        container = QWidget()
+        container_layout = QVBoxLayout(container)
+        container_layout.setContentsMargins(5, 5, 5, 5)
+        container_layout.setSpacing(3)
+        
+        # Header label
+        header_label = QLabel("<b>Instructions & Data Info</b>")
+        header_label.setStyleSheet("""
+            QLabel {
+                font-size: 11px;
+                color: #333;
+                padding: 3px;
+                background: #e8f4f8;
+                border-radius: 3px;
+            }
+        """)
+        container_layout.addWidget(header_label)
+        
+        # Create scrollable area for instructions
+        scroll_area = QScrollArea()
+        scroll_area.setMaximumHeight(120)  # ✅ Compact height
+        scroll_area.setMinimumHeight(100)  # ✅ Minimum height
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
+        # Instructions content
+        instructions_content = QLabel(
             "<b>Controls:</b><br>"
             "• Left click/drag: Paint<br>"
             "• Middle click/drag: Pan<br>"
@@ -345,10 +374,33 @@ class HotspotEditorDialog(BaseEditorDialog):
             f"• Size: {self.processed_image_data.shape[1]}×{self.processed_image_data.shape[0]}<br>"
             f"• Save: Creates new timestamped file"
         )
-        instructions.setWordWrap(True)
-        instructions.setStyleSheet("QLabel { background: #f0f0f0; padding: 8px; border-radius: 4px; }")
-        return instructions
-
+        instructions_content.setWordWrap(True)
+        instructions_content.setStyleSheet("""
+            QLabel {
+                background: #f9f9f9;
+                padding: 6px;
+                border-radius: 4px;
+                font-size: 12px;        /* ✅ BIGGER FONT: 10px -> 12px */
+                line-height: 1.4;       /* ✅ BETTER SPACING */
+                color: #333;            /* ✅ DARKER COLOR */
+                font-weight: 500;       /* ✅ MEDIUM WEIGHT */
+            }
+        """)
+        
+        scroll_area.setWidget(instructions_content)
+        container_layout.addWidget(scroll_area)
+        
+        # Style the container with height limit
+        container.setMaximumHeight(180)  # ✅ LIMIT TOTAL HEIGHT
+        container.setStyleSheet("""
+            QWidget {
+                background: #f0f0f0;
+                border-radius: 4px;
+            }
+        """)
+        
+        return container
+    
     def _create_main_area(self):
         """Create main area with side-by-side canvases."""
         super()._create_main_area()
@@ -524,7 +576,7 @@ class HotspotEditorDialog(BaseEditorDialog):
     def _show_session_selector_dialog(self):
         """Show session selector dialog reading from doctor_tags.json."""
         import json
-        from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem, QScrollArea
         from PySide6.QtCore import Qt
         
         try:
@@ -737,7 +789,7 @@ class HotspotEditorDialog(BaseEditorDialog):
                 return  # User cancelled
             self.editor_session = session_choice
         
-        # Show loading dialog immediately after session selection (or immediately for individual sessions)
+        # Show loading dialog immediately after session selection
         self.save_loading_dialog = LoadingDialog(
             title="Saving Hotspot Classification",
             message="Preparing to save hotspot classification data...",
@@ -761,17 +813,19 @@ class HotspotEditorDialog(BaseEditorDialog):
                 dicom_path=self.dicom_path,
                 study_date=self.study_date,
                 current_session=self.session_code,
-                editor_session=self.editor_session  # Pass the selected editor session
+                editor_session=self.editor_session
             )
             
-            # Connect signals
+            # ✅ FIX: Connect signals - HANYA GUNAKAN SATU COMPLETION SIGNAL
             if hasattr(self.save_thread, 'progress_updated'):
                 self.save_thread.progress_updated.connect(self._update_progress)
             
-            self.save_thread.finished.connect(self._on_save_finished)
-            
+            # ✅ GUNAKAN HANYA save_completed (yang ada editing time)
             if hasattr(self.save_thread, 'save_completed'):
                 self.save_thread.save_completed.connect(self._on_save_success)
+            
+            # ✅ HAPUS finished connection untuk avoid duplicate dialog
+            # self.save_thread.finished.connect(self._on_save_finished)  # HAPUS INI
             
             if hasattr(self.save_thread, 'error_occurred'):
                 self.save_thread.error_occurred.connect(self._on_save_error)
@@ -784,37 +838,54 @@ class HotspotEditorDialog(BaseEditorDialog):
             self.btn_save.setEnabled(True)
             from PySide6.QtWidgets import QMessageBox
             QMessageBox.critical(self, "Save Error", f"Failed to start save operation: {str(e)}")
-
+    
     def _on_save_success(self, success_message: str):
         """Handle successful save with message."""
         from PySide6.QtWidgets import QMessageBox
         
-        # Save editing time to log
+        # ✅ FIX 1: TUTUP LOADING DIALOG TERLEBIH DAHULU
+        if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
+            self.save_loading_dialog.close()
+            self.save_loading_dialog.deleteLater()  # ✅ TAMBAHAN: hapus dari memory
+            self.save_loading_dialog = None
+            print("[DEBUG] Loading dialog closed and deleted")
+        
+        # ✅ FIX 2: PROSES EDITING TIME
         elapsed_seconds, formatted_time = self._get_editing_duration()
         self._save_editing_time_log(elapsed_seconds, formatted_time)
         
-        # Get save information if available
+        # ✅ FIX 3: RE-ENABLE SAVE BUTTON
+        self.btn_save.setEnabled(True)
+        self.btn_save.setText("Save")  # ✅ TAMBAHAN: reset text button
+        
+        # ✅ FIX 4: BUILD SUCCESS MESSAGE
         if hasattr(self.save_thread, 'get_save_info'):
             save_info = self.save_thread.get_save_info()
             if save_info and save_info:  # Check if save_info is not empty
                 detailed_message = (
-                    f"Files saved successfully!\n\n"
+                    f"Hotspot classification saved successfully!\n\n"
                     f"Location: {save_info.get('date_dir', 'Unknown')}\n"
                     f"Files:\n"
-                    f"• {save_info.get('png_path', {}).name if save_info.get('png_path') else 'PNG file'}\n"
-                    f"• {save_info.get('xml_path', {}).name if save_info.get('xml_path') else 'XML file'}\n\n"
+                    f"• {save_info.get('png_path', {}).name if save_info.get('png_path') else 'Classification PNG'}\n"
+                    f"• {save_info.get('xml_path', {}).name if save_info.get('xml_path') else 'Annotation XML'}\n\n"
                     f"⏱️ Editing Time: {formatted_time}"
                 )
             else:
                 detailed_message = f"{success_message}\n\n⏱️ Editing Time: {formatted_time}"
         else:
-            detailed_message = f"{success_message}\n\n⏱️ Editing Time: {formatted_time}"
+            detailed_message = f"Hotspot classification saved!\n\n⏱️ Editing Time: {formatted_time}"
         
+        # ✅ FIX 5: TAMPILKAN SUCCESS DIALOG
         QMessageBox.information(self, "Save Complete", detailed_message)
+        
+        # ✅ FIX 6: EMIT SIGNAL DAN CLOSE
+        if hasattr(self, 'editor_completed'):
+            print("[DEBUG] Emitting editor_completed signal")
+            self.editor_completed.emit()
         
         # Close dialog
         self.accept()
-
+    
     def _on_save_finished(self):
         """Handle save thread completion (cleanup only)."""
         # Re-enable save button
@@ -827,24 +898,41 @@ class HotspotEditorDialog(BaseEditorDialog):
         """Handle save errors."""
         from PySide6.QtWidgets import QMessageBox
         
-        # Close loading dialog
+        # ✅ FIX: TUTUP LOADING DIALOG TERLEBIH DAHULU
         if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
             self.save_loading_dialog.close()
+            self.save_loading_dialog.deleteLater()  # ✅ TAMBAHAN: hapus dari memory
             self.save_loading_dialog = None
+            print("[DEBUG] Loading dialog closed due to error")
         
+        # Show error message
         QMessageBox.critical(self, "Save Error", error_message)
         
-        # Re-enable save button
+        # ✅ FIX: RE-ENABLE SAVE BUTTON
         self.btn_save.setEnabled(True)
+        self.btn_save.setText("Save")  # ✅ TAMBAHAN: reset text button
+        
+        # ✅ FIX: RESUME TIMER IF STOPPED
+        if hasattr(self, 'update_timer') and hasattr(self, 'update_timer'):
+            if not self.update_timer.isActive():
+                self.update_timer.start(1000)
+                print("[DEBUG] Timer resumed after error")
         
     def _update_progress(self, value: int, message: str):
         """Update progress bar and message."""
-        print(f"Save progress: {value}% - {message}")
+        print(f"[PROGRESS] {value}% - {message}")
         
         # Update loading dialog if exists
         if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
             self.save_loading_dialog.set_progress(value)
-            self.save_loading_dialog.set_message(f"Saving hotspot classification...\n{message}")
+            
+            # ✅ FIX: Jangan update message jika sudah 100% (avoid stuck message)
+            if value < 100:
+                self.save_loading_dialog.set_message(f"Saving hotspot classification...\n{message}")
+            else:
+                # ✅ FIX: Untuk progress 100%, set message yang menunjukkan akan segera tutup
+                self.save_loading_dialog.set_message(f"Save completed! Preparing results...")
+                print("[DEBUG] Progress 100% reached, dialog will close soon")
 
     def _on_save_finished(self):
         """Handle save completion."""

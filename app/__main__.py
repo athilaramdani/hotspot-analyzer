@@ -303,8 +303,8 @@ class ApplicationBootstrap:
             
             # ✅ NEW: Set application metadata
             self.app.setApplicationName("TELPLASTINA")
-            self.app.setApplicationDisplayName("TELPLASTINA - Bone Metastasis Analysis V1.0")
-            self.app.setApplicationVersion("1.0")
+            self.app.setApplicationDisplayName("Bone Metastasis Analysis V1.5.2")
+            self.app.setApplicationVersion("1.5.2")
             self.app.setOrganizationName("Telkom University & Universitas Padjadjaran")
             self.app.setOrganizationDomain("telplastina.ai")
             
