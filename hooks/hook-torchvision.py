@@ -52,11 +52,11 @@ for module in extension_modules:
         if module not in hiddenimports:
             hiddenimports.append(module)
         extensions_found.append(module)
-        print(f"[HOOK] torchvision: ✅ Found extension: {module}")
+        print(f"[HOOK] torchvision:   Found extension: {module}")
     except ImportError:
         print(f"[HOOK] torchvision: ⚠️ Extension not available: {module}")
     except Exception as e:
-        print(f"[HOOK] torchvision: ❌ Error testing {module}: {e}")
+        print(f"[HOOK] torchvision:  Error testing {module}: {e}")
 
 # Collect torchvision binary files (DLLs, shared libraries)
 try:
@@ -83,7 +83,7 @@ try:
                 extension_files.append((src_path, dest_dir))
                 
     datas.extend(extension_files)
-    print(f"[HOOK] torchvision: ✅ Found {len(extension_files)} binary extension files")
+    print(f"[HOOK] torchvision:   Found {len(extension_files)} binary extension files")
     
     # Log some example extension files for debugging
     for i, (src, dest) in enumerate(extension_files[:3]):
@@ -97,7 +97,7 @@ try:
     # Collect any additional data files from torchvision
     additional_datas = collect_data_files('torchvision', include_py_files=False)
     datas.extend(additional_datas)
-    print(f"[HOOK] torchvision: ✅ Found {len(additional_datas)} additional data files")
+    print(f"[HOOK] torchvision:   Found {len(additional_datas)} additional data files")
 except Exception as e:
     print(f"[HOOK] torchvision: ⚠️ Additional data collection failed: {e}")
 
@@ -107,7 +107,7 @@ try:
     for module in ops_modules:
         if module not in hiddenimports:
             hiddenimports.append(module)
-    print(f"[HOOK] torchvision: ✅ Collected {len(ops_modules)} ops modules")
+    print(f"[HOOK] torchvision:   Collected {len(ops_modules)} ops modules")
 except Exception as e:
     print(f"[HOOK] torchvision: ⚠️ Ops modules collection failed: {e}")
 

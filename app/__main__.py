@@ -37,7 +37,7 @@ def debug_pyinstaller_state():
     if not hasattr(sys, '_MEIPASS'):
         return
     
-    print("\n🧪 [MAIN DEBUG] PyInstaller Environment Analysis")
+    print("\n  [MAIN DEBUG] PyInstaller Environment Analysis")
     print("=" * 60)
     print(f"_MEIPASS: {sys._MEIPASS}")
     print(f"executable: {sys.executable}")
@@ -84,15 +84,15 @@ def debug_pyinstaller_state():
             if hasattr(lib, 'Library'):
                 test_lib = lib.Library("test_lib")
                 if hasattr(test_lib, '_register_fake'):
-                    print("✅ torch.library._register_fake works")
+                    print("  torch.library._register_fake works")
                 else:
-                    print("❌ torch.library._register_fake missing")
+                    print(" torch.library._register_fake missing")
             else:
-                print("❌ torch.library.Library missing")
+                print(" torch.library.Library missing")
         else:
-            print("❌ torch.library not available")
+            print(" torch.library not available")
     except Exception as e:
-        print(f"❌ torch.library test failed: {e}")
+        print(f" torch.library test failed: {e}")
     
     print("=" * 60)
     print()
@@ -122,7 +122,7 @@ def setup_pyinstaller_environment():
         'TORCH_FX_DISABLE': '1',
         'PYTHONDONTWRITEBYTECODE': '1',
         'PYTHONOPTIMIZE': '1',
-        # ✅ ENHANCED: Better torchvision fixes
+        #   ENHANCED: Better torchvision fixes
         'TORCHVISION_DISABLE_META_REGISTRATION': '1',
         'TORCHVISION_DISABLE_EXTENSIONS': '1',  # NEW
         'TORCHVISION_DISABLE_VIDEO_OPT': '1',   # NEW
@@ -138,7 +138,7 @@ def setup_pyinstaller_environment():
 # Apply environment setup immediately
 setup_pyinstaller_environment()
 
-# ✅ ADD: Debug state BEFORE any imports
+#   ADD: Debug state BEFORE any imports
 debug_pyinstaller_state()
 
 # ========== APPLY EARLY PATCHES ==========
@@ -163,9 +163,9 @@ def apply_early_patches():
 # Apply early patches
 apply_early_patches()
 
-# ✅ ADD: Debug state AFTER patches
+#   ADD: Debug state AFTER patches
 if hasattr(sys, '_MEIPASS'):
-    print("\n🧪 [POST-PATCH DEBUG] State after patches:")
+    print("\n  [POST-PATCH DEBUG] State after patches:")
     if 'torch.library' in sys.modules:
         lib = sys.modules['torch.library']
         is_blocker = 'TritonBlocker' in str(type(lib))
@@ -214,14 +214,14 @@ except ImportError as e:
 #     print(f"[CRITICAL ERROR] Traceback: {traceback.format_exc()}")
 #     sys.exit(1)
 
-# ✅ ADD: Debug state AFTER imports
+#   ADD: Debug state AFTER imports
 if hasattr(sys, '_MEIPASS'):
-    print("\n🧪 [POST-IMPORT DEBUG] State after all imports:")
+    print("\n  [POST-IMPORT DEBUG] State after all imports:")
     
     # Test torch import
     try:
         import torch
-        print("  ✅ torch import: SUCCESS")
+        print("    torch import: SUCCESS")
         
         if hasattr(torch, 'library'):
             lib = torch.library
@@ -232,28 +232,28 @@ if hasattr(sys, '_MEIPASS'):
             print("  torch.library not available")
             
     except Exception as e:
-        print(f"  ❌ torch import failed: {e}")
+        print(f"   torch import failed: {e}")
     
     # Test torchvision import
     try:
         import torchvision
-        print("  ✅ torchvision import: SUCCESS")
+        print("    torchvision import: SUCCESS")
     except Exception as e:
-        print(f"  ❌ torchvision import failed: {type(e).__name__}")
+        print(f"   torchvision import failed: {type(e).__name__}")
     
     # Test ultralytics import
     try:
         from ultralytics import YOLO
-        print("  ✅ ultralytics import: SUCCESS")
+        print("    ultralytics import: SUCCESS")
     except Exception as e:
-        print(f"  ❌ ultralytics import failed: {type(e).__name__}")
+        print(f"   ultralytics import failed: {type(e).__name__}")
     
     # Test nnunet import
     try:
         from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
-        print("  ✅ nnunetv2 import: SUCCESS")
+        print("    nnunetv2 import: SUCCESS")
     except Exception as e:
-        print(f"  ❌ nnunetv2 import failed: {type(e).__name__}")
+        print(f"   nnunetv2 import failed: {type(e).__name__}")
     
     print()
 
@@ -290,7 +290,7 @@ class ApplicationBootstrap:
             self.app.setStyle("Fusion")
             self.app.setPalette(make_light_palette())
             
-            # ✅ NEW: Set application icon
+            #   NEW: Set application icon
             try:
                 from pathlib import Path
                 icon_path = Path("assets/icon.ico")
@@ -302,7 +302,7 @@ class ApplicationBootstrap:
             except Exception as e:
                 print(f"[UI] Failed to load application icon: {e}")
             
-            # ✅ NEW: Set application metadata
+            #   NEW: Set application metadata
             self.app.setApplicationName("TELPLASTINA")
             self.app.setApplicationDisplayName("Bone Metastasis Analysis V1.5.2")
             self.app.setApplicationVersion("1.5.2")
@@ -352,16 +352,16 @@ class ApplicationBootstrap:
         try:
             print("[DEBUG] === Starting new session ===")
             
-            # ✅ ENHANCED: Add application state check
+            #   ENHANCED: Add application state check
             if not self.app:
                 print("[ERROR] Qt application not available")
                 self.shutdown_application()
                 return
             
-            # ✅ ENHANCED: Ensure application is ready
+            #   ENHANCED: Ensure application is ready
             self.app.processEvents()  # Process any pending events
             
-            # ✅ ENHANCED: Add delay for PyInstaller environment
+            #   ENHANCED: Add delay for PyInstaller environment
             if hasattr(sys, '_MEIPASS'):
                 print("[DEBUG] PyInstaller mode - adding startup delay...")
                 QTimer.singleShot(500, self._create_dialog_delayed)
@@ -406,7 +406,7 @@ class ApplicationBootstrap:
         try:
             print(f"[DEBUG] Creating doctor selection dialog (attempt {self.dialog_attempts}/{self.max_dialog_attempts})...")
             
-            # ✅ ENHANCED: Import with error handling
+            #   ENHANCED: Import with error handling
             try:
                 from features.dicom_import.gui.doctor_selection_dialog import DoctorSelectionDialog
                 print("[DEBUG] Dialog class imported successfully")
@@ -415,7 +415,7 @@ class ApplicationBootstrap:
                 self.shutdown_application()
                 return
             
-            # ✅ ENHANCED: Create dialog with error handling
+            #   ENHANCED: Create dialog with error handling
             try:
                 dlg = DoctorSelectionDialog()
                 print("[DEBUG] Dialog instance created successfully")
@@ -436,7 +436,7 @@ class ApplicationBootstrap:
                 QTimer.singleShot(2000, self.start_new_session)
                 return
             
-            # ✅ ENHANCED: Set dialog properties for better visibility
+            #   ENHANCED: Set dialog properties for better visibility
             try:
                 dlg.setWindowState(dlg.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
                 dlg.raise_()
@@ -445,7 +445,7 @@ class ApplicationBootstrap:
             except Exception as e:
                 print(f"[WARNING] Failed to set dialog properties: {e}")
             
-            # ✅ ENHANCED: Show dialog with debugging
+            #   ENHANCED: Show dialog with debugging
             print("[DEBUG] Showing dialog to user...")
             try:
                 dlg.show()  # Show first to ensure visibility
@@ -456,7 +456,7 @@ class ApplicationBootstrap:
                 self.shutdown_application()
                 return
             
-            # ✅ ENHANCED: Execute dialog with timeout protection
+            #   ENHANCED: Execute dialog with timeout protection
             print("[DEBUG] Waiting for user input...")
             
             # Add a timer to detect if dialog closes too quickly
@@ -485,7 +485,7 @@ class ApplicationBootstrap:
                 self.shutdown_application()
                 return
             
-            # ✅ ENHANCED: Handle dialog result
+            #   ENHANCED: Handle dialog result
             if not result or result == QDialog.Rejected:
                 if dialog_closed_quickly:
                     print("[DEBUG] Dialog closed quickly - attempting retry...")
@@ -497,7 +497,7 @@ class ApplicationBootstrap:
                     self.shutdown_application()
                     return
             
-            # ✅ ENHANCED: Process dialog results
+            #   ENHANCED: Process dialog results
             try:
                 session_code = dlg.selected_doctor_id
                 selected_modality = dlg.selected_modality
@@ -515,7 +515,7 @@ class ApplicationBootstrap:
                 QTimer.singleShot(1000, self.start_new_session)
                 return
             
-            # ✅ ENHANCED: Create data directory
+            #   ENHANCED: Create data directory
             try:
                 data_dir = Path("data")
                 data_dir.mkdir(exist_ok=True)
@@ -523,7 +523,7 @@ class ApplicationBootstrap:
             except Exception as e:
                 print(f"[ERROR] Failed to create data directory: {e}")
             
-            # ✅ ENHANCED: Handle modality selection
+            #   ENHANCED: Handle modality selection
             if selected_modality == "Planar":
                 print(f"[DEBUG] Starting PLANAR session with code: {session_code}")
                 # Reset dialog attempts on successful dialog
@@ -592,7 +592,7 @@ class ApplicationBootstrap:
     def create_main_window(self, session_code, data_dir):
         """Create main window with error handling"""
         try:
-            # ✅ PINDAHKAN IMPOR KE SINI
+            #   PINDAHKAN IMPOR KE SINI
             # Impor hanya akan terjadi saat fungsi ini dipanggil oleh proses utama,
             # bukan oleh child process.
             from features.spect_viewer.gui.main_window_spect import MainWindowSpect
@@ -648,7 +648,7 @@ class ApplicationBootstrap:
     
     def shutdown_application(self):
         """Gracefully shutdown the application"""
-        # ✅ ADD: Prevent recursive calls (extra safety)
+        #   ADD: Prevent recursive calls (extra safety)
         if self.is_shutting_down:
             return
             
@@ -658,7 +658,7 @@ class ApplicationBootstrap:
         # Close all windows
         for window in self.windows[:]:  # Copy list to avoid modification during iteration
             try:
-                # ✅ ADD: Disconnect window signals to prevent additional triggers
+                #   ADD: Disconnect window signals to prevent additional triggers
                 if hasattr(window, 'logout_requested'):
                     try:
                         window.logout_requested.disconnect()
@@ -687,7 +687,7 @@ class ApplicationBootstrap:
         if not self.create_application():
             return 1
         
-        # ❌ REMOVED: aboutToQuit connection to prevent recursive loop
+        #  REMOVED: aboutToQuit connection to prevent recursive loop
         # self.app.aboutToQuit.connect(self.shutdown_application)
         
         # Start the first session with longer delay for PyInstaller

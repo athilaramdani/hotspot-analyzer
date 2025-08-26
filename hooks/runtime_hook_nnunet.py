@@ -34,19 +34,19 @@ def setup_nnunet_environment():
             print(f"[RUNTIME-NNUNET]   nnUNet_preprocessed: {os.environ['nnUNet_preprocessed']}")
             print(f"[RUNTIME-NNUNET]   nnUNet_results: {os.environ['nnUNet_results']}")
         else:
-            print("[RUNTIME-NNUNET] ❌ Models directory not found")
+            print("[RUNTIME-NNUNET]  Models directory not found")
 
 def fix_triton_conflicts():
     """Fix triton conflicts that cause _register_fake errors"""
     
-    # ✅ CRITICAL: Remove any existing triton modules that might conflict
+    #   CRITICAL: Remove any existing triton modules that might conflict
     triton_modules = [key for key in sys.modules.keys() if key.startswith('triton')]
     for module in triton_modules:
         if 'TritonBlocker' in str(sys.modules[module]):
             print(f"[RUNTIME-NNUNET] Removing conflicting triton module: {module}")
             del sys.modules[module]
     
-    # ✅ Set additional triton disable flags
+    #   Set additional triton disable flags
     os.environ.update({
         'TRITON_DISABLE': '1',
         'TORCH_DISABLE_TRITON_LIBRARY': '1',
@@ -57,7 +57,7 @@ def fix_triton_conflicts():
         'TORCH_DISABLE_TRITON_REGISTRATION': '1'
     })
     
-    print("[RUNTIME-NNUNET] ✅ Triton conflicts resolved")
+    print("[RUNTIME-NNUNET]   Triton conflicts resolved")
 
 def preregister_nnunet_trainers():
     """BYPASS nnUNet trainer pre-registration to prevent loops"""
@@ -66,12 +66,12 @@ def preregister_nnunet_trainers():
         print(f"[DEBUG-NNUNET] Current process PID: {os.getpid()}")
         print(f"[DEBUG-NNUNET] Parent PID: {os.getppid()}")
         
-        # ✅ CHECK: Skip in spawned processes
+        #   CHECK: Skip in spawned processes
         if len(sys.argv) > 1 and '--multiprocessing-fork' in sys.argv:
             print("[DEBUG-NNUNET] Skipping nnUNet import in multiprocessing fork")
             return
         
-        # ✅ CHECK: Skip if already spawned process detected
+        #   CHECK: Skip if already spawned process detected
         current_pid = os.getpid()
         parent_pid = os.getppid() 
         if current_pid != parent_pid and parent_pid > 0:
@@ -80,7 +80,7 @@ def preregister_nnunet_trainers():
         
         print("[DEBUG-NNUNET] About to import nnunetv2.training...")
         
-        # ✅ SAFE IMPORT: Add timeout protection
+        #   SAFE IMPORT: Add timeout protection
         import signal
         def timeout_handler(signum, frame):
             raise TimeoutError("nnUNet import timeout")
@@ -90,7 +90,7 @@ def preregister_nnunet_trainers():
         
         try:
             import nnunetv2.training.nnUNetTrainer.nnUNetTrainer
-            print("[RUNTIME-NNUNET] ✅ nnUNet training module imported")
+            print("[RUNTIME-NNUNET]   nnUNet training module imported")
         finally:
             signal.alarm(0)  # Cancel timeout
         

@@ -640,7 +640,7 @@ class BaseEditorDialog(QDialog):
         self._loading_dialog = None
         self._is_saving = False
 
-        # ✅ FIX: Set focus policy and enable keyboard focus
+        #   FIX: Set focus policy and enable keyboard focus
         self.setFocusPolicy(Qt.StrongFocus)
         self.setAttribute(Qt.WA_DeleteOnClose, False)
         
@@ -678,7 +678,7 @@ class BaseEditorDialog(QDialog):
         self.undo_shortcut.setEnabled(True)
         self.redo_shortcut.setEnabled(True)
         
-        print("✅ Keyboard shortcuts setup: Ctrl+Z (Undo), Ctrl+Y (Redo)")
+        print("  Keyboard shortcuts setup: Ctrl+Z (Undo), Ctrl+Y (Redo)")
 
     def _create_main_area(self):
         """Create main canvas area - to be implemented by subclasses."""
@@ -726,20 +726,20 @@ class BaseEditorDialog(QDialog):
         """Handle common keyboard shortcuts."""
         from PySide6.QtCore import Qt
         
-        # ✅ FIX: Handle Ctrl+Z and Ctrl+Y with proper modifier checking
+        #   FIX: Handle Ctrl+Z and Ctrl+Y with proper modifier checking
         if event.modifiers() & Qt.ControlModifier:
             if event.key() == Qt.Key_Z:
-                print("🔍 Ctrl+Z detected in keyPressEvent")
+                print("  Ctrl+Z detected in keyPressEvent")
                 self._perform_undo()
                 event.accept()
                 return
             elif event.key() == Qt.Key_Y:
-                print("🔍 Ctrl+Y detected in keyPressEvent")
+                print("  Ctrl+Y detected in keyPressEvent")
                 self._perform_redo()
                 event.accept()
                 return
         
-        # ✅ FIX: Handle Escape key
+        #   FIX: Handle Escape key
         if event.key() == Qt.Key_Escape:
             self.reject()
             event.accept()
@@ -880,7 +880,7 @@ class BaseSaveThread(QThread):
     def showEvent(self, event):
         """Handle show event - ensure focus."""
         super().showEvent(event)
-        # ✅ FIX: Set focus to dialog when shown
+        #   FIX: Set focus to dialog when shown
         self.setFocus()
         self.activateWindow()
         self.raise_()

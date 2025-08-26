@@ -558,7 +558,7 @@ class DoctorSelectionDialog(QDialog):
         subtitle.setAlignment(Qt.AlignCenter)
         header_layout.addWidget(subtitle)
         
-        # ✅ NEW: Add description
+        #   NEW: Add description
         description = QLabel("Advanced AI-powered bone scan metastasis detection and analysis platform")
         description.setStyleSheet("""
             QLabel {

@@ -107,7 +107,7 @@ def create_classification_xml(classification_json_path: Path, output_xml_path: P
             ymax = ET.SubElement(bndbox, "ymax")
             ymax.text = str(bounding_box.get("ymax", 0))
             
-            # ✅ NEW: Add classification-specific attributes
+            #   NEW: Add classification-specific attributes
             attributes = ET.SubElement(obj, "attributes")
             
             # Segment information
@@ -146,13 +146,13 @@ def create_classification_xml(classification_json_path: Path, output_xml_path: P
         # Write XML file
         tree.write(output_xml_path, encoding="utf-8", xml_declaration=True)
         
-        _log(f"[XML CONVERT] ✅ Created classification XML: {output_xml_path.name}")
+        _log(f"[XML CONVERT]   Created classification XML: {output_xml_path.name}")
         _log(f"[XML CONVERT] Converted {len(hotspots)} classified hotspots")
         
         return True
         
     except Exception as e:
-        _log(f"[XML CONVERT] ❌ Failed to create classification XML: {e}")
+        _log(f"[XML CONVERT]  Failed to create classification XML: {e}")
         return False
 
 
@@ -168,7 +168,7 @@ def update_classification_wrapper_with_xml_creation():
         try:
             # ... existing JSON and mask saving code ...
             
-            # ✅ NEW: Create classification XML from JSON results
+            #   NEW: Create classification XML from JSON results
             json_path = patient_folder / f"{filename_stem}_{view}_classification.json"
             
             # Determine view for XML file naming (use short names: ant/post)
@@ -184,9 +184,9 @@ def update_classification_wrapper_with_xml_creation():
             )
             
             if xml_success:
-                _log(f"       ✅ Created classification XML: {xml_output_path.name}")
+                _log(f"         Created classification XML: {xml_output_path.name}")
             else:
-                _log(f"       ❌ Failed to create classification XML")
+                _log(f"        Failed to create classification XML")
             
             # ... rest of existing code ...
             
@@ -281,7 +281,7 @@ def compare_xml_files(original_xml: Path, classification_xml: Path) -> Dict:
         return {}
 
 
-# ✅ EXAMPLE USAGE AND INTEGRATION
+#   EXAMPLE USAGE AND INTEGRATION
 def example_integration():
     """
     Example of how to integrate this into your existing workflow
@@ -301,7 +301,7 @@ def example_integration():
             json_path = patient_folder / f"{filename_stem}_{view}_classification.json"
             # ... JSON saving code ...
             
-            # ✅ NEW: Create classification XML
+            #   NEW: Create classification XML
             view_short = "ant" if "anterior" in view.lower() else "post"
             xml_output_path = patient_folder / f"{filename_stem}_{view_short}_classification.xml"
             
@@ -317,7 +317,7 @@ def example_integration():
             )
             
             if xml_success:
-                _log(f"       ✅ Saved: {json_path.name}, {xml_output_path.name}")
+                _log(f"         Saved: {json_path.name}, {xml_output_path.name}")
                 
                 # Optional: Compare with original YOLO XML
                 original_xml = patient_folder / f"{filename_stem}_{view_short}.xml"
@@ -325,7 +325,7 @@ def example_integration():
                     comparison = compare_xml_files(original_xml, xml_output_path)
                     _log(f"       📊 Filtering removed {comparison.get('removed_hotspots', 0)} background hotspots")
             else:
-                _log(f"       ❌ Failed to create XML from: {json_path.name}")
+                _log(f"        Failed to create XML from: {json_path.name}")
             
             # ... existing mask saving code ...
             

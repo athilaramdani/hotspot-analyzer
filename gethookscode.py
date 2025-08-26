@@ -20,7 +20,7 @@ def save_hooks_to_txt(folder="hooks", output_file="all_hooks_code.txt"):
             
             outfile.write("\n\n")  # kasih jarak antar file
 
-    print(f"✅ Semua file hooks berhasil digabung ke {output_file}")
+    print(f"  Semua file hooks berhasil digabung ke {output_file}")
 
 if __name__ == "__main__":
     save_hooks_to_txt("hooks", "all_hooks_code.txt")

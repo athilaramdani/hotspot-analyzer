@@ -111,9 +111,9 @@ class SegmentationEditorDialog(BaseEditorDialog):
         """Load existing mask with proper priority using NEWEST paths."""
         
         # Debug output to show which files we're using
-        print(f"🔍 [SEGMENTATION LOAD] Loading mask for {self.view_short}")
-        print(f"🔍 [SEGMENTATION LOAD] Segmentation file: {self.segmentation_path}")
-        print(f"🔍 [SEGMENTATION LOAD] File exists: {self.segmentation_path.exists() if self.segmentation_path else False}")
+        print(f"  [SEGMENTATION LOAD] Loading mask for {self.view_short}")
+        print(f"  [SEGMENTATION LOAD] Segmentation file: {self.segmentation_path}")
+        print(f"  [SEGMENTATION LOAD] File exists: {self.segmentation_path.exists() if self.segmentation_path else False}")
         
         # The path self.segmentation_path now points to the NEWEST file
         if self.segmentation_path and self.segmentation_path.exists():
@@ -210,11 +210,11 @@ class SegmentationEditorDialog(BaseEditorDialog):
 
         self._validate_session_info()
 
-        # ✅ CORRECTED: Use proper filename stem with study date
+        #   CORRECTED: Use proper filename stem with study date
         filename_stem_with_date = generate_filename_stem(self.patient_id, self.study_date)
         self.seg_files = get_planar_segmentation_files(patient_folder, filename_stem_with_date, self.view)
         
-        # ✅ FIX: Correct the paths based on actual view
+        #   FIX: Correct the paths based on actual view
         # The get_planar_segmentation_files() function seems to be returning wrong paths
         # Let's fix them based on the actual view
         view_short = self.view.lower()[:3]  # "anterior" -> "ant", "posterior" -> "pos"
@@ -268,7 +268,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
 
     def _load_images_and_masks(self):
         """Load original image and segmentation mask with corrected logic."""
-        # ✅ CORRECTED: Load original PNG with proper naming
+        #   CORRECTED: Load original PNG with proper naming
         filename_stem_with_date = generate_filename_stem(self.patient_id, self.study_date)
         patient_folder = self.dicom_path.parent
         view_normalized = self.view.lower()
@@ -292,7 +292,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
             self._load_from_scan_frames()
             self.has_orig_png = False
 
-        # ✅ CORRECTED: Load mask with proper priority and path handling
+        #   CORRECTED: Load mask with proper priority and path handling
         self.mask_arr = self._load_mask_from_available_sources()
 
         # Ensure mask has same dimensions as original image
@@ -302,9 +302,9 @@ class SegmentationEditorDialog(BaseEditorDialog):
             mask_pil = Image.fromarray(self.mask_arr)
             mask_resized = mask_pil.resize((self.orig_arr.shape[1], self.orig_arr.shape[0]), Image.NEAREST)
             self.mask_arr = np.array(mask_resized)
-            print(f"✅ Mask resized to: {self.mask_arr.shape}")
+            print(f"  Mask resized to: {self.mask_arr.shape}")
 
-        print(f"✅ Final mask loaded with shape: {self.mask_arr.shape}, unique values: {np.unique(self.mask_arr)}")
+        print(f"  Final mask loaded with shape: {self.mask_arr.shape}, unique values: {np.unique(self.mask_arr)}")
 
     def _load_from_scan_frames(self):
         """Load from scan frames with case-insensitive matching."""
@@ -326,7 +326,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
             raise KeyError(f"View '{self.view}' not found in frames: {available_views}")
 
     def _load_mask_from_available_sources(self) -> np.ndarray:
-        """✅ FIXED: Load mask from available files with safe key access."""
+        """  FIXED: Load mask from available files with safe key access."""
         print(f"DEBUG: Looking for mask files for view '{self.view}'")
         
         # Define possible key mappings based on your actual file structure
@@ -347,7 +347,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
                 path = self.seg_files[key]
                 print(f"  Checking key '{key}': {path}")
                 if path and path.exists():
-                    print(f"✅ Loading mask from: {path}")
+                    print(f"  Loading mask from: {path}")
                     
                     # Handle different file types
                     if key in ['segmentation_png', 'mask_png']:
@@ -362,16 +362,16 @@ class SegmentationEditorDialog(BaseEditorDialog):
                         if np.all(mask == 0):
                             print(f"⚠️ WARNING: Loaded mask file '{path.name}' is all black (empty).")
                         else:
-                            print(f"✅ Loaded mask with {len(np.unique(mask))} unique values: {np.unique(mask)}")
+                            print(f"  Loaded mask with {len(np.unique(mask))} unique values: {np.unique(mask)}")
                         return mask
                 else:
                     print(f"  Key '{key}' path does not exist: {path}")
         
-        print(f"❌ No valid segmentation file found. Creating empty mask.")
+        print(f" No valid segmentation file found. Creating empty mask.")
         return np.zeros_like(self.orig_arr, dtype=np.uint8)
 
     def _load_mask_from_file(self, png_path: Path) -> np.ndarray:
-        """✅ NEW: Load mask from file, handling both colored and grayscale formats."""
+        """  NEW: Load mask from file, handling both colored and grayscale formats."""
         try:
             img = Image.open(png_path)
             
@@ -391,7 +391,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
             return np.zeros((self.orig_arr.shape[0], self.orig_arr.shape[1]), np.uint8)
 
     def _create_toolbar(self):
-        """✅ MODULAR: Create segmentation-specific toolbar using modular components."""
+        """  MODULAR: Create segmentation-specific toolbar using modular components."""
         super()._create_toolbar()
         
         # Palette component
@@ -438,7 +438,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
         """Create instructions with current data info using NEWEST file logic."""
         data_source = "Original PNG loaded" if self.has_orig_png else "DICOM frames used"
         
-        # ✅ UPDATED LOGIC: Show info about newest segmentation file loaded
+        #   UPDATED LOGIC: Show info about newest segmentation file loaded
         mask_status = ""
         
         if self.segmentation_path and self.segmentation_path.exists():
@@ -464,7 +464,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
         patient_id = getattr(self, 'patient_id', 'Unknown')
         study_date = getattr(self, 'study_date', 'Unknown')
 
-        # ✅ CREATE COMPACT SCROLLABLE INSTRUCTIONS
+        #   CREATE COMPACT SCROLLABLE INSTRUCTIONS
         # Create main container
         container = QWidget()
         container_layout = QVBoxLayout(container)
@@ -486,8 +486,8 @@ class SegmentationEditorDialog(BaseEditorDialog):
         
         # Create scrollable area for instructions
         scroll_area = QScrollArea()
-        scroll_area.setMaximumHeight(120)  # ✅ Compact height
-        scroll_area.setMinimumHeight(100)  # ✅ Minimum height
+        scroll_area.setMaximumHeight(120)  #   Compact height
+        scroll_area.setMinimumHeight(100)  #   Minimum height
         scroll_area.setWidgetResizable(True)
         scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -516,10 +516,10 @@ class SegmentationEditorDialog(BaseEditorDialog):
                 background: #f9f9f9;
                 padding: 6px;
                 border-radius: 4px;
-                font-size: 12px;        /* ✅ BIGGER FONT: 10px -> 12px */
-                line-height: 1.4;       /* ✅ BETTER SPACING */
-                color: #333;            /* ✅ DARKER COLOR */
-                font-weight: 500;       /* ✅ MEDIUM WEIGHT */
+                font-size: 12px;        /*   BIGGER FONT: 10px -> 12px */
+                line-height: 1.4;       /*   BETTER SPACING */
+                color: #333;            /*   DARKER COLOR */
+                font-weight: 500;       /*   MEDIUM WEIGHT */
             }
         """)
         
@@ -527,7 +527,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
         container_layout.addWidget(scroll_area)
         
         # Style the container with height limit
-        container.setMaximumHeight(180)  # ✅ LIMIT TOTAL HEIGHT
+        container.setMaximumHeight(180)  #   LIMIT TOTAL HEIGHT
         container.setStyleSheet("""
             QWidget {
                 background: #f0f0f0;
@@ -539,7 +539,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
 
 
     def _create_main_area(self):
-        """✅ MODULAR: Create main canvas area using modular components."""
+        """  MODULAR: Create main canvas area using modular components."""
         super()._create_main_area()
         
         # Info panel
@@ -585,7 +585,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
             self.lbl_grid_info.setText("Grid: Off")
 
     def _connect_signals(self):
-        """✅ MODULAR: Connect UI signals using modular components."""
+        """  MODULAR: Connect UI signals using modular components."""
         # Palette signals
         self.palette.currentRowChanged.connect(self._change_label)
         
@@ -608,7 +608,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
         self.btn_cancel.clicked.connect(self.reject)
         self.setFocus()
         
-        print("✅ All signals connected in SegmentationEditorDialog")
+        print("  All signals connected in SegmentationEditorDialog")
 
     def _change_label(self, idx: int):
         """Handle palette selection."""
@@ -619,20 +619,20 @@ class SegmentationEditorDialog(BaseEditorDialog):
     def _perform_undo(self):
         """Perform undo for current layer."""
         """Perform undo for current layer - IMPROVED implementation."""
-        print("🔍 _perform_undo called in SegmentationEditorDialog")
+        print("  _perform_undo called in SegmentationEditorDialog")
         
-        # ✅ FIX: Add safety checks and better error handling
+        #   FIX: Add safety checks and better error handling
         if not hasattr(self, 'palette') or not self.palette:
-            print("❌ No palette available for undo")
+            print(" No palette available for undo")
             return
             
         if not hasattr(self, 'canvas') or not self.canvas:
-            print("❌ No canvas available for undo")
+            print(" No canvas available for undo")
             return
         
         current_label = self.palette.list_palette.currentRow()
         if current_label < 0:
-            print("❌ No valid label selected for undo")
+            print(" No valid label selected for undo")
             return
             
         print(f"🔄 Performing undo for label {current_label}")
@@ -640,26 +640,26 @@ class SegmentationEditorDialog(BaseEditorDialog):
         # Call canvas undo method
         try:
             self.canvas.undo(current_label)
-            print("✅ Undo operation completed")
+            print("  Undo operation completed")
         except Exception as e:
-            print(f"❌ Undo failed: {e}")
+            print(f" Undo failed: {e}")
 
     def _perform_redo(self):
         """Perform redo for current layer."""
-        print("🔍 _perform_redo called in SegmentationEditorDialog")
+        print("  _perform_redo called in SegmentationEditorDialog")
         
-        # ✅ FIX: Add safety checks and better error handling
+        #   FIX: Add safety checks and better error handling
         if not hasattr(self, 'palette') or not self.palette:
-            print("❌ No palette available for redo")
+            print(" No palette available for redo")
             return
             
         if not hasattr(self, 'canvas') or not self.canvas:
-            print("❌ No canvas available for redo")
+            print(" No canvas available for redo")
             return
         
         current_label = self.palette.list_palette.currentRow()
         if current_label < 0:
-            print("❌ No valid label selected for redo")
+            print(" No valid label selected for redo")
             return
             
         print(f"🔄 Performing redo for label {current_label}")
@@ -667,9 +667,9 @@ class SegmentationEditorDialog(BaseEditorDialog):
         # Call canvas redo method
         try:
             self.canvas.redo(current_label)
-            print("✅ Redo operation completed")
+            print("  Redo operation completed")
         except Exception as e:
-            print(f"❌ Redo failed: {e}")
+            print(f" Redo failed: {e}")
 
 
     def _save_all(self):
@@ -718,15 +718,15 @@ class SegmentationEditorDialog(BaseEditorDialog):
                 editor_session=self.editor_session
             )
             
-            # ✅ FIX: Connect signals - HANYA GUNAKAN SATU COMPLETION SIGNAL
+            #   FIX: Connect signals - HANYA GUNAKAN SATU COMPLETION SIGNAL
             if hasattr(self.save_thread, 'progress_updated'):
                 self.save_thread.progress_updated.connect(self._update_progress)
 
-            # ✅ GUNAKAN HANYA save_completed (yang ada editing time)
+            #   GUNAKAN HANYA save_completed (yang ada editing time)
             if hasattr(self.save_thread, 'save_completed'):
                 self.save_thread.save_completed.connect(self._on_save_success)
 
-            # ✅ HAPUS finished connection untuk avoid duplicate dialog
+            #   HAPUS finished connection untuk avoid duplicate dialog
             # self.save_thread.finished.connect(self._on_save_finished)  # HAPUS INI
 
             if hasattr(self.save_thread, 'error_occurred'):
@@ -928,9 +928,9 @@ class SegmentationEditorDialog(BaseEditorDialog):
         """Handle save thread completion (same as hotspot editor)."""
         from PySide6.QtWidgets import QMessageBox
         
-        print("🧪 [DEBUG SEGMENTATION] ===================")
-        print("🧪 [DEBUG SEGMENTATION] Save finished!")
-        print("🧪 [DEBUG SEGMENTATION] About to emit signal...")
+        print("  [DEBUG SEGMENTATION] ===================")
+        print("  [DEBUG SEGMENTATION] Save finished!")
+        print("  [DEBUG SEGMENTATION] About to emit signal...")
         
         # Close loading dialog
         if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
@@ -955,14 +955,14 @@ class SegmentationEditorDialog(BaseEditorDialog):
         # Re-enable save button
         self.btn_save.setEnabled(True)
             
-        # ✅ EMIT SIGNAL SEPERTI HOTSPOT EDITOR
-        print("🧪 [DEBUG SEGMENTATION] Checking if signal exists...")
+        #   EMIT SIGNAL SEPERTI HOTSPOT EDITOR
+        print("  [DEBUG SEGMENTATION] Checking if signal exists...")
         if hasattr(self, 'editor_completed'):
-            print("🧪 [DEBUG SEGMENTATION] Signal exists, emitting...")
+            print("  [DEBUG SEGMENTATION] Signal exists, emitting...")
             self.editor_completed.emit()
-            print("🧪 [DEBUG SEGMENTATION] Signal emitted!")
+            print("  [DEBUG SEGMENTATION] Signal emitted!")
         else:
-            print("🧪 [DEBUG SEGMENTATION] ❌ Signal does not exist!")
+            print("  [DEBUG SEGMENTATION]  Signal does not exist!")
         
         # Close dialog
         self.accept()
@@ -1096,10 +1096,10 @@ class SegmentationEditorDialog(BaseEditorDialog):
                 
                 writer.writerow(log_entry)
             
-            print(f"✅ Editing time logged to '{log_file.name}': {formatted_time} for patient {self.patient_id}")
+            print(f"  Editing time logged to '{log_file.name}': {formatted_time} for patient {self.patient_id}")
 
         except Exception as e:
-            print(f"❌ Failed to save editing time log: {e}")
+            print(f" Failed to save editing time log: {e}")
 
     def closeEvent(self, event):
         """Handle dialog close to stop timer."""

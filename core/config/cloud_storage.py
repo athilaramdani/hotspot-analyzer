@@ -79,18 +79,18 @@ class CloudStorageManager:
                 MaxKeys=1
             )
             
-            logger.info("✅ Connection test successful")
+            logger.info("  Connection test successful")
             return True
             
         except ClientError as e:
             error_code = e.response.get('Error', {}).get('Code', 'Unknown')
-            logger.error(f"❌ Connection test failed: {error_code} - {e}")
+            logger.error(f" Connection test failed: {error_code} - {e}")
             return False
         except NoCredentialsError:
-            logger.error("❌ Invalid credentials")
+            logger.error(" Invalid credentials")
             return False
         except Exception as e:
-            logger.error(f"❌ Connection test failed: {e}")
+            logger.error(f" Connection test failed: {e}")
             return False
     
     def upload_file(self, local_path: Path, cloud_path: str = None, 
@@ -126,14 +126,14 @@ class CloudStorageManager:
                 cloud_path
             )
             
-            logger.info(f"✅ Uploaded: {local_path} → {cloud_path}")
+            logger.info(f"  Uploaded: {local_path} → {cloud_path}")
             return True
             
         except ClientError as e:
-            logger.error(f"❌ Upload failed: {e}")
+            logger.error(f" Upload failed: {e}")
             return False
         except Exception as e:
-            logger.error(f"❌ Upload failed: {e}")
+            logger.error(f" Upload failed: {e}")
             return False
     
     def download_file(self, cloud_path: str, local_path: Path = None,
@@ -169,14 +169,14 @@ class CloudStorageManager:
                 str(local_path)
             )
             
-            logger.info(f"✅ Downloaded: {cloud_path} → {local_path}")
+            logger.info(f"  Downloaded: {cloud_path} → {local_path}")
             return True
             
         except ClientError as e:
-            logger.error(f"❌ Download failed: {e}")
+            logger.error(f" Download failed: {e}")
             return False
         except Exception as e:
-            logger.error(f"❌ Download failed: {e}")
+            logger.error(f" Download failed: {e}")
             return False
     
     def file_exists(self, cloud_path: str) -> bool:
@@ -339,7 +339,7 @@ class CloudStorageManager:
     def sync_original_png_files_only(self, session_code: str, patient_id: str = None, 
                                    modality: str = "SPECT") -> Tuple[int, int]:
         """
-        ✅ FIXED: Sync only original PNG files (*_original.png)
+          FIXED: Sync only original PNG files (*_original.png)
         
         Args:
             session_code: Session/doctor code
@@ -371,14 +371,14 @@ class CloudStorageManager:
                 logger.warning(f"Local folder doesn't exist: {local_folder}")
                 return (0, 0)
             
-            # ✅ ONLY UPLOAD ORIGINAL PNG FILES
+            #   ONLY UPLOAD ORIGINAL PNG FILES
             for patient_folder in local_folder.iterdir() if not patient_id else [local_folder]:
                 if patient_folder.is_dir():
                     patient_id_current = patient_folder.name if not patient_id else patient_id
                     
                     for file_path in patient_folder.iterdir():
                         if file_path.is_file():
-                            # ✅ ONLY UPLOAD ORIGINAL PNG FILES
+                            #   ONLY UPLOAD ORIGINAL PNG FILES
                             should_upload = (
                                 file_path.suffix.lower() == '.png' and
                                 file_path.name.endswith('_original.png')
@@ -390,9 +390,9 @@ class CloudStorageManager:
                                 if not self.file_exists(cloud_path):
                                     if self.upload_file(file_path, cloud_path):
                                         uploaded += 1
-                                        logger.info(f"✅ Uploaded original PNG: {file_path.name}")
+                                        logger.info(f"  Uploaded original PNG: {file_path.name}")
                                     else:
-                                        logger.error(f"❌ Failed to upload: {file_path.name}")
+                                        logger.error(f" Failed to upload: {file_path.name}")
                                 else:
                                     logger.info(f"⏭️  PNG already exists: {file_path.name}")
             
@@ -406,7 +406,7 @@ class CloudStorageManager:
     def upload_patient_file(self, local_file: Path, session_code: str, 
                       patient_id: str, is_edited: bool = False) -> bool:
         """
-        ✅ FIXED: Upload patient file - support both original and edited files
+          FIXED: Upload patient file - support both original and edited files
         
         Args:
             local_file: Local file path
@@ -458,7 +458,7 @@ def download_file(cloud_path: str, local_path: Path = None) -> bool:
 def sync_spect_data_selective(session_code: str = None, patient_id: str = None, 
                             original_png_only: bool = True) -> Tuple[int, int]:
     """
-    ✅ FIXED: Sync SPECT data with selective upload option
+      FIXED: Sync SPECT data with selective upload option
     
     Args:
         session_code: Session code
@@ -473,7 +473,7 @@ def sync_spect_data_selective(session_code: str = None, patient_id: str = None,
     else:
         return cloud_storage.sync_patient_data(session_code, patient_id, "SPECT")
 
-# ✅ FIXED: Default to PNG-only uploads
+#   FIXED: Default to PNG-only uploads
 def sync_spect_data(session_code: str = None, patient_id: str = None) -> Tuple[int, int]:
     """Sync SPECT data - ORIGINAL PNG FILES ONLY by default"""
     return sync_spect_data_selective(session_code, patient_id, original_png_only=True)
@@ -497,7 +497,7 @@ def sync_pet_data(session_code: str = None, patient_id: str = None) -> Tuple[int
 
 def upload_patient_file(local_file: Path, session_code: str, patient_id: str, 
                        is_edited: bool = False) -> bool:
-    """✅ FIXED: Upload edited files (not just original PNG)"""
+    """  FIXED: Upload edited files (not just original PNG)"""
     return cloud_storage.upload_patient_file(local_file, session_code, patient_id, is_edited)
 
 def test_cloud_connection() -> bool:

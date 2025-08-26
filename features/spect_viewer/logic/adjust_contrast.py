@@ -170,7 +170,7 @@ class ContrastDialog(QDialog):
         self.pad = BCPad() # Make pad an instance variable
         self.pad.valueChanged.connect(self._on_pad_change)
         
-        # ✅ 2. CONNECT the pad's signal to our new live preview signal
+        #   2. CONNECT the pad's signal to our new live preview signal
         self.pad.valueChanged.connect(self.adjustment_changed)
 
         btn_ok = QPushButton("Apply")

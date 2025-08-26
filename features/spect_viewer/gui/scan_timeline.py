@@ -22,7 +22,7 @@ from core.config.paths import (
     get_planar_hotspot_files,
     get_planar_segmentation_files,
     get_patient_planar_path,
-    load_original_image_from_path  # ✅ TAMBAHAN
+    load_original_image_from_path  #   TAMBAHAN
 )
 
 # Import legacy functions from archive if needed
@@ -42,7 +42,7 @@ from core.utils.image_converter import (
 
 # Import for patient/session extraction from path
 from features.dicom_import.logic.dicom_loader import extract_patient_info_from_path
-# ✅ FIXED: Import updated image inverter functions
+#   FIXED: Import updated image inverter functions
 from ..logic.image_inverter import invert_image_colors, simple_invert_pil_image
 from ..logic.adjust_contrast import apply_brightness_contrast
 
@@ -105,12 +105,12 @@ def _pil_to_pixmap(pil_image: Image.Image, width: int) -> QPixmap:
 # --------------------------- main widget -------------------------------------
 class ScanTimelineWidget(QWidget):
     """
-    ✅ FIXED: Enhanced timeline widget - CLASSIFICATION ONLY:
-    - ✅ Only shows classification results (no YOLO/Otsu)
-    - ✅ Hotspot layer = classification_mask.png only
-    - ✅ HotspotBBox layer = classification.xml only  
-    - ✅ Editor sends classification files to hotspot editor
-    - ✅ Clean separation from detection/segmentation pipeline
+      FIXED: Enhanced timeline widget - CLASSIFICATION ONLY:
+    -   Only shows classification results (no YOLO/Otsu)
+    -   Hotspot layer = classification_mask.png only
+    -   HotspotBBox layer = classification.xml only  
+    -   Editor sends classification files to hotspot editor
+    -   Clean separation from detection/segmentation pipeline
     """
     # Signals
     scan_selected = Signal(int)  # Emit scan index when selected
@@ -123,15 +123,15 @@ class ScanTimelineWidget(QWidget):
         self._active_layers = []
         self._scans_cache: List[Dict] = []
         
-        # ✅ NEW: Track image labels for smooth zoom
+        #   NEW: Track image labels for smooth zoom
         self._image_labels: List[QLabel] = []
         self._original_pixmaps: List[QPixmap] = []  # Store original size pixmaps
         
-        # ✅ NEW: Layer caching system
+        #   NEW: Layer caching system
         self._layer_image_cache = {}  # Format: "scan_path_view_layer" -> PIL_Image
         self._cache_stats = {"hits": 0, "misses": 0}  # Performance tracking
 
-        # ✅ NEW: Smart update tracking
+        #   NEW: Smart update tracking
         self._previous_layers = []  # Track previous active layers
         self._previous_opacities = {}  # Track previous opacities
         self._previous_scan_index = -1  # Track previous scan
@@ -159,26 +159,26 @@ class ScanTimelineWidget(QWidget):
         # Session code for path resolution
         self.session_code = None
         
-        # ✅ NEW: BSI integration
+        #   NEW: BSI integration
         self.bsi_integration = get_bsi_integration()
         
         self._build_ui()
         self._setup_keyboard_shortcuts()
 
     def _generate_cache_key(self, scan_path: str, view: str, layer: str) -> str:
-        """✅ IMPROVED: Generate unique cache key including invert state"""
+        """  IMPROVED: Generate unique cache key including invert state"""
         invert_suffix = "_inverted" if self.invert_original else "_normal"
         return f"{scan_path}_{view}_{layer}{invert_suffix}"
 
     def _clear_layer_cache(self):
-        """✅ IMPROVED: Clear layer cache dengan logging yang lebih baik"""
+        """  IMPROVED: Clear layer cache dengan logging yang lebih baik"""
         cache_size_before = len(self._layer_image_cache)
         self._layer_image_cache.clear()
         
         # Reset cache stats
         self._cache_stats = {"hits": 0, "misses": 0}
         
-        # ✅ TAMBAHAN: Clear zoom cache juga karena gambar berubah
+        #   TAMBAHAN: Clear zoom cache juga karena gambar berubah
         self._image_labels.clear()
         self._original_pixmaps.clear()
         
@@ -186,14 +186,14 @@ class ScanTimelineWidget(QWidget):
         print(f"[CACHE CLEAR] Cleared zoom cache ({len(self._image_labels)} labels)")
 
     def _print_cache_stats(self):
-        """✅ NEW: Print cache performance statistics"""
+        """  NEW: Print cache performance statistics"""
         total = self._cache_stats["hits"] + self._cache_stats["misses"]
         if total > 0:
             hit_rate = (self._cache_stats["hits"] / total) * 100
             print(f"[CACHE STATS] Hits: {self._cache_stats['hits']}, Misses: {self._cache_stats['misses']}, Hit Rate: {hit_rate:.1f}%")
 
     def _get_cached_layers(self, scan_path: str, view: str) -> Dict[str, Image.Image]:
-        """✅ NEW: Retrieve cached layers for a scan and view"""
+        """  NEW: Retrieve cached layers for a scan and view"""
         cached_layers = {}
         layers_to_check = ["Image", "Segmentation", "Hotspot", "HotspotBBox"]
         
@@ -211,9 +211,9 @@ class ScanTimelineWidget(QWidget):
             else:
                 print(f"[CACHE DEBUG] {layer} not in cache")
                 self._cache_stats["misses"] += 1
-                # ✅ CHANGED: Don't return None immediately, try to get partial cache
+                #   CHANGED: Don't return None immediately, try to get partial cache
         
-        # ✅ IMPROVED: Return partial cache if available
+        #   IMPROVED: Return partial cache if available
         if cached_layers:
             print(f"[CACHE PARTIAL] Returning {len(cached_layers)} cached layers: {list(cached_layers.keys())}")
             return cached_layers
@@ -224,13 +224,13 @@ class ScanTimelineWidget(QWidget):
         return cached_layers if cached_layers else None
 
     def _cache_layer_image(self, scan_path: str, view: str, layer: str, image: Image.Image):
-        """✅ NEW: Cache a layer image"""
+        """  NEW: Cache a layer image"""
         cache_key = self._generate_cache_key(scan_path, view, layer)
         self._layer_image_cache[cache_key] = image.copy()  # Store copy to avoid reference issues
         print(f"[CACHE] Cached {layer} for {view}")
     
     def _detect_changes(self, new_layers: list, new_opacities: dict, new_scan_index: int) -> dict:
-        """✅ NEW: Detect what changed since last update"""
+        """  NEW: Detect what changed since last update"""
         changes = {
             "type": "none",
             "layers_added": [],
@@ -281,7 +281,7 @@ class ScanTimelineWidget(QWidget):
         return changes
 
     def _update_state_tracking(self, layers: list, opacities: dict, scan_index: int, update_type: str):
-        """✅ NEW: Update state tracking after changes"""
+        """  NEW: Update state tracking after changes"""
         self._previous_layers = layers.copy()
         self._previous_opacities = opacities.copy()
         self._previous_scan_index = scan_index
@@ -289,7 +289,7 @@ class ScanTimelineWidget(QWidget):
         print(f"[SMART UPDATE] State updated - Type: {update_type}")
 
     def _smart_opacity_update(self, opacity_changes: list):
-        """✅ NEW: Update only opacity without rebuilding"""
+        """  NEW: Update only opacity without rebuilding"""
         if not self._image_labels:
             print(f"[SMART UPDATE] No image labels for opacity update, falling back to rebuild")
             return False
@@ -388,24 +388,24 @@ class ScanTimelineWidget(QWidget):
         return self._adjustments.get(view_name, {"brightness": 0.0, "contrast": 1.0})
     
     def set_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
-        """✅ Sets the B/C values for a specific view and rebuilds the timeline."""
+        """  Sets the B/C values for a specific view and rebuilds the timeline."""
         if view_name in self._adjustments:
             print(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
             self._adjustments[view_name]["brightness"] = brightness
             self._adjustments[view_name]["contrast"] = contrast
             
-            # ✅ PENTING: Clear cache karena B/C mempengaruhi gambar
+            #   PENTING: Clear cache karena B/C mempengaruhi gambar
             self._clear_layer_cache()
             print(f"[DEBUG] Cleared layer cache due to B/C change")
             
-            # ✅ PENTING: Force rebuild dengan cache kosong
+            #   PENTING: Force rebuild dengan cache kosong
             self._rebuild()
             print(f"[DEBUG] Rebuilt timeline with new B/C values")
         else:
             print(f"[WARN] View '{view_name}' not found in adjustments dictionary. Cannot set contrast.")
 
     def preview_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
-        """✅ FIXED: Applies a temporary B/C adjustment using the new override logic."""
+        """  FIXED: Applies a temporary B/C adjustment using the new override logic."""
         if not self._scans_cache or self.active_scan_index < 0:
             return
 
@@ -441,7 +441,7 @@ class ScanTimelineWidget(QWidget):
 
     def set_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
         """
-        ✅ Sets the B/C values for a specific view and rebuilds the timeline.
+          Sets the B/C values for a specific view and rebuilds the timeline.
         """
         if view_name in self._adjustments:
             print(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
@@ -453,14 +453,14 @@ class ScanTimelineWidget(QWidget):
 
     
     def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None, session_code: str = None):
-        """✅ FIXED: Load segmentation layer using NEWEST priority system from paths.py"""
+        """  FIXED: Load segmentation layer using NEWEST priority system from paths.py"""
         try:
             if study_date_folder is None:
                 study_date_folder = dicom_path.parent
                 
             view_name = "anterior" if view_normalized in ["anterior", "ant"] else "posterior"
             
-            # ✅ NEW: Use the same function as hotspot editor
+            #   NEW: Use the same function as hotspot editor
             from core.config.paths import get_newest_segmentation_path
             
             segmentation_path = get_newest_segmentation_path(study_date_folder, view_name)
@@ -471,9 +471,9 @@ class ScanTimelineWidget(QWidget):
                 seg_image = load_image_with_transparency(segmentation_path, make_transparent=True)
                 if seg_image:
                     layers["Segmentation"] = seg_image
-                    print(f"[DEBUG] ✅ Loaded segmentation with transparency: {segmentation_path}")
+                    print(f"[DEBUG]   Loaded segmentation with transparency: {segmentation_path}")
                     
-                    # ✅ DEBUG: Show if this is edited or original file
+                    #   DEBUG: Show if this is edited or original file
                     is_edited = "_" in segmentation_path.stem and len(segmentation_path.stem.split('_')[-1]) == 6 and segmentation_path.stem.split('_')[-1].isdigit()
                     file_type = "EDITED" if is_edited else "ORIGINAL"
                     print(f"[DEBUG] Segmentation type: {file_type}")
@@ -484,14 +484,14 @@ class ScanTimelineWidget(QWidget):
             print(f"[ERROR] Failed to load segmentation layer: {e}")
 
     def _load_hotspot_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None, session_code: str = None):
-        """✅ FIXED: Load hotspot layer using NEWEST priority system from paths.py"""
+        """  FIXED: Load hotspot layer using NEWEST priority system from paths.py"""
         try:
             if study_date_folder is None:
                 study_date_folder = dicom_path.parent
                 
             view_name = "anterior" if view_normalized in ["anterior", "ant"] else "posterior"
             
-            # ✅ NEW: Use the same function as hotspot editor
+            #   NEW: Use the same function as hotspot editor
             from core.config.paths import get_newest_hotspot_classification_path
             
             classification_png = get_newest_hotspot_classification_path(study_date_folder, view_name)
@@ -501,9 +501,9 @@ class ScanTimelineWidget(QWidget):
                 hotspot_image = load_image_with_transparency(classification_png)
                 if hotspot_image:
                     layers["Hotspot"] = hotspot_image
-                    print(f"[DEBUG] ✅ Loaded hotspot layer: {classification_png}")
+                    print(f"[DEBUG]   Loaded hotspot layer: {classification_png}")
                     
-                    # ✅ DEBUG: Show if this is edited or original file
+                    #   DEBUG: Show if this is edited or original file
                     is_edited = "_" in classification_png.stem and len(classification_png.stem.split('_')[-1]) == 6 and classification_png.stem.split('_')[-1].isdigit()
                     file_type = "EDITED" if is_edited else "ORIGINAL"
                     print(f"[DEBUG] Hotspot type: {file_type}")
@@ -514,7 +514,7 @@ class ScanTimelineWidget(QWidget):
             print(f"[ERROR] Failed to load hotspot layer: {e}")
 
     def _load_bbox_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None, session_code: str = None):
-        """✅ FIXED: Load bounding box layer using NEWEST priority system from paths.py"""
+        """  FIXED: Load bounding box layer using NEWEST priority system from paths.py"""
         try:
             if study_date_folder is None:
                 study_date_folder = dicom_path.parent
@@ -522,7 +522,7 @@ class ScanTimelineWidget(QWidget):
             view_name = "anterior" if view_normalized in ["anterior", "ant"] else "posterior"
             view_short = "ant" if view_name == "anterior" else "post"
             
-            # ✅ NEW: Use the same function as hotspot editor
+            #   NEW: Use the same function as hotspot editor
             from core.config.paths import get_newest_hotspot_classification_path
             
             classification_png = get_newest_hotspot_classification_path(study_date_folder, view_name)
@@ -553,9 +553,9 @@ class ScanTimelineWidget(QWidget):
                     bbox_image = self._create_bbox_visualization_from_classification(classification_xml, image_dimensions)
                     if bbox_image:
                         layers["HotspotBBox"] = bbox_image
-                        print(f"[DEBUG] ✅ Loaded bbox layer: {classification_xml}")
+                        print(f"[DEBUG]   Loaded bbox layer: {classification_xml}")
                         
-                        # ✅ DEBUG: Show if this is edited or original file
+                        #   DEBUG: Show if this is edited or original file
                         is_edited = "_" in classification_xml.stem and len(classification_xml.stem.split('_')[-1]) == 6 and classification_xml.stem.split('_')[-1].isdigit()
                         file_type = "EDITED" if is_edited else "ORIGINAL"
                         print(f"[DEBUG] BBox XML type: {file_type}")
@@ -566,7 +566,7 @@ class ScanTimelineWidget(QWidget):
             print(f"[ERROR] Failed to load bbox layer: {e}")
 
     def has_layer_data(self, layer: str) -> bool:
-        """✅ FIXED: Check if layer data is available using NEWEST priority system"""
+        """  FIXED: Check if layer data is available using NEWEST priority system"""
         if not self._scans_cache:
             return False
         
@@ -586,7 +586,7 @@ class ScanTimelineWidget(QWidget):
                 # Use patient folder (study_date folder) directly
                 patient_folder = dicom_path.parent
 
-                # ✅ Check each view using newest priority system
+                #   Check each view using newest priority system
                 for view_name in ["anterior", "posterior"]:
                     if layer == "Image":
                         # Check for original image files
@@ -617,7 +617,7 @@ class ScanTimelineWidget(QWidget):
             return False
     
     def set_invert_original(self, inverted: bool):
-        """✅ OPTIMIZED: Set invert status with change detection"""
+        """  OPTIMIZED: Set invert status with change detection"""
         print(f"[DEBUG] set_invert_original called: {inverted} (current: {self.invert_original})")
         
         # Only rebuild if state actually changed
@@ -625,7 +625,7 @@ class ScanTimelineWidget(QWidget):
             old_state = self.invert_original
             self.invert_original = inverted
             
-            # ✅ UPDATED: Clear layer cache since invert affects all images
+            #   UPDATED: Clear layer cache since invert affects all images
             self._clear_layer_cache()
             print(f"[DEBUG] Cleared layer cache due to invert change")
             
@@ -665,7 +665,7 @@ class ScanTimelineWidget(QWidget):
                 }
             """)
         
-        # ✅ FIXED: Hotspot edit button - require both hotspot layer AND scan
+        #   FIXED: Hotspot edit button - require both hotspot layer AND scan
         if has_hotspot and has_scan:
             self.hotspot_edit_btn.setEnabled(True)
             self.hotspot_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
@@ -688,15 +688,15 @@ class ScanTimelineWidget(QWidget):
         
         
     def _setup_timeline_scroll_area(self):
-        """✅ FIXED: Setup scrollable timeline area with BOTH horizontal and vertical scrolling"""
+        """  FIXED: Setup scrollable timeline area with BOTH horizontal and vertical scrolling"""
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
         
-        # ✅ FIXED: Enable BOTH horizontal AND vertical scrollbars
+        #   FIXED: Enable BOTH horizontal AND vertical scrollbars
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)  # ✅ FIXED: Added vertical scroll
+        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)  #   FIXED: Added vertical scroll
         
-        # ✅ NEW: Enable mouse wheel support
+        #   NEW: Enable mouse wheel support
         self.scroll_area.setFocusPolicy(Qt.WheelFocus)
         
         self.container = QWidget()
@@ -705,7 +705,7 @@ class ScanTimelineWidget(QWidget):
         self.scroll_area.setWidget(self.container)
 
     def _setup_keyboard_shortcuts(self):
-        """✅ NEW: Setup keyboard shortcuts for zoom control"""
+        """  NEW: Setup keyboard shortcuts for zoom control"""
         # Zoom in: Ctrl + Plus
         self.zoom_in_shortcut = QShortcut(QKeySequence("Ctrl++"), self)
         self.zoom_in_shortcut.activated.connect(self.zoom_in)
@@ -725,7 +725,7 @@ class ScanTimelineWidget(QWidget):
         print("[DEBUG] Timeline keyboard shortcuts enabled: Ctrl+/- for zoom, Ctrl+0 for reset")
 
     def wheelEvent(self, event: QWheelEvent):
-        """✅ NEW: Handle mouse wheel events for zoom when Ctrl is pressed"""
+        """  NEW: Handle mouse wheel events for zoom when Ctrl is pressed"""
         if event.modifiers() == Qt.ControlModifier:
             # Zoom with Ctrl + wheel
             if event.angleDelta().y() > 0:
@@ -797,7 +797,7 @@ class ScanTimelineWidget(QWidget):
         self.seg_edit_btn.clicked.connect(self._open_segmentation_editor)
         edit_layout.addWidget(self.seg_edit_btn)
         
-        # ✅ UPDATED: Hotspot edit button (classification only)
+        #   UPDATED: Hotspot edit button (classification only)
         self.hotspot_edit_btn = QPushButton("Edit Hotspot")
         self.hotspot_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
             QPushButton {
@@ -826,7 +826,7 @@ class ScanTimelineWidget(QWidget):
         """)
         layout.addWidget(self.scan_info_label)
         
-        # ✅ NEW: Zoom controls and shortcuts info
+        #   NEW: Zoom controls and shortcuts info
         zoom_group = QWidget()
         zoom_layout = QVBoxLayout(zoom_group)
         zoom_layout.setContentsMargins(0, 0, 0, 0)
@@ -859,25 +859,25 @@ class ScanTimelineWidget(QWidget):
 
     # ------------------------------------------------------ zoom
     def zoom_in(self):  
-        """✅ OPTIMIZED: Smooth zoom in using Qt scaling"""
+        """  OPTIMIZED: Smooth zoom in using Qt scaling"""
         self._zoom_factor *= 1.15
         print(f"[DEBUG] Timeline zoom in: {self._zoom_factor:.2f}")
         self._update_zoom_smooth()
         
     def zoom_out(self): 
-        """✅ OPTIMIZED: Smooth zoom out using Qt scaling"""
+        """  OPTIMIZED: Smooth zoom out using Qt scaling"""
         self._zoom_factor *= 0.87
         print(f"[DEBUG] Timeline zoom out: {self._zoom_factor:.2f}")
         self._update_zoom_smooth()
 
     def zoom_reset(self):
-        """✅ OPTIMIZED: Reset zoom using Qt scaling"""
+        """  OPTIMIZED: Reset zoom using Qt scaling"""
         self._zoom_factor = 1.0
         print(f"[DEBUG] Timeline zoom reset: {self._zoom_factor:.2f}")
         self._update_zoom_smooth()
 
     def _update_zoom_smooth(self):
-        """✅ NEW: Update zoom using Qt's native scaling (no rebuild)"""
+        """  NEW: Update zoom using Qt's native scaling (no rebuild)"""
         if not self._original_pixmaps or not self._image_labels:
             print(f"[DEBUG] No cached pixmaps, falling back to rebuild")
             self._rebuild()
@@ -902,7 +902,7 @@ class ScanTimelineWidget(QWidget):
 
     # ------------------------------------------------------ public API
     def display_timeline(self, scans: List[Dict], active_index: int = -1):
-        """✅ MODIFIED: Display timeline with BSI integration, defaulting to the first scan."""
+        """  MODIFIED: Display timeline with BSI integration, defaulting to the first scan."""
         print(f"[DEBUG] display_timeline called with {len(scans)} scan(s), focusing on index = {active_index}")
         
         updated_scans = []
@@ -920,7 +920,7 @@ class ScanTimelineWidget(QWidget):
 
     def set_active_view(self, v: str): 
         """
-        ✅ MODIFIED: This method is no longer needed as Anterior/Posterior are shown together.
+          MODIFIED: This method is no longer needed as Anterior/Posterior are shown together.
         Calling it will have no effect.
         """
         print(f"[DEBUG] set_active_view called with '{v}', but is now ignored.")
@@ -928,7 +928,7 @@ class ScanTimelineWidget(QWidget):
         pass
         
     def set_active_layers(self, layers: list): 
-        """✅ SMART: Set active layers with smart update detection"""
+        """  SMART: Set active layers with smart update detection"""
         new_layers = layers.copy()
         
         # Detect changes
@@ -962,7 +962,7 @@ class ScanTimelineWidget(QWidget):
         self.session_code = session_code
     
     def set_layer_opacity(self, layer: str, opacity: float):
-        """✅ SMART: Set opacity with smart update detection"""
+        """  SMART: Set opacity with smart update detection"""
         old_opacity = self._layer_opacities.get(layer, 1.0)
         self._layer_opacities[layer] = opacity
         print(f"[DEBUG] Set {layer} opacity to {opacity:.2f}")
@@ -979,12 +979,12 @@ class ScanTimelineWidget(QWidget):
             print(f"[SMART UPDATE] Attempting smart opacity update")
             success = self._smart_opacity_update(changes["opacities_changed"])
             if success:
-                print(f"[SMART UPDATE] ✅ Smart opacity update successful")
+                print(f"[SMART UPDATE]   Smart opacity update successful")
                 # Update state tracking
                 self._update_state_tracking(self._active_layers, self._layer_opacities, self.active_scan_index, "opacity")
                 return
             else:
-                print(f"[SMART UPDATE] ❌ Smart opacity update failed, falling back to rebuild")
+                print(f"[SMART UPDATE]  Smart opacity update failed, falling back to rebuild")
         
         # Fallback to full rebuild
         print(f"[SMART UPDATE] Using full rebuild for opacity change")
@@ -1013,7 +1013,7 @@ class ScanTimelineWidget(QWidget):
 
     
     def debug_layer_file_priority(self, scan_index: int = None):
-        """✅ NEW: Debug method to show which files are being selected by priority system"""
+        """  NEW: Debug method to show which files are being selected by priority system"""
         if scan_index is None:
             scan_index = self.active_scan_index
             
@@ -1033,12 +1033,12 @@ class ScanTimelineWidget(QWidget):
             else:
                 study_date_folder = dicom_path.parent
                 
-            print(f"\n🔍 [DEBUG PRIORITY] File priority analysis for scan {scan_index}")
-            print(f"🔍 [DEBUG PRIORITY] Study date folder: {study_date_folder}")
-            print(f"🔍 [DEBUG PRIORITY] Session code: {session_code}")
+            print(f"\n  [DEBUG PRIORITY] File priority analysis for scan {scan_index}")
+            print(f"  [DEBUG PRIORITY] Study date folder: {study_date_folder}")
+            print(f"  [DEBUG PRIORITY] Session code: {session_code}")
             
             for view in ["ant", "post"]:
-                print(f"\n🔍 [DEBUG PRIORITY] === {view.upper()} VIEW ===")
+                print(f"\n  [DEBUG PRIORITY] === {view.upper()} VIEW ===")
                 
                 # Segmentation files
                 seg_files = get_planar_segmentation_files(
@@ -1046,9 +1046,9 @@ class ScanTimelineWidget(QWidget):
                 )
                 seg_file = seg_files['segmentation_png']
                 is_seg_edited = "_20" in str(seg_file) and len(seg_file.stem.split('_')[-1]) == 6
-                print(f"🔍 [DEBUG PRIORITY] Segmentation: {seg_file}")
-                print(f"🔍 [DEBUG PRIORITY] Segmentation type: {'EDITED' if is_seg_edited else 'ORIGINAL'}")
-                print(f"🔍 [DEBUG PRIORITY] Segmentation exists: {seg_file.exists()}")
+                print(f"  [DEBUG PRIORITY] Segmentation: {seg_file}")
+                print(f"  [DEBUG PRIORITY] Segmentation type: {'EDITED' if is_seg_edited else 'ORIGINAL'}")
+                print(f"  [DEBUG PRIORITY] Segmentation exists: {seg_file.exists()}")
                 
                 # Hotspot files
                 hotspot_files = get_planar_hotspot_files(
@@ -1061,26 +1061,26 @@ class ScanTimelineWidget(QWidget):
                 is_png_edited = "_20" in str(class_png) and len(class_png.stem.split('_')[-1]) == 6
                 is_xml_edited = "_20" in str(class_xml) and len(class_xml.stem.split('_')[-1]) == 6
                 
-                print(f"🔍 [DEBUG PRIORITY] Classification PNG: {class_png}")
-                print(f"🔍 [DEBUG PRIORITY] Classification PNG type: {'EDITED' if is_png_edited else 'ORIGINAL'}")
-                print(f"🔍 [DEBUG PRIORITY] Classification PNG exists: {class_png.exists()}")
+                print(f"  [DEBUG PRIORITY] Classification PNG: {class_png}")
+                print(f"  [DEBUG PRIORITY] Classification PNG type: {'EDITED' if is_png_edited else 'ORIGINAL'}")
+                print(f"  [DEBUG PRIORITY] Classification PNG exists: {class_png.exists()}")
                 
-                print(f"🔍 [DEBUG PRIORITY] Classification XML: {class_xml}")
-                print(f"🔍 [DEBUG PRIORITY] Classification XML type: {'EDITED' if is_xml_edited else 'ORIGINAL'}")
-                print(f"🔍 [DEBUG PRIORITY] Classification XML exists: {class_xml.exists()}")
+                print(f"  [DEBUG PRIORITY] Classification XML: {class_xml}")
+                print(f"  [DEBUG PRIORITY] Classification XML type: {'EDITED' if is_xml_edited else 'ORIGINAL'}")
+                print(f"  [DEBUG PRIORITY] Classification XML exists: {class_xml.exists()}")
                 
         except Exception as e:
-            print(f"🔍 [DEBUG PRIORITY ERROR] {e}")
+            print(f"  [DEBUG PRIORITY ERROR] {e}")
             import traceback
             traceback.print_exc()
 
     # ------------------------------------------------------ rebuild
     def _clear(self):
-        # ✅ NEW: Clear zoom cache
+        #   NEW: Clear zoom cache
         self._image_labels.clear()
         self._original_pixmaps.clear()
         
-        # ✅ NEW: Print cache stats before clearing
+        #   NEW: Print cache stats before clearing
         self._print_cache_stats()
         
         while self.timeline_layout.count():
@@ -1089,7 +1089,7 @@ class ScanTimelineWidget(QWidget):
                 w.deleteLater()
     
     def _validate_zoom_cache(self) -> bool:
-        """✅ NEW: Validate if zoom cache is still valid"""
+        """  NEW: Validate if zoom cache is still valid"""
         if len(self._image_labels) != len(self._original_pixmaps):
             return False
         
@@ -1104,7 +1104,7 @@ class ScanTimelineWidget(QWidget):
         return len(self._image_labels) == expected_labels
 
     def _force_rebuild_if_needed(self):
-        """✅ NEW: Force rebuild if cache is invalid"""
+        """  NEW: Force rebuild if cache is invalid"""
         if not self._validate_zoom_cache():
             print(f"[DEBUG] Cache invalid, forcing rebuild")
             self._rebuild()
@@ -1112,7 +1112,7 @@ class ScanTimelineWidget(QWidget):
         return False
     
     def _rebuild(self):
-        """✅ MODIFIED: Rebuild to show Anterior and Posterior of the active scan side-by-side."""
+        """  MODIFIED: Rebuild to show Anterior and Posterior of the active scan side-by-side."""
         self._clear()
         print(f"[DEBUG] Rebuilding timeline for active scan index: {self.active_scan_index}")
 
@@ -1133,24 +1133,24 @@ class ScanTimelineWidget(QWidget):
         self.current_view = "Anterior"
         anterior_card = self._make_layered_card(active_scan, w, self.active_scan_index)
         self.timeline_layout.addWidget(anterior_card)
-        # ✅ FIX: Find the UNIQUE object name for the anterior label
+        #   FIX: Find the UNIQUE object name for the anterior label
         self._anterior_image_label = anterior_card.findChild(QLabel, "image_display_Anterior")
 
         # --- Create Posterior Card ---
         self.current_view = "Posterior"
         posterior_card = self._make_layered_card(active_scan, w, self.active_scan_index)
         self.timeline_layout.addWidget(posterior_card)
-        # ✅ FIX: Find the UNIQUE object name for the posterior label
+        #   FIX: Find the UNIQUE object name for the posterior label
         self._posterior_image_label = posterior_card.findChild(QLabel, "image_display_Posterior")
 
         self.timeline_layout.addStretch()
 
-        # ✅ NEW: Update state tracking after rebuild
+        #   NEW: Update state tracking after rebuild
         self._update_state_tracking(self._active_layers, self._layer_opacities, self.active_scan_index, "full")
 
     # ------------------------------------------------------ card builders
     def _make_header(self, scan: Dict, idx: int) -> QHBoxLayout:
-        """✅ FIXED: Header with BSI per frame information (no combined)"""
+        """  FIXED: Header with BSI per frame information (no combined)"""
         meta = scan["meta"]
         date_raw = meta.get("study_date", "")
         try:   
@@ -1158,7 +1158,7 @@ class ScanTimelineWidget(QWidget):
         except ValueError: 
             hdr = "Unknown"
         
-        # ✅ NEW: Always show view name, with BSI if available
+        #   NEW: Always show view name, with BSI if available
         view_name = self.current_view
         color = "#ff6b6b" if self.current_view == "Anterior" else "#4ecdc4"
         
@@ -1168,20 +1168,20 @@ class ScanTimelineWidget(QWidget):
             else:  # Posterior
                 bsi_score = meta.get("bsi_posterior", 0.0)
             
-            # ✅ FORMAT: 10 decimal places with truncation
+            #   FORMAT: 10 decimal places with truncation
             bsi_str = f"{bsi_score:.10f}".rstrip('0').rstrip('.')
             if len(bsi_str.split('.')[-1]) > 10:
                 bsi_str = f"{bsi_score:.10f}..."
             
-            # ✅ UPDATED: Show view with BSI (no percent sign)
+            #   UPDATED: Show view with BSI (no percent sign)
             view_text = f"<span style='color: {color}; font-weight: bold; font-size: 12px;'>{view_name} BSI: {bsi_str}</span>"
         else:
-            # ✅ NEW: Show view name only when no BSI
+            #   NEW: Show view name only when no BSI
             view_text = f"<span style='color: {color}; font-weight: bold; font-size: 12px;'>{view_name}</span>"
         
         hbox = QHBoxLayout()
         
-        # ✅ UPDATED: Always show view name
+        #   UPDATED: Always show view name
         header_label = QLabel(f"<b>{hdr}</b><br>{view_text}")
         header_label.setStyleSheet("font-size: 11px;")
         hbox.addWidget(header_label)
@@ -1229,11 +1229,11 @@ class ScanTimelineWidget(QWidget):
             dicom_path = Path(scan["path"])
             patient_id, session_code = extract_patient_info_from_path(dicom_path)
             
-            # ✅ TAMBAHAN: Debug dan validasi
+            #   TAMBAHAN: Debug dan validasi
             print(f"[DEBUG] Extracted patient info - ID: {patient_id}, Session: {session_code}")
             print(f"[DEBUG] Original path: {dicom_path}")
             
-            # ✅ VALIDASI: Pastikan patient_id bukan study_date (8 digit angka)
+            #   VALIDASI: Pastikan patient_id bukan study_date (8 digit angka)
             if len(patient_id) == 8 and patient_id.isdigit():
                 print(f"[WARN] Patient ID looks like study_date: {patient_id}")
                 # Coba ekstrak ulang dengan manual parsing
@@ -1259,7 +1259,7 @@ class ScanTimelineWidget(QWidget):
             return "UNKNOWN", self.session_code or "UNKNOWN"
     
     def _create_bbox_visualization_from_classification(self, xml_path: Path, image_dimensions: tuple) -> Optional[Image.Image]:
-        """✅ FIXED: Create bounding box visualization from CLASSIFICATION XML only"""
+        """  FIXED: Create bounding box visualization from CLASSIFICATION XML only"""
         try:
             import xml.etree.ElementTree as ET
             from PIL import ImageDraw, ImageFont
@@ -1277,7 +1277,7 @@ class ScanTimelineWidget(QWidget):
             bbox_image = Image.new('RGBA', (width, height), (0, 0, 0, 0))
             draw = ImageDraw.Draw(bbox_image)
             
-            # ✅ CLASSIFICATION COLOR MAPPING (from classification results)
+            #   CLASSIFICATION COLOR MAPPING (from classification results)
             color_map = {
                 "Abnormal": (255, 0, 0, 255),      # Red for abnormal classification
                 "Normal": (255, 241, 188, 255)     # Light yellow for normal classification
@@ -1315,13 +1315,13 @@ class ScanTimelineWidget(QWidget):
                         # Get color for this classification result
                         box_color = color_map.get(class_name, (255, 255, 255, 255))  # White fallback
                         
-                        # ✅ Draw thin rectangle for classification result
+                        #   Draw thin rectangle for classification result
                         draw.rectangle([xmin, ymin, xmax, ymax], 
                                     outline=box_color,
                                     fill=None,
                                     width=1)
                         
-                        # ✅ Draw classification label
+                        #   Draw classification label
                         if font:
                             # Calculate label position (above the box)
                             label_x = xmin
@@ -1358,10 +1358,10 @@ class ScanTimelineWidget(QWidget):
                     continue
             
             if boxes_found > 0:
-                print(f"[DEBUG] ✅ Created CLASSIFICATION bbox visualization with {boxes_found} boxes")
+                print(f"[DEBUG]   Created CLASSIFICATION bbox visualization with {boxes_found} boxes")
                 return bbox_image
             else:
-                print(f"[DEBUG] ❌ No valid classification boxes found in XML")
+                print(f"[DEBUG]  No valid classification boxes found in XML")
                 return None
                 
         except Exception as e:
@@ -1370,17 +1370,17 @@ class ScanTimelineWidget(QWidget):
     
     def _get_layer_images(self, scan: Dict, override_b: float = None, override_c: float = None) -> Dict[str, Image.Image]:
         """
-        ✅ COMPLETE: Get all layer images for a scan with caching, invert, and B/C support
+          COMPLETE: Get all layer images for a scan with caching, invert, and B/C support
         """
         frame_map = scan["frames"]
         dicom_path = Path(scan["path"])
         scan_path_str = str(dicom_path)
 
-        # ✅ DEBUG: Print current state
+        #   DEBUG: Print current state
         print(f"[DEBUG] DICOM path: {dicom_path}")
         print(f"[DEBUG] Current view: {self.current_view}")
         
-        # ✅ IMPROVED: Check if we should use cache
+        #   IMPROVED: Check if we should use cache
         current_adjustments = self._adjustments[self.current_view]
         has_adjustments = (current_adjustments["brightness"] != 0.0 or current_adjustments["contrast"] != 1.0)
         has_overrides = (override_b is not None and override_c is not None)
@@ -1396,7 +1396,7 @@ class ScanTimelineWidget(QWidget):
         print(f"[CACHE DEBUG] has_overrides={has_overrides} (override_b={override_b}, override_c={override_c})")
         print(f"[CACHE DEBUG] invert_original={self.invert_original}")
 
-        # ✅ CACHE CHECK: Try to get cached layers if conditions allow
+        #   CACHE CHECK: Try to get cached layers if conditions allow
         if use_cache:
             print(f"[CACHE DEBUG] Checking cache for scan: {scan_path_str}, view: {self.current_view}")
             cached_layers = self._get_cached_layers(scan_path_str, self.current_view)
@@ -1408,13 +1408,13 @@ class ScanTimelineWidget(QWidget):
         else:
             print(f"[CACHE SKIP] Skipping cache due to adjustments/overrides/invert")
 
-        # ✅ PATH EXTRACTION: Get correct paths for loading files
+        #   PATH EXTRACTION: Get correct paths for loading files
         try:
             study_date = extract_study_date_from_dicom(dicom_path)
             patient_id, session_code = self._get_patient_session_from_scan(scan)
             filename_with_date = generate_filename_stem(patient_id, study_date)
             
-            # ✅ PATH RESOLUTION: Get correct study_date_folder
+            #   PATH RESOLUTION: Get correct study_date_folder
             if session_code and session_code != "UNKNOWN":
                 # Validate patient_id is not actually study_date (8 digit number)
                 if len(patient_id) == 8 and patient_id.isdigit():
@@ -1425,13 +1425,13 @@ class ScanTimelineWidget(QWidget):
             else:
                 study_date_folder = dicom_path.parent
 
-            # ✅ PATH VALIDATION: Ensure path exists
+            #   PATH VALIDATION: Ensure path exists
             if not study_date_folder.exists():
                 print(f"[WARN] Study date folder does not exist: {study_date_folder}")
                 print(f"[DEBUG] Fallback to DICOM parent: {dicom_path.parent}")
                 study_date_folder = dicom_path.parent
                         
-            # ✅ DEBUG: Print path resolution results
+            #   DEBUG: Print path resolution results
             print(f"[DEBUG] Study date: {study_date}")
             print(f"[DEBUG] Patient ID: {patient_id}")
             print(f"[DEBUG] Session code: {session_code}")
@@ -1443,23 +1443,23 @@ class ScanTimelineWidget(QWidget):
             study_date_folder = dicom_path.parent
             print(f"[DEBUG] Fallback study_date_folder: {study_date_folder}")
 
-        # ✅ LAYER LOADING: Initialize layers dictionary
+        #   LAYER LOADING: Initialize layers dictionary
         layers = {}
         view_normalized = self.current_view.lower()
         
-        # ✅ IMAGE LAYER: Load original DICOM image
+        #   IMAGE LAYER: Load original DICOM image
         print(f"[DEBUG] Loading original image for {self.current_view}")
         original_image = load_original_image_from_path(dicom_path, self.current_view, frame_map)
         
         if original_image:
             print(f"[DEBUG] Original image loaded: {original_image.size}")
             
-            # ✅ INVERT: Apply invert if enabled
+            #   INVERT: Apply invert if enabled
             if self.invert_original:
                 print(f"[DEBUG] Applying invert to original image")
                 original_image = simple_invert_pil_image(original_image)
             
-            # ✅ BRIGHTNESS/CONTRAST: Determine which B/C values to use
+            #   BRIGHTNESS/CONTRAST: Determine which B/C values to use
             if override_b is not None and override_c is not None:
                 # Preview mode - use override values
                 brightness, contrast = override_b, override_c
@@ -1471,7 +1471,7 @@ class ScanTimelineWidget(QWidget):
                 contrast = adjustments["contrast"]
                 print(f"[DEBUG] Using STORED B/C values: B={brightness:.2f}, C={contrast:.2f}")
 
-            # ✅ BRIGHTNESS/CONTRAST: Apply adjustment if needed
+            #   BRIGHTNESS/CONTRAST: Apply adjustment if needed
             if brightness != 0.0 or contrast != 1.0:
                 print(f"[DEBUG] Applying B/C adjustment to {self.current_view}")
                 original_image = apply_brightness_contrast(
@@ -1480,23 +1480,23 @@ class ScanTimelineWidget(QWidget):
                 print(f"[DEBUG] B/C adjustment applied successfully")
 
             layers["Image"] = original_image
-            print(f"[DEBUG] ✅ Image layer loaded and processed")
+            print(f"[DEBUG]   Image layer loaded and processed")
         else:
-            print(f"[WARN] ❌ Failed to load original image for {self.current_view}")
+            print(f"[WARN]  Failed to load original image for {self.current_view}")
         
-        # ✅ SEGMENTATION LAYER: Load segmentation overlay
+        #   SEGMENTATION LAYER: Load segmentation overlay
         print(f"[DEBUG] Loading segmentation layer for {self.current_view}")
         self._load_segmentation_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder, self.session_code)
         
-        # ✅ HOTSPOT LAYER: Load hotspot classification overlay
+        #   HOTSPOT LAYER: Load hotspot classification overlay
         print(f"[DEBUG] Loading hotspot layer for {self.current_view}")
         self._load_hotspot_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder, self.session_code)  
         
-        # ✅ BBOX LAYER: Load bounding box overlay (hidden from UI but loaded)
+        #   BBOX LAYER: Load bounding box overlay (hidden from UI but loaded)
         print(f"[DEBUG] Loading bbox layer for {self.current_view}")
         self._load_bbox_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder, self.session_code)
 
-        # ✅ CACHE STORAGE: Store loaded layers if caching is enabled
+        #   CACHE STORAGE: Store loaded layers if caching is enabled
         if use_cache and layers:
             print(f"[CACHE STORE] Storing {len(layers)} layers in cache for {self.current_view}")
             for layer_name, layer_image in layers.items():
@@ -1508,12 +1508,12 @@ class ScanTimelineWidget(QWidget):
         elif not layers:
             print(f"[CACHE STORE] Not caching - no layers loaded")
 
-        # ✅ FINAL RESULT: Return all loaded layers
-        print(f"[DEBUG] ✅ Loaded {len(layers)} layers for {self.current_view}: {list(layers.keys())}")
+        #   FINAL RESULT: Return all loaded layers
+        print(f"[DEBUG]   Loaded {len(layers)} layers for {self.current_view}: {list(layers.keys())}")
         return layers
     
     def _make_layered_card(self, scan: Dict, w: int, idx: int) -> QFrame:
-        """✅ FIXED: Create card with proper view-specific layered display"""
+        """  FIXED: Create card with proper view-specific layered display"""
         card = QFrame()
         card.setFrameStyle(QFrame.Box | QFrame.Raised)
         card.setLineWidth(1)
@@ -1545,7 +1545,7 @@ class ScanTimelineWidget(QWidget):
         
         lbl = QLabel(alignment=Qt.AlignCenter)
         lbl.setObjectName(f"image_display_{self.current_view}")
-        # ✅ FIXED: Better debug messages
+        #   FIXED: Better debug messages
         print(f"[DEBUG] Creating CLASSIFICATION card {idx} for view: {self.current_view}")
         print(f"[DEBUG] Active layers selected: {self._active_layers}")
         
@@ -1569,9 +1569,9 @@ class ScanTimelineWidget(QWidget):
                     layer_image = apply_opacity_to_image(layer_image, layer_opacity)
                 
                 active_layer_images[layer_name] = layer_image
-                print(f"[DEBUG] ✅ Added CLASSIFICATION {layer_name} to card {idx} (opacity: {layer_opacity:.2f})")
+                print(f"[DEBUG]   Added CLASSIFICATION {layer_name} to card {idx} (opacity: {layer_opacity:.2f})")
             else:
-                print(f"[DEBUG] ❌ Layer {layer_name} not found in CLASSIFICATION files for card {idx}")
+                print(f"[DEBUG]  Layer {layer_name} not found in CLASSIFICATION files for card {idx}")
                 
         if not active_layer_images:
             lbl.setText(f"No classification data available\nfor {self.current_view}")
@@ -1601,7 +1601,7 @@ class ScanTimelineWidget(QWidget):
                 pixmap = _pil_to_pixmap(display_image, w)
                 lbl.setPixmap(pixmap)
 
-                # ✅ NEW: Cache label and original pixmap for smooth zoom
+                #   NEW: Cache label and original pixmap for smooth zoom
                 self._image_labels.append(lbl)
                 self._original_pixmaps.append(pixmap)
                 
@@ -1613,7 +1613,7 @@ class ScanTimelineWidget(QWidget):
                         tooltip_parts.append(f"{layer_name}: {opacity_pct}%")
                 
                 lbl.setToolTip("Classification layers: " + " | ".join(tooltip_parts))
-                print(f"[DEBUG] ✅ CLASSIFICATION card {idx} composite created with layers: {list(active_layer_images.keys())}")
+                print(f"[DEBUG]   CLASSIFICATION card {idx} composite created with layers: {list(active_layer_images.keys())}")
                 
             except Exception as e:
                 print(f"[ERROR] Failed to create CLASSIFICATION composite image for card {idx}: {e}")
@@ -1623,7 +1623,7 @@ class ScanTimelineWidget(QWidget):
         
         lay.addWidget(lbl)
         
-        # ✅ FIXED: Create status label showing current view and classification status
+        #   FIXED: Create status label showing current view and classification status
         status_label = QLabel(f"{self.current_view}")
         status_label.setAlignment(Qt.AlignCenter)
         status_label.setStyleSheet("""

@@ -129,11 +129,11 @@ class HotspotEditorDialog(BaseEditorDialog):
         """Load existing mask with proper priority using NEWEST paths."""
         
         # Debug output to show which files we're using
-        print(f"🔍 [HOTSPOT LOAD] Loading mask for {self.view_short}")
-        print(f"🔍 [HOTSPOT LOAD] Classification PNG: {self.classification_mask_original}")
-        print(f"🔍 [HOTSPOT LOAD] XML file: {self.xml_original}")
-        print(f"🔍 [HOTSPOT LOAD] PNG exists: {self.classification_mask_original.exists() if self.classification_mask_original else False}")
-        print(f"🔍 [HOTSPOT LOAD] XML exists: {self.xml_original.exists() if self.xml_original else False}")
+        print(f"  [HOTSPOT LOAD] Loading mask for {self.view_short}")
+        print(f"  [HOTSPOT LOAD] Classification PNG: {self.classification_mask_original}")
+        print(f"  [HOTSPOT LOAD] XML file: {self.xml_original}")
+        print(f"  [HOTSPOT LOAD] PNG exists: {self.classification_mask_original.exists() if self.classification_mask_original else False}")
+        print(f"  [HOTSPOT LOAD] XML exists: {self.xml_original.exists() if self.xml_original else False}")
         
         # The path self.classification_mask_original now points to the NEWEST file
         if self.classification_mask_original and self.classification_mask_original.exists():
@@ -166,7 +166,7 @@ class HotspotEditorDialog(BaseEditorDialog):
             return mask
         except Exception as e:
             print(f"✗ Failed to load classification mask: {e}")
-            # ✅ FIX: Use self.original_image_data
+            #   FIX: Use self.original_image_data
             return np.zeros_like(self.original_image_data, np.uint8)
 
     def _load_from_xml(self, xml_path: Path) -> np.ndarray:
@@ -246,7 +246,7 @@ class HotspotEditorDialog(BaseEditorDialog):
         self.zoom_slider.lbl_value.setText("1.0x")
         self.toolbar_layout.addWidget(self.zoom_slider)
         
-        # ✅ SIMPLIFIED: Hotspot Layer Opacity - Using same base component
+        #   SIMPLIFIED: Hotspot Layer Opacity - Using same base component
         # Use the same opacity panel as segmentation editor
         self.opacity_panel = HotspotOpacityPanel()
         self.toolbar_layout.addWidget(self.opacity_panel)
@@ -284,7 +284,7 @@ class HotspotEditorDialog(BaseEditorDialog):
         """Create instructions with current data info using NEWEST file logic."""
         data_source = "Original PNG loaded" if self.has_orig_png else "DICOM frames used"
         
-        # ✅ UPDATED LOGIC: Show info about newest files loaded
+        #   UPDATED LOGIC: Show info about newest files loaded
         mask_status = ""
         
         if self.classification_mask_original and self.classification_mask_original.exists():
@@ -329,7 +329,7 @@ class HotspotEditorDialog(BaseEditorDialog):
         else:
             segmentation_status = f"No segmentation found"
 
-        # ✅ CREATE COMPACT SCROLLABLE INSTRUCTIONS
+        #   CREATE COMPACT SCROLLABLE INSTRUCTIONS
         # Create main container
         container = QWidget()
         container_layout = QVBoxLayout(container)
@@ -351,8 +351,8 @@ class HotspotEditorDialog(BaseEditorDialog):
         
         # Create scrollable area for instructions
         scroll_area = QScrollArea()
-        scroll_area.setMaximumHeight(120)  # ✅ Compact height
-        scroll_area.setMinimumHeight(100)  # ✅ Minimum height
+        scroll_area.setMaximumHeight(120)  #   Compact height
+        scroll_area.setMinimumHeight(100)  #   Minimum height
         scroll_area.setWidgetResizable(True)
         scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -380,10 +380,10 @@ class HotspotEditorDialog(BaseEditorDialog):
                 background: #f9f9f9;
                 padding: 6px;
                 border-radius: 4px;
-                font-size: 12px;        /* ✅ BIGGER FONT: 10px -> 12px */
-                line-height: 1.4;       /* ✅ BETTER SPACING */
-                color: #333;            /* ✅ DARKER COLOR */
-                font-weight: 500;       /* ✅ MEDIUM WEIGHT */
+                font-size: 12px;        /*   BIGGER FONT: 10px -> 12px */
+                line-height: 1.4;       /*   BETTER SPACING */
+                color: #333;            /*   DARKER COLOR */
+                font-weight: 500;       /*   MEDIUM WEIGHT */
             }
         """)
         
@@ -391,7 +391,7 @@ class HotspotEditorDialog(BaseEditorDialog):
         container_layout.addWidget(scroll_area)
         
         # Style the container with height limit
-        container.setMaximumHeight(180)  # ✅ LIMIT TOTAL HEIGHT
+        container.setMaximumHeight(180)  #   LIMIT TOTAL HEIGHT
         container.setStyleSheet("""
             QWidget {
                 background: #f0f0f0;
@@ -524,7 +524,7 @@ class HotspotEditorDialog(BaseEditorDialog):
         self.canvas.set_gray_opacity(1.0)
         self.original_canvas.set_gray_opacity(1.0)
 
-        # ✅ SIMPLIFIED: Connect opacity sliders using same pattern as zoom
+        #   SIMPLIFIED: Connect opacity sliders using same pattern as zoom
         # Connect opacity panel to both canvases
         self.opacity_panel.connect_to_canvas(self.canvas)
         # Also connect to original canvas for segmentation opacity
@@ -816,15 +816,15 @@ class HotspotEditorDialog(BaseEditorDialog):
                 editor_session=self.editor_session
             )
             
-            # ✅ FIX: Connect signals - HANYA GUNAKAN SATU COMPLETION SIGNAL
+            #   FIX: Connect signals - HANYA GUNAKAN SATU COMPLETION SIGNAL
             if hasattr(self.save_thread, 'progress_updated'):
                 self.save_thread.progress_updated.connect(self._update_progress)
             
-            # ✅ GUNAKAN HANYA save_completed (yang ada editing time)
+            #   GUNAKAN HANYA save_completed (yang ada editing time)
             if hasattr(self.save_thread, 'save_completed'):
                 self.save_thread.save_completed.connect(self._on_save_success)
             
-            # ✅ HAPUS finished connection untuk avoid duplicate dialog
+            #   HAPUS finished connection untuk avoid duplicate dialog
             # self.save_thread.finished.connect(self._on_save_finished)  # HAPUS INI
             
             if hasattr(self.save_thread, 'error_occurred'):
@@ -843,22 +843,22 @@ class HotspotEditorDialog(BaseEditorDialog):
         """Handle successful save with message."""
         from PySide6.QtWidgets import QMessageBox
         
-        # ✅ FIX 1: TUTUP LOADING DIALOG TERLEBIH DAHULU
+        #   FIX 1: TUTUP LOADING DIALOG TERLEBIH DAHULU
         if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
             self.save_loading_dialog.close()
-            self.save_loading_dialog.deleteLater()  # ✅ TAMBAHAN: hapus dari memory
+            self.save_loading_dialog.deleteLater()  #   TAMBAHAN: hapus dari memory
             self.save_loading_dialog = None
             print("[DEBUG] Loading dialog closed and deleted")
         
-        # ✅ FIX 2: PROSES EDITING TIME
+        #   FIX 2: PROSES EDITING TIME
         elapsed_seconds, formatted_time = self._get_editing_duration()
         self._save_editing_time_log(elapsed_seconds, formatted_time)
         
-        # ✅ FIX 3: RE-ENABLE SAVE BUTTON
+        #   FIX 3: RE-ENABLE SAVE BUTTON
         self.btn_save.setEnabled(True)
-        self.btn_save.setText("Save")  # ✅ TAMBAHAN: reset text button
+        self.btn_save.setText("Save")  #   TAMBAHAN: reset text button
         
-        # ✅ FIX 4: BUILD SUCCESS MESSAGE
+        #   FIX 4: BUILD SUCCESS MESSAGE
         if hasattr(self.save_thread, 'get_save_info'):
             save_info = self.save_thread.get_save_info()
             if save_info and save_info:  # Check if save_info is not empty
@@ -875,10 +875,10 @@ class HotspotEditorDialog(BaseEditorDialog):
         else:
             detailed_message = f"Hotspot classification saved!\n\n⏱️ Editing Time: {formatted_time}"
         
-        # ✅ FIX 5: TAMPILKAN SUCCESS DIALOG
+        #   FIX 5: TAMPILKAN SUCCESS DIALOG
         QMessageBox.information(self, "Save Complete", detailed_message)
         
-        # ✅ FIX 6: EMIT SIGNAL DAN CLOSE
+        #   FIX 6: EMIT SIGNAL DAN CLOSE
         if hasattr(self, 'editor_completed'):
             print("[DEBUG] Emitting editor_completed signal")
             self.editor_completed.emit()
@@ -898,21 +898,21 @@ class HotspotEditorDialog(BaseEditorDialog):
         """Handle save errors."""
         from PySide6.QtWidgets import QMessageBox
         
-        # ✅ FIX: TUTUP LOADING DIALOG TERLEBIH DAHULU
+        #   FIX: TUTUP LOADING DIALOG TERLEBIH DAHULU
         if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
             self.save_loading_dialog.close()
-            self.save_loading_dialog.deleteLater()  # ✅ TAMBAHAN: hapus dari memory
+            self.save_loading_dialog.deleteLater()  #   TAMBAHAN: hapus dari memory
             self.save_loading_dialog = None
             print("[DEBUG] Loading dialog closed due to error")
         
         # Show error message
         QMessageBox.critical(self, "Save Error", error_message)
         
-        # ✅ FIX: RE-ENABLE SAVE BUTTON
+        #   FIX: RE-ENABLE SAVE BUTTON
         self.btn_save.setEnabled(True)
-        self.btn_save.setText("Save")  # ✅ TAMBAHAN: reset text button
+        self.btn_save.setText("Save")  #   TAMBAHAN: reset text button
         
-        # ✅ FIX: RESUME TIMER IF STOPPED
+        #   FIX: RESUME TIMER IF STOPPED
         if hasattr(self, 'update_timer') and hasattr(self, 'update_timer'):
             if not self.update_timer.isActive():
                 self.update_timer.start(1000)
@@ -926,11 +926,11 @@ class HotspotEditorDialog(BaseEditorDialog):
         if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
             self.save_loading_dialog.set_progress(value)
             
-            # ✅ FIX: Jangan update message jika sudah 100% (avoid stuck message)
+            #   FIX: Jangan update message jika sudah 100% (avoid stuck message)
             if value < 100:
                 self.save_loading_dialog.set_message(f"Saving hotspot classification...\n{message}")
             else:
-                # ✅ FIX: Untuk progress 100%, set message yang menunjukkan akan segera tutup
+                #   FIX: Untuk progress 100%, set message yang menunjukkan akan segera tutup
                 self.save_loading_dialog.set_message(f"Save completed! Preparing results...")
                 print("[DEBUG] Progress 100% reached, dialog will close soon")
 
@@ -938,9 +938,9 @@ class HotspotEditorDialog(BaseEditorDialog):
         """Handle save completion."""
         from PySide6.QtWidgets import QMessageBox
         
-        print("🎯🎯🎯 [DEBUG HOTSPOT] ===================")
-        print("🎯🎯🎯 [DEBUG HOTSPOT] Save finished!")
-        print("🎯🎯🎯 [DEBUG HOTSPOT] About to emit signal...")
+        print("    [DEBUG HOTSPOT] ===================")
+        print("    [DEBUG HOTSPOT] Save finished!")
+        print("    [DEBUG HOTSPOT] About to emit signal...")
         
         # Close loading dialog
         if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
@@ -965,14 +965,14 @@ class HotspotEditorDialog(BaseEditorDialog):
         # Re-enable save button
         self.btn_save.setEnabled(True)
         
-        # ✅ TEST SIGNAL EMIT
-        print("🎯🎯🎯 [DEBUG HOTSPOT] Checking if signal exists...")
+        #   TEST SIGNAL EMIT
+        print("    [DEBUG HOTSPOT] Checking if signal exists...")
         if hasattr(self, 'editor_completed'):
-            print("🎯🎯🎯 [DEBUG HOTSPOT] Signal exists, emitting...")
+            print("    [DEBUG HOTSPOT] Signal exists, emitting...")
             self.editor_completed.emit()
-            print("🎯🎯🎯 [DEBUG HOTSPOT] Signal emitted!")
+            print("    [DEBUG HOTSPOT] Signal emitted!")
         else:
-            print("🎯🎯🎯 [DEBUG HOTSPOT] ❌ Signal does not exist!")
+            print("    [DEBUG HOTSPOT]  Signal does not exist!")
         
         # Close dialog
         self.accept()
@@ -1106,10 +1106,10 @@ class HotspotEditorDialog(BaseEditorDialog):
                 
                 writer.writerow(log_entry)
             
-            print(f"✅ Editing time logged to '{log_file.name}': {formatted_time} for patient {self.patient_id}")
+            print(f"  Editing time logged to '{log_file.name}': {formatted_time} for patient {self.patient_id}")
 
         except Exception as e:
-            print(f"❌ Failed to save editing time log: {e}")
+            print(f" Failed to save editing time log: {e}")
 
     def closeEvent(self, event):
         """Handle dialog close to stop timer."""

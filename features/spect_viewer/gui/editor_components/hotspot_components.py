@@ -34,12 +34,12 @@ _HOTSPOT_LABEL_INFO: List[Tuple[str, str]] = [
     ("Malignant", "Terdeteksi anomali"),
     ("Benign", "Tidak terdeteksi anomali")
 ]
-# ✅ ADD THIS after _HOTSPOT_LABEL_INFO:
+#   ADD THIS after _HOTSPOT_LABEL_INFO:
 # Mapping for XML output (keeps compatibility)
 _XML_LABEL_MAPPING = {
     "Background": "background",
-    "Malignant": "abnormal",  # ✅ UI "Malignant" -> XML "abnormal"
-    "Benign": "normal"        # ✅ UI "Benign" -> XML "normal"
+    "Malignant": "abnormal",  #   UI "Malignant" -> XML "abnormal"
+    "Benign": "normal"        #   UI "Benign" -> XML "normal"
 }
 
 
@@ -72,7 +72,7 @@ class HotspotCanvas(BaseCanvas):
 
     def _init_history(self):
         """Initialize history for hotspot layers."""
-        # ✅ FIX: Initialize _layer_history if it doesn't exist
+        #   FIX: Initialize _layer_history if it doesn't exist
         if not hasattr(self, '_layer_history'):
             self._layer_history = {}
             
@@ -82,7 +82,7 @@ class HotspotCanvas(BaseCanvas):
 
     def _save_all_states(self):
         """Save initial state for all layers."""
-        # ✅ FIX: Ensure _layers exists before trying to save states
+        #   FIX: Ensure _layers exists before trying to save states
         if not hasattr(self, '_layers') or not self._layers:
             return
             
@@ -92,11 +92,11 @@ class HotspotCanvas(BaseCanvas):
 
     def _save_layer_state(self, label_id: int):
         """Save state for specific label - adapted for hotspot canvas."""
-        # ✅ FIX: Ensure _layer_history exists
+        #   FIX: Ensure _layer_history exists
         if not hasattr(self, '_layer_history'):
             self._layer_history = {}
         
-        # ✅ FIX: Ensure the label_id exists in _layer_history
+        #   FIX: Ensure the label_id exists in _layer_history
         if label_id not in self._layer_history:
             self._layer_history[label_id] = {'undo': [], 'redo': []}
         
@@ -118,7 +118,7 @@ class HotspotCanvas(BaseCanvas):
 
     def _save_current_state(self):
         """Save current state for active layer."""
-        # ✅ FIX: Check if _cur_label is valid
+        #   FIX: Check if _cur_label is valid
         if hasattr(self, '_cur_label') and self._cur_label is not None:
             self._save_layer_state(self._cur_label)
 
@@ -155,7 +155,7 @@ class HotspotCanvas(BaseCanvas):
                 self._item_segmentation = QGraphicsPixmapItem(QPixmap.fromImage(self._segmentation_img))
                 self._item_segmentation.setOpacity(0.3)
                 
-                # ✅ FIX: Check if _scene exists before adding item
+                #   FIX: Check if _scene exists before adding item
                 if hasattr(self, '_scene') and self._scene:
                     self._scene.addItem(self._item_segmentation)
                 
@@ -208,7 +208,7 @@ class HotspotCanvas(BaseCanvas):
 
     def _mask_to_qimage(self, *, show_all: bool, label: int) -> QImage:
         """Convert mask to QImage with hotspot colors."""
-        # ✅ FIX: Check if _mask_arr exists
+        #   FIX: Check if _mask_arr exists
         if not hasattr(self, '_mask_arr') or self._mask_arr is None:
             return QImage()
             
@@ -227,7 +227,7 @@ class HotspotCanvas(BaseCanvas):
 
     def _refresh_mask(self):
         """Refresh mask display."""
-        # ✅ FIX: Add safety checks
+        #   FIX: Add safety checks
         if not hasattr(self, '_show_all'):
             self._show_all = True
         if not hasattr(self, '_cur_label'):
@@ -235,7 +235,7 @@ class HotspotCanvas(BaseCanvas):
             
         self._mask_img = self._mask_to_qimage(show_all=self._show_all, label=self._cur_label)
         
-        # ✅ FIX: Check if _item_mask exists
+        #   FIX: Check if _item_mask exists
         if hasattr(self, '_item_mask') and self._item_mask:
             self._item_mask.setPixmap(QPixmap.fromImage(self._mask_img))
         
@@ -244,7 +244,7 @@ class HotspotCanvas(BaseCanvas):
 
     def _rebuild_combined(self):
         """Rebuild combined mask from all layers."""
-        # ✅ FIX: Add safety checks
+        #   FIX: Add safety checks
         if not hasattr(self, '_layers') or not self._layers or not hasattr(self, '_mask_arr'):
             return
             
@@ -257,7 +257,7 @@ class HotspotCanvas(BaseCanvas):
 
     def _apply_brush(self, scene_pos: QPointF):
         """Apply brush with segmentation validation."""
-        # ✅ FIX: Add safety checks for required attributes
+        #   FIX: Add safety checks for required attributes
         if not hasattr(self, '_cur_label') or self._cur_label is None:
             return
         if not hasattr(self, '_layers') or self._cur_label not in self._layers:
@@ -277,7 +277,7 @@ class HotspotCanvas(BaseCanvas):
                     if segment_label == 0:  # Background segment
                         continue  # Skip painting on background
             
-            # ✅ FIX: Check bounds before accessing layer
+            #   FIX: Check bounds before accessing layer
             if 0 <= py < layer.shape[0] and 0 <= px < layer.shape[1]:
                 # Apply brush/eraser
                 if hasattr(self, '_eraser') and self._eraser:
@@ -291,7 +291,7 @@ class HotspotCanvas(BaseCanvas):
 
     def undo(self, label_id: int):
         """Undo for specific layer."""
-        # ✅ FIX: Add safety checks
+        #   FIX: Add safety checks
         if not hasattr(self, '_layer_history'):
             return
             
@@ -307,7 +307,7 @@ class HotspotCanvas(BaseCanvas):
 
     def redo(self, label_id: int):
         """Redo for specific layer."""
-        # ✅ FIX: Add safety checks
+        #   FIX: Add safety checks
         if not hasattr(self, '_layer_history'):
             return
             
@@ -321,7 +321,7 @@ class HotspotCanvas(BaseCanvas):
 
     def _restore_layer_state(self, label_id: int, state: np.ndarray):
         """Restore state for specific layer."""
-        # ✅ FIX: Add safety checks
+        #   FIX: Add safety checks
         if not hasattr(self, '_layers') or label_id not in self._layers:
             return
             
@@ -381,8 +381,8 @@ class HotspotPalette(QWidget):
         
         self.list_palette = QListWidget()
         
-        # ✅ BEFORE: Tidak ada setMinimumHeight
-        # ✅ AFTER: Set minimum height untuk palette lebih panjang
+        #   BEFORE: Tidak ada setMinimumHeight
+        #   AFTER: Set minimum height untuk palette lebih panjang
         self.list_palette.setMinimumHeight(200)  # Tambah tinggi palette
         
         for rgb, (name, desc) in zip(_HOTSPOT_PALLETTE, _HOTSPOT_LABEL_INFO):
@@ -583,7 +583,7 @@ class HotspotSaveThread(BaseSaveThread):
                 'edit_time': edit_time
             }
             
-            print(f"✅ Save paths initialized:")
+            print(f"  Save paths initialized:")
             print(f"   Base: {base_patient_study_folder}")
             print(f"   Save dir: {save_dir}")
             print(f"   PNG: {png_filename}")
@@ -593,7 +593,7 @@ class HotspotSaveThread(BaseSaveThread):
             
         except Exception as e:
             error_msg = f"Failed to initialize save paths: {e}"
-            print(f"❌ {error_msg}")
+            print(f" {error_msg}")
             print(f"   DICOM path: {self.dicom_path}")
             print(f"   Current session: {self.current_session}")
             print(f"   Editor session: {getattr(self, 'editor_session', 'Not set')}")
@@ -774,7 +774,7 @@ class HotspotSaveThread(BaseSaveThread):
         
         self.progress_updated.emit(100, "Save completed!")
         
-        # ✅ FIX: Build success message properly
+        #   FIX: Build success message properly
         success_msg = (
             f"Classification edits saved successfully!\n\n"
             f"Files saved to: {self.classification_mask_edited.parent}\n"
@@ -786,13 +786,13 @@ class HotspotSaveThread(BaseSaveThread):
             success_msg += f"XML annotations: {xml_result['bbox_stats']}\n"
         
         if quant_success:
-            success_msg += "\n✅ Quantification pipeline completed successfully"
+            success_msg += "\n  Quantification pipeline completed successfully"
         else:
             success_msg += "\n⚠️ Quantification pipeline failed (check logs for details)"
 
-        # ✅ FIX: Use custom signal instead of built-in finished signal
+        #   FIX: Use custom signal instead of built-in finished signal
         if hasattr(self, 'save_completed'):
-            self.save_completed.emit(success_msg)  # ✅ NOW success_msg IS DEFINED
+            self.save_completed.emit(success_msg)  #   NOW success_msg IS DEFINED
             print(f"[DEBUG] save_completed signal emitted: {len(success_msg)} chars")
         else:
             # Fallback if save_completed signal doesn't exist
@@ -865,7 +865,7 @@ class HotspotSaveThread(BaseSaveThread):
 
     def get_save_info(self) -> Dict[str, Path]:
         """Get information about save paths for external use."""
-        # ✅ FIX: Add safety checks for None values
+        #   FIX: Add safety checks for None values
         if self.classification_mask_edited is None or self.xml_edited is None:
             return {}
             

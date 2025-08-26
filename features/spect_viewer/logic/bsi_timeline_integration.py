@@ -2,7 +2,7 @@
 """
 Integration logic for BSI quantification with timeline cards
 Handles loading BSI data when patients are selected from timeline
-✅ UPDATED: Now supports single view quantification (anterior OR posterior only)
+  UPDATED: Now supports single view quantification (anterior OR posterior only)
 """
 from pathlib import Path
 from typing import Dict, Optional, Any
@@ -26,7 +26,7 @@ class BSITimelineIntegration:
     """
     Integration manager for BSI quantification and timeline
     Handles patient selection and BSI data loading
-    ✅ UPDATED: Now supports single view processing
+      UPDATED: Now supports single view processing
     """
     
     def __init__(self):
@@ -36,7 +36,7 @@ class BSITimelineIntegration:
     def get_patient_bsi_data(self, scan_data: Dict, session_code: str = None) -> Optional[Dict[str, Any]]:
         """
         Get BSI data for a patient from timeline scan data
-        ✅ UPDATED: Supports single view data loading
+          UPDATED: Supports single view data loading
         
         Args:
             scan_data: Timeline scan data dictionary
@@ -88,7 +88,7 @@ class BSITimelineIntegration:
             # Get summary data (includes processing mode info)
             summary_data = self.quant_manager.get_bsi_summary()
             
-            # ✅ NEW: Add processing mode info
+            #   NEW: Add processing mode info
             processing_mode = summary_data.get('processing_mode', 'unknown')
             view_info = summary_data.get('view_info', 'unknown')
             
@@ -106,16 +106,16 @@ class BSITimelineIntegration:
             
             self.current_patient_data = bsi_data
             
-            # ✅ NEW: Log different message based on processing mode
+            #   NEW: Log different message based on processing mode
             combined_bsi = summary_data.get('combined_bsi', 0)
             if processing_mode == 'dual_view':
-                _log(f"[BSI INTEGRATION SINGLE] ✅ Loaded dual-view BSI data for {patient_id} (Combined BSI: {combined_bsi:.2f})")
+                _log(f"[BSI INTEGRATION SINGLE]   Loaded dual-view BSI data for {patient_id} (Combined BSI: {combined_bsi:.2f})")
             elif processing_mode == 'single_view_anterior':
-                _log(f"[BSI INTEGRATION SINGLE] ✅ Loaded anterior-only BSI data for {patient_id} (Anterior BSI: {combined_bsi:.2f})")
+                _log(f"[BSI INTEGRATION SINGLE]   Loaded anterior-only BSI data for {patient_id} (Anterior BSI: {combined_bsi:.2f})")
             elif processing_mode == 'single_view_posterior':
-                _log(f"[BSI INTEGRATION SINGLE] ✅ Loaded posterior-only BSI data for {patient_id} (Posterior BSI: {combined_bsi:.2f})")
+                _log(f"[BSI INTEGRATION SINGLE]   Loaded posterior-only BSI data for {patient_id} (Posterior BSI: {combined_bsi:.2f})")
             else:
-                _log(f"[BSI INTEGRATION SINGLE] ✅ Loaded BSI data for {patient_id} (BSI: {combined_bsi:.2f})")
+                _log(f"[BSI INTEGRATION SINGLE]   Loaded BSI data for {patient_id} (BSI: {combined_bsi:.2f})")
             
             return bsi_data
             
@@ -128,13 +128,13 @@ class BSITimelineIntegration:
     
     def _extract_patient_info(self, scan_data: Dict, session_code: str = None) -> tuple[str, str]:
         """
-        ✅ FIXED: Extract patient ID and study date using existing infrastructure
+          FIXED: Extract patient ID and study date using existing infrastructure
         """
         try:
             dicom_path = Path(scan_data["path"])
             print(f"[BSI EXTRACT INFO] Extracting from path: {dicom_path}")
             
-            # ✅ REUSE: Use existing path extraction logic
+            #   REUSE: Use existing path extraction logic
             from core.config.paths import extract_study_date_from_dicom
             
             # Method 1: Extract study date from DICOM
@@ -190,7 +190,7 @@ class BSITimelineIntegration:
     def check_quantification_status(self, scan_data: Dict, session_code: str = None) -> Dict[str, Any]:
         """
         Check quantification status for a patient without loading full data
-        ✅ UPDATED: Now includes single view support information
+          UPDATED: Now includes single view support information
         
         Args:
             scan_data: Timeline scan data
@@ -223,11 +223,11 @@ class BSITimelineIntegration:
                 "quantification_file_exists": status.get("output_file_exists", False),
                 "required_files_exist": status.get("required_files_exist", False),
                 "missing_files": status.get("missing_files", []),
-                # ✅ ADD: Forward BSI data dari get_quantification_status
+                #   ADD: Forward BSI data dari get_quantification_status
                 "anterior_bsi": status.get("anterior_bsi", 0.0),
                 "posterior_bsi": status.get("posterior_bsi", 0.0),
                 "combined_bsi": status.get("combined_bsi", 0.0),
-                # ✅ NEW: Add single view support info
+                #   NEW: Add single view support info
                 "processing_mode": status.get("processing_mode", "unknown"),
                 "v2_anterior_exists": status.get("v2_anterior_exists", False),
                 "v2_posterior_exists": status.get("v2_posterior_exists", False),
@@ -263,7 +263,7 @@ class BSITimelineIntegration:
             bsi_score = status.get("bsi_score", 0.0)
             abnormal_count = status.get("total_abnormal_hotspots", 0)
             
-            # ✅ FIXED: Clean display without mode indicators
+            #   FIXED: Clean display without mode indicators
             return f"BSI: {bsi_score:.1f}% ({abnormal_count} abnormal)"
             
         except Exception as e:
@@ -272,14 +272,14 @@ class BSITimelineIntegration:
     
     def update_scan_meta_with_bsi(self, scan_data: Dict, session_code: str = None) -> Dict:
         """
-        ✅ FIXED: Update scan metadata with BSI info using existing paths.py infrastructure
+          FIXED: Update scan metadata with BSI info using existing paths.py infrastructure
         """
         try:
             print(f"[BSI META INTEGRATION] Updating scan meta with BSI data")
             print(f"[BSI META INTEGRATION] Session code: {session_code}")
             print(f"[BSI META INTEGRATION] Scan path: {scan_data.get('path', 'UNKNOWN')}")
             
-            # ✅ REUSE: Use existing quantification_integration infrastructure
+            #   REUSE: Use existing quantification_integration infrastructure
             dicom_path = Path(scan_data["path"])
             
             # Extract patient info using existing logic
@@ -293,7 +293,7 @@ class BSITimelineIntegration:
                 scan_data["meta"]["has_bsi"] = False
                 return scan_data
             
-            # ✅ REUSE: Use existing QuantificationManager to load BSI data
+            #   REUSE: Use existing QuantificationManager to load BSI data
             from features.spect_viewer.logic.quantification_integration import QuantificationManager
             
             # Try to determine correct patient folder for BSI files
@@ -330,7 +330,7 @@ class BSITimelineIntegration:
             
             print(f"[BSI META INTEGRATION] Using patient folder: {patient_folder}")
             
-            # ✅ REUSE: Load BSI scores using existing infrastructure
+            #   REUSE: Load BSI scores using existing infrastructure
             manager = QuantificationManager()
             all_scores = manager.load_all_quantification_scores(patient_folder, patient_id)
             
@@ -349,7 +349,7 @@ class BSITimelineIntegration:
             
             print(f"[BSI META INTEGRATION] Found BSI data: {bsi_data}")
             
-            # ✅ UPDATE: Add BSI info to meta
+            #   UPDATE: Add BSI info to meta
             if "meta" not in scan_data:
                 scan_data["meta"] = {}
             
@@ -360,7 +360,7 @@ class BSITimelineIntegration:
             scan_data["meta"]["bsi_processing_mode"] = bsi_data.get("processing_mode", "unknown")
             scan_data["meta"]["bsi_file_source"] = bsi_data.get("file_source", "unknown")
             
-            print(f"[BSI META INTEGRATION] ✅ Updated meta with BSI data:")
+            print(f"[BSI META INTEGRATION]   Updated meta with BSI data:")
             print(f"[BSI META INTEGRATION]   Anterior BSI: {scan_data['meta']['bsi_anterior']}")
             print(f"[BSI META INTEGRATION]   Posterior BSI: {scan_data['meta']['bsi_posterior']}")
             print(f"[BSI META INTEGRATION]   Processing mode: {scan_data['meta']['bsi_processing_mode']}")
@@ -368,7 +368,7 @@ class BSITimelineIntegration:
             return scan_data
             
         except Exception as e:
-            print(f"[BSI META INTEGRATION] ❌ Error updating scan meta: {e}")
+            print(f"[BSI META INTEGRATION]  Error updating scan meta: {e}")
             import traceback
             traceback.print_exc()
             
@@ -391,7 +391,7 @@ def get_bsi_integration() -> BSITimelineIntegration:
 def load_bsi_for_selected_patient(scan_data: Dict, session_code: str = None) -> Optional[Dict[str, Any]]:
     """
     Convenience function to load BSI data for selected patient
-    ✅ UPDATED: Now supports single view loading
+      UPDATED: Now supports single view loading
     
     Args:
         scan_data: Timeline scan data
@@ -407,7 +407,7 @@ def load_bsi_for_selected_patient(scan_data: Dict, session_code: str = None) -> 
 def check_patient_quantification_status(scan_data: Dict, session_code: str = None) -> Dict[str, Any]:
     """
     Convenience function to check quantification status
-    ✅ UPDATED: Now includes single view support info
+      UPDATED: Now includes single view support info
     
     Args:
         scan_data: Timeline scan data
@@ -423,7 +423,7 @@ def check_patient_quantification_status(scan_data: Dict, session_code: str = Non
 def update_timeline_scans_with_bsi(scans_data: list, session_code: str = None) -> list:
     """
     Update all timeline scans with BSI information
-    ✅ UPDATED: Now includes single view processing mode info
+      UPDATED: Now includes single view processing mode info
     
     Args:
         scans_data: List of timeline scan data

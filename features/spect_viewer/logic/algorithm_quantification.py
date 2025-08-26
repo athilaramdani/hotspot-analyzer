@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-# ✅ V1.2 COLOR PALETTES (unchanged)
+#   V1.2 COLOR PALETTES (unchanged)
 PALETTE_UNSEPARATED = {
     (0, 0, 0): 'background',
     (176, 230, 13): 'skull',
@@ -99,7 +99,7 @@ def separate_left_right_components(image, bones_to_separate=None, color_shift=50
                     x_coords = component_pixels[1]
                     
                     centroid_x = np.mean(x_coords)
-                    # ✅ FIX: Correct spatial mapping - left is right side of image
+                    #   FIX: Correct spatial mapping - left is right side of image
                     is_left = centroid_x > center_x  # Left anatomical = right side of image
                     
                     left_pixels = np.sum(x_coords < center_x)
@@ -174,7 +174,7 @@ def process_image_with_predefined_colors(image_path, bones_to_separate=None):
 
 def calculate_pixel_bsi_v2(image_region_path, image_hs_path, tolerance=2):
     """
-    ✅ FIXED V1.2 BSI calculation 
+      FIXED V1.2 BSI calculation 
     - Uses old algorithm logic (green for benign detection)
     - Returns BSI as decimal (not percentage)
     - Maintains new JSON format structure
@@ -203,7 +203,7 @@ def calculate_pixel_bsi_v2(image_region_path, image_hs_path, tolerance=2):
         pixel_count = int(np.sum(mask_region))
         region_pixel_counts[region_name] = pixel_count
         
-        # ✅ FIXED: Use old algorithm's green color for benign detection
+        #   FIXED: Use old algorithm's green color for benign detection
         mask_malignant = np.all(np.abs(image_hs - np.array([255, 0, 0])) <= tolerance, axis=-1) & mask_region
         mask_benign = np.all(np.abs(image_hs - np.array([255, 241, 188])) <= tolerance, axis=-1) & mask_region
         
@@ -224,10 +224,10 @@ def calculate_pixel_bsi_v2(image_region_path, image_hs_path, tolerance=2):
             "benign_ratio": benign_count / pixel_count if pixel_count > 0 else 0
         }
     
-    # ✅ FIXED: Calculate BSI correctly (sum of malignant ratios, not percentage)
+    #   FIXED: Calculate BSI correctly (sum of malignant ratios, not percentage)
     bsi_score = sum(stats['malignant_ratio'] for stats in region_stats.values())
     
-    # ✅ FIXED: Calculate actual percentages for total pixels
+    #   FIXED: Calculate actual percentages for total pixels
     total_pixels = sum(region_pixel_counts.values())
     malignant_percentage = (total_malignant / total_pixels * 100) if total_pixels > 0 else 0
     benign_percentage = (total_benign / total_pixels * 100) if total_pixels > 0 else 0
@@ -239,25 +239,25 @@ def calculate_pixel_bsi_v2(image_region_path, image_hs_path, tolerance=2):
         "total_malignant_pixels": total_malignant,
         "total_benign_pixels": total_benign,
         "region_stats": region_stats,
-        # ✅ NEW: Add summary statistics with correct BSI calculation
+        #   NEW: Add summary statistics with correct BSI calculation
         "summary_statistics": {
-            "bsi_score": bsi_score,  # ✅ FIXED: This should be ~2.37, not ~236.97
+            "bsi_score": bsi_score,  #   FIXED: This should be ~2.37, not ~236.97
             "total_malignant_pixels": total_malignant,
             "total_benign_pixels": total_benign,
             "total_pixels": total_pixels,
-            "malignant_percentage": malignant_percentage,  # ✅ FIXED: Actual percentage of total pixels
+            "malignant_percentage": malignant_percentage,  #   FIXED: Actual percentage of total pixels
             "benign_percentage": benign_percentage
         }
     }
 
 def calculate_combined_bsi_v2(anterior_results, posterior_results):
     """
-    ✅ Calculate combined BSI using team-approved formula: (anterior + posterior) / 2
+      Calculate combined BSI using team-approved formula: (anterior + posterior) / 2
     """
     anterior_bsi = anterior_results['summary_statistics']['bsi_score']
     posterior_bsi = posterior_results['summary_statistics']['bsi_score']
     
-    # ✅ Team-approved formula
+    #   Team-approved formula
     combined_bsi = (anterior_bsi + posterior_bsi) / 2
     
     return {
@@ -268,7 +268,7 @@ def calculate_combined_bsi_v2(anterior_results, posterior_results):
         "posterior_details": posterior_results
     }
 
-# ✅ USAGE EXAMPLE:
+#   USAGE EXAMPLE:
 def generate_json_format(image_region_path, image_hs_path, patient_id, study_date, view="anterior"):
     """
     Generate JSON output with new format but correct BSI calculation
@@ -294,11 +294,11 @@ def generate_json_format(image_region_path, image_hs_path, patient_id, study_dat
         "bsi_results": results["region_stats"],
         "summary_statistics": {
             "view": view,
-            "bsi_score": results["summary_statistics"]["bsi_score"],  # ✅ Now correct: ~2.37
+            "bsi_score": results["summary_statistics"]["bsi_score"],  #   Now correct: ~2.37
             "total_malignant_pixels": results["summary_statistics"]["total_malignant_pixels"],
             "total_benign_pixels": results["summary_statistics"]["total_benign_pixels"],
             "total_pixels": results["summary_statistics"]["total_pixels"],
-            "malignant_percentage": results["summary_statistics"]["malignant_percentage"],  # ✅ Real percentage
+            "malignant_percentage": results["summary_statistics"]["malignant_percentage"],  #   Real percentage
             "benign_percentage": results["summary_statistics"]["benign_percentage"]
         }
     }

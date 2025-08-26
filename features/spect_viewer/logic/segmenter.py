@@ -7,8 +7,8 @@ import warnings
 import os
 
 if hasattr(sys, '_MEIPASS'):
-    # ✅ ENHANCED: Complete module system reset for problematic modules
-    print("[SEGMENTER] ✅ PyInstaller mode - applying enhanced torchvision fixes")
+    #   ENHANCED: Complete module system reset for problematic modules
+    print("[SEGMENTER]   PyInstaller mode - applying enhanced torchvision fixes")
     
     # 1. Set ALL environment variables
     os.environ.update({
@@ -20,7 +20,7 @@ if hasattr(sys, '_MEIPASS'):
         'TORCH_DISABLE_TRITON_OPS': '1',
         'TORCH_DISABLE_TRITON_REGISTRATION': '1',
         'TORCHVISION_DISABLE_META_REGISTRATION': '1',
-        'TORCHVISION_DISABLE_EXTENSIONS': '0',  # ✅ CHANGED: Enable extensions
+        'TORCHVISION_DISABLE_EXTENSIONS': '0',  #   CHANGED: Enable extensions
         'TORCHVISION_DISABLE_VIDEO_OPT': '1',
         'TORCH_LIBRARY_DISABLE': '1',
     })
@@ -43,7 +43,7 @@ if hasattr(sys, '_MEIPASS'):
             del sys.modules[key]
             print(f"[SEGMENTER] Removed {key}")
     
-    print(f"[SEGMENTER] ✅ Removed {len(modules_to_remove)} problematic modules")
+    print(f"[SEGMENTER]   Removed {len(modules_to_remove)} problematic modules")
     
     # 3. Set nnUNet environment
     from pathlib import Path
@@ -55,7 +55,7 @@ if hasattr(sys, '_MEIPASS'):
                 os.environ["nnUNet_raw"] = str(seg_models / "_nn_raw")
                 os.environ["nnUNet_preprocessed"] = str(seg_models / "_nn_pre")
                 os.environ["nnUNet_results"] = str(seg_models / "nnUNet_results")
-                print(f"[SEGMENTER] ✅ Set nnUNet_results: {os.environ['nnUNet_results']}")
+                print(f"[SEGMENTER]   Set nnUNet_results: {os.environ['nnUNet_results']}")
                 break
 
 import inspect
@@ -66,7 +66,7 @@ from typing import Tuple, Union
 import cv2
 import numpy as np
 
-# ✅ ENHANCED: Import torch with complete torchvision extension handling
+#   ENHANCED: Import torch with complete torchvision extension handling
 if hasattr(sys, '_MEIPASS'):
     # Patch torch.library before torch is imported anywhere
     import types
@@ -108,7 +108,7 @@ if hasattr(sys, '_MEIPASS'):
     sys.modules['torch.library'] = torch_library
     sys.modules['torch._library'] = torch_library
     
-    print("[SEGMENTER] ✅ torch.library bypassed completely")
+    print("[SEGMENTER]   torch.library bypassed completely")
 
 import torch
 
@@ -116,11 +116,11 @@ import torch
 if hasattr(sys, '_MEIPASS'):
     try:
         torch.jit._state.disable()
-        print("[SEGMENTER] ✅ PyTorch JIT disabled")
+        print("[SEGMENTER]   PyTorch JIT disabled")
     except:
         print("[SEGMENTER] ⚠️ PyTorch JIT disable failed")
 
-# ✅ CRITICAL: Handle torchvision extension properly in PyInstaller
+#   CRITICAL: Handle torchvision extension properly in PyInstaller
 if hasattr(sys, '_MEIPASS'):
     try:
         import torchvision
@@ -135,12 +135,12 @@ if hasattr(sys, '_MEIPASS'):
         
         # Test if ops.nms is available (critical for YOLO)
         if hasattr(torchvision.ops, 'nms'):
-            print("[SEGMENTER] ✅ torchvision.ops.nms verified")
+            print("[SEGMENTER]   torchvision.ops.nms verified")
         else:
             print("[SEGMENTER] ⚠️ torchvision.ops.nms missing")
             raise ImportError("torchvision.ops.nms missing")
             
-        print("[SEGMENTER] ✅ torchvision fully loaded and verified")
+        print("[SEGMENTER]   torchvision fully loaded and verified")
         
     except Exception as e:
         print(f"[SEGMENTER] ⚠️ torchvision verification failed: {e}")
@@ -240,14 +240,14 @@ if hasattr(sys, '_MEIPASS'):
         sys.modules['torchvision'] = torchvision_stub
         sys.modules['torchvision.transforms'] = transforms_stub
         sys.modules['torchvision.ops'] = ops_stub
-        sys.modules['torchvision.ops.misc'] = ops_misc_stub  # ✅ ADD THIS LINE
+        sys.modules['torchvision.ops.misc'] = ops_misc_stub  #   ADD THIS LINE
         sys.modules['torchvision.models'] = models_stub
         sys.modules['torchvision.utils'] = utils_stub
         sys.modules['torchvision.io'] = io_stub
         sys.modules['torchvision.datasets'] = datasets_stub
         
-        print("[SEGMENTER] ✅ Created comprehensive torchvision stub with all submodules")
-        print("[SEGMENTER] ✅ torchvision.ops.nms fallback created")
+        print("[SEGMENTER]   Created comprehensive torchvision stub with all submodules")
+        print("[SEGMENTER]   torchvision.ops.nms fallback created")
 
 from core.logger import _log
 from core.gui.ui_constants import truncate_text
@@ -266,7 +266,8 @@ except Exception:
         return np.stack([g, g, g], -1)
 
 # ===== Use centralized path configuration =====
-SEG_DIR = SEGMENTATION_MODEL_PATH / "nnUNet_results"
+from core.config.paths import SEGMENTATION_MODEL_PATH
+SEG_DIR = SEGMENTATION_MODEL_PATH / "nnUNet_results"  # Ini akan otomatis detect external
 
 # ===== Update nnUNet environment paths =====
 PROJECT_ROOT = SEGMENTATION_MODEL_PATH.parent.parent
@@ -278,7 +279,7 @@ os.environ["nnUNet_results"] = str(SEG_DIR)
 # ------------------------------------------------------------------ HELPERS
 def create_predictor():
     """Creates the nnUNet predictor with standardized settings."""
-    # ✅ FIXED: Import nnUNet di dalam function
+    #   FIXED: Import nnUNet di dalam function
     from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
     
     use_cuda = torch.cuda.is_available()
@@ -307,7 +308,7 @@ def create_predictor():
 
 def load_bone_model():
     """Lazy-load + cache the bone segmentation model with ENHANCED torchvision fixes."""
-    # ✅ FIXED: Import nnUNet di dalam function
+    #   FIXED: Import nnUNet di dalam function
     from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
     
     if not hasattr(load_bone_model, "_cache"):
@@ -315,7 +316,7 @@ def load_bone_model():
     cache = load_bone_model._cache
 
     if "bone" not in cache:
-        # ✅ ENHANCED: Complete environment and module reset with torchvision validation
+        #   ENHANCED: Complete environment and module reset with torchvision validation
         if hasattr(sys, '_MEIPASS'):
             print("[SEGMENTER] ENHANCED: Complete module reset before model loading...")
             
@@ -337,19 +338,19 @@ def load_bone_model():
             
             print(f"[SEGMENTER] ENHANCED: Nuked {len(modules_to_nuke)} modules")
             
-            # ✅ CRITICAL: Verify torchvision extension is available
+            #   CRITICAL: Verify torchvision extension is available
             try:
                 import torchvision
                 
                 # Verify extension is accessible
                 if hasattr(torchvision, 'extension'):
-                    print("[SEGMENTER] ✅ torchvision.extension verified and accessible")
+                    print("[SEGMENTER]   torchvision.extension verified and accessible")
                 else:
                     print("[SEGMENTER] ⚠️ torchvision.extension not found, using stub")
                 
                 # Try importing key torchvision components
                 import torchvision.transforms
-                print("[SEGMENTER] ✅ torchvision.transforms imported successfully")
+                print("[SEGMENTER]   torchvision.transforms imported successfully")
                 
             except Exception as e:
                 print(f"[SEGMENTER] ⚠️ torchvision verification failed: {e}")
@@ -442,12 +443,12 @@ def predict_bone_mask(
             - mask (1024, 256) if to_rgb=False
             - rgb_image (1024, 256, 3) if to_rgb=True
     """
-    # ✅ ENHANCED FALLBACK: If all else fails, return dummy result
+    #   ENHANCED FALLBACK: If all else fails, return dummy result
     if hasattr(sys, '_MEIPASS'):
         try:
             return _predict_bone_mask_real(image, to_rgb=to_rgb)
         except Exception as e:
-            print(f"[SEGMENTER] ❌ Real segmentation failed: {e}")
+            print(f"[SEGMENTER]  Real segmentation failed: {e}")
             print("[SEGMENTER] ⚠️ Falling back to dummy segmentation")
             
             # Return dummy segmentation that looks reasonable
@@ -500,7 +501,7 @@ def _predict_bone_mask_real(image: np.ndarray, *, to_rgb: bool = False) -> np.nd
     _log(f"[INFO]  Output mask shape: {mask.shape}")
     _log(f"[INFO]  Unique labels found: {list(unique_labels)}")
 
-    # ✅ Return logic
+    #   Return logic
     if to_rgb:
         _log(f"[INFO]  Converting mask to colored RGB image...")
         rgb_result = label_mask_to_rgb(mask)

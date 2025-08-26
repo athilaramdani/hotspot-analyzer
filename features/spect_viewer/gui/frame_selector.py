@@ -10,10 +10,10 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QComboBox
 class FrameSelector(QWidget):
     """
     FIXED: Dropdown selector for Anterior | Posterior views
-    ✅ Proper signal emission for view changes
-    ✅ Enhanced debugging for timeline integration
+      Proper signal emission for view changes
+      Enhanced debugging for timeline integration
     """
-    # ✅ FIXED: Emit view name instead of index for clarity
+    #   FIXED: Emit view name instead of index for clarity
     frame_changed = Signal(int)    # Keep original signal for compatibility 
     view_changed = Signal(str)     # NEW: Emit view name directly
     
@@ -31,7 +31,7 @@ class FrameSelector(QWidget):
         self.combo = QComboBox()
         self.combo.addItems(self.view_names)
         
-        # ✅ FIXED: Connect to enhanced handler
+        #   FIXED: Connect to enhanced handler
         self.combo.currentIndexChanged.connect(self._on_view_changed)
         
         layout.addWidget(self.combo)
@@ -40,7 +40,7 @@ class FrameSelector(QWidget):
         print("[FrameSelector] Initialized with views:", self.view_names)
     
     def _on_view_changed(self, index: int):
-        """✅ FIXED: Enhanced view change handler with proper signaling"""
+        """  FIXED: Enhanced view change handler with proper signaling"""
         if 0 <= index < len(self.view_names):
             view_name = self.view_names[index]
             print(f"[FrameSelector] View changed to: {view_name} (index: {index})")
@@ -56,14 +56,14 @@ class FrameSelector(QWidget):
         return self.combo.currentIndex()
     
     def current_view(self) -> str:
-        """✅ NEW: Get current view name"""
+        """  NEW: Get current view name"""
         index = self.current_index()
         if 0 <= index < len(self.view_names):
             return self.view_names[index]
         return "Anterior"  # Default fallback
     
     def set_view(self, view: str):
-        """✅ NEW: Set view by name"""
+        """  NEW: Set view by name"""
         try:
             index = self.view_names.index(view)
             self.combo.setCurrentIndex(index)

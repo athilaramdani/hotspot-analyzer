@@ -21,7 +21,7 @@ from core.config.paths import (
     get_planar_segmentation_files,
     get_planar_files_complete,
     get_planar_quantification_files,
-    get_current_session_code,  # ✅ ADD
+    get_current_session_code,  #   ADD
     PLANAR_DATA_PATH,
     generate_filename_stem,
     extract_study_date_from_dicom,
@@ -58,7 +58,7 @@ except ImportError as e:
 
 def run_yolo_detection_wrapper(scan_path: Path, patient_id: str) -> Dict[str, bool]:
     """
-    ✅ UPDATED: Wrapper function to run YOLO detection with proper session handling
+      UPDATED: Wrapper function to run YOLO detection with proper session handling
     
     Args:
         scan_path: Path to DICOM file
@@ -80,7 +80,7 @@ def run_yolo_detection_wrapper(scan_path: Path, patient_id: str) -> Dict[str, bo
             print(f"[YOLO ERROR] DICOM file not found: {scan_path}")
             return {"anterior": False, "posterior": False}
         
-        # ✅ IMPORT and run the fixed detection
+        #   IMPORT and run the fixed detection
         from .box_detection import run_yolo_detection_for_patient
         results = run_yolo_detection_for_patient(scan_path, patient_id)
         
@@ -94,7 +94,7 @@ def run_yolo_detection_wrapper(scan_path: Path, patient_id: str) -> Dict[str, bo
 
 def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
     """
-    ✅ FIXED: Get session code from sessions.json config
+      FIXED: Get session code from sessions.json config
     """
     print("--- MENJALANKAN FUNGSI HOTSPOT DENGAN LOGIKA PENYIMPANAN FILE ---")
     try:
@@ -103,8 +103,8 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
         from core.config.paths import (
             get_planar_hotspot_files, 
             generate_filename_stem, 
-            get_current_session_code,  # ✅ ADD
-            get_patient_planar_path,   # ✅ ADD
+            get_current_session_code,  #   ADD
+            get_patient_planar_path,   #   ADD
             extract_study_date_from_dicom
         )
 
@@ -114,14 +114,14 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
         if not frames:
             return {"frames": [], "ant_frames": [], "post_frames": []}
 
-        # ✅ FIX: Get session code from config and extract study date
+        #   FIX: Get session code from config and extract study date
         try:
             study_date = extract_study_date_from_dicom(scan_path)
             
-            # ✅ NEW: Get session code from sessions.json
+            #   NEW: Get session code from sessions.json
             session_code = get_current_session_code()
             
-            # ✅ FALLBACK: Extract from path structure if config fails
+            #   FALLBACK: Extract from path structure if config fails
             if session_code == "unknown":
                 print(f"[DEBUG] Config session failed, extracting from path...")
                 path_parts = scan_path.parts
@@ -149,7 +149,7 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
                 session_code = "ATL"  # Safe default
             filename_stem = f"{patient_id}_{study_date}"
         
-        # ✅ FIX: Use correct path with session code from config
+        #   FIX: Use correct path with session code from config
         patient_folder = get_patient_planar_path(session_code, patient_id, study_date)
         
         print(f"[DEBUG] Expected patient folder: {patient_folder}")
@@ -157,7 +157,7 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
         if not patient_folder.exists():
             print(f"[ERROR] Patient folder does not exist: {patient_folder}")
             
-            # ✅ FALLBACK: Try to find the correct folder
+            #   FALLBACK: Try to find the correct folder
             potential_sessions = ["ATL", "NSY", "NBL", "ALL"]
             found_folder = None
             
@@ -179,8 +179,8 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
         ant_hotspot_files = get_planar_hotspot_files(patient_folder, "ant")
         post_hotspot_files = get_planar_hotspot_files(patient_folder, "post")
         
-        ant_xml_path = ant_hotspot_files['yolo_xml']  # ✅ FIX: Use correct key
-        post_xml_path = post_hotspot_files['yolo_xml']  # ✅ FIX: Use correct key
+        ant_xml_path = ant_hotspot_files['yolo_xml']  #   FIX: Use correct key
+        post_xml_path = post_hotspot_files['yolo_xml']  #   FIX: Use correct key
 
         result = {"frames": [], "ant_frames": [], "post_frames": []}
 
@@ -234,12 +234,12 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
 
 def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date: str, source_is_editor: bool = False) -> bool:
     """
-    ✅ UPDATED: Use session from config
+      UPDATED: Use session from config
     """
     try:
         print(f"[CLASSIFICATION] Starting classification for patient {patient_id}")
         
-        # ✅ ADD: Get session from config  
+        #   ADD: Get session from config  
         from core.config.paths import get_current_session_code
         session_code = get_current_session_code()
         
@@ -263,7 +263,7 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
 
 
 def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date: str) -> bool:
-    """✅ UPDATED: Use session from config for V1.2 quantification"""
+    """  UPDATED: Use session from config for V1.2 quantification"""
     try:
         from .quantification_wrapper import run_quantification_for_patient_v2
         from core.config.paths import get_current_session_code
@@ -274,9 +274,9 @@ def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date
         result = run_quantification_for_patient_v2(dicom_path, patient_id, study_date)
         
         if result:
-            print(f"[PROCESSING] ✅ V1.2 quantification completed for {patient_id}")
+            print(f"[PROCESSING]   V1.2 quantification completed for {patient_id}")
         else:
-            print(f"[PROCESSING] ❌ V1.2 quantification failed for {patient_id}")
+            print(f"[PROCESSING]  V1.2 quantification failed for {patient_id}")
             
         return result
         
@@ -688,11 +688,11 @@ def get_processing_summary(dicom_path: Path, patient_id: str, study_date: str = 
         summary.append("STEP COMPLETION:")
         summary.append("-" * 30)
         completion = status["completion"]
-        summary.append(f"✅ Segmentation: {'Complete' if completion['segmentation'] else 'Incomplete'}")
-        summary.append(f"✅ YOLO Detection: {'Complete' if completion['yolo_detection'] else 'Incomplete'}")
-        summary.append(f"✅ Otsu Processing: {'Complete' if completion['otsu_processing'] else 'Incomplete'}")
-        summary.append(f"✅ Classification: {'Complete' if completion['classification'] else 'Incomplete'}")
-        summary.append(f"✅ Quantification: {'Complete' if completion['quantification'] else 'Incomplete'}")
+        summary.append(f"  Segmentation: {'Complete' if completion['segmentation'] else 'Incomplete'}")
+        summary.append(f"  YOLO Detection: {'Complete' if completion['yolo_detection'] else 'Incomplete'}")
+        summary.append(f"  Otsu Processing: {'Complete' if completion['otsu_processing'] else 'Incomplete'}")
+        summary.append(f"  Classification: {'Complete' if completion['classification'] else 'Incomplete'}")
+        summary.append(f"  Quantification: {'Complete' if completion['quantification'] else 'Incomplete'}")
         summary.append("")
         
         if completion["quantification"]:

@@ -21,13 +21,13 @@ from core.logger import _log
 from core.gui.ui_constants import truncate_text
 
 # Use new directory structure from paths.py with study date support
-# ✅ ADD missing imports from paths.py
+#   ADD missing imports from paths.py
 from core.config.paths import (
     get_patient_planar_path, 
     get_session_planar_path,
-    get_planar_original_files,        # ✅ ADD
-    get_planar_segmentation_files,    # ✅ ADD
-    get_planar_hotspot_files,         # ✅ ADD
+    get_planar_original_files,        #   ADD
+    get_planar_segmentation_files,    #   ADD
+    get_planar_hotspot_files,         #   ADD
     PLANAR_DATA_PATH,
     extract_study_date_from_dicom,
     generate_filename_stem,check_dicom_exists, get_existing_dicom_info
@@ -54,22 +54,22 @@ def upload_patient_file(*args, **kwargs):
 _VERBOSE = True
 _LOG_FILE = None
 
-# ✅ REMOVED: _insert_overlay() function - no DICOM overlay modification
-# ✅ REMOVED: _save_secondary_capture() function - no DICOM creation
+#   REMOVED: _insert_overlay() function - no DICOM overlay modification
+#   REMOVED: _save_secondary_capture() function - no DICOM creation
 
 # ---------------------------------------------------------------- helpers
 
 
 def validate_patient_folder_structure(dest_path: Path, session_code: str, patient_id: str, study_date: str) -> bool:
     """
-    ✅ SIMPLIFIED: Basic path structure validation
+      SIMPLIFIED: Basic path structure validation
     """
     try:
         expected_structure = get_patient_planar_path(session_code, patient_id, study_date)
         actual_folder = dest_path.parent
         
         if actual_folder == expected_structure:
-            _log(f"  ✅ Path structure validated: {actual_folder}")
+            _log(f"    Path structure validated: {actual_folder}")
             return True
         else:
             _log(f"  ⚠️ Path structure different but acceptable:")
@@ -127,7 +127,7 @@ def scan_folders_for_dicom(folder_paths: List[Path]) -> List[Path]:
     
     return sorted(dicom_files)
 
-# ✅ NEW: Smart duplicate detection
+#   NEW: Smart duplicate detection
 def check_duplicate_files(file_paths: List[Path], session_code: str) -> Dict[Path, Dict[str, any]]:
     """
     Enhanced duplicate detection with detailed information
@@ -220,7 +220,7 @@ def _process_one_with_assignments(
     cloud_upload_enabled: bool = True
 ) -> Path:
     """
-    ✅ FIXED: Process single DICOM with NEW path structure and naming
+      FIXED: Process single DICOM with NEW path structure and naming
     """
     _log(f"\n=== Processing {truncate_text(src.name, 40)} ===")
     
@@ -232,18 +232,18 @@ def _process_one_with_assignments(
     _log(f"  Patient ID: {pid}")
     _log(f"  Study Date: {study_date}")
     
-    # ✅ FIX: Generate filename_stem for saved files list
+    #   FIX: Generate filename_stem for saved files list
     filename_stem = generate_filename_stem(pid, study_date)
     
-    # ✅ NEW: Use study_date in path structure
+    #   NEW: Use study_date in path structure
     dest_dir = get_patient_planar_path(session_code, pid, study_date)
     dest_dir.mkdir(parents=True, exist_ok=True)
     
-    # ✅ NEW: Keep original DICOM filename
+    #   NEW: Keep original DICOM filename
     original_filename = src.name
     dest_path = dest_dir / original_filename
     
-    # ✅ MOVE: Path validation AFTER dest_path is defined
+    #   MOVE: Path validation AFTER dest_path is defined
     try:
         path_valid = validate_patient_folder_structure(dest_path, session_code, pid, study_date)
         if not path_valid:
@@ -275,13 +275,13 @@ def _process_one_with_assignments(
                 _log(f"     Processing {view_name} with {bg_selection} background")
                 processed_frame = _safe_background_processing(frame, bg_selection, view_name)
                 processed_frames[view_name] = processed_frame
-                _log(f"     ✅ {view_name} background processed")
+                _log(f"       {view_name} background processed")
             else:
                 processed_frames[view_name] = frame
                 _log(f"     Using original {view_name} (no background assignment)")
         
         frames = processed_frames
-        _log("  ✅ Background processing completed")
+        _log("    Background processing completed")
     else:
         if background_assignments:
             _log("  ⚠️  Background assignments provided but pixel analyzer not available")
@@ -304,7 +304,7 @@ def _process_one_with_assignments(
             normalized_frames[view_name] = frame_data
 
     frames = normalized_frames
-    _log(f"  ✅ Final views: {list(frames.keys())}")
+    _log(f"    Final views: {list(frames.keys())}")
 
     # Validate that we have required views (after normalization)
     frame_views = set(frames.keys())
@@ -313,7 +313,7 @@ def _process_one_with_assignments(
         _log(f"  [ERROR] {error_msg}")
         raise ValueError(error_msg)
 
-    _log(f"  ✅ Normalized views: {list(frames.keys())}")
+    _log(f"    Normalized views: {list(frames.keys())}")
 
     saved: List[str] = []
     png_files_to_upload: List[Path] = []
@@ -324,7 +324,7 @@ def _process_one_with_assignments(
         if view_name in ["Anterior", "Posterior"]:
             view_tag = "ant" if view_name == "Anterior" else "post"
             
-            # ✅ USE paths.py for file naming
+            #   USE paths.py for file naming
             original_files = get_planar_original_files(dest_dir)
             original_png_path = original_files[f'{view_tag}_original']
             
@@ -354,7 +354,7 @@ def _process_one_with_assignments(
             
             _log(f"     Segmentation completed for {view_name}")
 
-            # ✅ MOVE file saving INSIDE try block
+            #   MOVE file saving INSIDE try block
             segmentation_files = get_planar_segmentation_files(dest_dir, view, with_priority=False)
             mask_png_path = segmentation_files['mask_png']
             colored_png_path = segmentation_files['segmentation_png']
@@ -363,7 +363,7 @@ def _process_one_with_assignments(
             Image.fromarray(rgb.astype(np.uint8), mode="RGB").save(colored_png_path)
             
             saved += [mask_png_path.name, colored_png_path.name]
-            _log(f"     ✅ Saved: {mask_png_path.name}, {colored_png_path.name}")
+            _log(f"       Saved: {mask_png_path.name}, {colored_png_path.name}")
 
         except Exception as e:
             _log(f"    [ERROR] Segmentation failed for {view_name}: {e}")
@@ -439,7 +439,7 @@ def _process_one_with_assignments(
     _log("  >> Cloud storage disabled - skipping upload")
     uploaded_count = 0
     
-    _log(f"  ✅ DICOM processing completed - ORIGINAL DICOM UNTOUCHED")
+    _log(f"    DICOM processing completed - ORIGINAL DICOM UNTOUCHED")
     _log(f"  Files saved locally: {len(saved)} PNG output files")
     _log(f"  Views processed: {list(frames.keys())}")
     _log(f"  ORIGINAL DICOM: {dest_path.name} (NO MODIFICATION)")
@@ -455,7 +455,7 @@ def _safe_background_processing(frame_data, background_selection, view_name):
             _log(f"     ⚠️  Pixel analyzer not available for {view_name}")
             return frame_data
     except Exception as e:
-        _log(f"     ❌ Background processing failed for {view_name}: {e}")
+        _log(f"      Background processing failed for {view_name}: {e}")
         return frame_data
 
 def _process_one(src: Path, session_code: str, cloud_upload_enabled: bool = True) -> Path:
@@ -474,7 +474,7 @@ def process_files_with_assignments(
     progress_cb: Callable[[int, int, str], None] | None = None,
     log_cb: Callable[[str], None] | None = None,
     session_code: str | None = None,
-    cloud_upload_enabled: bool = True  # ✅ ADD cloud parameter
+    cloud_upload_enabled: bool = True  #   ADD cloud parameter
 ) -> List[Path]:
     """
     Process multiple DICOM files WITH user-assigned views and background selections
@@ -529,8 +529,8 @@ def process_files_with_assignments(
     _log(f"## Starting batch import with view assignments: {total} file(s)")
     _log(f"## Session code: {session_code}")
     _log(f"## Target directory: data/PLANAR/{session_code}/[patient_id]/")
-    _log(f"## ✅ DICOM PROTECTION: Original DICOM files will NOT be modified")
-    _log(f"## ✅ OUTPUT ONLY: PNG/XML files for analysis results")
+    _log(f"##   DICOM PROTECTION: Original DICOM files will NOT be modified")
+    _log(f"##   OUTPUT ONLY: PNG/XML files for analysis results")
     if background_assignments:
         bg_file_count = len(background_assignments)
         _log(f"## 🎨 BACKGROUND PROCESSING: {bg_file_count} files have background selections")
@@ -549,7 +549,7 @@ def process_files_with_assignments(
                 session_code, 
                 view_assignments, 
                 file_background,
-                cloud_upload_enabled  # ✅ ADD cloud parameter
+                cloud_upload_enabled  #   ADD cloud parameter
             )
             out.append(result)
             _log(f"## File {i}/{total} completed successfully - ORIGINAL DICOM PRESERVED")
@@ -562,9 +562,9 @@ def process_files_with_assignments(
                 progress_cb(i, total, str(file_path))
 
     _log("## Batch import process completed")
-    _log("## ✅ DICOM PROTECTION: All original DICOM files preserved without modification")
-    _log("## ✅ OUTPUT GENERATION: PNG/XML analysis files created successfully")
-    _log("## ✅ CLOUD UPLOAD: Original PNG files uploaded to cloud storage")
+    _log("##   DICOM PROTECTION: All original DICOM files preserved without modification")
+    _log("##   OUTPUT GENERATION: PNG/XML analysis files created successfully")
+    _log("##   CLOUD UPLOAD: Original PNG files uploaded to cloud storage")
     _log("## All files use study date naming convention with proper view names.")
     
     globals()["_log"] = orig_log
@@ -578,7 +578,7 @@ def process_files(
     progress_cb: Callable[[int, int, str], None] | None = None,
     log_cb: Callable[[str], None] | None = None,
     session_code: str | None = None,
-    cloud_upload_enabled: bool = True  # ✅ ADD cloud parameter
+    cloud_upload_enabled: bool = True  #   ADD cloud parameter
 ) -> List[Path]:
     """
     Backward compatibility - process with auto-detection only
@@ -623,14 +623,14 @@ def process_files(
     _log(f"## Starting batch import with AUTO-DETECTION: {total} file(s)")
     _log(f"## Session code: {session_code}")
     _log(f"## Target directory: data/SPECT/{session_code}/[patient_id]/")
-    _log(f"## ✅ DICOM PROTECTION: Original DICOM files will NOT be modified")
-    _log(f"## ✅ AUTO-DETECTION: System will detect Anterior/Posterior views")
+    _log(f"##   DICOM PROTECTION: Original DICOM files will NOT be modified")
+    _log(f"##   AUTO-DETECTION: System will detect Anterior/Posterior views")
     _log(f"## Processing workflow: Copy Original → PNG outputs → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG")
 
     for i, p in enumerate(paths, 1):
         try:
             _log(f"\n## Processing file {i}/{total}: {truncate_text(p.name, 30)}")
-            result = _process_one_with_assignments(Path(p), session_code, None, None, cloud_upload_enabled)  # ✅ ADD cloud parameter
+            result = _process_one_with_assignments(Path(p), session_code, None, None, cloud_upload_enabled)  #   ADD cloud parameter
             out.append(result)
             _log(f"## File {i}/{total} completed successfully - ORIGINAL DICOM PRESERVED")
         except Exception as e:
@@ -642,10 +642,10 @@ def process_files(
                 progress_cb(i, total, str(p))
 
     _log("## Batch import process completed")
-    _log("## ✅ DICOM PROTECTION: All original DICOM files preserved without modification")
-    _log("## ✅ AUTO-DETECTION completed. Check logs for any view assignment issues.")
-    _log("## ✅ OUTPUT GENERATION: PNG/XML analysis files created successfully")
-    _log("## ✅ CLOUD UPLOAD: Original PNG files uploaded to cloud storage")
+    _log("##   DICOM PROTECTION: All original DICOM files preserved without modification")
+    _log("##   AUTO-DETECTION completed. Check logs for any view assignment issues.")
+    _log("##   OUTPUT GENERATION: PNG/XML analysis files created successfully")
+    _log("##   CLOUD UPLOAD: Original PNG files uploaded to cloud storage")
     _log("## All files use study date naming convention.")
     
     globals()["_log"] = orig_log
@@ -684,19 +684,19 @@ def validate_planar_structure(session_code: str) -> bool:
     
 def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str) -> bool:
     """
-    ✅ FIXED: Run classification with new file naming ONLY - no old naming fallback
+      FIXED: Run classification with new file naming ONLY - no old naming fallback
     """
     try:
         patient_folder = dest_path.parent
         
-        # ✅ GET ALL FILE PATHS using paths.py
+        #   GET ALL FILE PATHS using paths.py
         original_files = get_planar_original_files(patient_folder)
         segmentation_files_ant = get_planar_segmentation_files(patient_folder, "ant", with_priority=False)
         segmentation_files_post = get_planar_segmentation_files(patient_folder, "post", with_priority=False)
         hotspot_files_ant = get_planar_hotspot_files(patient_folder, "ant", with_priority=False)
         hotspot_files_post = get_planar_hotspot_files(patient_folder, "post", with_priority=False)
         
-        # ✅ CREATE: Temporary directory with old naming for classification compatibility
+        #   CREATE: Temporary directory with old naming for classification compatibility
         temp_dir = patient_folder / "temp_classification"
         temp_dir.mkdir(exist_ok=True)
         
@@ -705,7 +705,7 @@ def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str
         file_mappings = []
         success_count = 0
         
-        # ✅ COMPLETE file mapping using paths.py (not hardcoded)
+        #   COMPLETE file mapping using paths.py (not hardcoded)
         file_mapping_list = [
             # Original files
             (original_files['ant_original'], f"{filename_stem}_anterior_original.png"),
@@ -715,11 +715,11 @@ def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str
             (segmentation_files_ant['segmentation_png'], f"{filename_stem}_anterior_colored.png"),
             (segmentation_files_post['segmentation_png'], f"{filename_stem}_posterior_colored.png"),
             
-            # ✅ HOTSPOT MASK files
+            #   HOTSPOT MASK files
             (hotspot_files_ant['otsu_grayscale'], f"{filename_stem}_ant_hotspot_mask.png"),
             (hotspot_files_post['otsu_grayscale'], f"{filename_stem}_post_hotspot_mask.png"),
             
-            # ✅ YOLO XML files
+            #   YOLO XML files
             (hotspot_files_ant['yolo_xml'], f"{filename_stem}_ant.xml"),
             (hotspot_files_post['yolo_xml'], f"{filename_stem}_post.xml"),
         ]
@@ -739,7 +739,7 @@ def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str
         _log(f"     Successfully mapped {success_count} files for classification")
         
         if success_count >= 4:  # Need at least basic files
-            # ✅ CHANGE: Temporarily change working directory for classification
+            #   CHANGE: Temporarily change working directory for classification
             import os
             original_cwd = os.getcwd()
             
@@ -750,11 +750,11 @@ def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str
                 from features.spect_viewer.logic.processing_wrapper import run_classification_for_patient
                 result = run_classification_for_patient(dest_path, pid, study_date)
                 
-                # ✅ COPY: Results back using NEW NAMING ONLY (paths.py)
+                #   COPY: Results back using NEW NAMING ONLY (paths.py)
                 if result:
                     _log(f"     Copying classification results back to main folder with NEW naming...")
                     
-                    # ✅ USE paths.py for result file mapping - NEW NAMING ONLY
+                    #   USE paths.py for result file mapping - NEW NAMING ONLY
                     for view_tag in ["ant", "post"]:
                         hotspot_files = get_planar_hotspot_files(patient_folder, view_tag, with_priority=False)
                         
@@ -766,39 +766,39 @@ def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str
                         old_json = temp_dir / f"{filename_stem}_{view_tag}_classification.json"
                         old_mask = temp_dir / f"{filename_stem}_{view_full}_classification_mask.png"
                         
-                        # ✅ NEW paths using paths.py - NEW NAMING CONVENTION
+                        #   NEW paths using paths.py - NEW NAMING CONVENTION
                         new_xml = hotspot_files['classification_xml']   # ant_hotspot_classification.xml
                         new_png = hotspot_files['classification_png']   # ant_hotspot_classification.png
                         
                         # Copy XML files to NEW naming
                         if old_xml.exists():
                             shutil.copy2(old_xml, new_xml)
-                            _log(f"     ✅ Copied XML: {old_xml.name} -> {new_xml.name}")
+                            _log(f"       Copied XML: {old_xml.name} -> {new_xml.name}")
                         
                         # Copy mask files to NEW naming (PNG)
                         if old_mask.exists():
                             shutil.copy2(old_mask, new_png)
-                            _log(f"     ✅ Copied PNG: {old_mask.name} -> {new_png.name}")
+                            _log(f"       Copied PNG: {old_mask.name} -> {new_png.name}")
                         
-                        # ✅ OPTIONAL: Copy JSON for reference with NEW naming
+                        #   OPTIONAL: Copy JSON for reference with NEW naming
                         if old_json.exists():
                             json_backup = patient_folder / f"{view_tag}_hotspot_classification.json"
                             shutil.copy2(old_json, json_backup)
-                            _log(f"     ✅ Copied JSON: {old_json.name} -> {json_backup.name}")
+                            _log(f"       Copied JSON: {old_json.name} -> {json_backup.name}")
                 
                 return result
                 
             finally:
                 os.chdir(original_cwd)
                 
-                # ✅ CLEANUP: Remove temp directory
+                #   CLEANUP: Remove temp directory
                 try:
                     shutil.rmtree(temp_dir)
-                    _log(f"     ✅ Cleaned up temp directory")
+                    _log(f"       Cleaned up temp directory")
                 except Exception as cleanup_error:
                     _log(f"     [WARN] Cleanup failed: {cleanup_error}")
         else:
-            _log(f"     ❌ Insufficient files for classification ({success_count} < 4)")
+            _log(f"      Insufficient files for classification ({success_count} < 4)")
             _log(f"     Required: original, segmentation, hotspot mask, and XML files")
             return False
             

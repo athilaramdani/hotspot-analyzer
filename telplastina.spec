@@ -242,8 +242,8 @@ hiddenimports = [
     
     # TorchVision - MINIMAL SAFE IMPORTS ONLY
     'torchvision',
-    'torchvision.extension',  # ✅ INCLUDE extension
-    'torchvision._extension', # ✅ INCLUDE private extension
+    'torchvision.extension',  #   INCLUDE extension
+    'torchvision._extension', #   INCLUDE private extension
     'torchvision.transforms',
     'torchvision.transforms.functional',
     'torchvision.transforms._transforms_video',
@@ -382,101 +382,10 @@ hiddenimports = [
     'doctest',
 ]
 
-# Collect data files - FIXED PATHS
+# Collect data files - FIXED PATHS but not used
 datas = []
 
-# Add configuration files
-config_path = current_dir / "config"
-if config_path.exists():
-    datas.append((str(config_path), 'config'))
 
-# Add models - CRITICAL for AI functionality
-models_path = current_dir / "models"
-if models_path.exists():
-    # FIX: Add the entire models directory with ALL subdirectories and files
-    datas.append((str(models_path), 'models'))
-    
-    # NEW: Explicitly add ALL nnUNet files (not just checkpoint)
-    nnunet_path = models_path / "segmentation_2" / "nnUNet_results" / "Dataset001_BoneRegion" / "nnUNetTrainer_50epochs__nnUNetPlans__2d"
-    if nnunet_path.exists():
-        print(f"[SPEC] Adding complete nnUNet structure from: {nnunet_path}")
-        
-        # Add the entire nnUNet model directory structure
-        datas.append((str(nnunet_path), str(Path("models") / "segmentation_2" / "nnUNet_results" / "Dataset001_BoneRegion" / "nnUNetTrainer_50epochs__nnUNetPlans__2d")))
-        
-        # Also add dataset-level files if they exist
-        dataset_path = models_path / "segmentation_2" / "nnUNet_results" / "Dataset001_BoneRegion"
-        if dataset_path.exists():
-            datas.append((str(dataset_path), str(Path("models") / "segmentation_2" / "nnUNet_results" / "Dataset001_BoneRegion")))
-        
-        # List critical files to verify
-        critical_nnunet_files = [
-            nnunet_path / "dataset.json",
-            nnunet_path / "plans.json", 
-            nnunet_path / "fold_0" / "checkpoint_best.pth",
-            nnunet_path / "fold_0" / "checkpoint_final.pth",
-            dataset_path / "dataset.json"
-        ]
-        
-        for file_path in critical_nnunet_files:
-            if file_path.exists():
-                print(f"[SPEC] Found critical nnUNet file: {file_path.name}")
-            else:
-                print(f"[SPEC] Missing nnUNet file: {file_path}")
-    
-    # IMPROVED: More comprehensive critical model files check
-    critical_models = [
-        "models/hotspot_detection/models/model_detection_hs_yolov8.pt",
-        "models/classification/model_classification_hs_xgboost_250724.pkl", 
-        "models/classification/scaler_classification_32features.pkl",
-        # Add ALL nnUNet files that might be needed
-        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/dataset.json",
-        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/dataset.json",
-        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/plans.json",
-        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_best.pth",
-        "models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_final.pth"
-    ]
-    
-    for model_file in critical_models:
-        full_path = current_dir / model_file
-        if full_path.exists():
-            # Ensure individual files are also explicitly added
-            datas.append((str(full_path), str(Path(model_file).parent)))
-            print(f"[SPEC] Added critical model: {model_file}")
-        else:
-            print(f"[SPEC] WARNING: Critical model not found: {model_file}")
-
-# NEW: Add special handling for nnUNet configuration files
-nnunet_configs = [
-    "models/segmentation_2/nnUNet_results",
-    "models/segmentation_2/nnUNet_preprocessed", 
-    "models/segmentation_2/nnUNet_raw"
-]
-
-for config_dir in nnunet_configs:
-    config_path = current_dir / config_dir
-    if config_path.exists():
-        datas.append((str(config_path), config_dir))
-        print(f"[SPEC] Added nnUNet config dir: {config_dir}")
-# Add assets (if exists)
-assets_path = current_dir / "assets"
-if assets_path.exists():
-    datas.append((str(assets_path), 'assets'))
-
-# Add segmentation data
-segmentation_path = current_dir / "segmentation"
-if segmentation_path.exists():
-    datas.append((str(segmentation_path), 'segmentation'))
-
-# Add environment file
-env_file = current_dir / ".env"
-if env_file.exists():
-    datas.append((str(env_file), '.'))
-
-# Add data directory structure (but exclude large files if needed)
-data_path = current_dir / "data"
-if data_path.exists():
-    datas.append((str(data_path), 'data'))
 
 # Binaries to exclude (reduce size)
 excludes = [
@@ -501,8 +410,8 @@ excludes = [
     'triton.runtime',
     'triton.ops',
     # Exclude problematic torch modules
-    'torch._dynamo',  # ✅ BARU: Exclude dynamo untuk stability
-    'torch._inductor',  # ✅ BARU: Exclude inductor
+    'torch._dynamo',  #   BARU: Exclude dynamo untuk stability
+    'torch._inductor',  #   BARU: Exclude inductor
 ]
 
 # Runtime hooks - EMPTY to let PyInstaller handle torch normally
@@ -510,7 +419,7 @@ runtime_hooks = [
     'hooks/runtime_hook.py',
     'hooks/runtime_hook_nnunet.py',
     'hooks/runtime_hook_torchvision.py',
-    'hooks/runtime_hook_xgboost.py'  # ✅ ADD THIS
+    'hooks/runtime_hook_xgboost.py'  #   ADD THIS
 ]
 
 # Analysis with improved settings
@@ -518,7 +427,7 @@ a = Analysis(
     [main_script],
     pathex=[str(current_dir)],
     binaries=[
-        # ✅ ADD: XGBoost library binaries
+        #   ADD: XGBoost library binaries
         (str(current_dir / '.venv' / 'Lib' / 'site-packages' / 'xgboost' / 'lib' / 'xgboost.dll'), 'xgboost/lib'),
         (str(current_dir / '.venv' / 'Lib' / 'site-packages' / 'xgboost' / 'lib' / 'xgboost.dll'), 'lib'),
     ],
@@ -579,7 +488,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=ICON_FILE,  # ✅ FIXED: Add icon path
+    icon=ICON_FILE,  #   FIXED: Add icon path
 )
 
 # Collect everything into dist folder

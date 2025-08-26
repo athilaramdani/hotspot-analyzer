@@ -7,21 +7,21 @@ import sys
 import os
 from pathlib import Path
 
-print("🧪 [DEBUG] PyInstaller Build Analysis")
+print("  [DEBUG] PyInstaller Build Analysis")
 print("=" * 60)
 
 # Check if PyInstaller mode
 if hasattr(sys, '_MEIPASS'):
-    print(f"✅ Running in PyInstaller mode")
+    print(f"  Running in PyInstaller mode")
     print(f"   _MEIPASS: {sys._MEIPASS}")
     print(f"   executable: {sys.executable}")
 else:
-    print("❌ NOT running in PyInstaller mode")
+    print(" NOT running in PyInstaller mode")
     sys.exit(1)
 
 def debug_torch_library():
     """Debug torch.library specifically"""
-    print("\n🔍 [DEBUG] torch.library Analysis:")
+    print("\n  [DEBUG] torch.library Analysis:")
     
     if 'torch.library' in sys.modules:
         lib = sys.modules['torch.library']
@@ -34,7 +34,7 @@ def debug_torch_library():
         if 'TritonBlocker' in str(type(lib)):
             print("   ⚠️  torch.library IS A TRITONBLOCKER!")
         else:
-            print("   ✅ torch.library is normal module")
+            print("     torch.library is normal module")
             
         # Check Library class
         if hasattr(lib, 'Library'):
@@ -47,15 +47,15 @@ def debug_torch_library():
                 print(f"   Library instance: {type(test_lib)}")
                 print(f"   Library has _register_fake: {hasattr(test_lib, '_register_fake')}")
             except Exception as e:
-                print(f"   ❌ Library instantiation failed: {e}")
+                print(f"    Library instantiation failed: {e}")
         else:
-            print("   ❌ No Library class found")
+            print("    No Library class found")
     else:
-        print("   ❌ torch.library not loaded")
+        print("    torch.library not loaded")
 
 def debug_triton_modules():
     """Debug all triton-related modules"""
-    print("\n🔍 [DEBUG] Triton Modules Analysis:")
+    print("\n  [DEBUG] Triton Modules Analysis:")
     
     triton_modules = []
     triton_blockers = []
@@ -72,12 +72,12 @@ def debug_triton_modules():
     for key in triton_modules:
         mod = sys.modules[key]
         is_blocker = 'TritonBlocker' in str(type(mod))
-        status = "⚠️ BLOCKER" if is_blocker else "✅ Normal"
+        status = "⚠️ BLOCKER" if is_blocker else "  Normal"
         print(f"   {key}: {status}")
 
 def test_critical_imports():
     """Test imports that are failing"""
-    print("\n🔍 [DEBUG] Critical Import Tests:")
+    print("\n  [DEBUG] Critical Import Tests:")
     
     tests = [
         ("torch", "import torch"),
@@ -92,13 +92,13 @@ def test_critical_imports():
     for name, import_cmd in tests:
         try:
             exec(import_cmd)
-            print(f"   ✅ {name}: SUCCESS")
+            print(f"     {name}: SUCCESS")
         except Exception as e:
-            print(f"   ❌ {name}: {type(e).__name__}: {str(e)[:100]}...")
+            print(f"    {name}: {type(e).__name__}: {str(e)[:100]}...")
 
 def show_environment():
     """Show relevant environment variables"""
-    print("\n🔍 [DEBUG] Environment Variables:")
+    print("\n  [DEBUG] Environment Variables:")
     
     relevant_vars = [
         'TRITON_DISABLE', 'TORCH_DISABLE_TRITON_LIBRARY', 'TORCH_COMPILE_DISABLE',
@@ -118,10 +118,10 @@ if __name__ == "__main__":
         test_critical_imports()
         
         print("\n" + "=" * 60)
-        print("🧪 [DEBUG] Analysis complete!")
+        print("  [DEBUG] Analysis complete!")
         
     except Exception as e:
-        print(f"\n❌ [ERROR] Debug script failed: {e}")
+        print(f"\n [ERROR] Debug script failed: {e}")
         import traceback
         traceback.print_exc()
     

@@ -45,7 +45,7 @@ def _extract_labels_enhanced(ds) -> list[str]:
     n = int(getattr(ds, "NumberOfFrames", 1))
     labels = [None] * n
 
-    # ✅ METHOD 1: DetectorInformationSequence (standard method)
+    #   METHOD 1: DetectorInformationSequence (standard method)
     det_seq = getattr(ds, "DetectorInformationSequence", None)
     if det_seq:
         for idx, det in enumerate(det_seq):
@@ -56,7 +56,7 @@ def _extract_labels_enhanced(ds) -> list[str]:
             if name and idx < n:
                 labels[idx] = name
 
-    # ✅ METHOD 2: Root ViewCodeSequence (untuk DICOM kedua)
+    #   METHOD 2: Root ViewCodeSequence (untuk DICOM kedua)
     elif hasattr(ds, "ViewCodeSequence"):
         view_seq = ds.ViewCodeSequence
         for idx, view_item in enumerate(view_seq):
@@ -68,7 +68,7 @@ def _extract_labels_enhanced(ds) -> list[str]:
                 if name:
                     labels[idx] = name
 
-    # ✅ METHOD 3: ViewPosition tag
+    #   METHOD 3: ViewPosition tag
     elif hasattr(ds, "ViewPosition"):
         view_pos = str(ds.ViewPosition)
         if "\\" in view_pos:  # Multiple views separated by backslash
@@ -80,18 +80,18 @@ def _extract_labels_enhanced(ds) -> list[str]:
                 if name:
                     labels[idx] = name
 
-    # ✅ METHOD 4: Smart fallback untuk bone scan
+    #   METHOD 4: Smart fallback untuk bone scan
     all_none = all(lbl is None for lbl in labels)
     if all_none and n == 2:
         # Standard bone scan assumption: frame 0 = anterior, frame 1 = posterior
         labels = ["Anterior", "Posterior"]
-        print(f"   🎯 Using bone scan assumption: [Anterior, Posterior]")
+        print(f"     Using bone scan assumption: [Anterior, Posterior]")
     elif all_none:
         # Generic fallback with frame numbers
         labels = [f"Frame {i+1}" for i in range(n)]
         print(f"   ⚠️  Generic fallback: {labels}")
     
-    # ✅ DEDUPLICATION: Handle duplicate names
+    #   DEDUPLICATION: Handle duplicate names
     seen: Dict[str, int] = {}
     for i, lbl in enumerate(labels):
         if lbl in seen:
@@ -139,7 +139,7 @@ def load_frames_and_metadata_with_assignments(
     else:
         labels = _extract_labels_enhanced(ds)
 
-    # ✅ ENFORCE ANTERIOR/POSTERIOR NAMING
+    #   ENFORCE ANTERIOR/POSTERIOR NAMING
     # Convert any Frame X to proper view names if possible
     normalized_labels = []
     for i, label in enumerate(labels):
@@ -161,11 +161,11 @@ def load_frames_and_metadata_with_assignments(
     meta = {
         "patient_id":    getattr(ds, "PatientID", ""),
         "patient_name":  str(getattr(ds, "PatientName", "")),
-        "patient_birth_date": getattr(ds, "PatientBirthDate", ""),  # ✅ FIXED key name
+        "patient_birth_date": getattr(ds, "PatientBirthDate", ""),  #   FIXED key name
         "patient_sex":   getattr(ds, "PatientSex", ""),
-        "patient_weight": getattr(ds, "PatientWeight", ""),         # ✅ NEW
-        "patient_size": getattr(ds, "PatientSize", ""),             # ✅ NEW  
-        "patient_age": getattr(ds, "PatientAge", ""),               # ✅ NEW (backup)
+        "patient_weight": getattr(ds, "PatientWeight", ""),         #   NEW
+        "patient_size": getattr(ds, "PatientSize", ""),             #   NEW  
+        "patient_age": getattr(ds, "PatientAge", ""),               #   NEW (backup)
         "study_date":    getattr(ds, "StudyDate", ""),
         "series_date":   getattr(ds, "SeriesDate", ""),
         "study_time":    getattr(ds, "StudyTime", ""),
@@ -247,7 +247,7 @@ def save_frame_to_png(frame: np.ndarray, *, view: str, uid: str, study_date: str
     Returns:
         Path to saved PNG file
     """
-    # ✅ ENFORCE proper view names
+    #   ENFORCE proper view names
     if view not in ["Anterior", "Posterior"]:
         raise ValueError(f"View must be 'Anterior' or 'Posterior', got: {view}")
     
@@ -338,7 +338,7 @@ def extract_patient_info_from_path(dicom_path: Path) -> tuple[str, str]:
         if planar_index is not None and len(parts) > planar_index + 3:
             # Structure: .../PLANAR/[session]/[patient]/[study_date]/file.dcm
             session_code = parts[planar_index + 1]    # ATL
-            patient_id = parts[planar_index + 2]      # 5001  ✅ INI YANG BENAR
+            patient_id = parts[planar_index + 2]      # 5001    INI YANG BENAR
             study_date = parts[planar_index + 3]      # 20250115
             
             print(f"[DEBUG] Path extraction: session={session_code}, patient={patient_id}, study_date={study_date}")
