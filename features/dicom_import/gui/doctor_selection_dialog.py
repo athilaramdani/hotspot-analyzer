@@ -518,16 +518,40 @@ class DoctorSelectionDialog(QDialog):
     Enhanced dialog for doctor selection with dynamic tag management and ALL User functionality
     """
     
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("TELPLASTINA - Doctor Selection") 
         self.setModal(True)
-        self.setMinimumSize(1000, 700)
-        self.resize(1200, 800)
-        self.setSizeGripEnabled(True)
-        # Remove close button
-        self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.WindowSystemMenuHint)
+
+        # 1. (BARU) Import QGuiApplication untuk mendapatkan info layar
+        from PySide6.QtGui import QGuiApplication
+
+        # 2. (DIUBAH) Tambahkan flag untuk tombol minimize dan maximize
+        # Ini akan otomatis membuat window bisa di-resize dengan bebas
+        self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinMaxButtonsHint)
         
+        # 3. (BARU) Dapatkan ukuran layar yang TERSEDIA (tidak termasuk taskbar)
+        screen = QGuiApplication.primaryScreen()
+        available_geometry = screen.availableGeometry()
+        screen_width = available_geometry.width()
+        screen_height = available_geometry.height()
+
+        # 4. (BARU) Atur ukuran dialog menjadi persentase dari ukuran layar
+        # Misalnya, 80% lebar dan 85% tinggi layar yang tersedia
+        dialog_width = int(screen_width * 0.8)
+        dialog_height = int(screen_height * 0.85)
+        
+        # Tetapkan ukuran minimum agar layout tidak rusak jika window dikecilkan
+        self.setMinimumSize(900, 600)
+        
+        # 5. (DIUBAH) Gunakan ukuran dinamis yang sudah dihitung
+        self.resize(dialog_width, dialog_height)
+        
+        # Fitur ini tetap berguna untuk resize dari sudut
+        self.setSizeGripEnabled(True)
+
+        # Inisialisasi properti lainnya
         self.selected_doctor_id: str = None
         self.selected_modality: str = "Planar"
         self.selected_tag_data: dict = None

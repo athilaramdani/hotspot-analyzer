@@ -1066,20 +1066,29 @@ class HotspotEditorDialog(BaseEditorDialog):
 
     def _save_editing_time_log(self, elapsed_seconds: float, formatted_time: str):
         """Save editing time to a CSV log file."""
+        # ================== PERBAIKAN UTAMA ==================
+        # Inisialisasi variabel di luar blok try untuk menghindari UnboundLocalError
+        log_file = "Path tidak terdefinisi" 
+        time_log_dir = "Path tidak terdefinisi"
+        # =====================================================
+
         try:
             from pathlib import Path
             import csv
             from datetime import datetime
+            import sys
 
-            # 1. Definisikan path dan buat direktori jika belum ada
-            time_log_dir = Path(__file__).parent.parent.parent.parent / "data" / "PLANAR" / "timeEdit"
+            if getattr(sys, 'frozen', False):
+                base_path = Path(sys.executable).parent
+            else:
+                base_path = Path(__file__).parent.parent.parent.parent
+
+            time_log_dir = base_path / "data" / "PLANAR" / "timeEdit"
             time_log_dir.mkdir(parents=True, exist_ok=True)
             log_file = time_log_dir / "time_editing.csv"
 
-            # 2. Tentukan kode dokter untuk log
             doctor_code = self.editor_session if self.session_code == "ALL" else self.session_code
 
-            # 3. Siapkan data log
             log_entry = {
                 'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 'session': self.session_code,
@@ -1089,27 +1098,40 @@ class HotspotEditorDialog(BaseEditorDialog):
                 'view': self.view_short,
                 'duration_seconds': f"{elapsed_seconds:.3f}",
                 'duration_formatted': formatted_time,
-                'edit_type' : 'hotpsot'
+                'edit_type' : 'hotspot'
             }
             
             fieldnames = list(log_entry.keys())
-
-            # 4. Cek apakah file sudah ada untuk menentukan perlu header atau tidak
             file_exists = log_file.exists()
 
-            # 5. Tambahkan (append) ke file CSV
             with open(log_file, 'a', newline='', encoding='utf-8') as f:
                 writer = csv.DictWriter(f, fieldnames=fieldnames)
-                
                 if not file_exists:
                     writer.writeheader()
-                
                 writer.writerow(log_entry)
             
-            print(f"  Editing time logged to '{log_file.name}': {formatted_time} for patient {self.patient_id}")
+            print(f"   Editing time logged to '{log_file.name}': {formatted_time} for patient {self.patient_id}")
 
         except Exception as e:
+            from PySide6.QtWidgets import QMessageBox
             print(f" Failed to save editing time log: {e}")
+            # Sekarang blok ini aman karena 'log_file' pasti punya nilai
+            QMessageBox.critical(
+                self, "Error Menyimpan Log",
+                f"Gagal menyimpan log waktu editing.\n\n"
+                f"Lokasi yang dituju: {time_log_dir}\n"
+                f"File yang dituju: {log_file}\n\n"
+                f"Error: {str(e)}"
+            )
+
+        except Exception as e:
+            # SANGAT DISARANKAN: Tampilkan error sebagai pop-up
+            from PySide6.QtWidgets import QMessageBox
+            print(f" Failed to save editing time log: {e}")
+            QMessageBox.critical(
+                self, "Error Menyimpan Log",
+                f"Gagal menyimpan log waktu editing.\n\nFile: {log_file}\nError: {str(e)}"
+            )
 
     def closeEvent(self, event):
         """Handle dialog close to stop timer."""
