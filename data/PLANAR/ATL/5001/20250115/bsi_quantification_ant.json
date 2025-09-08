@@ -6,21 +6,22 @@
     "quantification_method": "BSI_v1.2_color_based_separate_views",
     "algorithm_version": "1.2",
     "view": "anterior",
+    "processing_mode": "dual_view",
     "input_files": {
-      "segmentation": "5001_20250115_anterior_colored.png",
-      "hotspot": "5001_20250115_anterior_classification_mask.png"
+      "segmentation": "ant_segm_004811.png",
+      "hotspot": "ant_hotspot_classification_004836.png"
     }
   },
   "bsi_results": {
     "skull": {
-      "total_pixels": 8342,
+      "total_pixels": 8384,
       "malignant_pixels": 0,
       "benign_pixels": 0,
       "malignant_ratio": 0.0,
       "benign_ratio": 0.0
     },
     "cervical vertebrae": {
-      "total_pixels": 789,
+      "total_pixels": 825,
       "malignant_pixels": 0,
       "benign_pixels": 0,
       "malignant_ratio": 0.0,
@@ -34,18 +35,18 @@
       "benign_ratio": 0.0
     },
     "rib left": {
-      "total_pixels": 9113,
-      "malignant_pixels": 0,
+      "total_pixels": 17422,
+      "malignant_pixels": 6,
       "benign_pixels": 0,
-      "malignant_ratio": 0.0,
+      "malignant_ratio": 0.0003443921478590288,
       "benign_ratio": 0.0
     },
     "rib right": {
-      "total_pixels": 8309,
+      "total_pixels": 0,
       "malignant_pixels": 0,
       "benign_pixels": 0,
-      "malignant_ratio": 0.0,
-      "benign_ratio": 0.0
+      "malignant_ratio": 0,
+      "benign_ratio": 0
     },
     "sternum": {
       "total_pixels": 2507,
@@ -55,46 +56,46 @@
       "benign_ratio": 0.0
     },
     "clavicle left": {
-      "total_pixels": 904,
+      "total_pixels": 1775,
       "malignant_pixels": 0,
       "benign_pixels": 0,
       "malignant_ratio": 0.0,
       "benign_ratio": 0.0
     },
     "clavicle right": {
-      "total_pixels": 871,
+      "total_pixels": 0,
       "malignant_pixels": 0,
       "benign_pixels": 0,
-      "malignant_ratio": 0.0,
-      "benign_ratio": 0.0
+      "malignant_ratio": 0,
+      "benign_ratio": 0
     },
     "scapula left": {
-      "total_pixels": 1260,
-      "malignant_pixels": 0,
+      "total_pixels": 2597,
+      "malignant_pixels": 186,
       "benign_pixels": 0,
-      "malignant_ratio": 0.0,
+      "malignant_ratio": 0.07162110127069696,
       "benign_ratio": 0.0
     },
     "scapula right": {
-      "total_pixels": 1330,
-      "malignant_pixels": 186,
-      "benign_pixels": 0,
-      "malignant_ratio": 0.13984962406015036,
-      "benign_ratio": 0.0
-    },
-    "humerus left": {
-      "total_pixels": 2801,
+      "total_pixels": 0,
       "malignant_pixels": 0,
       "benign_pixels": 0,
-      "malignant_ratio": 0.0,
+      "malignant_ratio": 0,
+      "benign_ratio": 0
+    },
+    "humerus left": {
+      "total_pixels": 5685,
+      "malignant_pixels": 99,
+      "benign_pixels": 0,
+      "malignant_ratio": 0.017414248021108178,
       "benign_ratio": 0.0
     },
     "humerus right": {
-      "total_pixels": 2884,
-      "malignant_pixels": 99,
+      "total_pixels": 0,
+      "malignant_pixels": 0,
       "benign_pixels": 0,
-      "malignant_ratio": 0.03432732316227462,
-      "benign_ratio": 0.0
+      "malignant_ratio": 0,
+      "benign_ratio": 0
     },
     "lumbar vertebrae": {
       "total_pixels": 3385,
@@ -118,27 +119,27 @@
       "benign_ratio": 0.0
     },
     "femur left": {
-      "total_pixels": 4742,
-      "malignant_pixels": 0,
+      "total_pixels": 9811,
+      "malignant_pixels": 227,
       "benign_pixels": 0,
-      "malignant_ratio": 0.0,
+      "malignant_ratio": 0.02313729487310162,
       "benign_ratio": 0.0
     },
     "femur right": {
-      "total_pixels": 5069,
-      "malignant_pixels": 227,
+      "total_pixels": 0,
+      "malignant_pixels": 0,
       "benign_pixels": 0,
-      "malignant_ratio": 0.04478200828565792,
-      "benign_ratio": 0.0
+      "malignant_ratio": 0,
+      "benign_ratio": 0
     }
   },
   "summary_statistics": {
     "view": "anterior",
-    "bsi_score": 0.27713394964366816,
-    "total_malignant_pixels": 1008,
+    "bsi_score": 0.17069203044835105,
+    "total_malignant_pixels": 1014,
     "total_benign_pixels": 0,
-    "total_pixels": 63625,
-    "malignant_percentage": 0.27713394964366816,
-    "benign_percentage": 0.0
+    "total_pixels": 63710,
+    "combined_bsi_available": true,
+    "combined_bsi": 0.28882713146852956
   }
 }

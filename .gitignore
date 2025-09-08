@@ -9,7 +9,7 @@ data/
 installer_output/
 .cache/
 
-# ✅ RECURSIVE __pycache__ EVERYWHERE
+#   RECURSIVE __pycache__ EVERYWHERE
 **/__pycache__/
 **/*.pyc
 **/*.pyo

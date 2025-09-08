@@ -533,7 +533,7 @@ class MainWindowSpect(QMainWindow):
 
         # Import and action buttons
         import_btn = QPushButton("Import DICOM…")
-        import_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
+        import_btn.setStyleSheet(SUCCESS_BUTTON_STYLE)
         import_btn.clicked.connect(self._show_import_dialog)
         
         # rescan_btn = QPushButton("Rescan Folder")
@@ -623,23 +623,35 @@ class MainWindowSpect(QMainWindow):
         # 4. Tombol Edit (PINDAHAN) - DENGAN FONT KECIL
         self.seg_edit_btn = QPushButton("Edit Segmentation")
         self.seg_edit_btn.clicked.connect(self._open_segmentation_editor)
-        self.seg_edit_btn.setStyleSheet(SUCCESS_BUTTON_STYLE + """
-            QPushButton { font-size: 11px; }
+        self.seg_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
+            QPushButton { 
+                font-size: 11px; 
+                min-width: 100px;
+                height: 22px;
+            }
             QPushButton:disabled {
                 background-color: #d3d3d3;
                 color: #888;
                 border-color: #aaa;
                 font-size: 11px;
+                min-width: 100px;
+                height: 22px;
             }
         """)
 
         self.hotspot_edit_btn = QPushButton("Edit Hotspot")
         self.hotspot_edit_btn.clicked.connect(self._open_hotspot_editor)
         self.hotspot_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
+            QPushButton {
+                min-width: 100px;
+                height: 22px;
+            }
             QPushButton:disabled {
                 background-color: #d3d3d3;
                 color: #888;
                 border-color: #aaa;
+                min-width: 100px;
+                height: 22px;
             }
         """)
 
@@ -657,11 +669,11 @@ class MainWindowSpect(QMainWindow):
         zoom_buttons_layout = QHBoxLayout()
         zoom_in_btn = QPushButton("Zoom In")
         zoom_in_btn.clicked.connect(self.zoom_in)
-        zoom_in_btn.setStyleSheet(ZOOM_BUTTON_STYLE)
+        zoom_in_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
 
         zoom_out_btn = QPushButton("Zoom Out")
         zoom_out_btn.clicked.connect(self.zoom_out)
-        zoom_out_btn.setStyleSheet(ZOOM_BUTTON_STYLE)
+        zoom_out_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
 
         zoom_buttons_layout.addWidget(zoom_in_btn)
         zoom_buttons_layout.addWidget(zoom_out_btn)
@@ -669,7 +681,7 @@ class MainWindowSpect(QMainWindow):
 
         # AFTER - TAMBAH setelah contrast_button
         contrast_button = QPushButton("Adjust Contrast")
-        contrast_button.setStyleSheet(ZOOM_BUTTON_STYLE) # Use a style you like
+        contrast_button.setStyleSheet(GRAY_BUTTON_STYLE) # Use a style you like
         contrast_button.clicked.connect(self._open_contrast_dialog)
         left_layout.addWidget(contrast_button)
 

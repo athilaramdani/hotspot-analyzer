@@ -1,7 +1,4 @@
-================================================================================
-📂 File: hook-nnunetv2.py
-================================================================================
-
+==== hook-nnunetv2.py
 # Buat file: hooks/hook-nnunetv2.py
 """
 PyInstaller hook for nnUNetv2 to handle dynamic trainer class imports
@@ -65,10 +62,7 @@ excludedimports = [
     'nnunetv2.evaluation.test'
 ]
 
-================================================================================
-📂 File: hook-scipy._lib._docscrape.py
-================================================================================
-
+==== hook-scipy._lib._docscrape.py
 
 # Hook for scipy._lib._docscrape
 from PyInstaller.utils.hooks import collect_submodules
@@ -93,10 +87,7 @@ hiddenimports = [
 hiddenimports += collect_submodules('scipy._lib')
 
 
-================================================================================
-📂 File: hook-skimage.py
-================================================================================
-
+==== hook-skimage.py
 
 # Hook for scikit-image
 from PyInstaller.utils.hooks import collect_submodules, collect_data_files
@@ -114,10 +105,7 @@ hiddenimports += [
 ]
 
 
-================================================================================
-📂 File: hook-torch.py
-================================================================================
-
+==== hook-torch.py
 
 from PyInstaller.utils.hooks import collect_all, collect_submodules
 
@@ -167,10 +155,7 @@ excludedimports += [
 print(f"Torch hook: collected {len(hiddenimports)} hidden imports, {len(datas)} datas, {len(binaries)} binaries")
 
 
-================================================================================
-📂 File: hook-torchvision.py
-================================================================================
-
+==== hook-torchvision.py
 """
 PyInstaller hook for torchvision with comprehensive extension support
 FIXED VERSION - handles missing extensions gracefully
@@ -299,10 +284,7 @@ excludedimports = [
     # Don't exclude anything - let PyInstaller handle unused modules
 ]
 
-================================================================================
-📂 File: hook-triton.py
-================================================================================
-
+==== hook-triton.py
 # hooks/hook-triton.py
 """
 Hook to completely disable triton imports in PyInstaller
@@ -349,10 +331,7 @@ excludedimports = [
 print("[HOOK] Triton modules completely blocked and excluded")
 print(f"[HOOK] Registered {len(sys.modules)} triton dummy modules")
 
-================================================================================
-📂 File: hook-xgboost.py
-================================================================================
-
+==== hook-xgboost.py
 """
 PyInstaller hook for XGBoost to include native libraries and VERSION file
 """
@@ -400,10 +379,7 @@ except Exception as e:
 
 print(f"[HOOK-XGBOOST] Collected {len(binaries)} binaries and {len(datas)} data files")
 
-================================================================================
-📂 File: runtime_hook.py
-================================================================================
-
+==== runtime_hook.py
 """
 Runtime hook for PyInstaller - Applied during executable execution
 Simple environment setup only
@@ -431,10 +407,7 @@ def setup_runtime_environment():
 # Run setup
 setup_runtime_environment()
 
-================================================================================
-📂 File: runtime_hook_nnunet.py
-================================================================================
-
+==== runtime_hook_nnunet.py
 #hooks/runtime_hook_nnunet.py
 """
 Runtime hook for nnUNet to setup environment and handle trainer classes
@@ -497,18 +470,42 @@ def fix_triton_conflicts():
     print("[RUNTIME-NNUNET]   Triton conflicts resolved")
 
 def preregister_nnunet_trainers():
-    """Pre-register nnUNet trainer classes - SIMPLIFIED VERSION"""
+    """BYPASS nnUNet trainer pre-registration to prevent loops"""
     try:
         print("[RUNTIME-NNUNET] Attempting to pre-register nnUNet trainers...")
+        print(f"[DEBUG-NNUNET] Current process PID: {os.getpid()}")
+        print(f"[DEBUG-NNUNET] Parent PID: {os.getppid()}")
         
-        #   WORKAROUND: Instead of importing specific trainers, 
-        # just ensure the training module is available
-        import nnunetv2.training.nnUNetTrainer.nnUNetTrainer
-        print("[RUNTIME-NNUNET]   nnUNet training module imported")
+        #   CHECK: Skip in spawned processes
+        if len(sys.argv) > 1 and '--multiprocessing-fork' in sys.argv:
+            print("[DEBUG-NNUNET] Skipping nnUNet import in multiprocessing fork")
+            return
         
-        #   Don't try to import specific trainer variants in runtime hook
-        # Let the application handle this when actually needed
+        #   CHECK: Skip if already spawned process detected
+        current_pid = os.getpid()
+        parent_pid = os.getppid() 
+        if current_pid != parent_pid and parent_pid > 0:
+            print(f"[DEBUG-NNUNET] Skipping nnUNet import in spawned process (PID: {current_pid})")
+            return
         
+        print("[DEBUG-NNUNET] About to import nnunetv2.training...")
+        
+        #   SAFE IMPORT: Add timeout protection
+        import signal
+        def timeout_handler(signum, frame):
+            raise TimeoutError("nnUNet import timeout")
+        
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(10)  # 10 second timeout
+        
+        try:
+            import nnunetv2.training.nnUNetTrainer.nnUNetTrainer
+            print("[RUNTIME-NNUNET]   nnUNet training module imported")
+        finally:
+            signal.alarm(0)  # Cancel timeout
+        
+    except TimeoutError:
+        print("[RUNTIME-NNUNET] ⚠️ nnUNet import timeout - skipping for safety")
     except Exception as e:
         print(f"[RUNTIME-NNUNET] Note: Trainer pre-registration failed: {e}")
         print("[RUNTIME-NNUNET] Will attempt dynamic loading during inference")
@@ -519,10 +516,7 @@ if hasattr(sys, '_MEIPASS'):
     fix_triton_conflicts()
     preregister_nnunet_trainers()
 
-================================================================================
-📂 File: runtime_hook_torchvision.py
-================================================================================
-
+==== runtime_hook_torchvision.py
 """
 Runtime hook for comprehensive torchvision stub creation
 """
@@ -596,10 +590,7 @@ def create_comprehensive_torchvision_stub():
 # Run the stub creation
 create_comprehensive_torchvision_stub()
 
-================================================================================
-📂 File: runtime_hook_xgboost.py
-================================================================================
-
+==== runtime_hook_xgboost.py
 """
 Runtime hook for XGBoost to handle missing VERSION file
 """
