@@ -738,7 +738,7 @@ class SegmentationToolPanel(QWidget):
         self.btn_brush = QPushButton("Brush")
         self.btn_brush.setCheckable(True)
         self.btn_brush.setChecked(True)
-        
+        self.palette= None
         self.btn_eraser = QPushButton("Eraser")
         self.btn_eraser.setCheckable(True)
         
@@ -778,8 +778,9 @@ class SegmentationToolPanel(QWidget):
         self.zoom_slider.setValue(10)
         layout.addWidget(self.zoom_slider)
 
-    def connect_to_canvas(self, canvas: SegmentationCanvas):
+    def connect_to_canvas(self, canvas, palette: SegmentationCanvas):
         """Connect tool controls to canvas."""
+        self.palette = palette # Simpan referensi palette
         # Tool selection
         self.btn_brush.clicked.connect(lambda: self._select_brush(canvas))
         self.btn_eraser.clicked.connect(lambda: self._select_eraser(canvas))
@@ -794,11 +795,18 @@ class SegmentationToolPanel(QWidget):
     def _select_brush(self, canvas: SegmentationCanvas):
         """Select brush tool."""
         self.btn_eraser.setChecked(False)
+        self.btn_brush.setChecked(True) # Pastikan tombol brush aktif
+        
+        # FIX: Panggil set_label() dengan label yang sedang aktif di palette
+        if self.palette:
+            current_row = self.palette.list_palette.currentRow()
+            canvas.set_label(current_row)
         # Canvas will be updated via palette selection
 
     def _select_eraser(self, canvas: SegmentationCanvas):
         """Select eraser tool."""
         self.btn_brush.setChecked(False)
+        self.btn_eraser.setChecked(True) 
         canvas.set_eraser()
 
     def connect_undo_redo(self, undo_func, redo_func):
