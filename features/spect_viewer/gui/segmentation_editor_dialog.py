@@ -395,8 +395,8 @@ class SegmentationEditorDialog(BaseEditorDialog):
         super()._create_toolbar()
         
         # Palette component
-        self.palette = SegmentationPalette()
-        self.toolbar_layout.addWidget(self.palette)
+        self.palette_panel = SegmentationPalette()
+        self.toolbar_layout.addWidget(self.palette_panel)
         
         # Tool panel component
         self.tool_panel = SegmentationToolPanel()
@@ -587,10 +587,10 @@ class SegmentationEditorDialog(BaseEditorDialog):
     def _connect_signals(self):
         """  MODULAR: Connect UI signals using modular components."""
         # Palette signals
-        self.palette.currentRowChanged.connect(self._change_label)
+        self.palette_panel.currentRowChanged.connect(self._change_label)
         
         # Tool panel signals
-        self.tool_panel.connect_to_canvas(self.canvas)
+        self.tool_panel.connect_to_canvas(self.canvas, self.palette_panel)
         self.tool_panel.connect_undo_redo(self._perform_undo, self._perform_redo)
         
         # Opacity panel signals
