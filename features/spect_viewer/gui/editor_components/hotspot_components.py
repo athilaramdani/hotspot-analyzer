@@ -294,7 +294,7 @@ class HotspotCanvas(BaseCanvas):
         #   FIX: Add safety checks
         if not hasattr(self, '_layer_history'):
             return
-            
+        
         history = self._layer_history.get(label_id)
         if not history or len(history['undo']) < 2:
             return
