@@ -53,6 +53,7 @@ from core.gui.ui_constants import (
     GRAY_BUTTON_STYLE,        # grey "Logout" button
     ZOOM_BUTTON_STYLE,        # orange "Zoom In/Out" buttons
     SCAN_BUTTON_STYLE,        # purple "Scan N" buttons
+    DANGER_BUTTON_STYLE
 )
 
 from core.gui.searchable_combobox import SearchableComboBox
@@ -530,10 +531,18 @@ class MainWindowSpect(QMainWindow):
         self.patient_bar.set_id_combobox(search_combo)
         top_layout.addWidget(self.patient_bar)
         top_layout.addStretch()
-
+        # self.toggle_controls_btn = QPushButton("Hide Controls")
+        # self.toggle_controls_btn.setStyleSheet(GRAY_BUTTON_STYLE)
+        # self.toggle_controls_btn.setCheckable(True)
+        # self.toggle_controls_btn.setChecked(True)
+        # Hubungkan ke fungsi yang SAMA
+        # self.toggle_controls_btn.clicked.connect(
+        #     lambda: self._set_left_panel_visible(self.toggle_controls_btn.isChecked())
+        # )
+        # top_layout.addWidget(self.toggle_controls_btn)
         # Import and action buttons
-        import_btn = QPushButton("Import DICOM…")
-        import_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
+        import_btn = QPushButton("Import Data")
+        import_btn.setStyleSheet(SUCCESS_BUTTON_STYLE)
         import_btn.clicked.connect(self._show_import_dialog)
         
         # rescan_btn = QPushButton("Rescan Folder")
@@ -545,7 +554,7 @@ class MainWindowSpect(QMainWindow):
 
         # Logout button
         logout_btn = QPushButton("Logout")
-        logout_btn.setStyleSheet(GRAY_BUTTON_STYLE)
+        logout_btn.setStyleSheet(DANGER_BUTTON_STYLE)
         logout_btn.clicked.connect(self._handle_logout)
         top_layout.addWidget(logout_btn)
         
@@ -560,33 +569,44 @@ class MainWindowSpect(QMainWindow):
         main_splitter = QSplitter(Qt.Orientation.Horizontal)
 
         # LEFT PANEL: Mode selector (RESIZABLE - no fixed width)
-        left_panel = QWidget()
-        left_panel.setMinimumWidth(200)   # Minimum width only
-        left_panel.setMaximumWidth(500)   # Maximum width for usability
-        left_layout = QVBoxLayout(left_panel)
-        left_layout.setContentsMargins(8, 8, 8, 8)
+        self.left_panel = QWidget()
+        self.left_panel.setMinimumWidth(200)   # Minimum width only
+        self.left_panel.setMaximumWidth(500)   # Maximum width for usability
+        self.left_layout = QVBoxLayout(self.left_panel)
+        self.left_layout.setContentsMargins(8, 8, 8, 8)
         
-        # Panel title untuk clarity
+        title_bar_widget = QWidget()
+        title_bar_layout = QHBoxLayout(title_bar_widget)
+        title_bar_layout.setContentsMargins(0, 0, 0, 0) # Hapus margin agar rapat
+
         title_label = QLabel("<b>Layer Controls</b>")
-        title_label.setStyleSheet("""
-            QLabel {
-                font-size: 14px;
-                color: #495057;
-                padding: 8px;
-                background: #f8f9fa;
+
+        close_panel_btn = QPushButton("X")
+        close_panel_btn.setFixedSize(24, 24) # Ukuran tombol kecil
+        close_panel_btn.setStyleSheet("""
+            QPushButton { 
+                font-weight: bold; 
+                border: none; 
                 border-radius: 4px;
-                border: 1px solid #e9ecef;
-                margin-bottom: 8px;
             }
+            QPushButton:hover { background-color: #E0E0E0; }
+            QPushButton:pressed { background-color: #D0D0D0; }
         """)
-        left_layout.addWidget(title_label)
+        # HUBUNGKAN TOMBOL X UNTUK MENUTUP PANEL
+        close_panel_btn.clicked.connect(lambda: self._set_left_panel_visible(False))
+
+        title_bar_layout.addWidget(title_label)
+        title_bar_layout.addStretch()
+        title_bar_layout.addWidget(close_panel_btn)
+
+        self.left_layout.addWidget(title_bar_widget) 
         
         # NEW: Enhanced mode selector with checkboxes
         self.mode_selector = ModeSelector()
         # Connect NEW signals for checkbox-based mode selector
         self.mode_selector.layers_changed.connect(self._on_layers_changed)
         self.mode_selector.opacity_changed.connect(self._set_layer_opacity)
-        left_layout.addWidget(self.mode_selector)
+        self.left_layout.addWidget(self.mode_selector)
 
         # CREATE TIMELINE WIDGET FIRST (before invert checkbox)
         self.timeline_widget = ScanTimelineWidget()
@@ -612,73 +632,85 @@ class MainWindowSpect(QMainWindow):
         if hasattr(self, 'timeline_widget'):
             print(f"[DEBUG] Timeline widget type: {type(self.timeline_widget)}")
         
-        left_layout.addWidget(self.invert_checkbox)
+        self.left_layout.addWidget(self.invert_checkbox)
         print(f"[DEBUG] Invert checkbox created and connected")
 
         # 3. Label Info Layer Aktif (PINDAHAN)
         self.active_layers_label = QLabel("Active Layers: None")
         self.active_layers_label.setWordWrap(True)
-        left_layout.addWidget(self.active_layers_label)
+        self.left_layout.addWidget(self.active_layers_label)
 
         # 4. Tombol Edit (PINDAHAN) - DENGAN FONT KECIL
         self.seg_edit_btn = QPushButton("Edit Segmentation")
         self.seg_edit_btn.clicked.connect(self._open_segmentation_editor)
-        self.seg_edit_btn.setStyleSheet(SUCCESS_BUTTON_STYLE + """
-            QPushButton { font-size: 11px; }
+        self.seg_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
+            QPushButton { 
+                font-size: 11px; 
+                min-width: 100px;
+                height: 22px;
+            }
             QPushButton:disabled {
                 background-color: #d3d3d3;
                 color: #888;
                 border-color: #aaa;
                 font-size: 11px;
+                min-width: 100px;
+                height: 22px;
             }
         """)
 
         self.hotspot_edit_btn = QPushButton("Edit Hotspot")
         self.hotspot_edit_btn.clicked.connect(self._open_hotspot_editor)
         self.hotspot_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
+            QPushButton {
+                min-width: 100px;
+                height: 22px;
+            }
             QPushButton:disabled {
                 background-color: #d3d3d3;
                 color: #888;
                 border-color: #aaa;
+                min-width: 100px;
+                height: 22px;
             }
         """)
 
         edit_layout = QHBoxLayout()
         edit_layout.addWidget(self.seg_edit_btn)
         edit_layout.addWidget(self.hotspot_edit_btn)
-        left_layout.addLayout(edit_layout)
+        self.left_layout.addLayout(edit_layout)
 
         # 5. Label Info Scan (PINDAHAN)
         self.scan_info_label = QLabel("No scan selected")
         self.scan_info_label.setWordWrap(True)
-        left_layout.addWidget(self.scan_info_label)
+        self.left_layout.addWidget(self.scan_info_label)
     
         # Layout horizontal untuk tombol zoom
         zoom_buttons_layout = QHBoxLayout()
         zoom_in_btn = QPushButton("Zoom In")
         zoom_in_btn.clicked.connect(self.zoom_in)
-        zoom_in_btn.setStyleSheet(ZOOM_BUTTON_STYLE)
+        zoom_in_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
 
         zoom_out_btn = QPushButton("Zoom Out")
         zoom_out_btn.clicked.connect(self.zoom_out)
-        zoom_out_btn.setStyleSheet(ZOOM_BUTTON_STYLE)
+        zoom_out_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
 
         zoom_buttons_layout.addWidget(zoom_in_btn)
         zoom_buttons_layout.addWidget(zoom_out_btn)
-        left_layout.addLayout(zoom_buttons_layout)
+        self.left_layout.addLayout(zoom_buttons_layout)
 
         # AFTER - TAMBAH setelah contrast_button
         contrast_button = QPushButton("Adjust Contrast")
-        contrast_button.setStyleSheet(ZOOM_BUTTON_STYLE) # Use a style you like
+        contrast_button.setStyleSheet(GRAY_BUTTON_STYLE) # Use a style you like
         contrast_button.clicked.connect(self._open_contrast_dialog)
-        left_layout.addWidget(contrast_button)
+        self.left_layout.addWidget(contrast_button)
 
 
-        left_layout.addStretch()
+        self.left_layout.addStretch()
 
-        left_layout.addStretch()
+        self.left_layout.addStretch()
         
-        main_splitter.addWidget(left_panel)
+        main_splitter.addWidget(self.left_panel)
 
         # Add timeline widget to splitter (it's already created above)
         main_splitter.addWidget(self.timeline_widget)
@@ -716,17 +748,71 @@ class MainWindowSpect(QMainWindow):
             }
         """)
 
-        # --- Perakitan Final ---
+        # --- Tombol Tab untuk Menampilkan Panel ---
+        self.show_panel_tab_btn = QPushButton("›") # Atau gunakan icon
+        self.show_panel_tab_btn.setFixedSize(20, 60) # Ukuran seperti tab
+        self.show_panel_tab_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #A9A9A9;
+                color: white;
+                border: none;
+                font-size: 18px;
+                border-top-right-radius: 8px;
+                border-bottom-right-radius: 8px;
+            }
+            QPushButton:hover { background-color: #808080; }
+        """)
+        # HUBUNGKAN TOMBOL TAB UNTUK MEMBUKA PANEL
+        self.show_panel_tab_btn.clicked.connect(lambda: self._set_left_panel_visible(True))
+        self.show_panel_tab_btn.hide() # Sembunyikan di awal
+
+
+        # --- Buat Layout Konten Utama ---
+        content_widget = QWidget()
+        content_layout = QHBoxLayout(content_widget)
+        content_layout.setSpacing(0)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+
+        content_layout.addWidget(self.show_panel_tab_btn)
+        content_layout.addWidget(main_splitter) # main_splitter dari kode Anda sebelumnya
+
+        # --- Perakitan Final (MODIFIKASI) ---
         main_widget = QWidget()
         main_layout = QVBoxLayout(main_widget)
         main_layout.addWidget(top_actions)
         main_layout.addWidget(view_button_widget)
-        main_layout.addWidget(main_splitter, stretch=1)
+        # Ganti baris ini: main_layout.addWidget(main_splitter, stretch=1)
+        # Dengan baris ini:
+        main_layout.addWidget(content_widget, stretch=1) 
         self.setCentralWidget(main_widget)
-        self.complete_initialization_setup()
 
+        self.complete_initialization_setup()
+        
         QTimer.singleShot(1000, self.test_checkbox_connection)
         
+
+    def _set_left_panel_visible(self, visible: bool):
+        """
+        Fungsi terpusat untuk mengatur visibilitas panel kiri dan tombol-tombolnya.
+        :param visible: True untuk menampilkan panel, False untuk menyembunyikan.
+        """
+        if visible:
+            # Tampilkan panel kiri
+            self.left_panel.show()
+            # Sembunyikan tombol tab
+            self.show_panel_tab_btn.hide()
+            # Jika Anda punya tombol toggle di atas, atur juga state-nya
+            self.toggle_controls_btn.setChecked(True)
+            # self.toggle_controls_btn.setText("Hide Controls")
+        else:
+            # Sembunyikan panel kiri
+            self.left_panel.hide()
+            # Tampilkan tombol tab
+            self.show_panel_tab_btn.show()
+            # Jika Anda punya tombol toggle di atas, atur juga state-nya
+            self.toggle_controls_btn.setChecked(False)
+            # self.toggle_controls_btn.setText("Show Controls")
+            
     def debug_timeline_status(self):
         """Debug method untuk cek status timeline"""
         if hasattr(self, 'timeline_widget'):

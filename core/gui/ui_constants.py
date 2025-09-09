@@ -140,7 +140,20 @@ DIALOG_IMPORT_BUTTON_STYLE = (
     }
     """
 )
-
+DANGER_BUTTON_STYLE = _BUTTON_BASE + (
+    """
+    QPushButton {
+        background-color: #dc3545;
+        color: white;
+    }
+    QPushButton:hover {
+        background-color: #c82333;
+    }
+    QPushButton:pressed {
+        background-color: #bd2130;
+    }
+    """
+)
 DIALOG_START_BUTTON_STYLE = (
     """
     QPushButton {

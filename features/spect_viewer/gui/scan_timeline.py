@@ -1187,27 +1187,27 @@ class ScanTimelineWidget(QWidget):
         hbox.addWidget(header_label)
         hbox.addStretch()
         
-        # Select button
-        select_btn = QPushButton("Select")
-        select_btn.setFixedSize(60, 24)
-        select_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                border-radius: 3px;
-                font-size: 10px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #5a6268;
-            }
-            QPushButton:pressed {
-                background-color: #495057;
-            }
-        """)
-        select_btn.clicked.connect(lambda *_: self._on_scan_selected(idx))
-        hbox.addWidget(select_btn)
+        # # Select button
+        # select_btn = QPushButton("Select")
+        # select_btn.setFixedSize(60, 24)
+        # select_btn.setStyleSheet("""
+        #     QPushButton {
+        #         background-color: #6c757d;
+        #         color: white;
+        #         border: none;
+        #         border-radius: 3px;
+        #         font-size: 10px;
+        #         font-weight: bold;
+        #     }
+        #     QPushButton:hover {
+        #         background-color: #5a6268;
+        #     }
+        #     QPushButton:pressed {
+        #         background-color: #495057;
+        #     }
+        # """)
+        # select_btn.clicked.connect(lambda *_: self._on_scan_selected(idx))
+        # hbox.addWidget(select_btn)
         
         return hbox
     

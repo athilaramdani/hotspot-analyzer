@@ -5,6 +5,50 @@ from PySide6.QtWidgets import (
     QSlider, QLabel, QGroupBox
 )
 from core.gui.ui_constants import GROUP_BOX_STYLE, OPACITY_SLIDER_STYLE, OPACITY_VALUE_LABEL_STYLE
+OPACITY_SLIDER_STYLE_DISABLED = """
+    QSlider::groove:horizontal {
+        /* Bentuk, border, tinggi, dan radius sama persis dengan style aktif */
+        border: 1px solid #bbb;
+        background: #f8f9fa;
+        height: 8px;
+        border-radius: 4px;
+        margin: 2px 0;
+    }
+    QSlider::sub-page:horizontal {
+        /* Bagian "terisi" dengan gradien abu-abu */
+        background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
+            stop: 0 #b0b0b0, stop: 1 #cccccc);
+        border: 1px solid #777;
+        height: 8px;
+        border-radius: 4px;
+    }
+    QSlider::add-page:horizontal {
+        /* Bagian "kosong" dengan warna abu-abu terang */
+        background: #e9ecef;
+        border: 1px solid #777;
+        height: 8px;
+        border-radius: 4px;
+    }
+    QSlider::handle:horizontal {
+        /* Handle abu-abu dengan border putih dan bayangan, sama seperti aktif */
+        background: #b0b0b0;
+        border: 2px solid #ffffff;
+        width: 20px;
+        height: 20px;
+        margin: -6px 0;
+        border-radius: 10px;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    QSlider::handle:horizontal:hover {
+        /* Efek hover yang lebih gelap sedikit */
+        background: #a0a0a0;
+        border: 2px solid #ffffff;
+    }
+    QSlider::handle:horizontal:pressed {
+        /* Efek saat ditekan */
+        background: #888888;
+    }
+"""
 
 
 class ModeSelector(QWidget):
@@ -46,7 +90,8 @@ class ModeSelector(QWidget):
         
         # Create checkboxes - UPDATED with new options
         self._checkboxes = {}
-        layer_options = ["Image", "Segmentation", "Hotspot", "All"]  # Removed Hotspot BBox
+        self._individual_layers = ["Image", "Segmentation", "Hotspot"] 
+        layer_options =  ["All"] + self._individual_layers
         
         for layer in layer_options:
             checkbox = QCheckBox(layer)
@@ -165,72 +210,96 @@ class ModeSelector(QWidget):
         main_layout.addStretch()
     
     def _connect_signals(self):
-        """Connect all signals"""
-        # Checkbox signals
-        for layer, checkbox in self._checkboxes.items():
-            checkbox.toggled.connect(lambda checked, l=layer: self._on_checkbox_toggled(l, checked))
+        """Connect all signals with separate logic for 'All' and individual layers."""
+        # Hubungkan checkbox 'All' ke slot khususnya
+        self._checkboxes["All"].toggled.connect(self._on_all_toggled)
         
-        # Slider signals
+        # Hubungkan checkbox individual ke slot khususnya
+        for layer in self._individual_layers:
+            self._checkboxes[layer].toggled.connect(self._on_layer_toggled)
+        
+        # Slider signals (tidak berubah)
         for layer, slider in self._sliders.items():
             slider.valueChanged.connect(lambda value, l=layer: self._on_opacity_changed(l, value))
-    
-    def _on_checkbox_toggled(self, layer: str, checked: bool):
-        """Handle checkbox toggle"""
-        print(f"[DEBUG] Checkbox {layer} toggled: {checked}")
         
-        if layer == "All":
-            self._handle_all_checkbox(checked)
-        else:
-            self._handle_individual_checkbox(layer, checked)
+    # def _on_checkbox_toggled(self, layer: str, checked: bool):
+    #     """Handle checkbox toggle"""
+    #     print(f"[DEBUG] Checkbox {layer} toggled: {checked}")
         
-        # Update active layers and emit signal
-        self._update_active_layers()
-        self._update_slider_states()
+    #     if layer == "All":
+    #         self._handle_all_checkbox(checked)
+    #     else:
+    #         self._handle_individual_checkbox(layer, checked)
+        
+    #     # Update active layers and emit signal
+    #     self._update_active_layers()
+    #     self._update_slider_states()
     
-    def _handle_all_checkbox(self, checked: bool):
-        """Handle 'All' checkbox logic"""
+    # def _handle_all_checkbox(self, checked: bool):
+    #     """Handle 'All' checkbox logic"""
+    #     if checked:
+    #         # When All is checked, disable and uncheck all individual checkboxes
+    #         for layer_name in ["Image", "Segmentation", "Hotspot"]:  # Removed Hotspot BBox
+    #             checkbox = self._checkboxes[layer_name]
+    #             checkbox.blockSignals(True)  # Prevent recursive signals
+    #             checkbox.setChecked(False)
+    #             checkbox.setEnabled(False)
+    #             checkbox.blockSignals(False)
+    #     else:
+    #         # When All is unchecked, re-enable individual checkboxes
+    #         for layer_name in ["Image", "Segmentation", "Hotspot"]:  # Removed Hotspot BBox
+    #             checkbox = self._checkboxes[layer_name]
+    #             checkbox.setEnabled(True)
+    
+    # def _handle_individual_checkbox(self, layer: str, checked: bool):
+    #     """Handle individual checkbox logic"""
+    #     # If any individual checkbox is checked, uncheck "All"
+    #     if checked:
+    #         all_checkbox = self._checkboxes["All"]
+    #         if all_checkbox.isChecked():
+    #             all_checkbox.blockSignals(True)
+    #             all_checkbox.setChecked(False)
+    #             all_checkbox.blockSignals(False)
+    #             # Re-enable all individual checkboxes
+    #             for layer_name in ["Image", "Segmentation", "Hotspot"]:  # Removed Hotspot BBox
+    #                 self._checkboxes[layer_name].setEnabled(True)
+    def _on_all_toggled(self, checked: bool):
+        """Dipanggil HANYA saat checkbox 'All' diubah."""
+        # Jika 'All' dicentang, kita paksa semua layer lain untuk ikut tercentang.
         if checked:
-            # When All is checked, disable and uncheck all individual checkboxes
-            for layer_name in ["Image", "Segmentation", "Hotspot"]:  # Removed Hotspot BBox
-                checkbox = self._checkboxes[layer_name]
-                checkbox.blockSignals(True)  # Prevent recursive signals
-                checkbox.setChecked(False)
-                checkbox.setEnabled(False)
-                checkbox.blockSignals(False)
-        else:
-            # When All is unchecked, re-enable individual checkboxes
-            for layer_name in ["Image", "Segmentation", "Hotspot"]:  # Removed Hotspot BBox
-                checkbox = self._checkboxes[layer_name]
-                checkbox.setEnabled(True)
-    
-    def _handle_individual_checkbox(self, layer: str, checked: bool):
-        """Handle individual checkbox logic"""
-        # If any individual checkbox is checked, uncheck "All"
-        if checked:
-            all_checkbox = self._checkboxes["All"]
-            if all_checkbox.isChecked():
-                all_checkbox.blockSignals(True)
-                all_checkbox.setChecked(False)
-                all_checkbox.blockSignals(False)
-                # Re-enable all individual checkboxes
-                for layer_name in ["Image", "Segmentation", "Hotspot"]:  # Removed Hotspot BBox
-                    self._checkboxes[layer_name].setEnabled(True)
-    
-    def _update_active_layers(self):
-        """Update the list of active layers"""
+            for layer in self._individual_layers:
+                self._checkboxes[layer].blockSignals(True)  # Cegah infinite loop
+                self._checkboxes[layer].setChecked(True)
+                self._checkboxes[layer].blockSignals(False)
+
+        # Perbarui state dan kirim sinyal setelah semua perubahan selesai
+        self._update_and_emit_all_states()
+
+    def _on_layer_toggled(self):
+        """Dipanggil saat checkbox individual (Image, Seg, Hotspot) diubah."""
+        # Cek apakah semua checkbox individual tercentang
+        all_checked = all(self._checkboxes[layer].isChecked() for layer in self._individual_layers)
+        
+        # Sinkronkan status checkbox 'All' tanpa memicu sinyal balik
+        self._checkboxes["All"].blockSignals(True)
+        self._checkboxes["All"].setChecked(all_checked)
+        self._checkboxes["All"].blockSignals(False)
+        
+        # Perbarui state dan kirim sinyal
+        self._update_and_emit_all_states()
+    def _update_and_emit_all_states(self):
+        """
+        Helper untuk menghitung ulang layer aktif, memperbarui UI (slider),
+        dan mengirim sinyal 'layers_changed'.
+        """
         self._active_layers = []
-        
-        if self._checkboxes["All"].isChecked():
-            # All mode - show only layers that have visible checkboxes (no HotspotBBox)
-            self._active_layers = ["Image", "Segmentation", "Hotspot"]
-        else:
-            # Individual mode - show only checked layers
-            for layer in ["Image", "Segmentation", "Hotspot"]:
-                if self._checkboxes[layer].isChecked():
-                    self._active_layers.append(layer)
-        
+        for layer in self._individual_layers:
+            if self._checkboxes[layer].isChecked():
+                self._active_layers.append(layer)
+
         print(f"[DEBUG] Active layers: {self._active_layers}")
         self.layers_changed.emit(self._active_layers)
+        self._update_slider_states() # Panggil pembaruan state slider di sini
         
     def _update_slider_states(self):
         """Update slider enabled/disabled states"""
@@ -250,10 +319,14 @@ class ModeSelector(QWidget):
             # Update label opacity based on enabled state
             label = self._opacity_labels[slider_key]
             if is_active:
+                # Jika aktif, gunakan style normal dan label terang
+                slider.setStyleSheet(OPACITY_SLIDER_STYLE)
                 label.setStyleSheet(OPACITY_VALUE_LABEL_STYLE)
             else:
-                label.setStyleSheet(OPACITY_VALUE_LABEL_STYLE + "opacity: 0.5;")
-    
+                # Jika tidak aktif, gunakan style abu-abu dan label redup
+                slider.setStyleSheet(OPACITY_SLIDER_STYLE_DISABLED)
+                label.setStyleSheet(OPACITY_VALUE_LABEL_STYLE + " color: #adb5bd;")
+        
     def _on_opacity_changed(self, layer: str, value: int):
         """Handle opacity slider changes"""
         opacity = value / 100.0
