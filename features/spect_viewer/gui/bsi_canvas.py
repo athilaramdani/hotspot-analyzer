@@ -28,7 +28,7 @@ from core.gui.ui_constants import Colors
 
 class BSICanvas(FigureCanvas):
     """
-      FIXED: V1.2 BSI Canvas with 3-line chart - SUPPORTS SINGLE VIEW
+      FIXED: BSI Canvas with 3-line chart - SUPPORTS SINGLE VIEW
     """
     
     chart_clicked = Signal(str)
@@ -44,7 +44,7 @@ class BSICanvas(FigureCanvas):
         # Line visibility controls (default all visible)
         self.anterior_visible = True
         self.posterior_visible = True
-        #   REMOVED: combined_visible - simplify to per-frame only
+        self.combined_visible = False # NEW: Keep for potential future use
         
         self.setMinimumSize(400, 300)
         self._plot_empty_chart()
@@ -82,9 +82,9 @@ class BSICanvas(FigureCanvas):
         """Show placeholder when no data available"""
         self.figure.clear()
         ax = self.figure.add_subplot(111)
-        ax.text(0.5, 0.5, 'No BSI Data Available\n\nSelect a patient to view BSI trend\n(Anterior, Posterior, Combined)', 
-                ha='center', va='center', fontsize=12, color=Colors.DARK_GRAY,
-                transform=ax.transAxes)
+        ax.text(0.5, 0.5, 'No BSI Data Available\n\nSelect a patient to view BSI trend\n(Anterior, Posterior)', 
+                 ha='center', va='center', fontsize=12, color=Colors.DARK_GRAY,
+                 transform=ax.transAxes)
         ax.set_xticks([])
         ax.set_yticks([])
         for spine in ax.spines.values():
@@ -98,8 +98,8 @@ class BSICanvas(FigureCanvas):
         self.figure.clear()
         ax = self.figure.add_subplot(111)
         ax.text(0.5, 0.5, f'Error Loading BSI Data\n\n{error_message}', 
-                ha='center', va='center', fontsize=11, color='#d32f2f',
-                transform=ax.transAxes)
+                 ha='center', va='center', fontsize=11, color='#d32f2f',
+                 transform=ax.transAxes)
         ax.set_xticks([])
         ax.set_yticks([])
         for spine in ax.spines.values():
@@ -108,22 +108,41 @@ class BSICanvas(FigureCanvas):
         self.figure.tight_layout()
         self.draw()
     
-    def _plot_bsi_trend_chart_v2(self):
-        """  FIXED: Plot 3-line chart for BSI with single view support and better date handling"""
+    # START: Perubahan pada _plot_bsi_trend_chart_v2
+    def _plot_bsi_trend_chart_v2(self, override_visibility: bool = False):
+        """ FIXED: Plot 3-line chart for BSI with single view support and better date handling"""
         if not self.patient_folder or not self.patient_id:
             self._plot_empty_chart()
             return
-
+        
         self.figure.clear()
         ax = self.figure.add_subplot(111)
+        
+        # NEW: Tentukan visibilitas berdasarkan UI atau override untuk export
+        anterior_visible = self.anterior_visible or override_visibility
+        posterior_visible = self.posterior_visible or override_visibility
+        
+        # NEW: Jika kedua opsi tidak dicentang dan bukan untuk export, tampilkan pesan
+        if not anterior_visible and not posterior_visible and not override_visibility:
+            ax.text(0.5, 0.5, 'BSI Analytics Hidden\n\nCentang "Anterior" dan/atau "Posterior"\nuntuk menampilkan data.', 
+                    ha='center', va='center', fontsize=12, color=Colors.DARK_GRAY,
+                    transform=ax.transAxes)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+            self.figure.suptitle('BSI Quantification Trend', fontsize=14, fontweight='bold', color=Colors.DARK_GRAY)
+            self.figure.tight_layout()
+            self.draw()
+            return
 
         try:
             manager = QuantificationManager()
             all_scores = manager.load_all_quantification_scores(self.patient_folder, self.patient_id)
-
+            
             if not all_scores:
                 ax.text(0.5, 0.5, 'No BSI scores found for this patient', ha='center', va='center',
-                        transform=ax.transAxes, fontsize=12, color='gray')
+                         transform=ax.transAxes, fontsize=12, color='gray')
                 self.figure.suptitle(f'BSI Trend for {self.patient_id}', fontsize=14, fontweight='bold')
                 self.figure.tight_layout()
                 self.draw()
@@ -131,7 +150,6 @@ class BSICanvas(FigureCanvas):
 
             all_scores = sorted(all_scores, key=lambda x: x["study_date"])
             
-            # Prepare data for 3 lines with single view support
             dates = []
             anterior_scores = []
             posterior_scores = []
@@ -145,15 +163,12 @@ class BSICanvas(FigureCanvas):
                     
                     print(f"[DEBUG BSI CANVAS] Processing date: {date_str}, mode: {processing_mode}")
                     
-                    #   FIX: Better date validation and parsing
                     try:
-                        # Try to parse as YYYYMMDD format
                         if len(date_str) == 8 and date_str.isdigit():
                             date_obj = datetime.strptime(date_str, "%Y%m%d")
                             formatted_date = date_obj.strftime("%d %b %Y")
                         else:
                             print(f"[WARN] Invalid date format in BSI data: {date_str}, using current date")
-                            #   FIX: Use current date as fallback instead of skipping
                             date_obj = datetime.now()
                             formatted_date = f"{date_str} (Invalid)"
                             
@@ -161,10 +176,9 @@ class BSICanvas(FigureCanvas):
                         print(f"[WARN] Date parsing failed for {date_str}: {ve}, using current date")
                         date_obj = datetime.now()
                         formatted_date = f"{date_str} (Invalid)"
-                    
+                        
                     dates.append(date_obj)
                     
-                    # Handle single view data properly
                     ant_bsi = entry.get("anterior_bsi", 0) if processing_mode != 'single_view_posterior' else None
                     post_bsi = entry.get("posterior_bsi", 0) if processing_mode != 'single_view_anterior' else None
                     combined_bsi = entry.get("combined_bsi", 0)
@@ -182,72 +196,93 @@ class BSICanvas(FigureCanvas):
 
             if not dates:
                 ax.text(0.5, 0.5, 'No valid dates found in BSI data', ha='center', va='center',
-                        transform=ax.transAxes, fontsize=12, color='red')
+                         transform=ax.transAxes, fontsize=12, color='red')
                 self.figure.suptitle(f'BSI Trend for {self.patient_id}', fontsize=14, fontweight='bold')
                 self.figure.tight_layout()
                 self.draw()
                 return
-
-            # Plot lines with single view support (existing code continues...)
             
-            # Plot anterior line (only where data is available)
-            if self.anterior_visible:
+            # Plot lines with single view support
+            if anterior_visible:
                 ant_dates = [d for i, d in enumerate(dates) if anterior_scores[i] is not None]
                 ant_values = [v for v in anterior_scores if v is not None]
                 if ant_dates and ant_values:
                     ax.plot(ant_dates, ant_values, marker='o', linestyle='-', color='#ff6b6b', 
-                        linewidth=2, markersize=6, label='Anterior BSI')
+                            linewidth=2, markersize=6, label='Anterior BSI')
             
-            # Plot posterior line (only where data is available)
-            if self.posterior_visible:
+            if posterior_visible:
                 post_dates = [d for i, d in enumerate(dates) if posterior_scores[i] is not None]
                 post_values = [v for v in posterior_scores if v is not None]
                 if post_dates and post_values:
                     ax.plot(post_dates, post_values, marker='^', linestyle='-', color='#4ecdc4', 
-                        linewidth=2, markersize=6, label='Posterior BSI')
-
+                            linewidth=2, markersize=6, label='Posterior BSI')
+            
             # Only show legend if at least one line is visible
-            if self.anterior_visible or self.posterior_visible:
+            if anterior_visible or posterior_visible:
                 legend = ax.legend(loc='upper left', fontsize=9)
-
-            # Set axis and formatting
+            
             ax.set_xticks(dates)
             ax.set_xticklabels(date_labels, rotation=45, ha='right')
-
             ax.set_title("BSI Score Trend", fontsize=12, fontweight='bold')
             ax.set_xlabel("Study Date", fontsize=10)
             ax.set_ylabel("BSI Score", fontsize=10)
             ax.grid(True, linestyle='--', alpha=0.6)
-            
             self.figure.suptitle(f'BSI Analysis for Patient: {self.patient_id}', fontsize=14, fontweight='bold')
-
         except Exception as e:
             print(f"[BSI CANVAS] Failed to plot BSI trend: {e}")
             import traceback
             traceback.print_exc()
             self._plot_error_chart(str(e))
             return
-
+        
         self.figure.tight_layout()
         self.draw()
-    
+    # END: Perubahan pada _plot_bsi_trend_chart_v2
+
     def set_line_visibility(self, anterior_visible: bool, posterior_visible: bool):
         """Control visibility of BSI lines"""
         self.anterior_visible = anterior_visible
         self.posterior_visible = posterior_visible
-        #   REMOVED: combined_visible parameter - simplify interface
-        # Redraw chart with new visibility settings
         self._plot_bsi_trend_chart_v2()
-    
+
+    # START: Perubahan pada export_chart
     def export_chart(self, file_path: Path, dpi: int = 300) -> bool:
-        """Export chart to image file"""
+        """
+        Export chart to image file.
+        Ini akan selalu mengekspor chart dengan data Anterior dan Posterior terlihat,
+        terlepas dari state checkbox di UI.
+        """
         try:
+            print("[BSI CANVAS] Exporting chart with all data visible...")
+            
+            # Simpan state visibility chart saat ini
+            original_anterior_state = self.anterior_visible
+            original_posterior_state = self.posterior_visible
+            
+            # Set visibility ke True secara paksa untuk export
+            self.anterior_visible = True
+            self.posterior_visible = True
+            
+            # Gambar ulang chart dengan visibilitas penuh, tapi jangan tampilkan ke UI
+            self._plot_bsi_trend_chart_v2(override_visibility=True)
+            
+            # Ekspor gambar
             self.figure.savefig(str(file_path), dpi=dpi, bbox_inches='tight', facecolor='white')
-            print(f"[BSI CANVAS V1.2 SINGLE] Chart exported to: {file_path}")
+            
+            print(f"[BSI CANVAS] Chart exported to: {file_path}")
+            
+            # Kembalikan state visibility chart ke kondisi awal
+            self.anterior_visible = original_anterior_state
+            self.posterior_visible = original_posterior_state
+            
+            # Gambar ulang chart ke state awal
+            self._plot_bsi_trend_chart_v2()
+            
             return True
         except Exception as e:
-            print(f"[BSI CANVAS V1.2 SINGLE] Export failed: {e}")
+            print(f"[BSI CANVAS] Export failed: {e}")
             return False
+    # END: Perubahan pada export_chart
 
 class BSIInfoPanel(QWidget):
     """

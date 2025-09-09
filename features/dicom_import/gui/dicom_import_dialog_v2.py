@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import List, Optional, Dict
 import os
 import pydicom
+import logging
 
 from PySide6.QtCore import Signal, QCoreApplication, QTimer, QThread
 from PySide6.QtWidgets import (
@@ -38,6 +39,7 @@ from core.gui.ui_constants import (
     FILE_ITEM_NAME_STYLE,
     FILE_ITEM_PATH_STYLE,
     PRIMARY_BUTTON_STYLE,
+    DIALOG_DISABLED_BUTTON_STYLE,
     truncate_text,
     Colors
 )
@@ -173,9 +175,9 @@ class QuickDetectionThread(QThread):
 class DicomImportDialog(QDialog):
     files_imported = Signal()
     
-    def __init__(self, data_root: Path, parent=None, session_code: str | None = None,):
+    def __init__(self, data_root: Path, parent=None, session_code: str | None = None):
         super().__init__(parent)
-        self.setWindowTitle("Import DICOM Files - Enhanced Workflow")
+        self.logger = logging.getLogger(__name__) # Use module-specific logger
         self.setModal(True)
         self.resize(1000, 700)
         
@@ -203,7 +205,7 @@ class DicomImportDialog(QDialog):
         title_text = "Import DICOM Files - Enhanced Auto-Detection Workflow"
         if self.session_code:
             title_text += f" - Session: {self.session_code}"
-        
+            
         title_label = QLabel(title_text)
         title_label.setStyleSheet(DIALOG_TITLE_STYLE)
         title_label.setAlignment(Qt.AlignCenter)
@@ -217,48 +219,30 @@ class DicomImportDialog(QDialog):
             structure_info.setAlignment(Qt.AlignCenter)
             main_layout.addWidget(structure_info)
         
-        # Enhanced workflow info
-        workflow_info = QLabel(
-            "  Enhanced Auto-Detection Workflow:\n"
-            "• Add Files → System instantly analyzes DICOM tags for view detection\n" 
-            "•   Auto-configured: High confidence detection from clear DICOM tags\n"
-            "• ⚠️ Manual required: Low/no confidence detection, needs user verification\n"
-            "• Configure Views → Manual adjustment if needed → Confirm & Process"
-        )
-        workflow_info.setStyleSheet(f"""
-            QLabel {{
-                background: {Colors.LIGHT_GRAY};
-                border: 1px solid {Colors.BORDER_LIGHT};
-                border-radius: 6px;
-                padding: 12px;
-                font-size: 11px;
-                color: {Colors.DARK_GRAY};
-                line-height: 1.4;
-            }}
-        """)
-        main_layout.addWidget(workflow_info)
-        
-        # Main content area
+        # Main content area - NOW ONLY THE FILE LIST
         content_splitter = QSplitter(Qt.Horizontal)
         content_splitter.setHandleWidth(6)
         
-        # Left panel - File List
+        # Left panel - File List (expanded to full width)
         left_panel = self._create_file_list_panel()
         content_splitter.addWidget(left_panel)
         
-        # Right panel - Process Log  
-        right_panel = self._create_process_log_panel()
-        content_splitter.addWidget(right_panel)
+        # REMOVED: Right panel - Process Log
+        # right_panel = self._create_process_log_panel()
+        # content_splitter.addWidget(right_panel)
         
-        content_splitter.setStretchFactor(0, 2)
-        content_splitter.setStretchFactor(1, 3)
-        content_splitter.setSizes([300, 450])
+        # Set stretch factor for a single widget
+        content_splitter.setStretchFactor(0, 1) # Make file list panel expand
+        content_splitter.setSizes([750]) # Set initial width
         
         main_layout.addWidget(content_splitter, 1)
         
         # Bottom controls
         bottom_layout = self._create_bottom_controls()
         main_layout.addLayout(bottom_layout)
+
+    # DELETED: _create_process_log_panel function
+    # The entire function is removed
         
     def _create_file_list_panel(self) -> QWidget:
         """Create left panel with file list"""
@@ -280,52 +264,12 @@ class DicomImportDialog(QDialog):
         
         return panel
         
-    def _create_process_log_panel(self) -> QWidget:
-        """Create right panel with process log"""
-        panel = QFrame()
-        panel.setStyleSheet(DIALOG_FRAME_STYLE)
-        layout = QVBoxLayout(panel)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        
-        # Header
-        header_label = QLabel("Process Log")
-        header_label.setStyleSheet(DIALOG_PANEL_HEADER_STYLE)
-        layout.addWidget(header_label)
-        
-        # Process log text area
-        self.process_log = QTextEdit()
-        self.process_log.setReadOnly(True)
-        self.process_log.setStyleSheet(DIALOG_LOG_STYLE)
-        
-        # Enhanced initial message
-        initial_msg = "🚀 Enhanced DICOM Import Workflow Ready\n"
-        if self.session_code:
-            initial_msg += f"Session: {self.session_code}\n"
-            initial_msg += f"Target: data/PLANAR/{self.session_code}/[patient_id]/\n"
-
-        initial_msg += "Cloud storage:  Disabled\n"
-        initial_msg += "\nAuto-Detection Features:\n"
-        initial_msg += "•   High confidence: Clear DICOM tags (auto-configured)\n"
-        initial_msg += "• ⚠️ Low confidence: Partial tags (manual verification)\n"
-        initial_msg += "•  No detection: Missing tags (manual selection)\n"
-        initial_msg += "\nWorkflow Steps:\n"
-        initial_msg += "1️⃣ Add DICOM files (instant analysis)\n"
-        initial_msg += "2️⃣ Configure views (if needed)\n"
-        initial_msg += "3️⃣ Confirm and process\n"
-
-        
-        self.process_log.setPlainText(initial_msg)
-        layout.addWidget(self.process_log)
-        
-        return panel
         
     def _create_bottom_controls(self) -> QHBoxLayout:
         """Create bottom control buttons"""
         layout = QHBoxLayout()
         layout.setSpacing(10)
         
-        #   NEW: Add both file and folder import buttons
         file_folder_layout = QHBoxLayout()
 
         self.add_dicom_btn = QPushButton("Add Files")
@@ -352,10 +296,10 @@ class DicomImportDialog(QDialog):
         
         layout.addStretch()
         
-        # Configure Views button
-        self.configure_views_btn = QPushButton("Configure Views")
+        # Review Data button
+        self.configure_views_btn = QPushButton("Review Data")
         self.configure_views_btn.setEnabled(False)
-        self.configure_views_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
+        self.configure_views_btn.setStyleSheet(DIALOG_DISABLED_BUTTON_STYLE) # Gunakan style baru saat inisialisasi
         layout.addWidget(self.configure_views_btn)
         
         # Start Import button
@@ -398,30 +342,30 @@ class DicomImportDialog(QDialog):
         )
         
         if file_paths:
-            self._log_message(f"  [DUPLICATE DEBUG] Starting duplicate check for {len(file_paths)} selected files")
-            self._log_message(f"  [DUPLICATE DEBUG] Session code: {self.session_code}")
+            self.logger.info(f"  [DUPLICATE DEBUG] Starting duplicate check for {len(file_paths)} selected files")
+            self.logger.info(f"  [DUPLICATE DEBUG] Session code: {self.session_code}")
             
             # Debug: Show each selected file
             for i, fp in enumerate(file_paths):
-                self._log_message(f"   {i+1}. {Path(fp).name}")
+                self.logger.info(f"   {i+1}. {Path(fp).name}")
             
             # Check if we have required imports
             try:
                 from core.config.paths import check_dicom_exists, get_existing_dicom_info, extract_study_date_from_dicom
-                self._log_message("  [DUPLICATE DEBUG]   Successfully imported duplicate checking functions")
+                self.logger.info("  [DUPLICATE DEBUG]   Successfully imported duplicate checking functions")
                 
                 # Test manual
                 if self.session_code:
-                    self._log_message(f"  [MANUAL TEST] Testing duplicate check function...")
+                    self.logger.info(f"  [MANUAL TEST] Testing duplicate check function...")
                     test_result = check_dicom_exists("ATL", "0001158915", "20241204")
-                    self._log_message(f"  [MANUAL TEST] check_dicom_exists('ATL', '0001158915', '20241204') = {test_result}")
+                    self.logger.info(f"  [MANUAL TEST] check_dicom_exists('ATL', '0001158915', '20241204') = {test_result}")
                     
                     existing_info = get_existing_dicom_info("ATL", "0001158915", "20241204")
-                    self._log_message(f"  [MANUAL TEST] Existing info: {existing_info}")
+                    self.logger.info(f"  [MANUAL TEST] Existing info: {existing_info}")
                 
             except ImportError as e:
-                self._log_message(f"  [DUPLICATE DEBUG]  Import error: {e}")
-                self._log_message("  [DUPLICATE DEBUG] ⚠️ Proceeding without duplicate checking...")
+                self.logger.info(f"  [DUPLICATE DEBUG]  Import error: {e}")
+                self.logger.info("  [DUPLICATE DEBUG] ⚠️ Proceeding without duplicate checking...")
                 # Fallback to old behavior
                 new_files = [Path(p) for p in file_paths]
                 duplicate_files = []
@@ -432,7 +376,7 @@ class DicomImportDialog(QDialog):
                 if self.selected_files and self.view_assignments:
                     print("  DEBUG: Clearing existing view assignments due to file list change...")
                     self.view_assignments.clear()
-                    self._log_message("⚠️ View assignments cleared - files list changed")
+                    self.logger.info("⚠️ View assignments cleared - files list changed")
                 
                 #   NEW: Check for duplicates (both with existing data and within current selection)
                 new_files = []
@@ -442,33 +386,33 @@ class DicomImportDialog(QDialog):
                 
                 processed_combinations = set()  # Track (patient_id, study_date) within this session
                 
-                self._log_message(f"  [DUPLICATE DEBUG] Starting individual file analysis...")
+                self.logger.info(f"  [DUPLICATE DEBUG] Starting individual file analysis...")
                 
                 for i, file_path in enumerate(file_paths):
                     path_obj = Path(file_path)
                     
-                    self._log_message(f"  [DUPLICATE DEBUG] Analyzing file {i+1}/{len(file_paths)}: {path_obj.name}")
+                    self.logger.info(f"  [DUPLICATE DEBUG] Analyzing file {i+1}/{len(file_paths)}: {path_obj.name}")
                     
                     # Skip if already in current selection
                     if path_obj in self.selected_files:
-                        self._log_message(f"   ⚠️ Already in current selection - skipping")
+                        self.logger.info(f"   ⚠️ Already in current selection - skipping")
                         continue
                         
                     try:
                         # Extract patient info
-                        self._log_message(f"   📄 Reading DICOM metadata...")
+                        self.logger.info(f"   📄 Reading DICOM metadata...")
                         ds = pydicom.dcmread(path_obj, stop_before_pixels=True)
                         patient_id = str(ds.PatientID)
                         study_date = extract_study_date_from_dicom(path_obj)
                         combination_key = (patient_id, study_date)
                         
-                        self._log_message(f"   📋 Patient ID: {patient_id}")
-                        self._log_message(f"   📅 Study Date: {study_date}")
-                        self._log_message(f"   🔑 Combination Key: {combination_key}")
+                        self.logger.info(f"   📋 Patient ID: {patient_id}")
+                        self.logger.info(f"   📅 Study Date: {study_date}")
+                        self.logger.info(f"   🔑 Combination Key: {combination_key}")
                         
                         # Check for internal duplicates within this selection
                         if combination_key in processed_combinations:
-                            self._log_message(f"   🔄 INTERNAL DUPLICATE detected!")
+                            self.logger.info(f"   🔄 INTERNAL DUPLICATE detected!")
                             internal_duplicates.append((path_obj, {
                                 "patient_id": patient_id,
                                 "study_date": study_date,
@@ -478,15 +422,15 @@ class DicomImportDialog(QDialog):
                         
                         # Check against existing data in system
                         if self.session_code:
-                            self._log_message(f"     Checking against existing data in session {self.session_code}...")
+                            self.logger.info(f"     Checking against existing data in session {self.session_code}...")
                             
                             is_duplicate = check_dicom_exists(self.session_code, patient_id, study_date)
-                            self._log_message(f"     check_dicom_exists result: {is_duplicate}")
+                            self.logger.info(f"     check_dicom_exists result: {is_duplicate}")
                             
                             if is_duplicate:
-                                self._log_message(f"   🔄 SYSTEM DUPLICATE detected!")
+                                self.logger.info(f"   🔄 SYSTEM DUPLICATE detected!")
                                 existing_info = get_existing_dicom_info(self.session_code, patient_id, study_date)
-                                self._log_message(f"   📊 Existing info: {existing_info}")
+                                self.logger.info(f"   📊 Existing info: {existing_info}")
                                 
                                 duplicate_files.append((path_obj, {
                                     "patient_id": patient_id,
@@ -498,24 +442,24 @@ class DicomImportDialog(QDialog):
                                 }))
                                 continue
                             else:
-                                self._log_message(f"     No duplicate found in system")
+                                self.logger.info(f"     No duplicate found in system")
                         else:
-                            self._log_message(f"   ⚠️ No session code - skipping system duplicate check")
+                            self.logger.info(f"   ⚠️ No session code - skipping system duplicate check")
                         
                         # If we reach here, it's a new file
-                        self._log_message(f"   ➕ Adding as NEW file")
+                        self.logger.info(f"   ➕ Adding as NEW file")
                         new_files.append(path_obj)
                         processed_combinations.add(combination_key)
                         
                     except Exception as e:
-                        self._log_message(f"    ERROR checking {path_obj.name}: {e}")
+                        self.logger.info(f"    ERROR checking {path_obj.name}: {e}")
                         error_files.append((path_obj, f"Error reading DICOM: {str(e)}"))
                 
-                self._log_message(f"  [DUPLICATE DEBUG] Analysis complete:")
-                self._log_message(f"     New files: {len(new_files)}")
-                self._log_message(f"   🔄 System duplicates: {len(duplicate_files)}")
-                self._log_message(f"   🔄 Internal duplicates: {len(internal_duplicates)}")
-                self._log_message(f"    Errors: {len(error_files)}")
+                self.logger.info(f"  [DUPLICATE DEBUG] Analysis complete:")
+                self.logger.info(f"     New files: {len(new_files)}")
+                self.logger.info(f"   🔄 System duplicates: {len(duplicate_files)}")
+                self.logger.info(f"   🔄 Internal duplicates: {len(internal_duplicates)}")
+                self.logger.info(f"    Errors: {len(error_files)}")
 
             # Log summary
             total_selected = len(file_paths)
@@ -523,52 +467,52 @@ class DicomImportDialog(QDialog):
             total_duplicates = len(duplicate_files) + len(internal_duplicates)
             total_errors = len(error_files)
             
-            self._log_message(f"  Selected {total_selected} file(s) for import:")
+            self.logger.info(f"  Selected {total_selected} file(s) for import:")
             
             if total_new > 0:
-                self._log_message(f"     {total_new} new file(s) will be imported")
+                self.logger.info(f"     {total_new} new file(s) will be imported")
             
             if duplicate_files:
-                self._log_message(f"   ⚠️ {len(duplicate_files)} file(s) skipped - already exist in system:")
+                self.logger.info(f"   ⚠️ {len(duplicate_files)} file(s) skipped - already exist in system:")
                 for dup_path, dup_info in duplicate_files:
                     patient_id = dup_info.get("patient_id", "Unknown")
                     study_date = dup_info.get("study_date", "Unknown")
                     existing_count = dup_info.get("existing_dicom_count", 0)
-                    self._log_message(f"      📄 {dup_path.name} (Patient: {patient_id}, Study: {study_date})")
+                    self.logger.info(f"      📄 {dup_path.name} (Patient: {patient_id}, Study: {study_date})")
             
             if internal_duplicates:
-                self._log_message(f"   ⚠️ {len(internal_duplicates)} file(s) skipped - duplicates within selection:")
+                self.logger.info(f"   ⚠️ {len(internal_duplicates)} file(s) skipped - duplicates within selection:")
                 for dup_path, dup_info in internal_duplicates:
                     patient_id = dup_info.get("patient_id", "Unknown")
                     study_date = dup_info.get("study_date", "Unknown")
-                    self._log_message(f"      📄 {dup_path.name} (Patient: {patient_id}, Study: {study_date})")
+                    self.logger.info(f"      📄 {dup_path.name} (Patient: {patient_id}, Study: {study_date})")
             
             if error_files:
-                self._log_message(f"    {len(error_files)} file(s) had errors:")
+                self.logger.info(f"    {len(error_files)} file(s) had errors:")
                 for err_path, err_reason in error_files:
-                    self._log_message(f"      📄 {err_path.name}: {err_reason}")
+                    self.logger.info(f"      📄 {err_path.name}: {err_reason}")
             
             # Add only NEW files to the import list
             added_count = 0
-            self._log_message(f"  DEBUG: About to add {len(new_files)} new files to selected_files list")
+            self.logger.info(f"  DEBUG: About to add {len(new_files)} new files to selected_files list")
 
             for file_path in new_files:
                 self.selected_files.append(file_path)
                 self._add_file_to_list(file_path)
                 added_count += 1
-                self._log_message(f"   ➕ Added to processing queue: {file_path.name}")
+                self.logger.info(f"   ➕ Added to processing queue: {file_path.name}")
 
             # Add duplicate files to list with special marking (for transparency)
             duplicate_added_count = 0
-            self._log_message(f"  DEBUG: About to add {len(duplicate_files + internal_duplicates)} duplicate files to UI (display only)")
+            self.logger.info(f"  DEBUG: About to add {len(duplicate_files + internal_duplicates)} duplicate files to UI (display only)")
 
             for dup_path, dup_info in duplicate_files + internal_duplicates:
                 self._add_duplicate_file_to_list(dup_path, dup_info)
                 duplicate_added_count += 1
-                self._log_message(f"   ⏭️ Added to UI (SKIP): {dup_path.name} - {dup_info.get('reason', 'Unknown reason')}")
+                self.logger.info(f"   ⏭️ Added to UI (SKIP): {dup_path.name} - {dup_info.get('reason', 'Unknown reason')}")
 
-            self._log_message(f"  DEBUG: Final counts - New files: {added_count}, Duplicate files shown: {duplicate_added_count}")
-            self._log_message(f"  DEBUG: selected_files now contains {len(self.selected_files)} files")
+            self.logger.info(f"  DEBUG: Final counts - New files: {added_count}, Duplicate files shown: {duplicate_added_count}")
+            self.logger.info(f"  DEBUG: selected_files now contains {len(self.selected_files)} files")
             
             # Reset detection status for consistency
             if new_files:
@@ -581,17 +525,17 @@ class DicomImportDialog(QDialog):
             
             # Final summary
             if added_count > 0:
-                self._log_message(f"➕ Successfully added {added_count} new file(s) to import queue")
+                self.logger.info(f"➕ Successfully added {added_count} new file(s) to import queue")
             
             if total_duplicates > 0:
-                self._log_message(f"⏭️ Skipped {total_duplicates} duplicate file(s) (shown for reference)")
+                self.logger.info(f"⏭️ Skipped {total_duplicates} duplicate file(s) (shown for reference)")
             
             if added_count == 0 and total_duplicates > 0:
-                self._log_message("ℹ️ No new files to import - all selected files already exist or are duplicates")
+                self.logger.info("ℹ️ No new files to import - all selected files already exist or are duplicates")
             
             # Start detection only for NEW files
             if new_files:
-                self._log_message("  Starting instant view detection analysis for new files...")
+                self.logger.info("  Starting instant view detection analysis for new files...")
                 self._start_quick_detection(new_files)
         
     def _add_dicom_folders(self):
@@ -608,12 +552,12 @@ class DicomImportDialog(QDialog):
             dicom_files = scan_folders_for_dicom(folder_paths)
             
             if dicom_files:
-                self._log_message(f"  Found {len(dicom_files)} DICOM files in {len(folder_paths)} folders")
+                self.logger.info(f"  Found {len(dicom_files)} DICOM files in {len(folder_paths)} folders")
                 
                 #   ENHANCED: Check for duplicates (same logic as Add Files)
                 try:
                     from core.config.paths import check_dicom_exists, get_existing_dicom_info, extract_study_date_from_dicom
-                    self._log_message("  [FOLDER DUPLICATE DEBUG] Starting duplicate analysis for folder files...")
+                    self.logger.info("  [FOLDER DUPLICATE DEBUG] Starting duplicate analysis for folder files...")
                     
                     new_files = []
                     duplicate_files = []
@@ -623,11 +567,11 @@ class DicomImportDialog(QDialog):
                     processed_combinations = set()  # Track (patient_id, study_date) within this batch
                     
                     for i, file_path in enumerate(dicom_files):
-                        self._log_message(f"  [FOLDER DUPLICATE DEBUG] Analyzing file {i+1}/{len(dicom_files)}: {file_path.name}")
+                        self.logger.info(f"  [FOLDER DUPLICATE DEBUG] Analyzing file {i+1}/{len(dicom_files)}: {file_path.name}")
                         
                         # Skip if already in current selection
                         if file_path in self.selected_files:
-                            self._log_message(f"   ⚠️ Already in current selection - skipping")
+                            self.logger.info(f"   ⚠️ Already in current selection - skipping")
                             continue
                             
                         try:
@@ -637,11 +581,11 @@ class DicomImportDialog(QDialog):
                             study_date = extract_study_date_from_dicom(file_path)
                             combination_key = (patient_id, study_date)
                             
-                            self._log_message(f"   📋 Patient ID: {patient_id}, Study Date: {study_date}")
+                            self.logger.info(f"   📋 Patient ID: {patient_id}, Study Date: {study_date}")
                             
                             #   CHECK: Internal duplicates within this folder batch
                             if combination_key in processed_combinations:
-                                self._log_message(f"   🔄 INTERNAL DUPLICATE detected in folder batch!")
+                                self.logger.info(f"   🔄 INTERNAL DUPLICATE detected in folder batch!")
                                 internal_duplicates.append((file_path, {
                                     "patient_id": patient_id,
                                     "study_date": study_date,
@@ -652,10 +596,10 @@ class DicomImportDialog(QDialog):
                             # Check against existing data in system
                             if self.session_code:
                                 is_duplicate = check_dicom_exists(self.session_code, patient_id, study_date)
-                                self._log_message(f"     System duplicate check result: {is_duplicate}")
+                                self.logger.info(f"     System duplicate check result: {is_duplicate}")
                                 
                                 if is_duplicate:
-                                    self._log_message(f"   🔄 SYSTEM DUPLICATE detected!")
+                                    self.logger.info(f"   🔄 SYSTEM DUPLICATE detected!")
                                     existing_info = get_existing_dicom_info(self.session_code, patient_id, study_date)
                                     
                                     duplicate_files.append((file_path, {
@@ -671,48 +615,48 @@ class DicomImportDialog(QDialog):
                             # If we reach here, it's a new file
                             new_files.append(file_path)
                             processed_combinations.add(combination_key)
-                            self._log_message(f"     Added as new file")
+                            self.logger.info(f"     Added as new file")
                             
                         except Exception as e:
-                            self._log_message(f"    ERROR checking {file_path.name}: {e}")
+                            self.logger.info(f"    ERROR checking {file_path.name}: {e}")
                             error_files.append((file_path, f"Error reading DICOM: {str(e)}"))
                     
                     #   LOG: Summary results
-                    self._log_message(f"  [FOLDER DUPLICATE DEBUG] Analysis complete:")
-                    self._log_message(f"     New files: {len(new_files)}")
-                    self._log_message(f"   🔄 System duplicates: {len(duplicate_files)}")
-                    self._log_message(f"   🔄 Internal duplicates: {len(internal_duplicates)}")
-                    self._log_message(f"    Errors: {len(error_files)}")
+                    self.logger.info(f"  [FOLDER DUPLICATE DEBUG] Analysis complete:")
+                    self.logger.info(f"     New files: {len(new_files)}")
+                    self.logger.info(f"   🔄 System duplicates: {len(duplicate_files)}")
+                    self.logger.info(f"   🔄 Internal duplicates: {len(internal_duplicates)}")
+                    self.logger.info(f"    Errors: {len(error_files)}")
                     
                     # Update dicom_files to only include new files
                     dicom_files = new_files
                     
                     #   LOG: Detailed duplicate information
                     if duplicate_files:
-                        self._log_message(f"⚠️ Skipped {len(duplicate_files)} files - already exist in system:")
+                        self.logger.info(f"⚠️ Skipped {len(duplicate_files)} files - already exist in system:")
                         for dup_path, dup_info in duplicate_files:
                             patient_id = dup_info.get("patient_id", "Unknown")
                             study_date = dup_info.get("study_date", "Unknown")
-                            self._log_message(f"   📄 {dup_path.name} (Patient: {patient_id}, Study: {study_date})")
+                            self.logger.info(f"   📄 {dup_path.name} (Patient: {patient_id}, Study: {study_date})")
                     
                     if internal_duplicates:
-                        self._log_message(f"⚠️ Skipped {len(internal_duplicates)} files - duplicates within folder:")
+                        self.logger.info(f"⚠️ Skipped {len(internal_duplicates)} files - duplicates within folder:")
                         for dup_path, dup_info in internal_duplicates:
                             patient_id = dup_info.get("patient_id", "Unknown")
                             study_date = dup_info.get("study_date", "Unknown")
-                            self._log_message(f"   📄 {dup_path.name} (Patient: {patient_id}, Study: {study_date})")
+                            self.logger.info(f"   📄 {dup_path.name} (Patient: {patient_id}, Study: {study_date})")
                     
                     #   ADD: Show duplicate files in UI for transparency
                     for dup_path, dup_info in duplicate_files + internal_duplicates:
                         self._add_duplicate_file_to_list(dup_path, dup_info)
                     
                 except ImportError as e:
-                    self._log_message(f"  [FOLDER DUPLICATE DEBUG]  Import error: {e}")
-                    self._log_message("  [FOLDER DUPLICATE DEBUG] ⚠️ Proceeding without duplicate checking...")
+                    self.logger.info(f"  [FOLDER DUPLICATE DEBUG]  Import error: {e}")
+                    self.logger.info("  [FOLDER DUPLICATE DEBUG] ⚠️ Proceeding without duplicate checking...")
                     # Keep original behavior as fallback
                     
                 if dicom_files:
-                    self._log_message(f"  Adding {len(dicom_files)} new files from folders")
+                    self.logger.info(f"  Adding {len(dicom_files)} new files from folders")
                     
                     # Add new files to list
                     for file_path in dicom_files:
@@ -721,15 +665,15 @@ class DicomImportDialog(QDialog):
                             self._add_file_to_list(file_path)
                     
                     self._update_ui_state()
-                    self._log_message(f"  Added {len(dicom_files)} new files")
+                    self.logger.info(f"  Added {len(dicom_files)} new files")
                     
                     # Start detection
                     if dicom_files:
                         self._start_quick_detection(dicom_files)
                 else:
-                    self._log_message("ℹ️ No new files to import - all files already exist or are duplicates")
+                    self.logger.info("ℹ️ No new files to import - all files already exist or are duplicates")
             else:
-                self._log_message(" No DICOM files found in selected folders")
+                self.logger.info(" No DICOM files found in selected folders")
     
     def _start_quick_detection(self, file_paths: List[Path]):
         """Start quick detection analysis untuk immediate feedback"""
@@ -760,7 +704,7 @@ class DicomImportDialog(QDialog):
             self.quick_detection_thread.start()
         except Exception as e:
             print(f" ERROR starting quick detection: {e}")
-            self._log_message(f" Error starting file analysis: {str(e)}")
+            self.logger.info(f" Error starting file analysis: {str(e)}")
         
     def _on_quick_detection_completed(self, file_path: Path, detection_info: dict):
         """Handle completed quick detection for single file"""
@@ -792,11 +736,11 @@ class DicomImportDialog(QDialog):
         
         if detection_info.get("has_reliable_detection", False):
             if not detection_info.get("needs_manual_config", True):
-                self._log_message(f"  {truncate_text(file_path.name, 30)}: Fully auto-configured ({auto_count} frames)")
+                self.logger.info(f"  {truncate_text(file_path.name, 30)}: Fully auto-configured ({auto_count} frames)")
             else:
-                self._log_message(f"⚠️ {truncate_text(file_path.name, 30)}: Partially auto-configured ({auto_count} auto, {manual_count} manual)")
+                self.logger.info(f"⚠️ {truncate_text(file_path.name, 30)}: Partially auto-configured ({auto_count} auto, {manual_count} manual)")
         else:
-            self._log_message(f" {truncate_text(file_path.name, 30)}: Manual configuration required ({manual_count} frames)")
+            self.logger.info(f" {truncate_text(file_path.name, 30)}: Manual configuration required ({manual_count} frames)")
     
     def _on_quick_detection_finished(self):
         """Handle completion of all quick detections"""
@@ -810,22 +754,22 @@ class DicomImportDialog(QDialog):
                            if info.get("has_reliable_detection", False) and info.get("needs_manual_config", True))
         manual_only = total_files - fully_auto - partially_auto
         
-        self._log_message("📊 Detection Analysis Complete:")
+        self.logger.info("📊 Detection Analysis Complete:")
         if fully_auto > 0:
-            self._log_message(f"     {fully_auto} files fully auto-configured")
+            self.logger.info(f"     {fully_auto} files fully auto-configured")
         if partially_auto > 0:
-            self._log_message(f"   ⚠️ {partially_auto} files partially auto-configured")
+            self.logger.info(f"   ⚠️ {partially_auto} files partially auto-configured")
         if manual_only > 0:
-            self._log_message(f"    {manual_only} files need manual configuration")
+            self.logger.info(f"    {manual_only} files need manual configuration")
         
         if fully_auto == total_files:
-            self._log_message("🎉 All files auto-configured! You can proceed directly to import.")
+            self.logger.info("🎉 All files auto-configured! You can proceed directly to import.")
         elif manual_only == 0:
-            self._log_message("⚠️ Some files need verification. Please review in Configure Views.")
+            self.logger.info("⚠️ Some files need verification. Please review in Configure Views.")
         else:
-            self._log_message("⚙️ Manual configuration required for some files.")
+            self.logger.info("⚙️ Manual configuration required for some files.")
         
-        self._log_message("Next step: Configure Views (or proceed if all auto-configured)")
+        self.logger.info("Next step: Configure Views (or proceed if all auto-configured)")
     
     def _update_single_file_status(self, file_path: Path, detection_info: dict):
         """Update status for single file in the list"""
@@ -1049,7 +993,7 @@ class DicomImportDialog(QDialog):
         
         self._update_ui_state()
         file_name = truncate_text(file_path.name, 40)
-        self._log_message(f"Removed {file_name} from import list")
+        self.logger.info(f"Removed {file_name} from import list")
         
     def _configure_views(self):
         """Open view configuration dialog"""
@@ -1072,7 +1016,7 @@ class DicomImportDialog(QDialog):
         
         if missing_detection:
             print(f"⚠️ WARNING: {len(missing_detection)} files missing detection status, starting analysis...")
-            self._log_message(f"⚠️ Analyzing {len(missing_detection)} files without detection status...")
+            self.logger.info(f"⚠️ Analyzing {len(missing_detection)} files without detection status...")
             
             # Start detection for missing files
             self._start_quick_detection(missing_detection)
@@ -1085,14 +1029,14 @@ class DicomImportDialog(QDialog):
             )
             return
             
-        self._log_message("  Opening enhanced view configuration dialog...")
+        self.logger.info("  Opening enhanced view configuration dialog...")
         print(f"  DEBUG: Opening view selector with {len(self.selected_files)} files")
         
         #   FIXED: Create dialog and store reference
         try:
-            self._log_message(f"  DEBUG: Opening view configuration with {len(self.selected_files)} files:")
+            self.logger.info(f"  DEBUG: Opening view configuration with {len(self.selected_files)} files:")
             for i, file_path in enumerate(self.selected_files):
-                self._log_message(f"   {i+1}. {file_path.name}")
+                self.logger.info(f"   {i+1}. {file_path.name}")
 
             # Check if any of these files are marked as duplicates
             duplicate_in_selection = 0
@@ -1103,12 +1047,12 @@ class DicomImportDialog(QDialog):
                 
                 if item_path in self.selected_files and item_duplicate_flag == "DUPLICATE":
                     duplicate_in_selection += 1
-                    self._log_message(f"   ⚠️ WARNING: {item_path.name} is in selected_files but marked as DUPLICATE")
+                    self.logger.info(f"   ⚠️ WARNING: {item_path.name} is in selected_files but marked as DUPLICATE")
 
             if duplicate_in_selection > 0:
-                self._log_message(f"   🚨 PROBLEM: {duplicate_in_selection} duplicate files in selected_files!")
+                self.logger.info(f"   🚨 PROBLEM: {duplicate_in_selection} duplicate files in selected_files!")
             else:
-                self._log_message(f"     No duplicates found in selected_files")
+                self.logger.info(f"     No duplicates found in selected_files")
             self._view_dialog = DicomViewSelectorDialog(self.selected_files, self)
             
             def on_views_confirmed_debug(view_assignments):
@@ -1133,7 +1077,7 @@ class DicomImportDialog(QDialog):
             
             print(f"  DEBUG: View dialog result: {result}")
             if result == QDialog.Rejected:
-                self._log_message(" View configuration cancelled")
+                self.logger.info(" View configuration cancelled")
             elif result == QDialog.Accepted:
                 print("  Dialog accepted")
             
@@ -1141,7 +1085,7 @@ class DicomImportDialog(QDialog):
             print(f" ERROR creating view dialog: {e}")
             import traceback
             traceback.print_exc()
-            self._log_message(f" Error opening view configuration: {str(e)}")
+            self.logger.info(f" Error opening view configuration: {str(e)}")
             
             #   FIXED: Clear dialog reference on error
             self._view_dialog = None
@@ -1185,10 +1129,10 @@ class DicomImportDialog(QDialog):
         self.view_assignments = normalized_views
         self.background_assignments = normalized_backgrounds  # Store background data
         
-        self._log_message("  View assignments and background selections configured")
-        self._log_message(f"Files with assignments: {len(view_assignments)}")
+        self.logger.info("  View assignments and background selections configured")
+        self.logger.info(f"Files with assignments: {len(view_assignments)}")
         if background_assignments:
-            self._log_message(f"Files with background selections: {len(background_assignments)}")
+            self.logger.info(f"Files with background selections: {len(background_assignments)}")
     
     def _update_file_list_with_assignments(self):
         """Update file list status based on final assignments"""
@@ -1276,14 +1220,11 @@ class DicomImportDialog(QDialog):
             elif detection_info.get("needs_manual_config", True):
                 manual_required_files += 1
         
-        # Update button states
+        # Update Configure Views button state
         self.configure_views_btn.setEnabled(has_files)
-        self.start_import_btn.setEnabled(has_files and has_complete_assignments and has_session)
-        
-        # Enhanced button text and tooltips based on detection status
         if has_files:
             if auto_configured_files == len(self.selected_files):
-                self.configure_views_btn.setText("  Review Auto-Config")
+                self.configure_views_btn.setText(" Review Data")
                 self.configure_views_btn.setToolTip("All files auto-configured. Click to review and confirm.")
             elif manual_required_files == len(self.selected_files):
                 self.configure_views_btn.setText("⚙️ Configure Views")
@@ -1291,11 +1232,30 @@ class DicomImportDialog(QDialog):
             else:
                 self.configure_views_btn.setText("⚠️ Review & Configure")
                 self.configure_views_btn.setToolTip(f"{auto_configured_files} auto-configured, {manual_required_files} need manual config.")
+            self.configure_views_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
         else:
             self.configure_views_btn.setText("Configure Views")
             self.configure_views_btn.setToolTip("Add DICOM files first")
+            self.configure_views_btn.setStyleSheet(DIALOG_DISABLED_BUTTON_STYLE) # Menggunakan style abu-abu dari ui_constants
         
-        # Update start button
+        # Update Start Import button state
+        self.start_import_btn.setEnabled(has_files and has_complete_assignments and has_session)
+        if has_complete_assignments:
+            auto_count = sum(1 for fp in self.view_assignments.keys() 
+                             if self.file_detection_status.get(fp, {}).get("has_reliable_detection", False) 
+                             and not self.file_detection_status.get(fp, {}).get("needs_manual_config", True))
+            if auto_count == len(self.view_assignments):
+                self.start_import_btn.setText("Start Import")
+            elif auto_count > 0:
+                self.start_import_btn.setText("Start Import")
+            else:
+                self.start_import_btn.setText("Start Import")
+            self.start_import_btn.setStyleSheet(DIALOG_START_BUTTON_STYLE)
+        else:
+            self.start_import_btn.setText("Start Import")
+            self.start_import_btn.setStyleSheet(DIALOG_DISABLED_BUTTON_STYLE) # Gunakan style abu-abu yang sama
+
+        # Update tooltips for Start Import button
         if not has_files:
             self.start_import_btn.setToolTip("Add DICOM files first")
         elif not has_complete_assignments:
@@ -1311,11 +1271,11 @@ class DicomImportDialog(QDialog):
                            if self.file_detection_status.get(fp, {}).get("has_reliable_detection", False) 
                            and not self.file_detection_status.get(fp, {}).get("needs_manual_config", True))
             if auto_count == len(self.view_assignments):
-                self.start_import_btn.setText("🚀 Start Import (Auto)")
+                self.start_import_btn.setText("Start Import")
             elif auto_count > 0:
-                self.start_import_btn.setText("🚀 Start Import (Mixed)")
+                self.start_import_btn.setText("Start Import")
             else:
-                self.start_import_btn.setText("🚀 Start Import (Manual)")
+                self.start_import_btn.setText("Start Import")
         else:
             self.start_import_btn.setText("Start Import")
     
@@ -1329,12 +1289,12 @@ class DicomImportDialog(QDialog):
         actual_files_to_process = {}
         skipped_duplicates = 0
 
-        self._log_message(f"  DEBUG: Starting duplicate filter check...")
-        self._log_message(f"  DEBUG: view_assignments contains {len(self.view_assignments)} files")
-        self._log_message(f"  DEBUG: file_list contains {self.file_list.count()} items")
+        self.logger.info(f"  DEBUG: Starting duplicate filter check...")
+        self.logger.info(f"  DEBUG: view_assignments contains {len(self.view_assignments)} files")
+        self.logger.info(f"  DEBUG: file_list contains {self.file_list.count()} items")
 
         for file_path, assignments in self.view_assignments.items():
-            self._log_message(f"  DEBUG: Checking file: {file_path.name}")
+            self.logger.info(f"  DEBUG: Checking file: {file_path.name}")
             
             # Check if this file is marked as duplicate in the UI
             is_duplicate = False
@@ -1347,38 +1307,38 @@ class DicomImportDialog(QDialog):
                 
                 if item_path == file_path:
                     found_in_list = True
-                    self._log_message(f"   📍 Found in UI list at position {i}")
-                    self._log_message(f"   🏷️ Duplicate flag: {item_duplicate_flag}")
+                    self.logger.info(f"   📍 Found in UI list at position {i}")
+                    self.logger.info(f"   🏷️ Duplicate flag: {item_duplicate_flag}")
                     
                     if item_duplicate_flag == "DUPLICATE":
                         is_duplicate = True
                         skipped_duplicates += 1
-                        self._log_message(f"   ⏭️ MARKED AS DUPLICATE - will skip processing")
+                        self.logger.info(f"   ⏭️ MARKED AS DUPLICATE - will skip processing")
                         break
                     else:
-                        self._log_message(f"     NOT marked as duplicate - will process")
+                        self.logger.info(f"     NOT marked as duplicate - will process")
             
             if not found_in_list:
-                self._log_message(f"   ⚠️ WARNING: File not found in UI list!")
+                self.logger.info(f"   ⚠️ WARNING: File not found in UI list!")
             
             if not is_duplicate:
                 actual_files_to_process[file_path] = assignments
-                self._log_message(f"   ➕ Added to processing queue")
+                self.logger.info(f"   ➕ Added to processing queue")
             else:
-                self._log_message(f"    Skipped from processing (duplicate)")
+                self.logger.info(f"    Skipped from processing (duplicate)")
 
-        self._log_message(f"  DEBUG: Filter results:")
-        self._log_message(f"   Original files in view_assignments: {len(self.view_assignments)}")
-        self._log_message(f"   Files to actually process: {len(actual_files_to_process)}")
-        self._log_message(f"   Skipped duplicates: {skipped_duplicates}")
+        self.logger.info(f"  DEBUG: Filter results:")
+        self.logger.info(f"   Original files in view_assignments: {len(self.view_assignments)}")
+        self.logger.info(f"   Files to actually process: {len(actual_files_to_process)}")
+        self.logger.info(f"   Skipped duplicates: {skipped_duplicates}")
 
         # Update view_assignments to only include non-duplicate files
         self.view_assignments = actual_files_to_process
 
         if skipped_duplicates > 0:
-            self._log_message(f"⏭️ Filtered out {skipped_duplicates} duplicate file(s) from processing")
+            self.logger.info(f"⏭️ Filtered out {skipped_duplicates} duplicate file(s) from processing")
         else:
-            self._log_message(f"  No duplicates found in processing queue")
+            self.logger.info(f"  No duplicates found in processing queue")
         
         # Final validation - updated to check actual files to process
         if not self.view_assignments:
@@ -1396,19 +1356,19 @@ class DicomImportDialog(QDialog):
             else:
                 manual_configured_count += 1
         
-        self._log_message("🚀 Starting enhanced import process...")
-        self._log_message(f"Processing {len(self.view_assignments)} files with view assignments")
-        self._log_message(f"Session: {self.session_code}")
-        self._log_message(f"Target: data/PLANAR/{self.session_code}/[patient_id]/")
+        self.logger.info("Starting enhanced import process...")
+        self.logger.info(f"Processing {len(self.view_assignments)} files with view assignments")
+        self.logger.info(f"Session: {self.session_code}")
+        self.logger.info(f"Target: data/PLANAR/{self.session_code}/[patient_id]/")
         
         if auto_configured_count > 0 and manual_configured_count > 0:
-            self._log_message(f"Configuration: {auto_configured_count} auto + {manual_configured_count} manual")
+            self.logger.info(f"Configuration: {auto_configured_count} auto + {manual_configured_count} manual")
         elif auto_configured_count == len(self.view_assignments):
-            self._log_message(f"Configuration: All {auto_configured_count} files auto-configured")
+            self.logger.info(f"Configuration: All {auto_configured_count} files auto-configured")
         else:
-            self._log_message(f"Configuration: All {manual_configured_count} files manually configured")
+            self.logger.info(f"Configuration: All {manual_configured_count} files manually configured")
         
-        self._log_message("Enforced naming: Anterior/Posterior views only")
+        self.logger.info("Enforced naming: Anterior/Posterior views only")
         
         # Update UI for processing mode
         self.add_dicom_btn.setEnabled(False)
@@ -1458,17 +1418,17 @@ class DicomImportDialog(QDialog):
                                   and not self.file_detection_status.get(fp, {}).get("needs_manual_config", True))
         manual_configured_count = len(self.view_assignments) - auto_configured_count
         
-        self._log_message("🎉 Enhanced import workflow completed!")
-        self._log_message("All files processed with proper Anterior/Posterior naming")
+        self.logger.info("🎉 Enhanced import workflow completed!")
+        self.logger.info("All files processed with proper Anterior/Posterior naming")
         
         if auto_configured_count > 0 and manual_configured_count > 0:
-            self._log_message(f"  Successfully processed: {auto_configured_count} auto + {manual_configured_count} manual files")
+            self.logger.info(f"  Successfully processed: {auto_configured_count} auto + {manual_configured_count} manual files")
         elif auto_configured_count == len(self.view_assignments):
-            self._log_message(f"  Successfully processed: All {auto_configured_count} auto-configured files")
+            self.logger.info(f"  Successfully processed: All {auto_configured_count} auto-configured files")
         else:
-            self._log_message(f"  Successfully processed: All {manual_configured_count} manually configured files")
+            self.logger.info(f"  Successfully processed: All {manual_configured_count} manually configured files")
         
-        self._log_message("Rescanning folder...")
+        self.logger.info("Rescanning folder...")
 
         # Emit signal untuk rescan folder
         self.files_imported.emit()
@@ -1519,332 +1479,7 @@ class DicomImportDialog(QDialog):
             self.quick_detection_thread.wait()
             
         self.reject()
-        
-    def _log_message(self, message: str):
-        """Add message to process log"""
-        display_message = truncate_text(message, 120) if len(message) > 120 else message
-        self.process_log.append(display_message)
-        self.process_log.ensureCursorVisible()
-        QCoreApplication.processEvents()
 
-
-# Legacy compatibility class
-class DicomImportDialogLegacy(DicomImportDialog):
-    """
-    Legacy version without enhanced auto-detection for backward compatibility
-    Uses basic auto-detection only
-    """
-    
-    def __init__(self, data_root: Path, parent=None, session_code: str | None = None):
-        super().__init__(data_root, parent, session_code)
-        self.setWindowTitle("Import DICOM Files - Legacy Mode")
-        
-        # Hide enhanced features
-        self.configure_views_btn.setVisible(False)
-        self._setup_legacy_mode()
-        
-    def _setup_legacy_mode(self):
-        """Setup for legacy mode without enhanced detection"""
-        # Update workflow info
-        workflow_info = self.findChild(QLabel)
-        if workflow_info:
-            workflow_info.setText(
-                "⚠️ Legacy Mode: Basic auto-detection only\n"
-                "• System will attempt to auto-detect Anterior/Posterior views\n" 
-                "• May fail if DICOM tags are missing or incorrect\n"
-                "• Consider using Enhanced Mode for better control and reliability"
-            )
-            workflow_info.setStyleSheet(f"""
-                QLabel {{
-                    background: {Colors.WARNING};
-                    border: 1px solid #ffeeba;
-                    border-radius: 6px;
-                    padding: 12px;
-                    font-size: 11px;
-                    color: #856404;
-                    line-height: 1.4;
-                }}
-            """)
-    
-    def _add_dicom_files(self):
-        """Add DICOM files to the list dengan instant detection analysis dan duplicate checking"""
-        #   FIXED: Close any open view dialog first
-        if hasattr(self, '_view_dialog') and self._view_dialog:
-            print("  DEBUG: Closing existing view dialog before adding files...")
-            try:
-                self._view_dialog.close()
-            except:
-                pass
-            self._view_dialog = None
-        
-        file_paths, _ = QFileDialog.getOpenFileNames(
-            self, 
-            "Select DICOM Files", 
-            "", 
-            "DICOM Files (*.dcm);;All Files (*)"
-        )
-        
-        if file_paths:
-            #   FIXED: Clear existing view assignments if adding to existing list
-            if self.selected_files and self.view_assignments:
-                print("  DEBUG: Clearing existing view assignments due to file list change...")
-                self.view_assignments.clear()
-                self._log_message("⚠️ View assignments cleared - files list changed")
-            
-            #   NEW: Check for duplicates (both with existing data and within current selection)
-            new_files = []
-            duplicate_files = []
-            error_files = []
-            internal_duplicates = []
-            
-            processed_combinations = set()  # Track (patient_id, study_date) within this session
-            
-            for file_path in file_paths:
-                path_obj = Path(file_path)
-                
-                # Skip if already in current selection
-                if path_obj in self.selected_files:
-                    continue
-                    
-                try:
-                    # Extract patient info
-                    ds = pydicom.dcmread(path_obj, stop_before_pixels=True)
-                    patient_id = str(ds.PatientID)
-                    study_date = extract_study_date_from_dicom(path_obj)
-                    combination_key = (patient_id, study_date)
-                    
-                    # Check for internal duplicates within this selection
-                    if combination_key in processed_combinations:
-                        internal_duplicates.append((path_obj, {
-                            "patient_id": patient_id,
-                            "study_date": study_date,
-                            "reason": "Duplicate within current selection"
-                        }))
-                        continue
-                    
-                    # Check against existing data in system
-                    if self.session_code:
-                        from core.config.paths import check_dicom_exists, get_existing_dicom_info
-                        
-                        is_duplicate = check_dicom_exists(self.session_code, patient_id, study_date)
-                        
-                        if is_duplicate:
-                            existing_info = get_existing_dicom_info(self.session_code, patient_id, study_date)
-                            duplicate_files.append((path_obj, {
-                                "patient_id": patient_id,
-                                "study_date": study_date,
-                                "reason": "Patient ID and Study Date already exist in system",
-                                "existing_dicom_count": existing_info.get("dicom_count", 0),
-                                "existing_files": existing_info.get("dicom_files", []),
-                                "has_processed_files": existing_info.get("has_processed_files", False)
-                            }))
-                            continue
-                    
-                    # If we reach here, it's a new file
-                    new_files.append(path_obj)
-                    processed_combinations.add(combination_key)
-                    
-                except Exception as e:
-                    print(f"[ERROR] Error checking {path_obj}: {e}")
-                    error_files.append((path_obj, f"Error reading DICOM: {str(e)}"))
-            
-            # Log summary
-            total_selected = len(file_paths)
-            total_new = len(new_files)
-            total_duplicates = len(duplicate_files) + len(internal_duplicates)
-            total_errors = len(error_files)
-            
-            self._log_message(f"  Selected {total_selected} file(s) for import:")
-            
-            if total_new > 0:
-                self._log_message(f"     {total_new} new file(s) will be imported")
-            
-            if duplicate_files:
-                self._log_message(f"   ⚠️ {len(duplicate_files)} file(s) skipped - already exist in system:")
-                for dup_path, dup_info in duplicate_files:
-                    patient_id = dup_info.get("patient_id", "Unknown")
-                    study_date = dup_info.get("study_date", "Unknown")
-                    existing_count = dup_info.get("existing_dicom_count", 0)
-                    self._log_message(f"      📄 {dup_path.name} (Patient: {patient_id}, Study: {study_date})")
-            
-            if internal_duplicates:
-                self._log_message(f"   ⚠️ {len(internal_duplicates)} file(s) skipped - duplicates within selection:")
-                for dup_path, dup_info in internal_duplicates:
-                    patient_id = dup_info.get("patient_id", "Unknown")
-                    study_date = dup_info.get("study_date", "Unknown")
-                    self._log_message(f"      📄 {dup_path.name} (Patient: {patient_id}, Study: {study_date})")
-            
-            if error_files:
-                self._log_message(f"    {len(error_files)} file(s) had errors:")
-                for err_path, err_reason in error_files:
-                    self._log_message(f"      📄 {err_path.name}: {err_reason}")
-            
-            added_count = 0
-            self._log_message(f"  DEBUG: About to add {len(new_files)} new files to selected_files list")
-
-            for file_path in new_files:
-                self.selected_files.append(file_path)
-                self._add_file_to_list(file_path)
-                added_count += 1
-                self._log_message(f"   ➕ Added to processing queue: {file_path.name}")
-
-            # Add duplicate files to list with special marking (for transparency)
-            duplicate_added_count = 0
-            self._log_message(f"  DEBUG: About to add {len(duplicate_files + internal_duplicates)} duplicate files to UI (display only)")
-
-            for dup_path, dup_info in duplicate_files + internal_duplicates:
-                self._add_duplicate_file_to_list(dup_path, dup_info)
-                duplicate_added_count += 1
-                self._log_message(f"   ⏭️ Added to UI (SKIP): {dup_path.name} - {dup_info.get('reason', 'Unknown reason')}")
-
-            self._log_message(f"  DEBUG: Final counts - New files: {added_count}, Duplicate files shown: {duplicate_added_count}")
-            self._log_message(f"  DEBUG: selected_files now contains {len(self.selected_files)} files")
-            
-            # Reset detection status for consistency
-            if new_files:
-                print(f"  DEBUG: Added {added_count} new files")
-                for existing_file in list(self.file_detection_status.keys()):
-                    if existing_file not in self.selected_files:
-                        del self.file_detection_status[existing_file]
-            
-            self._update_ui_state()
-            
-            # Final summary
-            if added_count > 0:
-                self._log_message(f"➕ Successfully added {added_count} new file(s) to import queue")
-            
-            if total_duplicates > 0:
-                self._log_message(f"⏭️ Skipped {total_duplicates} duplicate file(s) (shown for reference)")
-            
-            if added_count == 0 and total_duplicates > 0:
-                self._log_message("ℹ️ No new files to import - all selected files already exist or are duplicates")
-            
-            # Start detection only for NEW files
-            if new_files:
-                self._log_message("  Starting instant view detection analysis for new files...")
-                self._start_quick_detection(new_files)
-    
-    def _add_legacy_file_to_list(self, file_path: Path):
-        """Add file to list with legacy status"""
-        item = QListWidgetItem()
-        item.setData(Qt.UserRole, file_path)
-        
-        widget = QWidget()
-        layout = QHBoxLayout(widget)
-        layout.setContentsMargins(8, 4, 8, 4)
-        layout.setSpacing(8)
-        
-        # File name label
-        file_name = truncate_text(file_path.name, 30)
-        file_label = QLabel(file_name)
-        file_label.setStyleSheet(FILE_ITEM_NAME_STYLE)
-        layout.addWidget(file_label)
-        
-        # Legacy status
-        status_label = QLabel("⚠️ Legacy auto-detection")
-        status_label.setStyleSheet(f"""
-            QLabel {{
-                color: {Colors.WARNING};
-                font-size: 10px;
-                font-style: italic;
-                font-weight: bold;
-            }}
-        """)
-        layout.addWidget(status_label)
-        
-        # File path
-        path_text = truncate_text(str(file_path.parent), 35)
-        path_label = QLabel(path_text)
-        path_label.setStyleSheet(FILE_ITEM_PATH_STYLE)
-        layout.addWidget(path_label)
-        
-        layout.addStretch()
-        
-        # Remove button
-        remove_btn = QPushButton("✕")
-        remove_btn.setFixedSize(20, 20)
-        remove_btn.setStyleSheet(DIALOG_REMOVE_BUTTON_STYLE)
-        remove_btn.clicked.connect(lambda: self._remove_file(item))
-        layout.addWidget(remove_btn)
-
-        widget.setMinimumHeight(40)
-        item.setSizeHint(widget.sizeHint())
-        self.file_list.addItem(item)
-        self.file_list.setItemWidget(item, widget)
-    
-    def _update_ui_state(self):
-        """Override to skip enhanced view configuration step"""
-        has_files = len(self.selected_files) > 0
-        has_session = self.session_code is not None
-        
-        self.start_import_btn.setEnabled(has_files and has_session)
-        
-        if has_files and not has_session:
-            self.start_import_btn.setToolTip("Session code is required")
-        else:
-            self.start_import_btn.setToolTip("Will use legacy auto-detection during processing")
-    
-    def _start_import(self):
-        """Start legacy import with basic auto-detection"""
-        if not self.selected_files or not self.session_code:
-            QMessageBox.warning(self, "Warning", "Session code is required for import!")
-            return
-            
-        self._log_message("⚠️ Starting LEGACY import process...")
-        self._log_message("Using BASIC AUTO-DETECTION for Anterior/Posterior views")
-        self._log_message(f"Processing {len(self.selected_files)} file(s)")
-        self._log_message("Warning: May fail if DICOM view tags are missing or unclear")
-        
-        # Update UI for processing mode
-        self.add_dicom_btn.setEnabled(False)
-        self.start_import_btn.setEnabled(False)
-        self.progress_bar.setVisible(True)
-        self.progress_label.setVisible(True)
-        self.progress_bar.setMaximum(len(self.selected_files))
-        self.progress_bar.setValue(0)
-        
-        # Use legacy processing (basic auto-detection only)
-        class LegacyProcessingThread(QThread):
-            progress_updated = Signal(int, int, str)
-            log_updated = Signal(str)
-            finished_processing = Signal()
-            
-            def __init__(self, file_paths, data_root, session_code):
-                super().__init__()
-                self.file_paths = file_paths
-                self.data_root = data_root
-                self.session_code = session_code
-                
-            def run(self):
-                try:
-                    process_files(
-                        paths=self.file_paths,
-                        data_root=self.data_root,
-                        session_code=self.session_code,
-                        progress_cb=self._progress_callback,
-                        log_cb=self._log_callback
-                    )
-                    self.log_updated.emit("## Legacy processing completed.")
-                except Exception as e:
-                    self.log_updated.emit(f"[ERROR] Legacy processing failed: {e}")
-                finally:
-                    self.finished_processing.emit()
-                    
-            def _progress_callback(self, current: int, total: int, filename: str):
-                self.progress_updated.emit(current, total, filename)
-            
-            def _log_callback(self, msg: str):
-                self.log_updated.emit(msg)
-        
-        self.processing_thread = LegacyProcessingThread(
-            self.selected_files,
-            self.data_root,
-            self.session_code
-        )
-        self.processing_thread.progress_updated.connect(self._on_progress_updated)
-        self.processing_thread.log_updated.connect(self._on_log_updated)
-        self.processing_thread.finished_processing.connect(self._on_processing_finished)
-        self.processing_thread.start()
 
 
 # Factory function untuk memilih mode
@@ -1866,10 +1501,7 @@ def create_dicom_import_dialog(
     Returns:
         DicomImportDialog instance
     """
-    if use_enhanced_mode:
-        return DicomImportDialog(data_root, parent, session_code)
-    else:
-        return DicomImportDialogLegacy(data_root, parent, session_code)
+    DicomImportDialog(data_root, parent, session_code)
 
 
 # Utility functions for dialog management

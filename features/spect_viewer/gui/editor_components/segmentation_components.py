@@ -56,19 +56,19 @@ class SegmentationCanvas(BaseCanvas):
         self._mask_img = self._mask_to_qimage(show_all=False, label=1)
         self._item_mask = QGraphicsPixmapItem(QPixmap.fromImage(self._mask_img))
         self._scene.addItem(self._item_mask)
+        
+        # Perbaikan: Panggil _save_all_states di sini, setelah _layers terinisialisasi
+        self._save_all_states()
+
 
     def _init_history(self):
         """Initialize history for segmentation layers."""
-        #   FIX: Initialize _layer_history if it doesn't exist
         if not hasattr(self, '_layer_history'):
             self._layer_history = {}
             
         for label_id in range(len(_PALETTE)):
             self._layer_history[label_id] = {'undo': [], 'redo': []}
         
-        #   FIX: DON'T save states here - layers might not be ready yet
-        # _save_all_states() will be called later when layers are properly initialized
-
     def _save_all_states(self):
         """Save initial state for all layers."""
         print(f"🔄 Saving initial states for all layers...")
@@ -77,32 +77,31 @@ class SegmentationCanvas(BaseCanvas):
                 self._save_layer_state(label_id)
         print(f"  Initial states saved for {len(_PALETTE)} layers")
 
+
     def _save_layer_state(self, label_id: int):
         """Save state for specific layer."""
-        #   FIX: Ensure _layer_history exists
         if not hasattr(self, '_layer_history'):
             self._layer_history = {}
         
-        #   FIX: Ensure the label_id exists in _layer_history
         if label_id not in self._layer_history:
             self._layer_history[label_id] = {'undo': [], 'redo': []}
         
         history = self._layer_history[label_id]
         
-        #   FIX: Use layers if available
         if hasattr(self, '_layers') and label_id in self._layers:
             state = self._layers[label_id].copy()
         else:
-            # Fallback to mask-based approach
             state = (self._mask_arr == label_id).astype(np.uint8) if hasattr(self, '_mask_arr') else np.zeros((100, 100), dtype=np.uint8)
         
-        if len(history['undo']) >= self._max_history:
-            history['undo'].pop(0)
-        
-        history['undo'].append(state)
-        history['redo'].clear()
-        
-        print(f"🔄 Saved state for label {label_id}, history length: {len(history['undo'])}")
+        if not history['undo'] or not np.array_equal(history['undo'][-1], state):
+            if len(history['undo']) >= self._max_history:
+                history['undo'].pop(0)
+            
+            history['undo'].append(state)
+            history['redo'].clear()
+            print(f"🔄 Saved state for label {label_id}, undo history length: {len(history['undo'])}")
+        else:
+            print(f"ℹ️ State for label {label_id} is unchanged, skipping save.")
 
     def _save_current_state(self):
         """Save current state for active layer."""
@@ -110,10 +109,6 @@ class SegmentationCanvas(BaseCanvas):
             self._save_layer_state(self._cur_label)
             print(f"🔄 Saved current state for active label {self._cur_label}")
 
-    # def set_bg_opacity(self, alpha: float):
-    #     """Set background opacity."""
-    #     self._bg_alpha = alpha
-    #     self._refresh_mask()
 
     def _mask_to_qimage(self, *, show_all: bool, label: int) -> QImage:
         """Convert mask to QImage with segmentation colors."""
@@ -149,50 +144,49 @@ class SegmentationCanvas(BaseCanvas):
             combined[layer == 1] = lbl
         self._mask_arr = combined
 
+
     def _apply_brush(self, scene_pos: QPointF):
         """Apply brush for segmentation editing."""
         x, y = self._get_pixel_coordinates(scene_pos)
         targets = self._get_brush_targets(x, y)
 
-        #   FIX: Save state BEFORE making changes (not after)
-        if not hasattr(self, '_drawing') or not self._drawing:
-            # This is the start of a new drawing operation
-            self._save_current_state()
-            self._drawing = True
-
-        # Get active layer
         if not hasattr(self, '_cur_label') or self._cur_label not in self._layers:
             return
             
-        layer = self._layers[self._cur_label]
-        
-        # Track if any changes were made
         changes_made = False
         
         for px, py in targets:
-            if 0 <= py < layer.shape[0] and 0 <= px < layer.shape[1]:
-                old_value = layer[py, px]
+            if 0 <= py < self._img_height and 0 <= px < self._img_width:
                 
-                if self._eraser:
-                    new_value = 0
-                else:
-                    new_value = 1
-                
-                if old_value != new_value:
-                    layer[py, px] = new_value
-                    changes_made = True
+                # Check current value to avoid unnecessary updates
+                if self._mask_arr[py, px] == self._cur_label and not self._eraser:
+                    continue
+                if self._mask_arr[py, px] == 0 and self._eraser:
+                    continue
 
-        # Only rebuild and refresh if changes were made
+                # Perbaikan: Hapus nilai dari layer lain saat menggambar
+                if not self._eraser:
+                    for lbl, layer in self._layers.items():
+                        if lbl == self._cur_label:
+                            layer[py, px] = 1
+                        else:
+                            layer[py, px] = 0
+                else:
+                    self._layers[self._cur_label][py, px] = 0
+
+                changes_made = True
+
         if changes_made:
             self._rebuild_combined()
             self._refresh_mask()
-            print(f"🎨 Applied brush changes to label {self._cur_label}")
+            # Tidak perlu panggil _save_current_state() di sini
+            print(f"🎨 Applied brush changes to mask")
+
 
     def undo(self, label_id: int):
-        """Undo for specific layer - IMPROVED implementation."""
+        """Undo for specific layer."""
         print(f"🔄 Undo called for label {label_id}")
         
-        #   FIX: Add comprehensive safety checks
         if not hasattr(self, '_layer_history'):
             print(" No layer history available")
             return
@@ -206,11 +200,9 @@ class SegmentationCanvas(BaseCanvas):
             print(f" Not enough history for label {label_id} (need at least 2, have {len(history['undo'])})")
             return
         
-        # Pop current state and move to redo
         current_state = history['undo'].pop()
         history['redo'].append(current_state)
         
-        # Get previous state
         prev_state = history['undo'][-1]
         
         print(f"🔄 Restoring previous state for label {label_id}")
@@ -218,10 +210,9 @@ class SegmentationCanvas(BaseCanvas):
 
 
     def redo(self, label_id: int):
-        """Redo for specific layer - IMPROVED implementation."""
+        """Redo for specific layer."""
         print(f"🔄 Redo called for label {label_id}")
         
-        #   FIX: Add comprehensive safety checks
         if not hasattr(self, '_layer_history'):
             print(" No layer history available")
             return
@@ -235,52 +226,28 @@ class SegmentationCanvas(BaseCanvas):
             print(f" No redo history for label {label_id}")
             return
         
-        # Get state from redo and move to undo
         state = history['redo'].pop()
         history['undo'].append(state)
         
         print(f"🔄 Restoring redo state for label {label_id}")
         self._restore_layer_state(label_id, state)
+    
 
     def _restore_layer_state(self, label_id: int, state: np.ndarray):
-        """Restore state for specific layer - IMPROVED implementation."""
+        """Restore state for specific layer."""
         print(f"🔄 Restoring layer {label_id} with state shape: {state.shape}")
         
-        #   FIX: Add safety checks
         if not hasattr(self, '_layers') or label_id not in self._layers:
             print(f" Layer {label_id} not found in _layers")
             return
         
-        # Restore the layer
         self._layers[label_id] = state.copy()
         
-        # Rebuild combined mask and refresh display
-        print(f"🔄 Rebuilding combined mask...")
         self._rebuild_combined()
         
-        print(f"🔄 Refreshing mask display...")
         self._refresh_mask()
         
         print(f"  Successfully restored layer {label_id}")
-
-    def mousePressEvent(self, ev):
-        """Handle mouse press - IMPROVED for proper drawing state."""
-        if ev.button() == Qt.LeftButton and not self._pan_mode:
-            #   FIX: Reset drawing state and start new operation
-            self._drawing = False  # Reset first
-            scene_pos = self.mapToScene(ev.position().toPoint())
-            self._apply_brush(scene_pos)
-            ev.accept()
-        elif ev.button() == Qt.MiddleButton:
-            self._pan_mode = True
-            self.setDragMode(QGraphicsView.ScrollHandDrag)
-            self.setCursor(QCursor(Qt.OpenHandCursor))
-            # Manually trigger the drag mode
-            fake_press = ev
-            super().mousePressEvent(fake_press)
-        else:
-            super().mousePressEvent(ev)
-
 
 class SegmentationOpacityPanel(QWidget):
     """Opacity control panel for segmentation editing."""
