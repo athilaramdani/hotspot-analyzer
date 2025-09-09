@@ -140,6 +140,11 @@ class SegmentationCanvas(BaseCanvas):
         self._mask_img = self._mask_to_qimage(show_all=self._show_all, label=self._cur_label)
         self._item_mask.setPixmap(QPixmap.fromImage(self._mask_img))
         self.viewport().update()
+        
+    def update_background(self, new_image_data: np.ndarray):
+        """Memperbarui gambar latar belakang tanpa membuat ulang kanvas."""
+        self.image_data = new_image_data
+        self.update() # Memicu penggambaran ulang (repaint) widget
 
     def _rebuild_combined(self):
         """Rebuild combined mask from all layers."""
