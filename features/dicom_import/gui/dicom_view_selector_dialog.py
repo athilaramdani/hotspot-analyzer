@@ -756,7 +756,7 @@ class FrameWidget(QWidget):
         zoom_out_btn.setToolTip("Zoom Out")
         zoom_out_btn.clicked.connect(lambda: self._zoom_control(-1))
         
-        zoom_reset_btn = QPushButton("1:1")
+        zoom_reset_btn = QPushButton("Reset")
         zoom_reset_btn.setFixedSize(35, 25)
         zoom_reset_btn.setToolTip("Reset Zoom & Pan")
         zoom_reset_btn.clicked.connect(lambda: self._zoom_control(0))

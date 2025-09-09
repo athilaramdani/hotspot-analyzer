@@ -325,9 +325,14 @@ class DicomImportDialog(QDialog):
         layout = QHBoxLayout()
         layout.setSpacing(10)
         
-        #   NEW: Add both file and folder import buttons
+        # --- GRUP TOMBOL KIRI ---
         file_folder_layout = QHBoxLayout()
 
+        # Tombol Cancel SEKARANG DI SINI
+        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn.setStyleSheet(DIALOG_CANCEL_BUTTON_STYLE)
+        file_folder_layout.addWidget(self.cancel_btn) # Ditambahkan ke layout kiri
+        
         self.add_dicom_btn = QPushButton("Add Files")
         self.add_dicom_btn.setStyleSheet(DIALOG_IMPORT_BUTTON_STYLE)
         file_folder_layout.addWidget(self.add_dicom_btn)
@@ -335,6 +340,8 @@ class DicomImportDialog(QDialog):
         self.add_folders_btn = QPushButton("Add Folders")
         self.add_folders_btn.setStyleSheet(DIALOG_IMPORT_BUTTON_STYLE)
         file_folder_layout.addWidget(self.add_folders_btn)
+
+        
 
         layout.addLayout(file_folder_layout)
         
@@ -352,6 +359,7 @@ class DicomImportDialog(QDialog):
         
         layout.addStretch()
         
+        # --- GRUP TOMBOL KANAN ---
         # Configure Views button
         self.configure_views_btn = QPushButton("Configure Views")
         self.configure_views_btn.setEnabled(False)
@@ -364,10 +372,7 @@ class DicomImportDialog(QDialog):
         self.start_import_btn.setStyleSheet(DIALOG_START_BUTTON_STYLE)
         layout.addWidget(self.start_import_btn)
         
-        # Cancel button
-        self.cancel_btn = QPushButton("Cancel")
-        self.cancel_btn.setStyleSheet(DIALOG_CANCEL_BUTTON_STYLE)
-        layout.addWidget(self.cancel_btn)
+        # Tombol Cancel SUDAH DIPINDAHKAN DARI SINI
         
         return layout
         

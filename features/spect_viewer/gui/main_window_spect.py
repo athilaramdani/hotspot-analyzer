@@ -600,7 +600,10 @@ class MainWindowSpect(QMainWindow):
         title_bar_layout.addWidget(close_panel_btn)
 
         self.left_layout.addWidget(title_bar_widget) 
-        
+        # 3. Label Info Layer Aktif (PINDAHAN)
+        self.active_layers_label = QLabel("Active Layers: None")
+        self.active_layers_label.setWordWrap(True)
+        self.left_layout.addWidget(self.active_layers_label)
         # NEW: Enhanced mode selector with checkboxes
         self.mode_selector = ModeSelector()
         # Connect NEW signals for checkbox-based mode selector
@@ -635,10 +638,7 @@ class MainWindowSpect(QMainWindow):
         self.left_layout.addWidget(self.invert_checkbox)
         print(f"[DEBUG] Invert checkbox created and connected")
 
-        # 3. Label Info Layer Aktif (PINDAHAN)
-        self.active_layers_label = QLabel("Active Layers: None")
-        self.active_layers_label.setWordWrap(True)
-        self.left_layout.addWidget(self.active_layers_label)
+       
 
         # 4. Tombol Edit (PINDAHAN) - DENGAN FONT KECIL
         self.seg_edit_btn = QPushButton("Edit Segmentation")
@@ -684,7 +684,7 @@ class MainWindowSpect(QMainWindow):
         self.scan_info_label = QLabel("No scan selected")
         self.scan_info_label.setWordWrap(True)
         self.left_layout.addWidget(self.scan_info_label)
-    
+        
         # Layout horizontal untuk tombol zoom
         zoom_buttons_layout = QHBoxLayout()
         zoom_in_btn = QPushButton("Zoom In")
