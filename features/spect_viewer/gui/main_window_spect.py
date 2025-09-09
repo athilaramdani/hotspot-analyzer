@@ -350,14 +350,14 @@ class MainWindowSpect(QMainWindow):
                 #   NEW: Show views without BSI
                 bsi_info = f"<br><span style='color: #ff6b6b;'>Anterior</span><br><span style='color: #4ecdc4;'>Posterior</span>"
             
-            #   UPDATED: Always show both views
-            info_text = f"""
-            <b>Scan {scan_num}/{total_scans}</b><br>
-            Date: {formatted_date}<br>
-            <b>Views:</b>{bsi_info}
-            """
+            # #   UPDATED: Always show both views
+            # info_text = f"""
+            # <b>Scan {scan_num}/{total_scans}</b><br>
+            # Date: {formatted_date}<br>
+            # <b>Views:</b>{bsi_info}
+            # """
             
-            self.scan_info_label.setText(info_text)
+            # self.scan_info_label.setText(info_text)
             
     def _open_segmentation_editor(self):
         """Buka editor segmentasi untuk scan saat ini."""
@@ -680,10 +680,10 @@ class MainWindowSpect(QMainWindow):
         edit_layout.addWidget(self.hotspot_edit_btn)
         self.left_layout.addLayout(edit_layout)
 
-        # 5. Label Info Scan (PINDAHAN)
-        self.scan_info_label = QLabel("No scan selected")
-        self.scan_info_label.setWordWrap(True)
-        self.left_layout.addWidget(self.scan_info_label)
+        # # 5. Label Info Scan (PINDAHAN)
+        # self.scan_info_label = QLabel("No scan selected")
+        # self.scan_info_label.setWordWrap(True)
+        # self.left_layout.addWidget(self.scan_info_label)
         
         # Layout horizontal untuk tombol zoom
         zoom_buttons_layout = QHBoxLayout()

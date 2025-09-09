@@ -200,7 +200,7 @@ class DicomImportDialog(QDialog):
         main_layout.setSpacing(8)
         
         # Title with enhanced workflow info
-        title_text = "Import DICOM Files - Enhanced Auto-Detection Workflow"
+        title_text = "Import DICOM Files"
         if self.session_code:
             title_text += f" - Session: {self.session_code}"
         
@@ -1288,7 +1288,7 @@ class DicomImportDialog(QDialog):
         # Enhanced button text and tooltips based on detection status
         if has_files:
             if auto_configured_files == len(self.selected_files):
-                self.configure_views_btn.setText("  Review Auto-Config")
+                self.configure_views_btn.setText("Review Data")
                 self.configure_views_btn.setToolTip("All files auto-configured. Click to review and confirm.")
             elif manual_required_files == len(self.selected_files):
                 self.configure_views_btn.setText("⚙️ Configure Views")
