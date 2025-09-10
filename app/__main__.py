@@ -713,93 +713,95 @@ class ApplicationBootstrap:
             return 1
 
 # ========== MAIN FUNCTION ==========
+# ========== MAIN FUNCTION ==========
 def main():
-    """Main application entry point with comprehensive error handling"""
-    # ==========================================================
-    # ✅ KONFIGURASI LOGGING
-    # ==========================================================
-    logging.getLogger('matplotlib.font_manager').disabled = True
-    logging.getLogger('matplotlib').disabled = True
-    
-    log_format = "%(asctime)s - [%(levelname)s] - %(message)s"
-    log_level = logging.DEBUG
-    
-    # NEW: Tentukan path log file berdasarkan mode aplikasi
-    if hasattr(sys, '_MEIPASS'):
-        # Mode PyInstaller, log ke file dengan timestamp
-        log_dir = Path(sys.executable).parent / "logs"
-        log_dir.mkdir(exist_ok=True)
-        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        log_file_path = log_dir / f"telplastina_log_{timestamp}.log"
-    else:
-        # Mode Development, log ke folder proyek
-        log_dir = Path("logs")
-        log_dir.mkdir(exist_ok=True)
-        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        log_file_path = log_dir / f"telplastina_log_{timestamp}.log"
-        
-    logging.basicConfig(
-        level=log_level,
-        format=log_format,
-        datefmt="%Y-%m-%d %H:%M:%S",
-        handlers=[
-            logging.FileHandler(log_file_path, encoding='utf-8'),
-            logging.StreamHandler(sys.stdout) # Tambahkan StreamHandler untuk tetap mencetak ke konsol
-        ]
-    )
-    
-    # NEW: Redirect stdout dan stderr ke logger
-    sys.stdout = StreamToLogger(logging.getLogger('stdout'), logging.INFO)
-    sys.stderr = StreamToLogger(logging.getLogger('stderr'), logging.ERROR)
+	"""Main application entry point with comprehensive error handling"""
+	# ==========================================================
+	# ✅ KONFIGURASI LOGGING
+	# ==========================================================
+	logging.getLogger('matplotlib.font_manager').disabled = True
+	logging.getLogger('matplotlib').disabled = True
+	
+	log_format = "%(asctime)s - [%(levelname)s] - %(message)s"
+	log_level = logging.DEBUG
+	
+	# NEW: Tentukan path log file berdasarkan mode aplikasi
+	if hasattr(sys, '_MEIPASS'):
+		# Mode PyInstaller, log ke file dengan timestamp
+		log_dir = Path(sys.executable).parent / "logs"
+		log_dir.mkdir(exist_ok=True)
+		timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+		log_file_path = log_dir / f"telplastina_log_{timestamp}.log"
+	else:
+		# Mode Development, log ke folder proyek
+		log_dir = Path("logs")
+		log_dir.mkdir(exist_ok=True)
+		timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+		log_file_path = log_dir / f"telplastina_log_{timestamp}.log"
+		
+	# Configure logging to handle both file and console output directly
+	logging.basicConfig(
+		level=log_level,
+		format=log_format,
+		datefmt="%Y-%m-%d %H:%M:%S",
+		handlers=[
+			logging.FileHandler(log_file_path, encoding='utf-8'),
+			logging.StreamHandler(sys.stdout) # Keep this to print to console
+		]
+	)
+	
+	# NEW: Remove redirection lines to prevent 'NoneType' error
+	# sys.stdout = StreamToLogger(logging.getLogger('stdout'), logging.INFO)
+	# sys.stderr = StreamToLogger(logging.getLogger('stderr'), logging.ERROR)
 
-    logging.info("Logger berhasil dikonfigurasi. Memulai aplikasi...")
-    # ==========================================================
-    # ==========================================================
-    try:
-        # Validate Python version
-        if sys.version_info < (3, 8):
-            print(f"[ERROR] Python 3.8+ required, but {sys.version} found")
-            sys.exit(1)
-        
-        # Check if running as PyInstaller bundle
-        if hasattr(sys, '_MEIPASS'):
-            print(f"[DEBUG] Running as PyInstaller bundle: {sys._MEIPASS}")
-        else:
-            print("[DEBUG] Running in development mode")
-        
-        # Create and run application
-        bootstrap = ApplicationBootstrap()
-        exit_code = bootstrap.run()
-        
-        # Clean exit
-        print("[DEBUG] Application terminated normally")
-        sys.exit(exit_code)
-        
-    except KeyboardInterrupt:
-        print("\n[DEBUG] Application interrupted by user (Ctrl+C)")
-        sys.exit(0)
-    except Exception as e:
-        print(f"[CRITICAL ERROR] Fatal error in main(): {e}")
-        print(f"[CRITICAL ERROR] Traceback: {traceback.format_exc()}")
-        
-        # Try to show error dialog if Qt is available
-        try:
-            if 'QApplication' in globals():
-                app = QApplication.instance()
-                if not app:
-                    app = QApplication(sys.argv)
-                
-                error_msg = (
-                    f"A fatal error occurred:\n\n"
-                    f"{str(e)}\n\n"
-                    f"The application will now exit.\n"
-                    f"Please check the console for more details."
-                )
-                QMessageBox.critical(None, "Fatal Error", error_msg)
-        except Exception:
-            pass  # Qt not available or failed
-        
-        sys.exit(1)
+	logging.info("Logger berhasil dikonfigurasi. Memulai aplikasi...")
+	# ==========================================================
+	# ==========================================================
+	try:
+		# Validate Python version
+		if sys.version_info < (3, 8):
+			logging.error(f"Python 3.8+ required, but {sys.version} found")
+			sys.exit(1)
+		
+		# Check if running as PyInstaller bundle
+		if hasattr(sys, '_MEIPASS'):
+			logging.info(f"Running as PyInstaller bundle: {sys._MEIPASS}")
+		else:
+			logging.info("Running in development mode")
+		
+		# Create and run application
+		bootstrap = ApplicationBootstrap()
+		exit_code = bootstrap.run()
+		
+		# Clean exit
+		logging.info("Application terminated normally")
+		sys.exit(exit_code)
+		
+	except KeyboardInterrupt:
+		logging.info("\nApplication interrupted by user (Ctrl+C)")
+		sys.exit(0)
+	except Exception as e:
+		logging.critical(f"Fatal error in main(): {e}", exc_info=True)
+		
+		# Try to show error dialog if Qt is available
+		try:
+			if 'QApplication' in globals():
+				app = QApplication.instance()
+				if not app:
+					app = QApplication(sys.argv)
+				
+				error_msg = (
+					f"A fatal error occurred:\n\n"
+					f"{str(e)}\n\n"
+					f"The application will now exit.\n"
+					f"Please check the console for more details."
+				)
+				QMessageBox.critical(None, "Fatal Error", error_msg)
+		except Exception:
+			pass  # Qt not available or failed
+		
+		sys.exit(1)
+
 
 # ========== ENTRY POINT ==========
 if __name__ == "__main__":

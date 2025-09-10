@@ -3,6 +3,7 @@
 Processing wrapper for SPECT viewer with DICOM integration
 Handles YOLO detection, hotspot processing, classification, and NEW quantification
 """
+
 import sys
 import traceback
 import numpy as np
@@ -26,7 +27,6 @@ from core.config.paths import (
     extract_study_date_from_dicom,
     YOLO_MODEL_PATH
 )
-from features.spect_viewer.logic.integrated_workflow import SPECTAnalysisWorkflow
 
 # Import DICOM loader
 from features.dicom_import.logic.dicom_loader import (
@@ -328,11 +328,10 @@ def run_segmentation_in_process(dicom_path: Path, patient_id: str) -> Dict[str, 
         traceback.print_exc()
         return {"status": "error", "message": str(e)}
 
-from features.spect_viewer.logic.quantification_integration import QuantificationManager
 
 def run_complete_analysis_pipeline(dicom_path: Path, patient_id: str, study_date: str = None) -> Dict:
     """
-    Run complete analysis pipeline for a patient
+    NEW: Run complete analysis pipeline for a patient
     Pipeline: YOLO → Otsu → Classification → Quantification
     
     Args:
@@ -366,136 +365,78 @@ def run_complete_analysis_pipeline(dicom_path: Path, patient_id: str, study_date
     }
     
     try:
-        from .processing_wrapper import (
-            run_yolo_detection_wrapper,
-            run_hotspot_processing_in_process,
-            run_classification_for_patient,
-            run_quantification_for_patient,
-            get_patient_analysis_status
-        )
-
-        print(f"## Step 1: Checking segmentation status...")
-        status = get_patient_analysis_status(dicom_path, patient_id, study_date)
-        
-        if not status["completion"]["segmentation"]:
-            print(f" Segmentation files missing - run DICOM import first")
-            results["errors"].append("Segmentation files missing")
-            return results
+        # Step 1: YOLO Detection
+        print(f"## Step 1: YOLO Detection")
+        yolo_result = run_yolo_detection_wrapper(dicom_path, patient_id)
+        yolo_success = any(yolo_result.values())
+        results["steps"]["yolo_detection"] = yolo_success
+        if yolo_success:
+            results["files_generated"].extend(["XML files"])
+            print(f"[PIPELINE] YOLO detection completed successfully")
         else:
-            print(f" Segmentation files found")
-            results["steps_completed"]["segmentation"] = True
-            results["files_generated"].extend(["Segmentation PNG files"])
+            results["errors"].append("YOLO detection failed")
+            print(f"[PIPELINE] YOLO detection failed")
         
-        print(f" Step 2: YOLO Detection...")
-        if not status["completion"]["yolo_detection"]:
-            yolo_result = run_yolo_detection_wrapper(dicom_path, patient_id)
-            yolo_success = any(yolo_result.values())
-            results["steps_completed"]["yolo_detection"] = yolo_success
-            if yolo_success:
-                print(f" YOLO detection completed")
-                results["files_generated"].extend(["XML detection files"])
-            else:
-                print(f" YOLO detection failed")
-                results["errors"].append("YOLO detection failed")
-                return results
-        else:
-            print(f" YOLO detection already complete")
-            results["steps_completed"]["yolo_detection"] = True
-            results["files_generated"].extend(["XML detection files"])
-        
-        print(f" Step 3: Otsu Hotspot Processing...")
-        if not status["completion"]["otsu_processing"]:
-            otsu_result = run_hotspot_processing_in_process(dicom_path, patient_id)
-            otsu_success = len(otsu_result.get("frames", [])) > 0
-            results["steps_completed"]["otsu_processing"] = otsu_success
-            if otsu_success:
-                print(f" Otsu processing completed")
-                results["files_generated"].extend(["Hotspot PNG files"])
-            else:
-                print(f" Otsu processing failed")
-                results["errors"].append("Otsu processing failed")
-                return results
-        else:
-            print(f" Otsu processing already complete")
-            results["steps_completed"]["otsu_processing"] = True
+        # Step 2: Otsu Processing
+        print(f"## Step 2: Otsu Hotspot Processing")
+        otsu_result = run_hotspot_processing_in_process(dicom_path, patient_id)
+        otsu_success = len(otsu_result.get("frames", [])) > 0
+        results["steps"]["otsu_processing"] = otsu_success
+        if otsu_success:
             results["files_generated"].extend(["Hotspot PNG files"])
-        
-        print(f" Step 4: Classification Analysis...")
-        if not status["completion"]["classification"]:
-            classification_result = run_classification_for_patient(dicom_path, patient_id, study_date)
-            results["steps_completed"]["classification"] = classification_result
-            if classification_result:
-                print(f" Classification completed")
-                results["files_generated"].extend(["Classification JSON", "Classification mask PNG"])
-            else:
-                print(f" Classification failed")
-                results["errors"].append("Classification failed")
-                return results
+            print(f"[PIPELINE] Otsu processing completed successfully")
         else:
-            print(f" Classification already complete")
-            results["steps_completed"]["classification"] = True
+            results["errors"].append("Otsu processing failed")
+            print(f"[PIPELINE] Otsu processing failed")
+        
+        # Step 3: Classification
+        print(f"## Step 3: Classification Analysis")
+        classification_result = run_classification_for_patient(dicom_path, patient_id, study_date)
+        results["steps"]["classification"] = classification_result
+        if classification_result:
             results["files_generated"].extend(["Classification JSON", "Classification mask PNG"])
-        
-        print(f" Step 5: BSI Quantification...")
-        if not status["completion"]["quantification"]:
-            quantification_result = run_quantification_for_patient(dicom_path, patient_id, study_date)
-            results["steps_completed"]["quantification"] = quantification_result
-            if quantification_result:
-                print(f" BSI quantification completed")
-                results["files_generated"].extend(["BSI quantification JSON"])
-                results["quantification_results"] = _load_quantification_summary(
-                    dicom_path.parent, patient_id, study_date
-                )
-            else:
-                print(f" BSI quantification failed")
-                results["errors"].append("Quantification failed")
-                return results
+            print(f"[PIPELINE] Classification completed successfully")
         else:
-            print(f" BSI quantification already complete")
-            results["steps_completed"]["quantification"] = True
-            results["files_generated"].extend(["BSI quantification JSON"])
-            results["quantification_results"] = _load_quantification_summary(
-                dicom_path.parent, patient_id, study_date
-            )
+            results["errors"].append("Classification failed")
+            print(f"[PIPELINE] Classification failed")
         
-        completed_steps = sum(1 for step in results["steps_completed"].values() if step)
+        # Step 4: NEW Quantification (only if classification successful)
+        print(f"## Step 4: BSI Quantification")
+        if classification_result:
+            quantification_result = run_quantification_for_patient(dicom_path, patient_id, study_date)
+            results["steps"]["quantification"] = quantification_result
+            if quantification_result:
+                results["files_generated"].extend(["BSI quantification JSON"])
+                print(f"[PIPELINE] BSI quantification completed successfully")
+            else:
+                results["errors"].append("Quantification failed")
+                print(f"[PIPELINE] BSI quantification failed")
+        else:
+            results["errors"].append("Quantification skipped - classification required")
+            print(f"[PIPELINE] Quantification skipped - classification required for input")
         
-        # NOTE: Menghapus `self` karena fungsi ini tidak berada di dalam kelas.
-        workflow_steps_count = len(SPECTAnalysisWorkflow().workflow_steps) - 1
-        total_steps = len(results["steps_completed"])
+        # Summary
+        success_count = sum(1 for step in results["steps"].values() if step)
+        total_steps = len(results["steps"])
         
-        results["success_rate"] = completed_steps / total_steps
-        results["workflow_complete"] = completed_steps == total_steps
+        print(f"## Pipeline completed: {success_count}/{total_steps} steps successful")
+        print(f"## Files generated: {', '.join(results['files_generated'])}")
         
-        print(f"🎉 Workflow completed: {completed_steps}/{total_steps} steps successful")
-        print(f"Files generated: {', '.join(results['files_generated'])}")
+        if results["errors"]:
+            print(f"## Errors: {', '.join(results['errors'])}")
         
-        if results["quantification_results"]:
-            bsi_score = results["quantification_results"].get("bsi_score", 0)
-            print(f"📊 BSI Score: {bsi_score:.2f}%")
+        results["success_rate"] = success_count / total_steps
+        results["pipeline_successful"] = success_count == total_steps
         
         return results
         
     except Exception as e:
-        print(f"Workflow error: {e}")
-        results["errors"].append(f"Workflow error: {e}")
-        results["workflow_complete"] = False
+        print(f"## Pipeline error: {e}")
+        results["errors"].append(f"Pipeline error: {e}")
+        results["success_rate"] = 0.0
+        results["pipeline_successful"] = False
         return results
 
-def _load_quantification_summary(patient_folder: Path, patient_id: str, study_date: str) -> Optional[Dict]:
-    """Load quantification results summary"""
-    try:
-        from .quantification_integration import QuantificationManager
-        manager = QuantificationManager()
-        results = manager.load_quantification_results(patient_folder, patient_id, study_date)
-        
-        if results:
-            return manager.get_bsi_summary()
-        return None
-        
-    except Exception as e:
-        print(f"Failed to load quantification summary: {e}")
-        return None
 
 def get_patient_analysis_status(dicom_path: Path, patient_id: str, study_date: str = None) -> Dict:
     """
