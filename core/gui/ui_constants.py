@@ -25,78 +25,79 @@ _BUTTON_BASE = (
     """
 )
 
-DANGER_BUTTON_STYLE = _BUTTON_BASE + (
-    """
-    QPushButton {
-        background-color: #dc3545;
-        color: white;
-    }
-    QPushButton:hover {
-        background-color: #c82333;
-    }
-    QPushButton:pressed {
-        background-color: #bd2130;
-    }
-    """
-)
-
-# ---------- Primary / action buttons ----------
+# ---------- Primary / action buttons (from UI guide) ----------
 PRIMARY_BUTTON_STYLE = _BUTTON_BASE + (
     """
     QPushButton {
-        background-color: #4e73ff;
+        background-color: #3B82F6;
         color: white;
     }
     QPushButton:hover {
-        background-color: #3e63e6;
+        background-color: #2563EB;
     }
     QPushButton:pressed {
-        background-color: #324fc7;
+        background-color: #1D4ED8;
     }
     """
 )
 
-# ---------- Success / confirm buttons ----------
+# ---------- Destructive / danger buttons (from UI guide) ----------
+DANGER_BUTTON_STYLE = _BUTTON_BASE + (
+    """
+    QPushButton {
+        background-color: #EF4444;
+        color: white;
+    }
+    QPushButton:hover {
+        background-color: #DC2626;
+    }
+    QPushButton:pressed {
+        background-color: #B91C1C;
+    }
+    """
+)
+
+# ---------- Success / confirm buttons (from UI guide) ----------
 SUCCESS_BUTTON_STYLE = _BUTTON_BASE + (
     """
     QPushButton {
-        background-color: #4CAF50;
+        background-color: #22C55E;
         color: white;
     }
     QPushButton:hover {
-        background-color: #45a049;
+        background-color: #16A34A;
     }
     QPushButton:pressed {
-        background-color: #3d8b40;
+        background-color: #15803D;
     }
     """
 )
 
-# ---------- Neutral / secondary buttons ----------
+# ---------- Neutral / secondary buttons (from UI guide) ----------
 GRAY_BUTTON_STYLE = _BUTTON_BASE + (
     """
     QPushButton {
-        background-color: #6c757d;
-        color: white;
+        background-color: #E5E7EB;
+        color: #495057;
     }
     QPushButton:hover {
-        background-color: #5a6268;
+        background-color: #D1D5DB;
     }
     QPushButton:pressed {
-        background-color: #495057;
+        background-color: #A1A1AA;
     }
     QPushButton:disabled {
-        background-color: #cccccc;
-        color: #666666;
+        background-color: #F3F4F6;
+        color: #A1A1AA;
     }
     """
 )
 
-# ---------- Zoom buttons (orange) ----------
+# ---------- Other neutral buttons (to match medical theme) ----------
 ZOOM_BUTTON_STYLE = (
     """
     QPushButton {
-        background-color: #FF9800;
+        background-color: #A1A1AA;
         color: white;
         border: none;
         padding: 6px 12px;
@@ -104,33 +105,34 @@ ZOOM_BUTTON_STYLE = (
         font-weight: bold;
     }
     QPushButton:hover {
-        background-color: #F57C00;
+        background-color: #7D7D83;
     }
     QPushButton:pressed {
-        background-color: #E65100;
+        background-color: #616166;
     }
     """
 )
 
-# ---------- Scan‑selector buttons (purple, checkable) ----------
+# ---------- Scan‑selector buttons (neutral, checkable) ----------
 SCAN_BUTTON_STYLE = (
     """
     QPushButton {
-        background-color: #9C27B0;
-        color: white;
+        background-color: #E5E7EB;
+        color: #495057;
         border: none;
         padding: 6px 12px;
         border-radius: 3px;
         font-weight: bold;
     }
     QPushButton:hover {
-        background-color: #7B1FA2;
+        background-color: #D1D5DB;
     }
     QPushButton:checked {
-        background-color: #4A148C;
+        background-color: #A1A1AA;
+        color: white;
     }
     QPushButton:pressed {
-        background-color: #4A148C;
+        background-color: #A1A1AA;
     }
     """
 )
@@ -139,7 +141,7 @@ SCAN_BUTTON_STYLE = (
 DIALOG_IMPORT_BUTTON_STYLE = (
     """
     QPushButton {
-        background-color: #2196F3;
+        background-color: #3B82F6;
         color: white;
         border: none;
         padding: 10px 20px;
@@ -148,31 +150,18 @@ DIALOG_IMPORT_BUTTON_STYLE = (
         font-size: 13px;
     }
     QPushButton:hover {
-        background-color: #1976D2;
+        background-color: #2563EB;
     }
     QPushButton:pressed {
-        background-color: #0D47A1;
+        background-color: #1D4ED8;
     }
     """
 )
-DANGER_BUTTON_STYLE = _BUTTON_BASE + (
-    """
-    QPushButton {
-        background-color: #dc3545;
-        color: white;
-    }
-    QPushButton:hover {
-        background-color: #c82333;
-    }
-    QPushButton:pressed {
-        background-color: #bd2130;
-    }
-    """
-)
+
 DIALOG_START_BUTTON_STYLE = (
     """
     QPushButton {
-        background-color: #4CAF50;
+        background-color: #22C55E;
         color: white;
         border: none;
         padding: 10px 20px;
@@ -181,15 +170,15 @@ DIALOG_START_BUTTON_STYLE = (
         font-size: 13px;
     }
     QPushButton:hover:enabled {
-        background-color: #45a049;
+        background-color: #16A34A;
     }
     QPushButton:pressed:enabled {
-        background-color: #3d8b40;
+        background-color: #15803D;
     }
     QPushButton:disabled {
-        background-color: #e9ecef;
-        color: #adb5bd;
-        border: 1px solid #ced4da;
+        background-color: #F3F4F6;
+        color: #A1A1AA;
+        border: 1px solid #D1D5DB;
     }
     """
 )
@@ -197,9 +186,9 @@ DIALOG_START_BUTTON_STYLE = (
 DIALOG_DISABLED_BUTTON_STYLE = (
     """
     QPushButton {
-        background-color: #e9ecef;
-        color: #adb5bd;
-        border: 1px solid #ced4da;
+        background-color: #F3F4F6;
+        color: #A1A1AA;
+        border: 1px solid #D1D5DB;
         border-radius: 8px;
         padding: 10px 20px;
         font-size: 13px;
@@ -211,7 +200,7 @@ DIALOG_DISABLED_BUTTON_STYLE = (
 DIALOG_CANCEL_BUTTON_STYLE = (
     """
     QPushButton {
-        background-color: #f44336;
+        background-color: #EF4444;
         color: white;
         border: none;
         padding: 10px 20px;
@@ -220,10 +209,10 @@ DIALOG_CANCEL_BUTTON_STYLE = (
         font-size: 13px;
     }
     QPushButton:hover {
-        background-color: #da190b;
+        background-color: #DC2626;
     }
     QPushButton:pressed {
-        background-color: #b71c1c;
+        background-color: #B91C1C;
     }
     """
 )
@@ -231,7 +220,7 @@ DIALOG_CANCEL_BUTTON_STYLE = (
 DIALOG_REMOVE_BUTTON_STYLE = (
     """
     QPushButton {
-        background-color: #f44336;
+        background-color: #EF4444;
         color: white;
         border: none;
         border-radius: 10px;
@@ -239,7 +228,7 @@ DIALOG_REMOVE_BUTTON_STYLE = (
         font-size: 12px;
     }
     QPushButton:hover {
-        background-color: #d32f2f;
+        background-color: #DC2626;
     }
     """
 )
@@ -289,7 +278,7 @@ DIALOG_FILE_LIST_STYLE = (
         border-radius: 0px 0px 4px 4px;
         background-color: #f8f9fa;
         alternate-background-color: #ffffff;
-        selection-background-color: #e3f2fd;
+        selection-background-color: #E5E7EB;
         font-size: 12px;
     }
     QListWidget::item {
@@ -298,10 +287,10 @@ DIALOG_FILE_LIST_STYLE = (
         min-height: 32px;
     }
     QListWidget::item:selected {
-        background-color: #e3f2fd;
+        background-color: #D1D5DB;
     }
     QListWidget::item:hover {
-        background-color: #f5f5f5;
+        background-color: #F3F4F6;
     }
     """
 )
@@ -332,7 +321,7 @@ DIALOG_PROGRESS_BAR_STYLE = (
         font-weight: bold;
     }
     QProgressBar::chunk {
-        background-color: #27ae60;
+        background-color: #22C55E;
         border-radius: 3px;
         margin: 1px;
     }
@@ -384,22 +373,22 @@ RADIO_BUTTON_STYLE = (
         height: 16px;
     }
     QRadioButton::indicator:unchecked {
-        border: 2px solid #ccc;
+        border: 2px solid #D1D5DB;
         border-radius: 9px;
         background: white;
     }
     QRadioButton::indicator:unchecked:hover {
-        border: 2px solid #4e73ff;
-        background: #f0f4ff;
+        border: 2px solid #3B82F6;
+        background: #EFF6FF;
     }
     QRadioButton::indicator:checked {
-        border: 2px solid #4e73ff;
+        border: 2px solid #3B82F6;
         border-radius: 9px;
-        background: #4e73ff;
+        background: #3B82F6;
     }
     QRadioButton::indicator:checked:hover {
-        background: #3e63e6;
-        border: 2px solid #3e63e6;
+        background: #2563EB;
+        border: 2px solid #2563EB;
     }
     """
 )
@@ -416,7 +405,7 @@ OPACITY_SLIDER_STYLE = (
     }
     QSlider::sub-page:horizontal {
         background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
-            stop: 0 #4e73ff, stop: 1 #7da3ff);
+            stop: 0 #3B82F6, stop: 1 #5F96FF);
         border: 1px solid #777;
         height: 8px;
         border-radius: 4px;
@@ -428,7 +417,7 @@ OPACITY_SLIDER_STYLE = (
         border-radius: 4px;
     }
     QSlider::handle:horizontal {
-        background: #4e73ff;
+        background: #3B82F6;
         border: 2px solid #ffffff;
         width: 20px;
         height: 20px;
@@ -437,11 +426,11 @@ OPACITY_SLIDER_STYLE = (
         box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
     }
     QSlider::handle:horizontal:hover {
-        background: #3e63e6;
+        background: #2563EB;
         border: 2px solid #ffffff;
     }
     QSlider::handle:horizontal:pressed {
-        background: #324fc7;
+        background: #1D4ED8;
     }
     """
 )
@@ -542,9 +531,9 @@ BSI_SCORE_HIGH_STYLE = (
     QLabel {
         font-size: 18px;
         font-weight: bold;
-        color: #d32f2f;
-        background: #ffebee;
-        border: 2px solid #f5c6cb;
+        color: #EF4444;
+        background: #FEF2F2;
+        border: 2px solid #FCA5A5;
         padding: 12px;
         border-radius: 6px;
         text-align: center;
@@ -558,9 +547,9 @@ BSI_SCORE_MEDIUM_STYLE = (
     QLabel {
         font-size: 18px;
         font-weight: bold;
-        color: #ff9800;
-        background: #fff3e0;
-        border: 2px solid #ffcc02;
+        color: #FBBF24;
+        background: #FFFBEB;
+        border: 2px solid #FDE68A;
         padding: 12px;
         border-radius: 6px;
         text-align: center;
@@ -574,9 +563,9 @@ BSI_SCORE_LOW_STYLE = (
     QLabel {
         font-size: 18px;
         font-weight: bold;
-        color: #4caf50;
-        background: #e8f5e8;
-        border: 2px solid #c3e6cb;
+        color: #22C55E;
+        background: #F0FDF4;
+        border: 2px solid #B7E4C7;
         padding: 12px;
         border-radius: 6px;
         text-align: center;
@@ -628,20 +617,20 @@ BSI_CANVAS_FRAME_STYLE = (
 BSI_EXPORT_BUTTON_STYLE = _BUTTON_BASE + (
     """
     QPushButton {
-        background-color: #17a2b8;
+        background-color: #A1A1AA;
         color: white;
         font-size: 11px;
         padding: 6px 12px;
     }
     QPushButton:hover {
-        background-color: #138496;
+        background-color: #7D7D83;
     }
     QPushButton:pressed {
-        background-color: #117a8b;
+        background-color: #616166;
     }
     QPushButton:disabled {
-        background-color: #cccccc;
-        color: #666666;
+        background-color: #F3F4F6;
+        color: #A1A1AA;
     }
     """
 )
@@ -650,12 +639,12 @@ BSI_STATUS_SUCCESS_STYLE = (
     """
     QLabel {
         font-size: 10px;
-        color: #28a745;
+        color: #16A34A;
         font-style: italic;
         font-weight: bold;
         padding: 4px 8px;
-        background: #d4edda;
-        border: 1px solid #c3e6cb;
+        background: #F0FDF4;
+        border: 1px solid #B7E4C7;
         border-radius: 3px;
     }
     """
@@ -665,12 +654,12 @@ BSI_STATUS_ERROR_STYLE = (
     """
     QLabel {
         font-size: 10px;
-        color: #dc3545;
+        color: #DC2626;
         font-style: italic;
         font-weight: bold;
         padding: 4px 8px;
-        background: #f8d7da;
-        border: 1px solid #f5c6cb;
+        background: #FEF2F2;
+        border: 1px solid #FCA5A5;
         border-radius: 3px;
     }
     """
@@ -708,7 +697,7 @@ LAYER_INDICATOR_STYLES = {
     "Segmentation": (
         """
         QLabel {
-            background: #4CAF50;
+            background: #22C55E;
             color: white;
             border-radius: 3px;
             padding: 2px 6px;
@@ -720,7 +709,7 @@ LAYER_INDICATOR_STYLES = {
     "Hotspot": (
         """
         QLabel {
-            background: #FF9800;
+            background: #FBBF24;
             color: white;
             border-radius: 3px;
             padding: 2px 6px;
@@ -733,7 +722,7 @@ LAYER_INDICATOR_STYLES = {
         """
         QLabel {
             background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
-                stop: 0 #6c757d, stop: 0.33 #4CAF50, stop: 0.66 #FF9800, stop: 1 #4e73ff);
+                stop: 0 #6c757d, stop: 0.33 #22C55E, stop: 0.66 #FBBF24, stop: 1 #3B82F6);
             color: white;
             border-radius: 3px;
             padding: 2px 6px;
@@ -764,24 +753,27 @@ DISABLED_CONTROL_STYLE = (
 
 # ---------- Color constants for programmatic use ----------
 class Colors:
-    PRIMARY = "#4e73ff"
-    PRIMARY_HOVER = "#3e63e6"
-    PRIMARY_PRESSED = "#324fc7"
+    PRIMARY = "#3B82F6"
+    PRIMARY_HOVER = "#2563EB"
+    PRIMARY_PRESSED = "#1D4ED8"
     
-    SUCCESS = "#4CAF50"
-    SUCCESS_HOVER = "#45a049"
+    SUCCESS = "#22C55E"
+    SUCCESS_HOVER = "#16A34A"
+    SUCCESS_PRESSED = "#15803D"
     
-    WARNING = "#FF9800"
-    WARNING_HOVER = "#F57C00"
+    WARNING = "#FBBF24"
+    WARNING_HOVER = "#F59E0B"
     
-    DANGER = "#f44336"
-    DANGER_HOVER = "#da190b"
+    DANGER = "#EF4444"
+    DANGER_HOVER = "#DC2626"
+    DANGER_PRESSED = "#B91C1C"
     
-    SECONDARY = "#6c757d"
-    SECONDARY_HOVER = "#5a6268"
+    SECONDARY = "#E5E7EB"
+    SECONDARY_HOVER = "#D1D5DB"
+    SECONDARY_PRESSED = "#A1A1AA"
     
-    LIGHT_GRAY = "#f8f9fa"
-    MEDIUM_GRAY = "#e9ecef"
+    LIGHT_GRAY = "#F3F4F6"
+    MEDIUM_GRAY = "#A1A1AA"
     DARK_GRAY = "#495057"
     
     BORDER_LIGHT = "#dee2e6"
@@ -789,8 +781,8 @@ class Colors:
     
     # Layer-specific colors
     ORIGINAL_COLOR = "#6c757d"
-    SEGMENTATION_COLOR = "#4CAF50"
-    HOTSPOT_COLOR = "#FF9800"
+    SEGMENTATION_COLOR = "#22C55E"
+    HOTSPOT_COLOR = "#FBBF24"
     
     # Dialog-specific colors
     DIALOG_BG = "#ffffff"
@@ -799,9 +791,9 @@ class Colors:
     DIALOG_SUBTITLE = "#7f8c8d"
     
     # BSI-specific colors
-    BSI_HIGH = "#d32f2f"
-    BSI_MEDIUM = "#ff9800"
-    BSI_LOW = "#4caf50"
+    BSI_HIGH = "#EF4444"
+    BSI_MEDIUM = "#FBBF24"
+    BSI_LOW = "#22C55E"
     BSI_BACKGROUND = "#f8f9fa"
     BSI_BORDER = "#e9ecef"
 
@@ -901,12 +893,12 @@ VIEW_SELECTOR_TITLE_STYLE = (
 VIEW_SELECTOR_INSTRUCTIONS_STYLE = (
     """
     QLabel {
-        background: #e3f2fd;
-        border: 1px solid #90caf9;
+        background: #F0F4FF;
+        border: 1px solid #D1D5DB;
         border-radius: 6px;
         padding: 12px;
         font-size: 12px;
-        color: #0d47a1;
+        color: #1D4ED8;
         line-height: 1.5;
         font-family: 'Segoe UI', Arial, sans-serif;
     }
@@ -922,7 +914,7 @@ FRAME_PREVIEW_STYLE = (
         padding: 4px;
     }
     QLabel:hover {
-        border-color: #4e73ff;
+        border-color: #3B82F6;
         background: #f0f4ff;
     }
     """
@@ -938,8 +930,8 @@ FRAME_WIDGET_STYLE = (
         margin: 4px;
     }
     QWidget:hover {
-        border-color: #4e73ff;
-        box-shadow: 0 2px 4px rgba(78, 115, 255, 0.1);
+        border-color: #3B82F6;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
     }
     """
 )
@@ -971,21 +963,21 @@ VIEW_CHECKBOX_STYLE = (
         border-radius: 4px;
     }
     QCheckBox::indicator:unchecked {
-        border: 2px solid #ced4da;
+        border: 2px solid #D1D5DB;
         background: white;
     }
     QCheckBox::indicator:unchecked:hover {
-        border: 2px solid #4e73ff;
+        border: 2px solid #3B82F6;
         background: #f0f4ff;
     }
     QCheckBox::indicator:checked {
-        border: 2px solid #4e73ff;
-        background: #4e73ff;
+        border: 2px solid #3B82F6;
+        background: #3B82F6;
         image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDEyIDkiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xMC42IDEuNkw0LjYwMDA1IDcuNkwxLjQgNC40IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K);
     }
     QCheckBox::indicator:checked:hover {
-        background: #3e63e6;
-        border: 2px solid #3e63e6;
+        background: #2563EB;
+        border: 2px solid #2563EB;
     }
     """
 )
@@ -993,9 +985,9 @@ VIEW_CHECKBOX_STYLE = (
 AUTO_DETECTED_BADGE_STYLE = (
     """
     QLabel {
-        background: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
+        background: #F0FDF4;
+        color: #16A34A;
+        border: 1px solid #B7E4C7;
         border-radius: 12px;
         padding: 2px 8px;
         font-size: 10px;
@@ -1023,12 +1015,12 @@ MANUAL_REQUIRED_BADGE_STYLE = (
 VALIDATION_STATUS_SUCCESS_STYLE = (
     """
     QLabel {
-        color: #28a745;
+        color: #22C55E;
         font-size: 12px;
         font-weight: bold;
         padding: 4px 8px;
-        background: #d4edda;
-        border: 1px solid #c3e6cb;
+        background: #F0FDF4;
+        border: 1px solid #B7E4C7;
         border-radius: 4px;
     }
     """
@@ -1052,7 +1044,7 @@ CONFIRM_PROCESS_BUTTON_STYLE = (
     """
     QPushButton {
         background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-            stop: 0 #28a745, stop: 1 #20c997);
+            stop: 0 #22C55E, stop: 1 #16A34A);
         color: white;
         border: none;
         padding: 12px 24px;
@@ -1062,15 +1054,15 @@ CONFIRM_PROCESS_BUTTON_STYLE = (
     }
     QPushButton:hover:enabled {
         background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-            stop: 0 #218838, stop: 1 #1e7e34);
-        box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+            stop: 0 #16A34A, stop: 1 #15803D);
+        box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
     }
     QPushButton:pressed:enabled {
-        background: #1e7e34;
+        background: #15803D;
     }
     QPushButton:disabled {
-        background: #6c757d;
-        color: #adb5bd;
+        background: #F3F4F6;
+        color: #A1A1AA;
     }
     """
 )
@@ -1103,7 +1095,7 @@ ENHANCED_WORKFLOW_BADGE_STYLE = (
     """
     QLabel {
         background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
-            stop: 0 #4e73ff, stop: 1 #7da3ff);
+            stop: 0 #3B82F6, stop: 1 #5F96FF);
         color: white;
         border-radius: 12px;
         padding: 4px 12px;
@@ -1133,8 +1125,8 @@ WORKFLOW_STEP_INDICATOR_STYLE = (
 WORKFLOW_STEP_ACTIVE_STYLE = (
     """
     QLabel {
-        background: #4e73ff;
-        border: 2px solid #3e63e6;
+        background: #3B82F6;
+        border: 2px solid #2563EB;
         border-radius: 20px;
         padding: 6px 12px;
         font-size: 12px;
@@ -1150,8 +1142,8 @@ WORKFLOW_STEP_ACTIVE_STYLE = (
 WORKFLOW_STEP_COMPLETE_STYLE = (
     """
     QLabel {
-        background: #28a745;
-        border: 2px solid #20c997;
+        background: #22C55E;
+        border: 2px solid #16A34A;
         border-radius: 20px;
         padding: 6px 12px;
         font-size: 12px;
@@ -1167,22 +1159,22 @@ WORKFLOW_STEP_COMPLETE_STYLE = (
 # Add to the Colors class
 class ViewSelectorColors:
     """Colors specific to view selector components"""
-    DETECTED_BG = "#d4edda"
-    DETECTED_TEXT = "#155724"
-    DETECTED_BORDER = "#c3e6cb"
+    DETECTED_BG = "#F0FDF4"
+    DETECTED_TEXT = "#16A34A"
+    DETECTED_BORDER = "#B7E4C7"
     
     MANUAL_BG = "#fff3cd"
     MANUAL_TEXT = "#856404"
     MANUAL_BORDER = "#ffeeba"
     
     FRAME_BORDER = "#dee2e6"
-    FRAME_BORDER_HOVER = "#4e73ff"
+    FRAME_BORDER_HOVER = "#3B82F6"
     FRAME_BG = "#f8f9fa"
     FRAME_BG_HOVER = "#f0f4ff"
     
-    CHECKBOX_UNCHECKED = "#ced4da"
-    CHECKBOX_CHECKED = "#4e73ff"
-    CHECKBOX_HOVER = "#3e63e6"
+    CHECKBOX_UNCHECKED = "#D1D5DB"
+    CHECKBOX_CHECKED = "#3B82F6"
+    CHECKBOX_HOVER = "#2563EB"
 
 # Utility functions for view selector
 def get_detection_status_style(has_auto_detection: bool) -> str:
@@ -1217,7 +1209,7 @@ PATIENT_INFO_FIELD_STYLE = (
         padding: 4px 6px;
         font-size: 11px;
         color: #495057;
-        selection-background-color: #007bff;
+        selection-background-color: #3B82F6;
     }
     QLineEdit:read-only {
         background: #f8f9fa;
@@ -1289,7 +1281,7 @@ __all__ = [
     "get_bsi_status_style",
     "format_bsi_score",
     "get_bsi_severity_text",
-    "get_bsi_severity_color"
+    "get_bsi_severity_color",
     # View selector styles
     "VIEW_SELECTOR_TITLE_STYLE",
     "VIEW_SELECTOR_INSTRUCTIONS_STYLE",

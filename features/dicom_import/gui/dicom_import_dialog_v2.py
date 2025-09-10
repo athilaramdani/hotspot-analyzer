@@ -1396,7 +1396,6 @@ class DicomImportDialog(QDialog):
             self.session_code,
         )
         self.processing_thread.progress_updated.connect(self._on_progress_updated)
-        self.processing_thread.log_updated.connect(self._on_log_updated)
         self.processing_thread.finished_processing.connect(self._on_processing_finished)
         self.processing_thread.start()
     
@@ -1406,16 +1405,6 @@ class DicomImportDialog(QDialog):
         
         file_name = truncate_text(Path(filename).name, 25)
         self.progress_label.setText(f"Processing: {file_name} ({current}/{total})")
-        QCoreApplication.processEvents()
-        
-    def _on_log_updated(self, message: str):
-        """Handle log update"""
-        display_message = message
-        if len(message) > 100 and not message.startswith("##"):
-            display_message = truncate_text(message, 100)
-            
-        self.process_log.append(display_message)
-        self.process_log.ensureCursorVisible()
         QCoreApplication.processEvents()
         
     def _on_processing_finished(self):
