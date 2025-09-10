@@ -49,6 +49,7 @@ class BSISidePanel(QWidget):
         self.current_patient_id = None
         self.current_study_date = None
         self.quant_manager = QuantificationManager()
+        self.resize(500, self.height())
         self._build_ui()
 
     def _build_ui(self):
