@@ -25,6 +25,21 @@ _BUTTON_BASE = (
     """
 )
 
+DANGER_BUTTON_STYLE = _BUTTON_BASE + (
+    """
+    QPushButton {
+        background-color: #dc3545;
+        color: white;
+    }
+    QPushButton:hover {
+        background-color: #c82333;
+    }
+    QPushButton:pressed {
+        background-color: #bd2130;
+    }
+    """
+)
+
 # ---------- Primary / action buttons ----------
 PRIMARY_BUTTON_STYLE = _BUTTON_BASE + (
     """
@@ -172,8 +187,23 @@ DIALOG_START_BUTTON_STYLE = (
         background-color: #3d8b40;
     }
     QPushButton:disabled {
-        background-color: #cccccc;
-        color: #666666;
+        background-color: #e9ecef;
+        color: #adb5bd;
+        border: 1px solid #ced4da;
+    }
+    """
+)
+
+DIALOG_DISABLED_BUTTON_STYLE = (
+    """
+    QPushButton {
+        background-color: #e9ecef;
+        color: #adb5bd;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-size: 13px;
+        font-weight: bold;
     }
     """
 )
@@ -234,7 +264,6 @@ DIALOG_SUBTITLE_STYLE = (
         color: #7f8c8d; 
         margin: 0px 0px 10px 0px;
         padding: 2px 5px;
-        font-style: italic;
     }
     """
 )

@@ -6,30 +6,13 @@ Version: 2.1 - Enhanced Debug + Auto-Close Detection
 """
 
 import sys
+import sys
 import logging
 import os
 from pathlib import Path
 import traceback
 from io import StringIO
-
-def setup_console_redirect():
-    """Setup stdout/stderr redirect for windowed mode"""
-    if hasattr(sys, '_MEIPASS') and not hasattr(sys.stdout, 'buffer'):
-        # Create log file for debugging
-        log_dir = Path(sys.executable).parent / "logs"
-        log_dir.mkdir(exist_ok=True)
-        log_file = log_dir / "telplastina.log"
-        
-        # Redirect to file instead of void
-        log_handle = open(log_file, 'w', encoding='utf-8')
-        sys.stdout = log_handle
-        sys.stderr = log_handle
-        
-        print(f"[MAIN] Console redirected to: {log_file}")
-
-# Call BEFORE any AI imports
-if hasattr(sys, '_MEIPASS'):
-    setup_console_redirect()
+import datetime # NEW: Tambahkan import datetime
     
 # ========== CRITICAL: PYINSTALLER DEBUG ==========
 def debug_pyinstaller_state():
@@ -257,6 +240,30 @@ if hasattr(sys, '_MEIPASS'):
     
     print()
 
+class StreamToLogger:
+    """
+    Kustom stream object untuk meredirect stdout dan stderr ke Python logger.
+    Ini memastikan semua output print() akan masuk ke file log.
+    """
+    def __init__(self, logger, log_level=logging.INFO):
+        self.logger = logger
+        self.log_level = log_level
+        self.line_buffer = ''
+
+    def write(self, buf):
+        for line in buf.rstrip().splitlines():
+            # Jika ada pesan yang dimulai dengan "DEBUG", kita asumsikan itu adalah log.
+            # Jika tidak, kita log sebagai INFO.
+            if line.startswith("DEBUG"):
+                self.logger.log(logging.DEBUG, line.strip())
+            else:
+                self.logger.log(self.log_level, line.strip())
+
+    def flush(self):
+        pass
+
+# -----------------------------------------------
+
 # ========== UI THEME CONFIGURATION ==========
 def make_light_palette() -> QPalette:
     """Create light theme palette for the application"""
@@ -304,8 +311,8 @@ class ApplicationBootstrap:
             
             #   NEW: Set application metadata
             self.app.setApplicationName("TELPLASTINA")
-            self.app.setApplicationDisplayName("Bone Metastasis Analysis V1.5.2")
-            self.app.setApplicationVersion("1.5.2")
+            self.app.setApplicationDisplayName("Bone Metastasis Analysis V1.6")
+            self.app.setApplicationVersion("1.6")
             self.app.setOrganizationName("Telkom University & Universitas Padjadjaran")
             self.app.setOrganizationDomain("telplastina.ai")
             
@@ -708,15 +715,45 @@ class ApplicationBootstrap:
 # ========== MAIN FUNCTION ==========
 def main():
     """Main application entry point with comprehensive error handling"""
-     # ==========================================================
-    # ✅ KONFIGURASI LOGGING DITAMBAHKAN DI SINI
     # ==========================================================
+    # ✅ KONFIGURASI LOGGING
+    # ==========================================================
+    logging.getLogger('matplotlib.font_manager').disabled = True
+    logging.getLogger('matplotlib').disabled = True
+    
     log_format = "%(asctime)s - [%(levelname)s] - %(message)s"
-    log_level = logging.DEBUG  # Tampilkan semua pesan saat development
+    log_level = logging.DEBUG
     
-    logging.basicConfig(level=log_level, format=log_format, datefmt="%Y-%m-%d %H:%M:%S")
+    # NEW: Tentukan path log file berdasarkan mode aplikasi
+    if hasattr(sys, '_MEIPASS'):
+        # Mode PyInstaller, log ke file dengan timestamp
+        log_dir = Path(sys.executable).parent / "logs"
+        log_dir.mkdir(exist_ok=True)
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        log_file_path = log_dir / f"telplastina_log_{timestamp}.log"
+    else:
+        # Mode Development, log ke folder proyek
+        log_dir = Path("logs")
+        log_dir.mkdir(exist_ok=True)
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        log_file_path = log_dir / f"telplastina_log_{timestamp}.log"
+        
+    logging.basicConfig(
+        level=log_level,
+        format=log_format,
+        datefmt="%Y-%m-%d %H:%M:%S",
+        handlers=[
+            logging.FileHandler(log_file_path, encoding='utf-8'),
+            logging.StreamHandler(sys.stdout) # Tambahkan StreamHandler untuk tetap mencetak ke konsol
+        ]
+    )
     
+    # NEW: Redirect stdout dan stderr ke logger
+    sys.stdout = StreamToLogger(logging.getLogger('stdout'), logging.INFO)
+    sys.stderr = StreamToLogger(logging.getLogger('stderr'), logging.ERROR)
+
     logging.info("Logger berhasil dikonfigurasi. Memulai aplikasi...")
+    # ==========================================================
     # ==========================================================
     try:
         # Validate Python version

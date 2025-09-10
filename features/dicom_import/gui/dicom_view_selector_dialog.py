@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
     QScrollArea, QWidget, QFrame, QCheckBox, QGridLayout,
     QGroupBox, QSplitter, QMessageBox, QProgressBar, QSlider,
-    QRadioButton, QButtonGroup  # TAMBAHAN BARU
+    QRadioButton, QButtonGroup
 )
 from PySide6.QtGui import QPixmap, QFont, QImage, QWheelEvent, QMouseEvent, QPainter
 
@@ -43,14 +43,13 @@ class FrameInfo:
     """Information about a single DICOM frame"""
     frame_index: int
     frame_data: np.ndarray
-    detected_view: Optional[str]  # "Anterior", "Posterior", or None
-    user_selected_view: Optional[str]  # User's selection
+    detected_view: Optional[str]
+    user_selected_view: Optional[str]
     is_anterior_checked: bool = False
     is_posterior_checked: bool = False
-    detection_confidence: str = "none"  # "high", "low", "none"
-    # TAMBAHAN BARU:
-    selected_background: str = "black"  # "black" or "white"
-    pixel_analysis: Optional[Dict[str, any]] = None  # Pixel analysis results
+    detection_confidence: str = "none"
+    selected_background: str = "black"
+    pixel_analysis: Optional[Dict[str, any]] = None
 
 @dataclass
 class DicomInfo:
@@ -59,8 +58,8 @@ class DicomInfo:
     patient_id: str
     study_date: str
     frames: List[FrameInfo]
-    has_reliable_detection: bool  # True if confident auto-detection available
-    needs_manual_config: bool     # True if manual configuration required
+    has_reliable_detection: bool
+    needs_manual_config: bool
 
 
 class ZoomableImageLabel(QLabel):
@@ -1411,21 +1410,20 @@ class DicomFileWidget(QWidget):
 
 
 class DicomViewSelectorDialog(QDialog):
-    """Enhanced main dialog untuk view selection dengan auto-configuration support"""
-    views_confirmed = Signal(dict)  # {file_path: {frame_index: view_name}}
+    views_confirmed = Signal(dict)
+
     def __init__(self, file_paths: List[Path], parent=None):
         super().__init__(parent)
         self.file_paths = file_paths
         self.dicom_infos: Dict[Path, DicomInfo] = {}
         self.dicom_widgets: List[DicomFileWidget] = []
-        
+
         self.setWindowTitle("Select Anterior/Posterior Views ")
         self.setModal(True)
         self.resize(1400, 900)
-        
-        # Loading dialog
+
         self.loading_dialog: Optional[LoadingDialog] = None
-        
+
         self._setup_ui()
         self._start_loading()
 
@@ -2076,15 +2074,34 @@ class DicomViewSelectorDialog(QDialog):
         """Confirm selections and emit signal"""
         print("  DEBUG: Confirming selections...")
         
-        # Collect all view assignments
         view_assignments = {}
         background_assignments = {}
         
+        unsupported_files = []
         for dicom_widget in self.dicom_widgets:
             file_path = dicom_widget.dicom_info.file_path
-            assignments = dicom_widget.get_view_assignments()  # Keep original for compatibility
+            for frame_info in dicom_widget.dicom_info.frames:
+                # Cek apakah frame terpilih DAN memiliki dimensi selain 1024x256
+                if frame_info.user_selected_view and not (frame_info.frame_data.shape == (1024, 256) or frame_info.frame_data.shape == (256, 1024)):
+                    unsupported_files.append(file_path.name)
+        
+        if unsupported_files:
+            error_msg = (
+                f"Processing failed: The following files do NOT have the required dimensions (1024x256):\n\n"
+                + "\n".join([f"• {f}" for f in set(unsupported_files)])
+                + "\n\nPlease exclude these files before proceeding."
+            )
+            QMessageBox.critical(self, "Unsupported Image Dimensions", error_msg)
+            print(f" ERROR: Attempt to process unsupported image dimensions: {unsupported_files}")
+            return
+        # Perubahan berakhir di sini
+        # -----------------------------------------------
+
+        for dicom_widget in self.dicom_widgets:
+            file_path = dicom_widget.dicom_info.file_path
+            assignments = dicom_widget.get_view_assignments()
             assignments_with_bg = dicom_widget.get_view_assignments_with_background()
-            
+
             view_assignments[file_path] = assignments
             background_assignments[file_path] = assignments_with_bg
             
@@ -2099,11 +2116,9 @@ class DicomViewSelectorDialog(QDialog):
         print("  Validation passed - emitting signal")
         print(f"  DEBUG: About to emit views_confirmed signal with {len(view_assignments)} files")
         
-        # Emit signal dengan path sebagai string (lebih aman)
         payload = {str(fp): assign for fp, assign in view_assignments.items()}
         background_payload = {str(fp): assign for fp, assign in background_assignments.items()}
         
-        # Create combined payload
         combined_payload = {
             "view_assignments": payload,
             "background_assignments": background_payload
@@ -2115,7 +2130,7 @@ class DicomViewSelectorDialog(QDialog):
         
         self.accept()
         print("  DEBUG: Dialog accepted and closed")
-    
+
     def _validate_assignments(self, assignments: dict) -> bool:
         """Enhanced final validation - only need 1 Anterior + 1 Posterior frame minimum"""
         for file_path, frame_assignments in assignments.items():

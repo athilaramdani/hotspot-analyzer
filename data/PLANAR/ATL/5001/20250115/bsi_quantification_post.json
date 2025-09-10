@@ -6,9 +6,10 @@
     "quantification_method": "BSI_v1.2_color_based_separate_views",
     "algorithm_version": "1.2",
     "view": "posterior",
+    "processing_mode": "dual_view",
     "input_files": {
-      "segmentation": "5001_20250115_posterior_colored.png",
-      "hotspot": "5001_20250115_posterior_classification_mask.png"
+      "segmentation": "post_segm.png",
+      "hotspot": "post_hotspot_classification.png"
     }
   },
   "bsi_results": {
@@ -34,18 +35,18 @@
       "benign_ratio": 0.0
     },
     "rib left": {
-      "total_pixels": 7337,
+      "total_pixels": 15692,
       "malignant_pixels": 0,
       "benign_pixels": 0,
       "malignant_ratio": 0.0,
       "benign_ratio": 0.0
     },
     "rib right": {
-      "total_pixels": 8355,
+      "total_pixels": 0,
       "malignant_pixels": 0,
       "benign_pixels": 0,
-      "malignant_ratio": 0.0,
-      "benign_ratio": 0.0
+      "malignant_ratio": 0,
+      "benign_ratio": 0
     },
     "sternum": {
       "total_pixels": 0,
@@ -55,46 +56,46 @@
       "benign_ratio": 0
     },
     "clavicle left": {
-      "total_pixels": 369,
+      "total_pixels": 742,
       "malignant_pixels": 0,
       "benign_pixels": 0,
       "malignant_ratio": 0.0,
       "benign_ratio": 0.0
     },
     "clavicle right": {
-      "total_pixels": 373,
+      "total_pixels": 0,
       "malignant_pixels": 0,
       "benign_pixels": 0,
-      "malignant_ratio": 0.0,
-      "benign_ratio": 0.0
+      "malignant_ratio": 0,
+      "benign_ratio": 0
     },
     "scapula left": {
-      "total_pixels": 3041,
+      "total_pixels": 5775,
       "malignant_pixels": 0,
       "benign_pixels": 0,
       "malignant_ratio": 0.0,
       "benign_ratio": 0.0
     },
     "scapula right": {
-      "total_pixels": 2734,
+      "total_pixels": 0,
       "malignant_pixels": 0,
       "benign_pixels": 0,
-      "malignant_ratio": 0.0,
-      "benign_ratio": 0.0
+      "malignant_ratio": 0,
+      "benign_ratio": 0
     },
     "humerus left": {
-      "total_pixels": 2442,
+      "total_pixels": 4764,
       "malignant_pixels": 0,
       "benign_pixels": 0,
       "malignant_ratio": 0.0,
       "benign_ratio": 0.0
     },
     "humerus right": {
-      "total_pixels": 2322,
+      "total_pixels": 0,
       "malignant_pixels": 0,
       "benign_pixels": 0,
-      "malignant_ratio": 0.0,
-      "benign_ratio": 0.0
+      "malignant_ratio": 0,
+      "benign_ratio": 0
     },
     "lumbar vertebrae": {
       "total_pixels": 2799,
@@ -118,27 +119,27 @@
       "benign_ratio": 0.0
     },
     "femur left": {
-      "total_pixels": 4591,
+      "total_pixels": 9098,
       "malignant_pixels": 1289,
       "benign_pixels": 0,
-      "malignant_ratio": 0.2807667174907428,
+      "malignant_ratio": 0.14167948999780172,
       "benign_ratio": 0.0
     },
     "femur right": {
-      "total_pixels": 4507,
+      "total_pixels": 0,
       "malignant_pixels": 0,
       "benign_pixels": 0,
-      "malignant_ratio": 0.0,
-      "benign_ratio": 0.0
+      "malignant_ratio": 0,
+      "benign_ratio": 0
     }
   },
   "summary_statistics": {
     "view": "posterior",
-    "bsi_score": 0.5460494599816491,
+    "bsi_score": 0.40696223248870805,
     "total_malignant_pixels": 2593,
     "total_benign_pixels": 0,
     "total_pixels": 62326,
-    "malignant_percentage": 0.5460494599816491,
-    "benign_percentage": 0.0
+    "combined_bsi_available": true,
+    "combined_bsi": 0.28882713146852956
   }
 }
