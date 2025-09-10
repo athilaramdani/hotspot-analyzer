@@ -53,6 +53,7 @@ from core.gui.ui_constants import (
     GRAY_BUTTON_STYLE,        # grey "Logout" button
     ZOOM_BUTTON_STYLE,        # orange "Zoom In/Out" buttons
     SCAN_BUTTON_STYLE,        # purple "Scan N" buttons
+    DANGER_BUTTON_STYLE
 )
 
 from core.gui.searchable_combobox import SearchableComboBox
@@ -545,7 +546,7 @@ class MainWindowSpect(QMainWindow):
 
         # Logout button
         logout_btn = QPushButton("Logout")
-        logout_btn.setStyleSheet(GRAY_BUTTON_STYLE)
+        logout_btn.setStyleSheet(DANGER_BUTTON_STYLE)
         logout_btn.clicked.connect(self._handle_logout)
         top_layout.addWidget(logout_btn)
         
