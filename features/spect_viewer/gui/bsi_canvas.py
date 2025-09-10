@@ -124,7 +124,7 @@ class BSICanvas(FigureCanvas):
         
         # NEW: Jika kedua opsi tidak dicentang dan bukan untuk export, tampilkan pesan
         if not anterior_visible and not posterior_visible and not override_visibility:
-            ax.text(0.5, 0.5, 'BSI Analytics Hidden\n\nCentang "Anterior" dan/atau "Posterior"\nuntuk menampilkan data.', 
+            ax.text(0.5, 0.5, 'BSI Analytics Hidden\nCheck "Anterior" and/or "Posterior" to display the data.', 
                     ha='center', va='center', fontsize=12, color=Colors.DARK_GRAY,
                     transform=ax.transAxes)
             ax.set_xticks([])

@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QLineEdit, QMessageBox, QFrame, QGroupBox, QCheckBox, QTextEdit,
     QScrollArea, QWidget, QGridLayout, QSpacerItem, QSizePolicy
 )
-from PySide6.QtGui import QFont, QPixmap, QPainter, QIcon
+from PySide6.QtGui import QFont, QPixmap, QPainter, QIcon, QGuiApplication
 
 # Import UI constants
 from core.gui.ui_constants import (
@@ -332,7 +332,7 @@ class AddDoctorDialog(QDialog):
         
         self.color_buttons = []
         colors = [Colors.PRIMARY, Colors.SUCCESS, Colors.WARNING, Colors.DANGER, 
-                 "#9C27B0", "#FF5722", "#607D8B", Colors.SECONDARY]
+                  "#9C27B0", "#FF5722", "#607D8B", Colors.SECONDARY]
         
         for color in colors:
             btn = QPushButton()
@@ -447,7 +447,7 @@ class EditDoctorDialog(QDialog):
         
         self.color_buttons = []
         colors = [Colors.PRIMARY, Colors.SUCCESS, Colors.WARNING, Colors.DANGER, 
-                 "#9C27B0", "#FF5722", "#607D8B", Colors.SECONDARY]
+                  "#9C27B0", "#FF5722", "#607D8B", Colors.SECONDARY]
         
         for color in colors:
             btn = QPushButton()
@@ -517,41 +517,26 @@ class DoctorSelectionDialog(QDialog):
     """
     Enhanced dialog for doctor selection with dynamic tag management and ALL User functionality
     """
-    
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("TELPLASTINA - Doctor Selection") 
         self.setModal(True)
 
-        # 1. (BARU) Import QGuiApplication untuk mendapatkan info layar
-        from PySide6.QtGui import QGuiApplication
-
-        # 2. (DIUBAH) Tambahkan flag untuk tombol minimize dan maximize
-        # Ini akan otomatis membuat window bisa di-resize dengan bebas
         self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinMaxButtonsHint)
         
-        # 3. (BARU) Dapatkan ukuran layar yang TERSEDIA (tidak termasuk taskbar)
         screen = QGuiApplication.primaryScreen()
         available_geometry = screen.availableGeometry()
         screen_width = available_geometry.width()
         screen_height = available_geometry.height()
 
-        # 4. (BARU) Atur ukuran dialog menjadi persentase dari ukuran layar
-        # Misalnya, 80% lebar dan 85% tinggi layar yang tersedia
         dialog_width = int(screen_width * 0.8)
         dialog_height = int(screen_height * 0.85)
         
-        # Tetapkan ukuran minimum agar layout tidak rusak jika window dikecilkan
         self.setMinimumSize(900, 600)
-        
-        # 5. (DIUBAH) Gunakan ukuran dinamis yang sudah dihitung
         self.resize(dialog_width, dialog_height)
-        
-        # Fitur ini tetap berguna untuk resize dari sudut
         self.setSizeGripEnabled(True)
 
-        # Inisialisasi properti lainnya
         self.selected_doctor_id: str = None
         self.selected_modality: str = "Planar"
         self.selected_tag_data: dict = None
@@ -571,7 +556,6 @@ class DoctorSelectionDialog(QDialog):
         
         # Header
         header_layout = QVBoxLayout()
-        
         title = QLabel("TELPLASTINA")
         title.setStyleSheet(VIEW_SELECTOR_TITLE_STYLE)
         title.setAlignment(Qt.AlignCenter)
@@ -582,7 +566,6 @@ class DoctorSelectionDialog(QDialog):
         subtitle.setAlignment(Qt.AlignCenter)
         header_layout.addWidget(subtitle)
         
-        #   NEW: Add description
         description = QLabel("Advanced AI-powered bone scan metastasis detection and analysis platform")
         description.setStyleSheet("""
             QLabel {
@@ -594,7 +577,6 @@ class DoctorSelectionDialog(QDialog):
         """)
         description.setAlignment(Qt.AlignCenter)
         header_layout.addWidget(description)
-        
         main_layout.addLayout(header_layout)
         
         # Main content in scroll area
@@ -607,7 +589,7 @@ class DoctorSelectionDialog(QDialog):
         scroll_layout = QVBoxLayout(scroll_widget)
         
         # Doctor selection section
-        doctor_group = QGroupBox("👨‍⚕️ Select Doctor Code")
+        doctor_group = QGroupBox("Select Doctor Code")
         doctor_group.setStyleSheet(GROUP_BOX_STYLE)
         doctor_layout = QVBoxLayout(doctor_group)
         
@@ -621,67 +603,28 @@ class DoctorSelectionDialog(QDialog):
         
         doctor_layout.addWidget(self.tags_widget)
         
-        # Add doctor button
-        add_doctor_layout = QHBoxLayout()
-        add_doctor_btn = QPushButton("➕ Add New Doctor")
-        add_doctor_btn.setStyleSheet(GRAY_BUTTON_STYLE)
-        add_doctor_btn.clicked.connect(self._add_new_doctor)
-        add_doctor_layout.addWidget(add_doctor_btn)
-        add_doctor_layout.addStretch()
+        # [FIX] Add stretch to push the grid of cards to the top of the GroupBox
+        doctor_layout.addStretch(1)
         
-        doctor_layout.addLayout(add_doctor_layout)
         scroll_layout.addWidget(doctor_group)
         
-        # Modality info (Planar only)
-        modality_group = QGroupBox("🔬 Image Modality")
-        modality_group.setStyleSheet(GROUP_BOX_STYLE)
-        modality_layout = QVBoxLayout(modality_group)
-        
-        modality_group = QGroupBox("🔬 Analysis Modality")
-        modality_group.setStyleSheet(GROUP_BOX_STYLE)
-        modality_layout = QVBoxLayout(modality_group)
-
-        planar_info = QLabel("🩻 Planar Bone Scintigraphy - Metastasis Detection")
-        planar_info.setStyleSheet(f"""
-            QLabel {{
-                background: {Colors.SUCCESS}20;
-                border: 2px solid {Colors.SUCCESS};
-                border-radius: 8px;
-                padding: 12px;
-                font-size: 14px;
-                font-weight: bold;
-                color: {Colors.SUCCESS};
-            }}
-        """)
-        planar_info.setAlignment(Qt.AlignCenter)
-        modality_layout.addWidget(planar_info)
-
-        modality_desc = QLabel("AI-powered bone scan analysis for automated metastasis detection and BSI quantification")
-        modality_desc.setStyleSheet(INFO_LABEL_STYLE)
-        modality_layout.addWidget(modality_desc)
-        
-        scroll_layout.addWidget(modality_group)
-        
-        # Selected info
-        self.info_group = QGroupBox("ℹ️ Selection Info")
-        self.info_group.setStyleSheet(GROUP_BOX_STYLE)
-        info_layout = QVBoxLayout(self.info_group)
-        
-        self.info_label = QLabel("Please select a doctor code to continue")
-        self.info_label.setStyleSheet(INFO_LABEL_STYLE)
-        info_layout.addWidget(self.info_label)
-        
-        scroll_layout.addWidget(self.info_group)
-        
-        scroll_layout.addStretch()
         scroll.setWidget(scroll_widget)
         main_layout.addWidget(scroll)
+
+        # Add doctor button moved here, aligned to the right
+        add_doctor_layout = QHBoxLayout()
+        add_doctor_layout.addStretch()  # Aligns the button to the right
+        add_doctor_btn = QPushButton("➕ Add New Doctor")
+        add_doctor_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
+        add_doctor_btn.clicked.connect(self._add_new_doctor)
+        add_doctor_layout.addWidget(add_doctor_btn)
+        main_layout.addLayout(add_doctor_layout)
         
         # Action buttons
         button_layout = QHBoxLayout()
         
         # Exit button
-        exit_btn = QPushButton("🚪 Exit Application")
+        exit_btn = QPushButton("Exit Application")
         exit_btn.setStyleSheet(DIALOG_CANCEL_BUTTON_STYLE)
         exit_btn.clicked.connect(self.reject)
         button_layout.addWidget(exit_btn)
@@ -689,7 +632,7 @@ class DoctorSelectionDialog(QDialog):
         button_layout.addStretch()
         
         # Start button
-        self.start_btn = QPushButton("🚀 Start Analysis Session")
+        self.start_btn = QPushButton("Start Analysis Session")
         self.start_btn.setStyleSheet(SUCCESS_BUTTON_STYLE)
         self.start_btn.setEnabled(False)
         self.start_btn.clicked.connect(self.accept)
@@ -727,7 +670,13 @@ class DoctorSelectionDialog(QDialog):
             self.tag_widgets.append(tag_widget)
             
             self.tags_layout.addWidget(tag_widget, row, col)
-    
+            
+        # Add row and column stretch to push all widgets to the top-left corner.
+        num_rows = (len(sorted_tags) + cols - 1) // cols
+        self.tags_layout.setRowStretch(num_rows, 1)
+        self.tags_layout.setColumnStretch(cols, 1)
+
+
     def _on_tag_selected(self, tag_data: dict):
         """Handle tag selection"""
         # Deselect all other tags
@@ -737,34 +686,6 @@ class DoctorSelectionDialog(QDialog):
         
         self.selected_doctor_id = tag_data['code']
         self.selected_tag_data = tag_data
-        
-        # Update info
-        if tag_data.get('shared', False):
-            info_text = f"""
-            <b>Selected:</b> {tag_data['code']} - {tag_data['name']}<br>
-            <b>Mode:</b> Shared Access (All Users)<br>
-            <b>Data Path:</b> data/PLANAR/ALL/<br>
-            <b>Description:</b> This is a shared workspace where all users can access and edit patient data collaboratively.
-            """
-        else:
-            info_text = f"""
-            <b>Selected:</b> {tag_data['code']} - {tag_data['name']}<br>
-            <b>Mode:</b> Individual User Access<br>
-            <b>Data Path:</b> data/PLANAR/{tag_data['code']}/<br>
-            <b>Description:</b> This is your personal workspace for patient data analysis.
-            """
-        
-        self.info_label.setText(info_text)
-        self.info_label.setStyleSheet(f"""
-            QLabel {{
-                background: {tag_data.get('color', Colors.SECONDARY)}15;
-                border: 2px solid {tag_data.get('color', Colors.SECONDARY)};
-                border-radius: 6px;
-                padding: 12px;
-                font-size: 12px;
-                color: #495057;
-            }}
-        """)
         
         self.start_btn.setEnabled(True)
     

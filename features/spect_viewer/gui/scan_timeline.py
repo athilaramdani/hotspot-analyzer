@@ -1150,64 +1150,48 @@ class ScanTimelineWidget(QWidget):
 
     # ------------------------------------------------------ card builders
     def _make_header(self, scan: Dict, idx: int) -> QHBoxLayout:
-        """  FIXED: Header with BSI per frame information (no combined)"""
+        """  MODIFIED: Header shows View Name on top and BSI score below """
         meta = scan["meta"]
-        date_raw = meta.get("study_date", "")
-        try:   
-            hdr = datetime.strptime(date_raw, "%Y%m%d").strftime("%b %d, %Y")
-        except ValueError: 
-            hdr = "Unknown"
-        
-        #   NEW: Always show view name, with BSI if available
         view_name = self.current_view
-        color = "#ff6b6b" if self.current_view == "Anterior" else "#4ecdc4"
         
+        # --- Baris pertama: Nama View (misal: "Anterior") ---
+        header_text = f"<b>{view_name}</b>"
+        
+        # --- Baris kedua: BSI Score (jika ada) ---
+        bsi_text = ""
         if meta.get("has_bsi", False):
             if self.current_view == "Anterior":
                 bsi_score = meta.get("bsi_anterior", 0.0)
             else:  # Posterior
                 bsi_score = meta.get("bsi_posterior", 0.0)
             
-            #   FORMAT: 10 decimal places with truncation
+            # Format BSI score menjadi string
             bsi_str = f"{bsi_score:.10f}".rstrip('0').rstrip('.')
             if len(bsi_str.split('.')[-1]) > 10:
                 bsi_str = f"{bsi_score:.10f}..."
-            
-            #   UPDATED: Show view with BSI (no percent sign)
-            view_text = f"<span style='color: {color}; font-weight: bold; font-size: 12px;'>{view_name} BSI: {bsi_str}</span>"
+
+            # Teks untuk baris kedua
+            bsi_text = f"BSI: {bsi_str}"
+
+        # --- Gabungkan baris pertama dan kedua ---
+        # Tambahkan <br> (pindah baris) hanya jika ada BSI score
+        if bsi_text:
+            full_label_text = f"{header_text}<br>{bsi_text}"
         else:
-            #   NEW: Show view name only when no BSI
-            view_text = f"<span style='color: {color}; font-weight: bold; font-size: 12px;'>{view_name}</span>"
-        
+            full_label_text = header_text
+
         hbox = QHBoxLayout()
         
-        #   UPDATED: Always show view name
-        header_label = QLabel(f"<b>{hdr}</b><br>{view_text}")
-        header_label.setStyleSheet("font-size: 11px;")
+        # Atur teks final ke dalam label
+        header_label = QLabel(full_label_text)
+        header_label.setStyleSheet("""
+            QLabel {
+                padding: 4px 5px;         /* Menambah spasi di dalam header */
+                margin-bottom: 5px;       /* Menambah spasi di bawah header */
+            }
+        """)
         hbox.addWidget(header_label)
         hbox.addStretch()
-        
-        # # Select button
-        # select_btn = QPushButton("Select")
-        # select_btn.setFixedSize(60, 24)
-        # select_btn.setStyleSheet("""
-        #     QPushButton {
-        #         background-color: #6c757d;
-        #         color: white;
-        #         border: none;
-        #         border-radius: 3px;
-        #         font-size: 10px;
-        #         font-weight: bold;
-        #     }
-        #     QPushButton:hover {
-        #         background-color: #5a6268;
-        #     }
-        #     QPushButton:pressed {
-        #         background-color: #495057;
-        #     }
-        # """)
-        # select_btn.clicked.connect(lambda *_: self._on_scan_selected(idx))
-        # hbox.addWidget(select_btn)
         
         return hbox
     
@@ -1518,26 +1502,16 @@ class ScanTimelineWidget(QWidget):
         card.setFrameStyle(QFrame.Box | QFrame.Raised)
         card.setLineWidth(1)
         
-        # Highlight active scan
-        if idx == self.active_scan_index:
-            card.setStyleSheet("""
-                QFrame {
-                    border: 2px solid #4e73ff;
-                    border-radius: 6px;
-                    background-color: #f0f4ff;
-                }
-            """)
-        else:
-            card.setStyleSheet("""
-                QFrame {
-                    border: 1px solid #dee2e6;
-                    border-radius: 6px;
-                    background-color: white;
-                }
-                QFrame:hover {
-                    border: 1px solid #4e73ff;
-                }
-            """)
+        card.setStyleSheet("""
+            QFrame {
+                border: 1px solid #dee2e6; /* <-- Semua border abu-abu */
+                border-radius: 6px;
+                background-color: white;
+            }
+            QFrame:hover {
+                border: 1px solid #dee2e6; /* <-- Tetap abu-abu saat di-hover */
+            }
+        """)
         
         lay = QVBoxLayout(card)
         lay.setContentsMargins(8, 8, 8, 8)
@@ -1622,22 +1596,6 @@ class ScanTimelineWidget(QWidget):
                 lbl.setToolTip(str(e))
         
         lay.addWidget(lbl)
-        
-        #   FIXED: Create status label showing current view and classification status
-        status_label = QLabel(f"{self.current_view}")
-        status_label.setAlignment(Qt.AlignCenter)
-        status_label.setStyleSheet("""
-            QLabel {
-                font-size: 10px;
-                color: #495057;
-                padding: 4px;
-                background: #e9ecef;
-                border-radius: 3px;
-                font-weight: bold;
-            }
-        """)
-        lay.addWidget(status_label)
-        
         return card
     
     # ------------------------------------------------------ backward compatibility
