@@ -62,6 +62,7 @@ class SPECTAnalysisWorkflow:
         }
         
         try:
+            # Import the processing wrapper
             from .processing_wrapper import (
                 run_yolo_detection_wrapper,
                 run_hotspot_processing_in_process,
@@ -70,6 +71,7 @@ class SPECTAnalysisWorkflow:
                 get_patient_analysis_status
             )
             
+            # Step 1: Check if DICOM import is complete (segmentation files exist)
             _log(f"📋 Step 1: Checking segmentation status...")
             status = get_patient_analysis_status(dicom_path, patient_id, study_date)
             
@@ -82,6 +84,7 @@ class SPECTAnalysisWorkflow:
                 workflow_result["steps_completed"]["segmentation"] = True
                 workflow_result["files_generated"].extend(["Segmentation PNG files"])
             
+            # Step 2: YOLO Detection
             _log(f"  Step 2: YOLO Detection...")
             if not status["completion"]["yolo_detection"]:
                 yolo_result = run_yolo_detection_wrapper(dicom_path, patient_id)
@@ -100,6 +103,7 @@ class SPECTAnalysisWorkflow:
                 workflow_result["steps_completed"]["yolo_detection"] = True
                 workflow_result["files_generated"].extend(["XML detection files"])
             
+            # Step 3: Otsu Hotspot Processing
             _log(f"  Step 3: Otsu Hotspot Processing...")
             if not status["completion"]["otsu_processing"]:
                 otsu_result = run_hotspot_processing_in_process(dicom_path, patient_id)
@@ -118,6 +122,7 @@ class SPECTAnalysisWorkflow:
                 workflow_result["steps_completed"]["otsu_processing"] = True
                 workflow_result["files_generated"].extend(["Hotspot PNG files"])
             
+            # Step 4: Classification
             _log(f"🧠 Step 4: Classification Analysis...")
             if not status["completion"]["classification"]:
                 classification_result = run_classification_for_patient(dicom_path, patient_id, study_date)
@@ -135,6 +140,7 @@ class SPECTAnalysisWorkflow:
                 workflow_result["steps_completed"]["classification"] = True
                 workflow_result["files_generated"].extend(["Classification JSON", "Classification mask PNG"])
             
+            # Step 5: NEW Quantification
             _log(f"📊 Step 5: BSI Quantification...")
             if not status["completion"]["quantification"]:
                 quantification_result = run_quantification_for_patient(dicom_path, patient_id, study_date)
@@ -144,6 +150,7 @@ class SPECTAnalysisWorkflow:
                     _log(f"  BSI quantification completed")
                     workflow_result["files_generated"].extend(["BSI quantification JSON"])
                     
+                    # Load quantification results
                     workflow_result["quantification_results"] = self._load_quantification_summary(
                         dicom_path.parent, patient_id, study_date
                     )
@@ -156,12 +163,14 @@ class SPECTAnalysisWorkflow:
                 workflow_result["steps_completed"]["quantification"] = True
                 workflow_result["files_generated"].extend(["BSI quantification JSON"])
                 
+                # Load existing quantification results
                 workflow_result["quantification_results"] = self._load_quantification_summary(
                     dicom_path.parent, patient_id, study_date
                 )
             
+            # Workflow completion
             completed_steps = sum(1 for step in workflow_result["steps_completed"].values() if step)
-            total_steps = len(self.workflow_steps) - 1
+            total_steps = len(self.workflow_steps) - 1  # Exclude import step
             
             workflow_result["success_rate"] = completed_steps / total_steps
             workflow_result["workflow_complete"] = completed_steps == total_steps
@@ -216,6 +225,7 @@ class SPECTAnalysisWorkflow:
             
             status = get_patient_analysis_status(dicom_path, patient_id, study_date)
             
+            # Map to workflow steps
             workflow_status = {
                 "patient_id": patient_id,
                 "study_date": study_date,
@@ -285,6 +295,7 @@ class SPECTAnalysisWorkflow:
             
             report.append("")
             
+            # Add quantification results if available
             if steps.get("quantification", False):
                 try:
                     from .quantification_integration import format_quantification_report
@@ -301,68 +312,6 @@ class SPECTAnalysisWorkflow:
             
         except Exception as e:
             return f"Error generating workflow report: {e}"
-
-
-    def run_batch_workflow(self, dicom_paths: List[Path], session_code: str) -> Dict:
-        """
-        Run workflow for multiple DICOM files
-        
-        Args:
-            dicom_paths: List of DICOM file paths
-            session_code: Session code
-            
-        Returns:
-            Dictionary with batch results
-        """
-        batch_results = {
-            "session_code": session_code,
-            "total_files": len(dicom_paths),
-            "successful": 0,
-            "failed": 0,
-            "results": [],
-            "summary": {}
-        }
-        
-        _log(f"🚀 Starting batch workflow for {len(dicom_paths)} files")
-        _log(f"   Session: {session_code}")
-        
-        for i, dicom_path in enumerate(dicom_paths, 1):
-            try:
-                patient_id = dicom_path.stem.split('_')[0]
-                
-                _log(f"  Processing file {i}/{len(dicom_paths)}: {dicom_path.name}")
-                
-                result = self.run_full_workflow(dicom_path, patient_id, session_code)
-                
-                if result.get("workflow_complete", False):
-                    batch_results["successful"] += 1
-                    _log(f"  File {i} completed successfully")
-                else:
-                    batch_results["failed"] += 1
-                    _log(f" File {i} failed")
-                
-                batch_results["results"].append(result)
-                
-            except Exception as e:
-                _log(f" Error processing file {i}: {e}")
-                batch_results["failed"] += 1
-                batch_results["results"].append({
-                    "dicom_path": str(dicom_path),
-                    "error": str(e),
-                    "workflow_complete": False
-                })
-        
-        batch_results["summary"] = {
-            "success_rate": batch_results["successful"] / batch_results["total_files"],
-            "quantification_completed": sum(1 for r in batch_results["results"] 
-                                           if r.get("steps_completed", {}).get("quantification", False))
-        }
-        
-        _log(f"🎉 Batch workflow completed")
-        _log(f"   Successful: {batch_results['successful']}/{batch_results['total_files']}")
-        _log(f"   Quantification completed: {batch_results['summary']['quantification_completed']}")
-        
-        return batch_results
 
 
 def run_batch_workflow(dicom_paths: List[Path], session_code: str) -> Dict:
