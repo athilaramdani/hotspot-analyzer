@@ -7,7 +7,7 @@ FIXES:
 1. Proper image display orientation
 2. Pan functionality with zoom
 3. Auto-configuration status based on reliable detection
-4. Manual configuration for uncertain cases
+4. manual taggeduration for uncertain cases
 """
 from __future__ import annotations
 from pathlib import Path
@@ -60,7 +60,7 @@ class DicomInfo:
     study_date: str
     frames: List[FrameInfo]
     has_reliable_detection: bool  # True if confident auto-detection available
-    needs_manual_config: bool     # True if manual configuration required
+    needs_manual_config: bool     # True if manual taggeduration required
 
 
 class ZoomableImageLabel(QLabel):
@@ -535,7 +535,7 @@ class DicomPreviewThread(QThread):
                     frame_info.is_anterior_checked = False
                 
                 reliable_detections += 1
-                print(f"      AUTO-CONFIGURED: {detected_view} (high confidence)")
+                print(f"      auto-tagged: {detected_view} (high confidence)")
             else:
                 frame_info.is_anterior_checked = False
                 frame_info.is_posterior_checked = False
@@ -568,13 +568,13 @@ class DicomPreviewThread(QThread):
                 frame_info.pixel_analysis = None
                 frame_info.selected_background = "black"  # Fallback
 
-            print(f"    ⚠️ MANUAL CONFIG REQUIRED: {confidence} confidence")
+            print(f"    ⚠️ manual tagged REQUIRED: {confidence} confidence")
             
             frame_infos.append(frame_info)
         
         # Determine if reliable detection is available
         has_reliable_detection = reliable_detections >= 2  # At least 2 reliable detections
-        needs_manual_config = reliable_detections < total_frames  # Some frames need manual config
+        needs_manual_config = reliable_detections < total_frames  # Some frames need manual tagged
         
         # Special case: 2-frame bone scan with no reliable detections
         if total_frames == 2 and reliable_detections == 0:
@@ -590,7 +590,7 @@ class DicomPreviewThread(QThread):
         print(f"Summary: {file_path.name}")
         print(f"    Reliable detections: {reliable_detections}/{total_frames}")
         print(f"    Has reliable detection: {has_reliable_detection}")
-        print(f"    Needs manual config: {needs_manual_config}")
+        print(f"    Needs manual tagged: {needs_manual_config}")
         
         return DicomInfo(
             file_path=file_path,
@@ -800,7 +800,7 @@ class FrameWidget(QWidget):
         
         # Simple status determination
         if self.frame_info.detection_confidence == "high":
-            status_text = "  Auto-configured"
+            status_text = "  auto-tagged"
             status_color = Colors.SUCCESS
         elif self.frame_info.detection_confidence == "low":
             status_text = "⚠️ Please confirm"
@@ -823,7 +823,7 @@ class FrameWidget(QWidget):
         
         # Status indicator for auto-configuration
         if self.frame_info.detection_confidence == "high":
-            status_text = "  Auto-configured"
+            status_text = "  auto-tagged"
             status_color = Colors.SUCCESS
         elif self.frame_info.detection_confidence == "low":
             status_text = "⚠️ Please confirm"
@@ -863,7 +863,7 @@ class FrameWidget(QWidget):
 
         # Status indicator for auto-configuration (Sama seperti sebelumnya)
         if self.frame_info.detection_confidence == "high":
-            status_text = "✔ Auto-configured"
+            status_text = "✔ auto-tagged"
             status_color = Colors.SUCCESS
         elif self.frame_info.detection_confidence == "low":
             status_text = "⚠️ Please confirm"
@@ -1192,21 +1192,21 @@ class DicomFileWidget(QWidget):
         
         # Color-code header based on detection status
         if self.dicom_info.has_reliable_detection and not self.dicom_info.needs_manual_config:
-            # Fully auto-configured
+            # Fully auto-tagged
             header_bg = "linear-gradient(135deg, #d4edda 0%, rgba(212, 237, 218, 0.8) 100%)"
             header_border = "#c3e6cb"
             status_icon = " "
-            status_text = "Auto-Configured"
+            status_text = "auto-tagged"
             
         elif self.dicom_info.has_reliable_detection and self.dicom_info.needs_manual_config:
-            # Partially auto-configured
+            # Partially auto-tagged
             header_bg = "linear-gradient(135deg, #fff3cd 0%, rgba(255, 243, 205, 0.8) 100%)"
             header_border = "#ffeeba"
             status_icon = "⚠️"
             status_text = "Partial - Needs Confirmation"
             
         else:
-            # Manual configuration required
+            # manual taggeduration required
             header_bg = "linear-gradient(135deg, #f8d7da 0%, rgba(248, 215, 218, 0.8) 100%)"
             header_border = "#f5c6cb"
             status_icon = "⚙️"
@@ -1483,7 +1483,7 @@ class DicomViewSelectorDialog(QDialog):
         # #   FIX 3: Enhanced instructions with detection status explanation
         # instructions = QLabel(
         #     "  Selection Guide:\n"
-        #     "•   Auto-configured: Clear DICOM tags found, auto-selected\n"
+        #     "•   auto-tagged: Clear DICOM tags found, auto-selected\n"
         #     "• ⚠️ Please confirm: Partial tags found, verify selection\n" 
         #     "•  Manual required: No tags found, select manually\n"
         #     "• Minimum requirement: 1 Anterior + 1 Posterior frame\n"
@@ -1615,7 +1615,7 @@ class DicomViewSelectorDialog(QDialog):
             self.dicom_infos[file_path] = dicom_info
             print(f"  Loaded DICOM info for: {file_path.name}")
             print(f"    Reliable detection: {dicom_info.has_reliable_detection}")
-            print(f"    Needs manual config: {dicom_info.needs_manual_config}")
+            print(f"    Needs manual tagged: {dicom_info.needs_manual_config}")
         else:
             print(f" Failed to load: {file_path}")
     
@@ -1673,7 +1673,7 @@ class DicomViewSelectorDialog(QDialog):
                 [fp for fp in self.file_paths if fp in self.dicom_infos],
                 key=lambda fp: (
                     not self.dicom_infos[fp].has_reliable_detection,  # Auto-detected first (False sorts before True)
-                    self.dicom_infos[fp].needs_manual_config,         # Then by manual config needed
+                    self.dicom_infos[fp].needs_manual_config,         # Then by manual tagged needed
                     fp.name                                          # Finally by name for consistency
                 )
             )
@@ -1778,7 +1778,7 @@ class DicomViewSelectorDialog(QDialog):
             print(f"📊 Widget creation summary:")
             print(f"  Success: {success_count}")
             print(f"  Errors: {error_count}")
-            print(f"  Auto-configured: {auto_configured_count}")
+            print(f"  auto-tagged: {auto_configured_count}")
             print(f"  Manual required: {manual_required_count}")
             
         except Exception as e:
@@ -1912,9 +1912,9 @@ class DicomViewSelectorDialog(QDialog):
         else:
             status_text = f"  Loaded {success} files"
             if auto_config > 0:
-                status_text += f" • {auto_config} auto-configured"
+                status_text += f" • {auto_config} auto-tagged"
             if manual_req > 0:
-                status_text += f" • {manual_req} need manual config"
+                status_text += f" • {manual_req} need manual tagged"
             
             self.status_label.setText(status_text)
             self.status_label.setStyleSheet(f"""
@@ -2009,7 +2009,7 @@ class DicomViewSelectorDialog(QDialog):
                     'missing': missing_views
                 })
             
-            # Track auto-configured files
+            # Track auto-tagged files
             if detection_status["has_reliable_detection"] and not detection_status["needs_manual_config"]:
                 auto_configured_files += 1
         
@@ -2018,10 +2018,10 @@ class DicomViewSelectorDialog(QDialog):
         
         if ready_to_process:
             if auto_configured_files == total_files:
-                status_text = f"🎉 All {total_files} files auto-configured and ready!"
+                status_text = f"🎉 All {total_files} files auto-tagged and ready!"
             elif auto_configured_files > 0:
                 manual_configured = total_files - auto_configured_files
-                status_text = f"🎉 Ready! {auto_configured_files} auto + {manual_configured} manual config"
+                status_text = f"🎉 Ready! {auto_configured_files} auto + {manual_configured} manual tagged"
             else:
                 status_text = f"🎉 All {total_files} files manually configured and ready!"
             
@@ -2056,7 +2056,7 @@ class DicomViewSelectorDialog(QDialog):
                 status_text = f"⚠️ {files_missing_count} files missing required Anterior/Posterior views"
             
             if auto_configured_files > 0:
-                status_text += f" • {auto_configured_files} auto-configured"
+                status_text += f" • {auto_configured_files} auto-tagged"
             
             self.status_label.setText(status_text)
             self.status_label.setStyleSheet(f"""
