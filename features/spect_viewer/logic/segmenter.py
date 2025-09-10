@@ -305,9 +305,7 @@ def create_predictor():
     
     return nnUNetPredictor(**settings)
 
-
 def load_bone_model():
-    """Lazy-load + cache the bone segmentation model with ENHANCED torchvision fixes."""
     #   FIXED: Import nnUNet di dalam function
     from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
     
@@ -359,8 +357,8 @@ def load_bone_model():
         dataset = "Dataset001_BoneRegion"
         model_path = SEG_DIR / dataset / "nnUNetTrainer_50epochs__nnUNetPlans__2d"
         
-        _log(f"[INFO]  Loading bone segmentation model...")
-        _log(f"[INFO]  Model path: {truncate_text(str(model_path), 60)}")
+        print(f"[INFO]  Loading bone segmentation model...")
+        print(f"[INFO]  Model path: {truncate_text(str(model_path), 60)}")
 
         if not model_path.exists():
             raise FileNotFoundError(f"Model directory not found: {model_path}")
@@ -372,14 +370,14 @@ def load_bone_model():
         # 2. Coba buat prediktor utama. Jika gagal, tandai untuk pakai fallback
         try:
             predictor = create_predictor() # create_predictor akan mencoba pakai CUDA jika tersedia
-            _log(f"[INFO]  Primary predictor created successfully (Device: {predictor.device})")
+            print(f"[INFO]  Primary predictor created successfully (Device: {predictor.device})")
         except Exception as e:
-            _log(f"[WARN]  Failed to create primary predictor: {e}. Forcing CPU fallback.")
+            print(f"[WARN]  Failed to create primary predictor: {e}. Forcing CPU fallback.")
             primary_config_works = False
 
         # 3. Jika konfigurasi utama gagal, siapkan konfigurasi fallback (CPU)
         if not primary_config_works:
-            _log("[INFO]  Switching to CPU-only fallback configuration.")
+            print("[INFO]  Switching to CPU-only fallback configuration.")
             # Buat ulang predictor dengan paksa menggunakan CPU
             cpu_device = torch.device("cpu")
             predictor = nnUNetPredictor(
@@ -394,18 +392,19 @@ def load_bone_model():
         # 4. SEKARANG, jalankan proses pemuatan model HANYA SATU KALI
         # dengan konfigurasi yang sudah terpilih (CUDA atau CPU).
         try:
-            _log(f"[INFO]  Initializing model from trained weights on device: {predictor.device}...")
+            print(f"[INFO]  Initializing model from trained weights on device: {predictor.device}...")
             predictor.initialize_from_trained_model_folder(
                 str(model_path), use_folds=(0,), checkpoint_name="checkpoint_best.pth"
             )
         except Exception as e:
-            _log(f"[ERROR]  FATAL: Failed to load model even with selected configuration.")
+            print(f"[ERROR]  FATAL: Failed to load model even with selected configuration.")
             # Jika ini GAGAL, maka seluruh proses gagal. Lemparkan error ke atas.
             raise RuntimeError(f"Could not initialize model from {model_path}") from e
         
         cache["bone"] = predictor
-        _log(f"[INFO]  Bone segmentation model loaded successfully")
+        print(f"[INFO]  Bone segmentation model loaded successfully")
     return cache["bone"]
+
 
 
 def run_prediction(image: np.ndarray, model) -> np.ndarray:
@@ -428,9 +427,7 @@ def run_prediction(image: np.ndarray, model) -> np.ndarray:
 
 
 # ------------------------------------------------------------------ PUBLIC API
-def predict_bone_mask(
-    image: np.ndarray, *, to_rgb: bool = False
-) -> np.ndarray:
+def predict_bone_mask(image: np.ndarray, *, to_rgb: bool = False) -> np.ndarray:
     """
     Performs bone segmentation on an input image using simple resize preprocessing.
     
@@ -471,42 +468,42 @@ def predict_bone_mask(
 
 def _predict_bone_mask_real(image: np.ndarray, *, to_rgb: bool = False) -> np.ndarray:
     """Real segmentation implementation"""
-    _log(f"[INFO]  Starting bone mask segmentation...")
-    _log(f"[INFO]  Input image shape: {image.shape}, dtype: {image.dtype}")
+    print(f"[INFO]  Starting bone mask segmentation...")
+    print(f"[INFO]  Input image shape: {image.shape}, dtype: {image.dtype}")
     t_start = time.time()
 
     # --- Ensure 2-D input ---
     if image.ndim == 3:
-        _log(f"[INFO]  Converting 3D to 2D (using first channel)")
+        print(f"[INFO]  Converting 3D to 2D (using first channel)")
         image = image[..., 0] # Use first channel if RGB
     if image.ndim != 2:
         raise ValueError("image must be 2-D or 3-D")
 
     # --- Preprocessing: Simple resize to model's input size ---
-    _log(f"[INFO]  Preprocessing: resizing to (256, 1024)...")
+    print(f"[INFO]  Preprocessing: resizing to (256, 1024)...")
     resized = cv2.resize(image, (256, 1024), interpolation=cv2.INTER_AREA)
-    _log(f"[INFO]  Preprocessing completed")
+    print(f"[INFO]  Preprocessing completed")
 
     # --- Inference ---
-    _log(f"[INFO]  Loading segmentation model...")
+    print(f"[INFO]  Loading segmentation model...")
     model = load_bone_model()
     
-    _log(f"[INFO]  Performing bone segmentation inference...")
+    print(f"[INFO]  Performing bone segmentation inference...")
     mask = run_prediction(resized, model) # Output shape is (1024, 256)
 
     # --- Post-processing ---
     elapsed = time.time() - t_start
     unique_labels = np.unique(mask)
-    _log(f"[INFO]  Segmentation completed in {elapsed:.2f}s")
-    _log(f"[INFO]  Output mask shape: {mask.shape}")
-    _log(f"[INFO]  Unique labels found: {list(unique_labels)}")
+    print(f"[INFO]  Segmentation completed in {elapsed:.2f}s")
+    print(f"[INFO]  Output mask shape: {mask.shape}")
+    print(f"[INFO]  Unique labels found: {list(unique_labels)}")
 
     #   Return logic
     if to_rgb:
-        _log(f"[INFO]  Converting mask to colored RGB image...")
+        print(f"[INFO]  Converting mask to colored RGB image...")
         rgb_result = label_mask_to_rgb(mask)
-        _log(f"[INFO]  RGB conversion completed, shape: {rgb_result.shape}")
+        print(f"[INFO]  RGB conversion completed, shape: {rgb_result.shape}")
         return rgb_result
     else:
-        _log(f"[INFO]  Returning raw segmentation mask")
+        print(f"[INFO]  Returning raw segmentation mask")
         return mask

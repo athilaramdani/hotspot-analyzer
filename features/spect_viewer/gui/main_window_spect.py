@@ -1704,15 +1704,29 @@ class MainWindowSpect(QMainWindow):
 
 
     def _populate_scan_buttons(self, scans: List[Dict]) -> None:
-        """Populate scan buttons"""
+        """Populate scan buttons with formatted study dates."""
         # Clear existing buttons
         for btn in self.scan_buttons:
             btn.deleteLater()
         self.scan_buttons.clear()
 
-        # Create new buttons
+        # Create new buttons with formatted dates
         for i, scan in enumerate(scans):
-            btn = QPushButton(f"Scan {i + 1}")
+            # Ambil study_date dari metadata
+            study_date_str = scan["meta"].get("study_date", "")
+            
+            # Coba format tanggal menjadi MM-YYYY
+            try:
+                # Pastikan format tanggal sesuai, di sini "%Y%m%d"
+                study_date = datetime.strptime(study_date_str, "%Y%m%d")
+                # Format ulang menjadi MM-YYYY
+                formatted_date = study_date.strftime("%m-%Y")
+            except (ValueError, TypeError):
+                # Jika gagal, gunakan default "N/A"
+                formatted_date = "N/A"
+                
+            # Gunakan formatted_date sebagai teks tombol
+            btn = QPushButton(formatted_date)
             btn.setCheckable(True)
             btn.setStyleSheet(SCAN_BUTTON_STYLE)
             btn.clicked.connect(partial(self._on_scan_button_clicked, i))

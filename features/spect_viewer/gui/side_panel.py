@@ -3,11 +3,12 @@
 from pathlib import Path
 from typing import Dict, Any, List
 from datetime import datetime
+from PySide6.QtWidgets import QSizePolicy, QHeaderView, QSplitter
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QScrollArea,
-    QTableWidget, QTableWidgetItem, QAbstractItemView, QCheckBox
+    QTableWidget, QTableWidgetItem, QAbstractItemView, QCheckBox, QHeaderView
 )
 from PySide6.QtGui import QColor
 
@@ -202,8 +203,7 @@ class BSISidePanel(QWidget):
     
     def _create_results_table_v2(self) -> QWidget:
         """Container 2-table (left: Region freeze, right: data columns)"""
-        from PySide6.QtWidgets import QSizePolicy, QHeaderView
-
+        
         table_container = QFrame()
         table_container.setObjectName("bsiTableFrame")
         table_container.setStyleSheet("""
@@ -229,11 +229,9 @@ class BSISidePanel(QWidget):
         title.setStyleSheet("font-size: 12px; color: #495057; font-weight: bold; margin: 8px;")
         outer.addWidget(title)
 
-        # Row: two tables stuck together
-        row = QHBoxLayout()
-        row.setContentsMargins(0, 0, 0, 0)
-        row.setSpacing(0)
-        outer.addLayout(row)
+        # 🟢 PENTING: Gunakan QSplitter sebagai container untuk kedua tabel
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.setHandleWidth(1) # Atur lebar handle agar terlihat seperti garis tipis
 
         # LEFT (Region, frozen)
         self.results_table_left = QTableWidget()
@@ -246,16 +244,10 @@ class BSISidePanel(QWidget):
         self.results_table_left.setSortingEnabled(False)
         self.results_table_left.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.results_table_left.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # kolom region stretch biar “penuh” area kiri, keliatan menyatu
-        self.results_table_left.horizontalHeader().setStretchLastSection(True)
-        # row-height default lebih besar & bisa di-drag
         self.results_table_left.verticalHeader().setDefaultSectionSize(30)
         self.results_table_left.verticalHeader().setSectionResizeMode(QHeaderView.Interactive)
-
-        # Separator tipis biar kayak garis grid di tengah
-        sep = QFrame()
-        sep.setFixedWidth(1)
-        sep.setStyleSheet("background: #e9ecef;")
+        self.results_table_left.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.results_table_left.horizontalHeader().setStretchLastSection(True)
 
         # RIGHT (data)
         self.results_table_right = QTableWidget()
@@ -268,31 +260,25 @@ class BSISidePanel(QWidget):
         self.results_table_right.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.results_table_right.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.results_table_right.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        # ⬇️ matiin sorting di tabel kanan
         self.results_table_right.setSortingEnabled(False)
         header = self.results_table_right.horizontalHeader()
-        # ⬇️ hilangin indikator & klik header biar ga “kesannya bisa sort”
         header.setSortIndicatorShown(False)
         header.setSectionsClickable(False)
-        header.setSectionResizeMode(header.ResizeMode.Interactive)
-        # row-height default lebih besar & bisa di-drag
+        header.setSectionResizeMode(QHeaderView.Interactive)
+        header.setStretchLastSection(True)
         self.results_table_right.verticalHeader().setDefaultSectionSize(30)
         self.results_table_right.verticalHeader().setSectionResizeMode(QHeaderView.Interactive)
-
-        # Default widths
-        self.results_table_left.setMinimumWidth(200)
-        self.results_table_right.setColumnWidth(0, 130)
-        self.results_table_right.setColumnWidth(1, 130)
-        self.results_table_right.setColumnWidth(2, 120)
-        self.results_table_right.setColumnWidth(3, 120)
-
-        # Bikin area tabel lebih tinggi supaya lega
         self.results_table_right.setMinimumHeight(650)
+        
+        # 🟢 PENTING: Tambahkan kedua tabel ke splitter
+        splitter.addWidget(self.results_table_left)
+        splitter.addWidget(self.results_table_right)
+        
+        # Atur rasio lebar awal
+        splitter.setSizes([200, 600]) 
 
-        # tempelkan
-        row.addWidget(self.results_table_left)
-        row.addWidget(sep)
-        row.addWidget(self.results_table_right, 1)  # kanan ambil sisa lebar
+        # 🟢 PENTING: Tambahkan splitter ke layout luar
+        outer.addWidget(splitter) 
 
         # Note
         note = QLabel("<i>Format: pixel_count (decimal_ratio) • Drag header untuk resize</i>")
@@ -399,8 +385,8 @@ class BSISidePanel(QWidget):
 
             ant_benign = ant.get('benign_pixels', 0); ant_benign_ratio = ant.get('benign_ratio', 0.0)
             pos_benign = pos.get('benign_pixels', 0); pos_benign_ratio = pos.get('benign_ratio', 0.0)
-            ant_malig  = ant.get('malignant_pixels', 0); ant_malig_ratio  = ant.get('malignant_ratio', 0.0)
-            pos_malig  = pos.get('malignant_pixels', 0); pos_malig_ratio  = pos.get('malignant_ratio', 0.0)
+            ant_malig = ant.get('malignant_pixels', 0); ant_malig_ratio = ant.get('malignant_ratio', 0.0)
+            pos_malig = pos.get('malignant_pixels', 0); pos_malig_ratio = pos.get('malignant_ratio', 0.0)
 
             total_ant_benign += ant_benign; total_post_benign += pos_benign
             total_ant_malignant += ant_malig; total_post_malignant += pos_malig
@@ -409,13 +395,13 @@ class BSISidePanel(QWidget):
                 pos_benign_text = "N/A"; pos_malig_text = "N/A"
             else:
                 pos_benign_text = f"{pos_benign} ({pos_benign_ratio:.3f})"
-                pos_malig_text  = f"{pos_malig} ({pos_malig_ratio:.3f})"
+                pos_malig_text = f"{pos_malig} ({pos_malig_ratio:.3f})"
 
             if processing_mode == 'single_view_posterior':
                 ant_benign_text = "N/A"; ant_malig_text = "N/A"
             else:
                 ant_benign_text = f"{ant_benign} ({ant_benign_ratio:.3f})"
-                ant_malig_text  = f"{ant_malig} ({ant_malig_ratio:.3f})"
+                ant_malig_text = f"{ant_malig} ({ant_malig_ratio:.3f})"
 
             # LEFT (Region)
             self.results_table_left.setItem(row, 0, QTableWidgetItem(region_name.title()))
@@ -473,11 +459,21 @@ class BSISidePanel(QWidget):
             it.setData(Qt.UserRole + 1, "__total__")
             self.results_table_right.setItem(last, c, it)
 
-        # Pas-pasin lebar tabel kiri ke konten (biar terlihat nyatu, tanpa H-scroll)
-        left = self.results_table_left
-        left.resizeColumnsToContents()
-        width = left.verticalHeader().width() + left.sizeHintForColumn(0) + 12
-        left.setFixedWidth(max(200, width))
+        # 🟢 PENTING: Hitung lebar tabel kiri secara dinamis & atur sebagai lebar tetap
+        left_table = self.results_table_left
+        left_header = left_table.horizontalHeader()
+        # Atur mode resizing agar kolom pas dengan kontennya
+        left_header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        left_table.resizeColumnsToContents()
+        
+        # Hitung lebar total dan tambahkan padding (untuk scrollbar dll)
+        width = left_table.verticalHeader().width() + left_header.sectionSize(0) + left_table.frameWidth() * 2
+        
+        # Atur lebar tetap pada tabel kiri
+        left_table.setFixedWidth(width)
+        
+        # Atur kembali resize mode ke Interactive agar user tetap bisa mengubahnya
+        left_header.setSectionResizeMode(0, QHeaderView.Interactive)
 
         # Samakan tinggi semua baris awal (cadangan selain sinyal sectionResized)
         rows_sync = min(self.results_table_left.rowCount(), self.results_table_right.rowCount())
