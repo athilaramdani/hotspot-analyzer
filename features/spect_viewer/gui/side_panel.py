@@ -1,4 +1,4 @@
-# features/spect_viewer/gui/side_panel.py - FIXED for Single View Support
+# features/spect_viewer/gui/side_panel.py
 
 from pathlib import Path
 from typing import Dict, Any, List
@@ -10,30 +10,35 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QScrollArea,
     QTableWidget, QTableWidgetItem, QAbstractItemView, QCheckBox, QHeaderView
 )
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QFont
 
 from .bsi_canvas import BSICanvas
 from features.spect_viewer.logic.quantification_integration import QuantificationManager
+# CHANGED: Cleaned up imports. BSI_EXPORT_BUTTON_STYLE is no longer needed
+# as we will use the unified EXPORT_CHART_BUTTON_STYLE for all main export buttons.
 from core.gui.ui_constants import PRIMARY_BUTTON_STYLE
 
-# Button styles
-INACTIVE_BUTTON_STYLE = """
-    QPushButton {
-        background-color: #a9a9a9; border: none; color: white;
-        padding: 8px; font-weight: bold; border-radius: 4px;
-    }
-    QPushButton:hover { background-color: #8c8c8c; }
-"""
-ACTIVE_BUTTON_STYLE = """
-    QPushButton {
-        background-color: #4e73df; border: none; color: white;
-        padding: 8px; font-weight: bold; border-radius: 4px;
+# --- Helper Class for Clickable Header ---
+class ClickableFrame(QFrame):
+    """A QFrame that emits a 'clicked' signal when pressed."""
+    clicked = Signal()
+    def mousePressEvent(self, event):
+        self.clicked.emit()
+        super().mousePressEvent(event)
+
+# This combined stylesheet is now used for ALL primary export buttons in this panel.
+# It uses the primary style and adds a specific state for when it's disabled.
+EXPORT_CHART_BUTTON_STYLE = PRIMARY_BUTTON_STYLE + """
+    QPushButton:disabled {
+        background-color: #cccccc;
+        color: #666666;
+        border: none;
     }
 """
 
 class BSISidePanel(QWidget):
     """
-      FIXED: BSI Side Panel that supports single view quantification
+    REFACTORED: BSI Side Panel with a collapsible chart section and single view support.
     """
     export_requested = Signal(str)
     analysis_requested = Signal()
@@ -44,8 +49,8 @@ class BSISidePanel(QWidget):
         self.current_patient_folder = None
         self.current_patient_id = None
         self.current_study_date = None
-        # self.scan_buttons = []
         self.quant_manager = QuantificationManager()
+        self.resize(500, self.height())
         self._build_ui()
 
     def _build_ui(self):
@@ -61,22 +66,114 @@ class BSISidePanel(QWidget):
         content_layout.setSpacing(12)
 
         self._create_title_section(content_layout)
-        self.bsi_canvas = BSICanvas()
-        content_layout.addWidget(self.bsi_canvas)
-        self._create_chart_controls_section(content_layout)
-        # content_layout.addWidget(self._create_scan_selection_section())
+        
+        content_layout.addWidget(self._create_collapsible_chart_section())
+
         content_layout.addWidget(self._create_results_table_v2())
         content_layout.addWidget(self._create_controls_section())
         content_layout.addStretch()
         main_panel_layout.addWidget(scroll_area)
+        
+    def _create_collapsible_chart_section(self) -> QWidget:
+        """Creates the entire collapsible section containing the chart and its controls."""
+        section_container = QFrame()
+        section_layout = QVBoxLayout(section_container)
+        section_layout.setContentsMargins(0, 0, 0, 0)
+        section_layout.setSpacing(0)
+
+        header = ClickableFrame()
+        header.setCursor(Qt.PointingHandCursor)
+        header.setStyleSheet("""
+            ClickableFrame {
+                background-color: #4A5568; /* gray-700 */
+                border: 1px solid #2D3748; /* gray-800 */
+                border-top-left-radius: 6px;
+                border-top-right-radius: 6px;
+            }
+        """)
+        header_layout = QHBoxLayout(header)
+        header_layout.setContentsMargins(10, 8, 10, 8)
+        
+        title = QLabel("<b>BSI Trend Chart & Tools</b>")
+        title.setStyleSheet("color: white; font-size: 12px;")
+        
+        self.chart_toggle_btn = QPushButton("▼")
+        self.chart_toggle_btn.setFixedSize(24, 24)
+        self.chart_toggle_btn.setStyleSheet("""
+            QPushButton {
+                color: white; border: none; background-color: transparent;
+                font-size: 14px; font-weight: bold;
+            }
+        """)
+        self.chart_toggle_btn.setFocusPolicy(Qt.NoFocus)
+
+        header_layout.addWidget(title)
+        header_layout.addStretch()
+        header_layout.addWidget(self.chart_toggle_btn)
+
+        self.chart_content_frame = QFrame()
+        self.chart_content_frame.setStyleSheet("""
+            QFrame {
+                border: 1px solid #e2e8f0; /* gray-200 */
+                border-top: none;
+                border-bottom-left-radius: 6px;
+                border-bottom-right-radius: 6px;
+                background-color: #ffffff;
+            }
+        """)
+        content_layout = QVBoxLayout(self.chart_content_frame)
+        content_layout.setContentsMargins(8, 8, 8, 8)
+        content_layout.setSpacing(10)
+        
+        self.bsi_canvas = BSICanvas()
+        content_layout.addWidget(self.bsi_canvas)
+        
+        content_layout.addWidget(self._create_chart_controls_section())
+
+        export_layout = QHBoxLayout()
+        self.export_chart_btn = QPushButton("Export Chart")
+        # Apply the unified primary button style
+        self.export_chart_btn.setStyleSheet(EXPORT_CHART_BUTTON_STYLE)
+        self.export_chart_btn.clicked.connect(lambda: self.export_requested.emit("chart"))
+        export_layout.addStretch()
+        export_layout.addWidget(self.export_chart_btn)
+        content_layout.addLayout(export_layout)
+
+        section_layout.addWidget(header)
+        section_layout.addWidget(self.chart_content_frame)
+
+        header.clicked.connect(self._toggle_chart_visibility)
+        self.chart_toggle_btn.clicked.connect(self._toggle_chart_visibility)
+        
+        return section_container
+
+    def _toggle_chart_visibility(self):
+        """Toggles the visibility of the chart content frame."""
+        is_visible = self.chart_content_frame.isVisible()
+        self.chart_content_frame.setVisible(not is_visible)
+        self.chart_toggle_btn.setText("▲" if not is_visible else "▼")
 
     def _on_chart_visibility_changed(self):
-        """Handle chart visibility checkbox changes"""
+        """Handle chart visibility checkbox changes and update export button state."""
         anterior_visible = self.anterior_checkbox.isChecked()
         posterior_visible = self.posterior_checkbox.isChecked()
         
-        #   SIMPLIFIED: Update chart visibility without combined
         self.bsi_canvas.set_line_visibility(anterior_visible, posterior_visible)
+        
+        self._update_export_chart_button_state()
+
+    def _update_export_chart_button_state(self):
+        """
+        Updates the enabled/disabled state of the Export Chart button based on
+        data availability AND checkbox state.
+        """
+        if not hasattr(self, 'export_chart_btn'):
+            return
+
+        has_data = self.current_patient_id is not None
+        is_any_line_visible = self.anterior_checkbox.isChecked() or self.posterior_checkbox.isChecked()
+        
+        self.export_chart_btn.setEnabled(has_data and is_any_line_visible)
 
     def _create_title_section(self, layout):
         title_frame = QFrame()
@@ -85,33 +182,26 @@ class BSISidePanel(QWidget):
         self.title_label = QLabel("<b>BSI Quantification Analysis </b>")
         self.title_label.setStyleSheet("font-size: 14px; color: #2c3e50; font-weight: bold; margin-bottom: 4px;")
         title_layout.addWidget(self.title_label)
-        # self.patient_info_label = QLabel("Select a patient to view BSI analysis")
-        # self.patient_info_label.setStyleSheet("font-size: 11px; color: #6c757d; font-style: italic;")
-        # title_layout.addWidget(self.patient_info_label)
         layout.addWidget(title_frame)
         
-    def _create_chart_controls_section(self, layout):
-        """Create checkbox controls for BSI chart lines"""
+    def _create_chart_controls_section(self) -> QWidget:
+        """Create checkbox controls for BSI chart lines and returns the widget."""
         controls_frame = QFrame()
         controls_frame.setStyleSheet("background: #f0f8ff; border: 1px solid #cce7ff; border-radius: 4px; padding: 8px; margin: 4px 0px;")
         controls_layout = QVBoxLayout(controls_frame)
         
-        # Title
         controls_title = QLabel("<b>Chart Display Options</b>")
         controls_title.setStyleSheet("font-size: 11px; color: #495057; font-weight: bold; margin-bottom: 4px;")
         controls_layout.addWidget(controls_title)
         
-        # Checkboxes layout
         checkboxes_layout = QHBoxLayout()
         
-        # Anterior checkbox
         self.anterior_checkbox = QCheckBox("Anterior")
         self.anterior_checkbox.setChecked(True)
         self.anterior_checkbox.setStyleSheet("color: #ff6b6b; font-weight: bold;")
         self.anterior_checkbox.stateChanged.connect(self._on_chart_visibility_changed)
         checkboxes_layout.addWidget(self.anterior_checkbox)
         
-        # Posterior checkbox
         self.posterior_checkbox = QCheckBox("Posterior")
         self.posterior_checkbox.setChecked(True)
         self.posterior_checkbox.setStyleSheet("color: #4ecdc4; font-weight: bold;")
@@ -120,111 +210,64 @@ class BSISidePanel(QWidget):
         
         checkboxes_layout.addStretch()
         controls_layout.addLayout(checkboxes_layout)
-        layout.addWidget(controls_frame)
+        return controls_frame
         
+    def _create_controls_section(self) -> QWidget:
+        """Creates the section for exporting table data."""
+        controls_frame = QFrame()
+        controls_frame.setStyleSheet("background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; padding: 8px;")
+        controls_layout = QVBoxLayout(controls_frame)
         
+        buttons_layout = QHBoxLayout()
+        
+        self.export_csv_btn = QPushButton("Export CSV")
+        # CHANGED: Applied the same primary button style as the chart export button
+        # for a consistent user interface.
+        self.export_csv_btn.setStyleSheet(EXPORT_CHART_BUTTON_STYLE) 
+        buttons_layout.addWidget(self.export_csv_btn)
+        
+        buttons_layout.addStretch()
+        controls_layout.addLayout(buttons_layout)
+        return controls_frame
+        
+    def _update_button_states(self, has_data: bool):
+        """Enable/disable control buttons based on data availability."""
+        if hasattr(self, 'export_csv_btn'):
+            self.export_csv_btn.setEnabled(has_data)
+        
+        self._update_export_chart_button_state()
+
     def _wire_two_tables_once(self):
-        """
-        Wire tabel kiri (Region) & kanan (data) supaya:
-        - scroll vertikal dua arah (kiri ikut kanan dan sebaliknya)
-        - tinggi baris tersinkron
-        - perubahan jumlah baris / sorting di kanan ikut nyusun ulang kiri
-        """
-        if getattr(self, "_two_tables_wired", False):
-            return
-
-        # --- Scroll vertikal sinkron dua arah ---
-        right_v = self.results_table_right.verticalScrollBar()
-        left_v  = self.results_table_left.verticalScrollBar()
-
+        if getattr(self, "_two_tables_wired", False): return
+        right_v, left_v = self.results_table_right.verticalScrollBar(), self.results_table_left.verticalScrollBar()
         right_v.valueChanged.connect(left_v.setValue)
         left_v.valueChanged.connect(right_v.setValue)
-
-        # Scroll per-pixel biar halus & konsisten
         self.results_table_left.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.results_table_right.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
-
-        # --- Sinkron tinggi baris via vertical header ---
-        right_vh = self.results_table_right.verticalHeader()
-        left_vh  = self.results_table_left.verticalHeader()
-
+        right_vh, left_vh = self.results_table_right.verticalHeader(), self.results_table_left.verticalHeader()
         def _on_row_height_changed(logical_index: int, old_size: int, new_size: int):
-            if logical_index < self.results_table_left.rowCount():
-                left_vh.resizeSection(logical_index, new_size)
-
+            if logical_index < self.results_table_left.rowCount(): left_vh.resizeSection(logical_index, new_size)
         right_vh.sectionResized.connect(_on_row_height_changed)
-
-        # Jika jumlah baris berubah, lakukan resync penuh
         def _full_resync_heights():
             rows = min(self.results_table_left.rowCount(), self.results_table_right.rowCount())
-            for r in range(rows):
-                left_vh.resizeSection(r, self.results_table_right.rowHeight(r))
-
+            for r in range(rows): left_vh.resizeSection(r, self.results_table_right.rowHeight(r))
         model = self.results_table_right.model()
         model.rowsInserted.connect(lambda *args: _full_resync_heights())
         model.rowsRemoved.connect(lambda *args: _full_resync_heights())
-
-        # (dihapus) Tidak perlu sync sorting lagi karena sorting dimatikan
-        # model.layoutChanged.connect(self._sync_left_order_with_right)
-
         self._two_tables_wired = True
-        
-        
-    def _sync_left_order_with_right(self):
-        # Kumpulkan urutan region dari tabel kanan (pakai UserRole+1 yang diisi saat populate)
-        order = []
-        total_row_idx = None
-        rows = self.results_table_right.rowCount()
-        for r in range(rows):
-            it0 = self.results_table_right.item(r, 0)
-            if not it0:
-                continue
-            if it0.data(Qt.UserRole) == "zzz_total":
-                total_row_idx = r
-                continue
-            region_key = it0.data(Qt.UserRole + 1)  # diset di _populate_results_table_v2
-            order.append((r, region_key))
 
-        # rewrite isi tabel kiri mengikuti urutan kanan
-        # NOTE: baris TOTAL tetap paling bawah
-        for dst_row, (_, region_key) in enumerate(order):
-            self.results_table_left.setItem(dst_row, 0, QTableWidgetItem((region_key or "").title()))
-
-        # TOTAL di baris terakhir (jaga bold & sort key)
-        last = len(order)
-        if last < self.results_table_left.rowCount():
-            from PySide6.QtGui import QFont
-            total_item = QTableWidgetItem("TOTAL")
-            f = QFont(); f.setBold(True)
-            total_item.setFont(f)
-            total_item.setData(Qt.UserRole, "zzz_total")
-            self.results_table_left.setItem(last, 0, total_item)
-    
-    
     def _create_results_table_v2(self) -> QWidget:
-        """Container 2-table (left: Region freeze, right: data columns)"""
-        
         table_container = QFrame()
         table_container.setObjectName("bsiTableFrame")
         table_container.setStyleSheet("""
-            QFrame#bsiTableFrame {
-                border: 1px solid #e9ecef; border-radius: 6px;
-                background: #ffffff;
-            }
+            QFrame#bsiTableFrame { border: 1px solid #e9ecef; border-radius: 6px; background: #ffffff; }
             QTableWidget { border: none; }
-            QHeaderView::section {
-                background: #f8f9fa; border: none;
-                border-bottom: 1px solid #e9ecef;
-                padding: 6px;
-            }
+            QHeaderView::section { background: #f8f9fa; border: none; border-bottom: 1px solid #e9ecef; padding: 6px; }
         """)
         table_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
         outer = QVBoxLayout(table_container)
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(0)
-
-        # Title
         title = QLabel("<b>Quantification Results</b>")
         title.setStyleSheet("font-size: 12px; color: #495057; font-weight: bold; margin: 8px;")
         outer.addWidget(title)
@@ -232,6 +275,13 @@ class BSISidePanel(QWidget):
         # 🟢 PENTING: Gunakan QSplitter sebagai container untuk kedua tabel
         splitter = QSplitter(Qt.Horizontal)
         splitter.setHandleWidth(1) # Atur lebar handle agar terlihat seperti garis tipis
+        splitter.setStyleSheet("""
+            QSplitter::handle {
+                background-color: #e9ecef;
+                width: 1px;
+                margin: 0px;
+            }
+        """)
 
         # LEFT (Region, frozen)
         self.results_table_left = QTableWidget()
@@ -244,11 +294,12 @@ class BSISidePanel(QWidget):
         self.results_table_left.setSortingEnabled(False)
         self.results_table_left.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.results_table_left.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
+        # ❗ PENTING: Set stretch last section to False for the left table
+        self.results_table_left.horizontalHeader().setStretchLastSection(False)
         self.results_table_left.verticalHeader().setDefaultSectionSize(30)
         self.results_table_left.verticalHeader().setSectionResizeMode(QHeaderView.Interactive)
-        self.results_table_left.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
-        self.results_table_left.horizontalHeader().setStretchLastSection(True)
-
+        
         # RIGHT (data)
         self.results_table_right = QTableWidget()
         self.results_table_right.setColumnCount(4)
@@ -264,8 +315,10 @@ class BSISidePanel(QWidget):
         header = self.results_table_right.horizontalHeader()
         header.setSortIndicatorShown(False)
         header.setSectionsClickable(False)
-        header.setSectionResizeMode(QHeaderView.Interactive)
+        
+        # ❗ PENTING: Set stretch last section to True for the right table
         header.setStretchLastSection(True)
+        header.setSectionResizeMode(QHeaderView.Interactive)
         self.results_table_right.verticalHeader().setDefaultSectionSize(30)
         self.results_table_right.verticalHeader().setSectionResizeMode(QHeaderView.Interactive)
         self.results_table_right.setMinimumHeight(650)
@@ -280,125 +333,81 @@ class BSISidePanel(QWidget):
         # 🟢 PENTING: Tambahkan splitter ke layout luar
         outer.addWidget(splitter) 
 
-        # Note
         note = QLabel("<i>Format: pixel_count (decimal_ratio) • Drag header untuk resize</i>")
         note.setStyleSheet("font-size: 10px; color: #6c757d; font-style: italic; margin: 6px 8px;")
         outer.addWidget(note)
-
-        # Sinkron scroll + sort (sekali saja)
         self._wire_two_tables_once()
-
         return table_container
 
-    def _create_controls_section(self) -> QWidget:
-        controls_frame = QFrame()
-        controls_frame.setStyleSheet("background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; padding: 8px;")
-        controls_layout = QVBoxLayout(controls_frame)
-        controls_header = QLabel("<b>Export & Actions</b>")
-        controls_header.setStyleSheet("font-size: 12px; color: #495057; font-weight: bold; margin-bottom: 8px;")
-        controls_layout.addWidget(controls_header)
-        buttons_layout = QHBoxLayout()
-        
-        self.export_chart_btn = QPushButton("Export Chart")
-        self.export_chart_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
-        self.export_chart_btn.clicked.connect(lambda: self.export_requested.emit("chart"))
-        buttons_layout.addWidget(self.export_chart_btn)
-        
-        self.export_csv_btn = QPushButton("Export CSV")
-        self.export_csv_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
-        self.export_csv_btn.clicked.connect(self._export_csv_data_v2)
-        buttons_layout.addWidget(self.export_csv_btn)
-        
-        buttons_layout.addStretch()
-        controls_layout.addLayout(buttons_layout)
-        return controls_frame
-
+    def _sync_left_order_with_right(self):
+        order = []
+        rows = self.results_table_right.rowCount()
+        for r in range(rows):
+            it0 = self.results_table_right.item(r, 0)
+            if not it0 or it0.data(Qt.UserRole) == "zzz_total": continue
+            order.append((r, it0.data(Qt.UserRole + 1)))
+        for dst_row, (_, region_key) in enumerate(order):
+            self.results_table_left.setItem(dst_row, 0, QTableWidgetItem((region_key or "").title()))
+        last = len(order)
+        if last < self.results_table_left.rowCount():
+            total_item = QTableWidgetItem("TOTAL")
+            f = QFont(); f.setBold(True); total_item.setFont(f); total_item.setData(Qt.UserRole, "zzz_total")
+            self.results_table_left.setItem(last, 0, total_item)
+    
     def load_patient_data(self, patient_folder: Path, patient_id: str, study_date: str) -> bool:
-        """  FIXED: Load patient data tanpa scan selector"""
         try:
-            #   FIXED: For table data, use exact study_date folder
-            self.current_patient_folder = patient_folder
-            self.current_patient_id = patient_id
-            self.current_study_date = study_date
-            
-            #   FIXED: For BSI canvas trend, pass patient base folder
-            if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
-                # Current folder is study_date folder, canvas needs parent for trend
-                canvas_patient_folder = patient_folder.parent
-            else:
-                # Current folder is already patient folder
-                canvas_patient_folder = patient_folder
-            
-            # Test BSI canvas loading with correct folder
-            canvas_success = self.bsi_canvas.load_bsi_data(canvas_patient_folder, patient_id, study_date)
-            
-            # Test quantification manager - langsung load untuk study_date yang diberikan
-            quant_results = self.quant_manager.load_quantification_results(
-                patient_folder, patient_id, study_date
-            )
-            
+            self.current_patient_folder, self.current_patient_id, self.current_study_date = patient_folder, patient_id, study_date
+            canvas_patient_folder = patient_folder.parent if len(patient_folder.name) == 8 and patient_folder.name.isdigit() else patient_folder
+            self.bsi_canvas.load_bsi_data(canvas_patient_folder, patient_id, study_date)
+            quant_results = self.quant_manager.load_quantification_results(patient_folder, patient_id, study_date)
             if quant_results:
-                # Extract table data structure (handles single view)
                 anterior_data = quant_results.get('anterior_results', {}).get('bsi_results', {}) if quant_results.get('anterior_results') else {}
                 posterior_data = quant_results.get('posterior_results', {}).get('bsi_results', {}) if quant_results.get('posterior_results') else {}
                 processing_mode = quant_results.get('summary_statistics', {}).get('processing_mode', 'unknown')
-                
                 self._populate_results_table_v2(anterior_data, posterior_data, processing_mode)
                 self._update_patient_info(patient_id, study_date)
                 self._update_button_states(True)
             else:
-                if hasattr(self, 'results_table_left'):
-                    self.results_table_left.setRowCount(0)
-                if hasattr(self, 'results_table_right'):
-                    self.results_table_right.setRowCount(0)
+                if hasattr(self, 'results_table_left'): self.results_table_left.setRowCount(0)
+                if hasattr(self, 'results_table_right'): self.results_table_right.setRowCount(0)
                 self._update_patient_info(patient_id, "No Data Found")
                 self._update_button_states(False)
-                    
             return True
-            
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
+        except Exception:
+            import traceback; traceback.print_exc()
             self.clear_patient_data()
             return False
             
     def _populate_results_table_v2(self, anterior_data: dict, posterior_data: dict, processing_mode: str = "unknown"):
         if not anterior_data and not posterior_data:
-            self.results_table_left.setRowCount(0)
-            self.results_table_right.setRowCount(0)
+            self.results_table_left.setRowCount(0); self.results_table_right.setRowCount(0)
             return
 
-        all_regions = set(anterior_data.keys()) | set(posterior_data.keys())
-        all_regions.discard('background')
-        sorted_regions = sorted(all_regions)
-        rows = len(sorted_regions) + 1
+        all_regions = sorted(list(set(anterior_data.keys()) | set(posterior_data.keys()) - {'background'}))
+        rows = len(all_regions) + 1
+        self.results_table_left.setRowCount(rows); self.results_table_right.setRowCount(rows)
 
-        self.results_table_left.setRowCount(rows)
-        self.results_table_right.setRowCount(rows)
+        total_ant_benign, total_post_benign, total_ant_malignant, total_post_malignant = 0, 0, 0, 0
 
-        total_ant_benign = total_post_benign = 0
-        total_ant_malignant = total_post_malignant = 0
-
-        for row, region_name in enumerate(sorted_regions):
-            ant = anterior_data.get(region_name, {}) or {}
-            pos = posterior_data.get(region_name, {}) or {}
-
-            ant_benign = ant.get('benign_pixels', 0); ant_benign_ratio = ant.get('benign_ratio', 0.0)
-            pos_benign = pos.get('benign_pixels', 0); pos_benign_ratio = pos.get('benign_ratio', 0.0)
-            ant_malig = ant.get('malignant_pixels', 0); ant_malig_ratio = ant.get('malignant_ratio', 0.0)
-            pos_malig = pos.get('malignant_pixels', 0); pos_malig_ratio = pos.get('malignant_ratio', 0.0)
+        for row, region_name in enumerate(all_regions):
+            ant = anterior_data.get(region_name, {}) or {}; pos = posterior_data.get(region_name, {}) or {}
+            
+            ant_benign, ant_benign_ratio = ant.get('benign_pixels', 0), ant.get('benign_ratio', 0.0)
+            pos_benign, pos_benign_ratio = pos.get('benign_pixels', 0), pos.get('benign_ratio', 0.0)
+            ant_malig, ant_malig_ratio = ant.get('malignant_pixels', 0), ant.get('malignant_ratio', 0.0)
+            pos_malig, pos_malig_ratio = pos.get('malignant_pixels', 0), pos.get('malignant_ratio', 0.0)
 
             total_ant_benign += ant_benign; total_post_benign += pos_benign
             total_ant_malignant += ant_malig; total_post_malignant += pos_malig
 
             if processing_mode == 'single_view_anterior':
-                pos_benign_text = "N/A"; pos_malig_text = "N/A"
+                pos_benign_text, pos_malig_text = "N/A", "N/A"
             else:
                 pos_benign_text = f"{pos_benign} ({pos_benign_ratio:.3f})"
                 pos_malig_text = f"{pos_malig} ({pos_malig_ratio:.3f})"
 
             if processing_mode == 'single_view_posterior':
-                ant_benign_text = "N/A"; ant_malig_text = "N/A"
+                ant_benign_text, ant_malig_text = "N/A", "N/A"
             else:
                 ant_benign_text = f"{ant_benign} ({ant_benign_ratio:.3f})"
                 ant_malig_text = f"{ant_malig} ({ant_malig_ratio:.3f})"
@@ -408,15 +417,11 @@ class BSISidePanel(QWidget):
 
             # RIGHT (4 kolom)
             right_items = [
-                QTableWidgetItem(ant_malig_text),
-                QTableWidgetItem(pos_malig_text),
-                QTableWidgetItem(ant_benign_text),
-                QTableWidgetItem(pos_benign_text),
+                QTableWidgetItem(ant_malig_text), QTableWidgetItem(pos_malig_text),
+                QTableWidgetItem(ant_benign_text), QTableWidgetItem(pos_benign_text)
             ]
             for c, it in enumerate(right_items):
-                # simpan region untuk sync sort
                 it.setData(Qt.UserRole + 1, region_name)
-                # warna malignant
                 if c in (0, 1):
                     if c == 0 and ant_malig > 0 and processing_mode != 'single_view_posterior':
                         it.setBackground(QColor(255, 200, 200))
@@ -427,301 +432,142 @@ class BSISidePanel(QWidget):
                 self.results_table_right.setItem(row, c, it)
 
         # TOTAL ROW
-        last = len(sorted_regions)
-        from PySide6.QtGui import QFont
-        total_lbl = QTableWidgetItem("TOTAL")
-        f = QFont(); f.setBold(True)
-        total_lbl.setFont(f)
-        total_lbl.setData(Qt.UserRole, "zzz_total")
+        last = len(all_regions)
+        total_lbl = QTableWidgetItem("TOTAL"); f = QFont(); f.setBold(True); total_lbl.setFont(f); total_lbl.setData(Qt.UserRole, "zzz_total")
         self.results_table_left.setItem(last, 0, total_lbl)
 
         if processing_mode == 'single_view_anterior':
-            totals = [QTableWidgetItem(str(total_ant_malignant)),
-                    QTableWidgetItem("N/A"),
-                    QTableWidgetItem(str(total_ant_benign)),
-                    QTableWidgetItem("N/A")]
+            totals = [QTableWidgetItem(str(total_ant_malignant)), QTableWidgetItem("N/A"),
+                      QTableWidgetItem(str(total_ant_benign)), QTableWidgetItem("N/A")]
         elif processing_mode == 'single_view_posterior':
-            totals = [QTableWidgetItem("N/A"),
-                    QTableWidgetItem(str(total_post_malignant)),
-                    QTableWidgetItem("N/A"),
-                    QTableWidgetItem(str(total_post_benign))]
+            totals = [QTableWidgetItem("N/A"), QTableWidgetItem(str(total_post_malignant)),
+                      QTableWidgetItem("N/A"), QTableWidgetItem(str(total_post_benign))]
         else:
-            totals = [QTableWidgetItem(str(total_ant_malignant)),
-                    QTableWidgetItem(str(total_post_malignant)),
-                    QTableWidgetItem(str(total_ant_benign)),
-                    QTableWidgetItem(str(total_post_benign))]
+            totals = [QTableWidgetItem(str(total_ant_malignant)), QTableWidgetItem(str(total_post_malignant)),
+                      QTableWidgetItem(str(total_ant_benign)), QTableWidgetItem(str(total_post_benign))]
 
         for it in totals:
             it.setBackground(QColor(230, 230, 230))
             it.setData(Qt.UserRole, "zzz_total")
         for c, it in enumerate(totals):
-            # simpan region dummy supaya fungsi sync gak error
             it.setData(Qt.UserRole + 1, "__total__")
             self.results_table_right.setItem(last, c, it)
+        
+        # PENTING: Gunakan header kanan untuk mengatur lebar awal kolom
+        self.results_table_right.resizeColumnsToContents()
+        self.results_table_right.setColumnWidth(0, max(130, self.results_table_right.columnWidth(0)))
+        self.results_table_right.setColumnWidth(1, max(130, self.results_table_right.columnWidth(1)))
+        self.results_table_right.setColumnWidth(2, max(120, self.results_table_right.columnWidth(2)))
+        self.results_table_right.setColumnWidth(3, max(120, self.results_table_right.columnWidth(3)))
 
-        # 🟢 PENTING: Hitung lebar tabel kiri secara dinamis & atur sebagai lebar tetap
+        # Hitung lebar tabel kiri secara dinamis & atur sebagai lebar tetap
         left_table = self.results_table_left
         left_header = left_table.horizontalHeader()
-        # Atur mode resizing agar kolom pas dengan kontennya
         left_header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         left_table.resizeColumnsToContents()
-        
-        # Hitung lebar total dan tambahkan padding (untuk scrollbar dll)
         width = left_table.verticalHeader().width() + left_header.sectionSize(0) + left_table.frameWidth() * 2
-        
-        # Atur lebar tetap pada tabel kiri
         left_table.setFixedWidth(width)
-        
-        # Atur kembali resize mode ke Interactive agar user tetap bisa mengubahnya
         left_header.setSectionResizeMode(0, QHeaderView.Interactive)
 
-        # Samakan tinggi semua baris awal (cadangan selain sinyal sectionResized)
+        # Samakan tinggi semua baris awal
         rows_sync = min(self.results_table_left.rowCount(), self.results_table_right.rowCount())
         for r in range(rows_sync):
             self.results_table_left.verticalHeader().resizeSection(r, self.results_table_right.rowHeight(r))
 
-    
     def _update_patient_info(self, patient_id: str, study_date: str):
-        """  SIMPLIFIED: Update patient info display"""
-        try:
-            formatted_date = datetime.strptime(study_date, "%Y%m%d").strftime("%b %d, %Y")
-        except (ValueError, TypeError):
-            formatted_date = study_date or "N/A"
-        
-        #   SIMPLE: Clean patient info
-        # self.patient_info_label.setText(f"Patient: {patient_id} | Study: {formatted_date} | BSI Analysis")
+        pass
     
-    def _update_button_states(self, has_data: bool):
-        """Enable/disable control buttons"""
-        # SAFETY CHECK: Only update buttons if they exist
-        if hasattr(self, 'export_chart_btn'):
-            self.export_chart_btn.setEnabled(has_data)
-        if hasattr(self, 'export_csv_btn'):
-            self.export_csv_btn.setEnabled(has_data)
-        
     def clear_patient_data(self):
-        """Clear all patient data from panel"""
-        print("[BSI SIDE PANEL] Clearing all patient data...")
-        self.current_patient_folder = None
-        self.current_patient_id = None
-        self.current_study_date = None
-        self.bsi_canvas.clear_data()
-        
-        # SAFETY CHECK: Only clear table if it exists
-        if hasattr(self, 'results_table_left'):
-            self.results_table_left.setRowCount(0)
-        if hasattr(self, 'results_table_right'):
-            self.results_table_right.setRowCount(0)
-        
-        #   SIMPLIFIED: No processing mode parameter
+        print("[BSI SIDE PANEL] Clearing data...")
+        self.current_patient_folder, self.current_patient_id, self.current_study_date = None, None, None
+        if hasattr(self, 'bsi_canvas'): self.bsi_canvas.clear_data()
+        if hasattr(self, 'results_table_left'): self.results_table_left.setRowCount(0)
+        if hasattr(self, 'results_table_right'): self.results_table_right.setRowCount(0)
         self._update_patient_info("N/A", "N/A")
-        # for btn in self.scan_buttons:
-        #     self.scan_buttons_layout.removeWidget(btn)
-        #     btn.deleteLater()
-        # self.scan_buttons.clear()
         self._update_button_states(False)
 
-    def set_session_code(self, session_code: str):
-        """Set session code for internal use"""
-        self._current_session_code = session_code
+    def set_session_code(self, session_code: str): self._current_session_code = session_code
     
     def refresh_current_patient(self):
-        """Refresh BSI panel for current patient"""
         if self.current_patient_folder and self.current_patient_id:
-            print(f"[BSI PANEL] Refreshing data for patient {self.current_patient_id}")
-            success = self.load_patient_data(
-                self.current_patient_folder, 
-                self.current_patient_id, 
-                self.current_study_date or "latest"
-            )
-            if success:
-                print("[BSI PANEL]   Refresh successful")
-            else:
-                print("[BSI PANEL]  Refresh failed")
-        else:
-            print("[BSI PANEL] No patient data to refresh")
+            print(f"[BSI PANEL] Refreshing for {self.current_patient_id}")
+            if self.load_patient_data(self.current_patient_folder, self.current_patient_id, self.current_study_date or "latest"): print("[BSI PANEL] Refresh successful")
+            else: print("[BSI PANEL] Refresh failed")
+        else: print("[BSI PANEL] No patient to refresh")
     
     def _export_csv_data_v2(self):
-        """  UPDATED: Export CSV data with single view support"""
-        if not self.current_patient_id or not self.current_study_date:
-            print("[BSI EXPORT] No patient data to export")
-            return
-            
+        if not self.current_patient_id or not self.current_study_date: return
         try:
             from PySide6.QtWidgets import QFileDialog
             import csv
-            
-            # Get save location
             filename = f"BSI_Results_{self.current_patient_id}_{self.current_study_date}.csv"
-            file_path, _ = QFileDialog.getSaveFileName(
-                self, 
-                "Export BSI Results to CSV", 
-                filename,
-                "CSV Files (*.csv)"
-            )
-            
-            if not file_path:
-                return
-                
-            # Export table data
-            with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
-                writer = csv.writer(csvfile)
-                
-                # Write header
-                writer.writerow(["BSI Quantification Results"])
-                writer.writerow([])
-                
-                # Add processing mode info if available
+            file_path, _ = QFileDialog.getSaveFileName(self, "Export BSI CSV", filename, "CSV Files (*.csv)")
+            if not file_path: return
+            with open(file_path, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(["BSI Quantification Results"]); writer.writerow([])
                 if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
-                    summary_stats = self.quant_manager.current_results.get('summary_statistics', {})
-                    processing_mode = summary_stats.get('processing_mode', 'unknown')
-                    writer.writerow(["Processing Mode", processing_mode])
-                    writer.writerow([])
-                
-                # Write table headers
-                headers = ["Region", "Malignant Ant", "Malignant Post", "Benign Ant", "Benign Post"]
-                writer.writerow(headers)
-
-                rows = self.results_table_left.rowCount()
-                for row in range(rows):
-                    region_item = self.results_table_left.item(row, 0)
-                    region = region_item.text() if region_item else ""
-
-                    r0 = self.results_table_right.item(row, 0)
-                    r1 = self.results_table_right.item(row, 1)
-                    r2 = self.results_table_right.item(row, 2)
-                    r3 = self.results_table_right.item(row, 3)
-
-                    row_data = [
-                        region,
-                        r0.text() if r0 else "",
-                        r1.text() if r1 else "",
-                        r2.text() if r2 else "",
-                        r3.text() if r3 else "",
-                    ]
+                    summary = self.quant_manager.current_results.get('summary_statistics', {})
+                    writer.writerow(["Processing Mode", summary.get('processing_mode', 'unknown')]); writer.writerow([])
+                writer.writerow(["Region", "Malignant Ant", "Malignant Post", "Benign Ant", "Benign Post"])
+                for r in range(self.results_table_left.rowCount()):
+                    row_data = [self.results_table_left.item(r, 0).text() if self.results_table_left.item(r, 0) else ""]
+                    row_data.extend([self.results_table_right.item(r, c).text() if self.results_table_right.item(r, c) else "" for c in range(4)])
                     writer.writerow(row_data)
-                
-                # Write summary info
-                writer.writerow([])
-                writer.writerow(["Summary Information"])
+                writer.writerow([]); writer.writerow(["Summary Information"])
                 writer.writerow(["Patient ID", self.current_patient_id])
                 writer.writerow(["Study Date", datetime.strptime(self.current_study_date, "%Y%m%d").strftime("%Y-%m-%d")])
                 writer.writerow(["Export Date", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
-                writer.writerow(["Analysis Method", "BSI Color-based Separate Views"])
-                writer.writerow(["Data Format", "pixel_count (decimal_ratio) - per pixel"])
-                writer.writerow(["Note", "Benign = Normal hotspots, Malignant = Abnormal hotspots"])
-                writer.writerow(["Total Row", "Sum of all regions for each column (N/A for unavailable views)"])
-                                
-                # Add BSI scores summary with single view support
                 if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
-                    summary_stats = self.quant_manager.current_results.get('summary_statistics', {})
-                    anterior_bsi = summary_stats.get('anterior_bsi', 0.0)
-                    posterior_bsi = summary_stats.get('posterior_bsi', 0.0)
-                    processing_mode = summary_stats.get('processing_mode', 'unknown')
-                    
-                    writer.writerow([])
-                    writer.writerow(["BSI Summary"])
-                    
-                    # AFTER:
-                    if processing_mode == 'dual_view':
-                        writer.writerow(["Anterior BSI", f"{anterior_bsi:.10f}".rstrip('0').rstrip('.')])
-                        writer.writerow(["Posterior BSI", f"{posterior_bsi:.10f}".rstrip('0').rstrip('.')])
-                    elif processing_mode == 'single_view_anterior':
-                        writer.writerow(["Anterior BSI (%)", f"{anterior_bsi:.2f}%"])
-                        writer.writerow(["Posterior BSI (%)", "N/A (files not available)"])
-                        writer.writerow(["Note", "Only anterior view processed"])
-                    elif processing_mode == 'single_view_posterior':
-                        writer.writerow(["Anterior BSI (%)", "N/A (files not available)"])
-                        writer.writerow(["Posterior BSI (%)", f"{posterior_bsi:.2f}%"])
-                        writer.writerow(["Note", "Only posterior view processed"])
-                    else:
-                        writer.writerow(["Processing Mode", processing_mode])
-                                    
-            print(f"[BSI EXPORT] CSV exported successfully: {file_path}")
-            
-        except Exception as e:
-            print(f"[BSI EXPORT] Error exporting CSV: {e}")
+                    summary = self.quant_manager.current_results.get('summary_statistics', {})
+                    mode = summary.get('processing_mode', 'unknown')
+                    writer.writerow([]); writer.writerow(["BSI Summary"])
+                    if mode == 'dual_view':
+                        writer.writerow(["Anterior BSI", f"{summary.get('anterior_bsi', 0.0):.10f}".rstrip('0').rstrip('.')])
+                        writer.writerow(["Posterior BSI", f"{summary.get('posterior_bsi', 0.0):.10f}".rstrip('0').rstrip('.')])
+                    elif mode == 'single_view_anterior':
+                        writer.writerow(["Anterior BSI (%)", f"{summary.get('anterior_bsi', 0.0):.2f}%"]); writer.writerow(["Posterior BSI (%)", "N/A"])
+                    elif mode == 'single_view_posterior':
+                        writer.writerow(["Anterior BSI (%)", "N/A"]); writer.writerow(["Posterior BSI (%)", f"{summary.get('posterior_bsi', 0.0):.2f}%"])
+                print(f"[BSI EXPORT] CSV exported to {file_path}")
+        except Exception as e: print(f"[BSI EXPORT] Error: {e}")
 
-    def export_chart_to_file(self, file_path: Path) -> bool:
-        """Export chart to file"""
-        return self.bsi_canvas.export_chart(file_path)
+    def export_chart_to_file(self, file_path: Path) -> bool: return self.bsi_canvas.export_chart(file_path)
 
     def export_report_to_file(self, file_path: Path) -> bool:
-        """  UPDATED: Export V1.2 report to text file with single view support"""
+        if not self.current_patient_id or not self.current_study_date: return False
         try:
-            if not self.current_patient_id or not self.current_study_date:
-                return False
-                
             with open(file_path, 'w', encoding='utf-8') as f:
-                f.write("=" * 60 + "\n")
-                f.write("BSI QUANTIFICATION REPORT\n")
-                f.write("=" * 60 + "\n")
+                f.write("="*60+"\nBSI QUANTIFICATION REPORT\n"+"="*60+"\n")
                 f.write(f"Patient ID: {self.current_patient_id}\n")
                 f.write(f"Study Date: {datetime.strptime(self.current_study_date, '%Y%m%d').strftime('%Y-%m-%d')}\n")
-                f.write(f"Analysis Method: BSI Color-based Separate Views\n")
                 f.write(f"Export Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-                
-                #   Add processing mode info
                 if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
-                    summary_stats = self.quant_manager.current_results.get('summary_statistics', {})
-                    processing_mode = summary_stats.get('processing_mode', 'unknown')
-                    f.write(f"Processing Mode: {processing_mode}\n")
-                    
-                    if processing_mode == 'single_view_anterior':
-                        f.write("Note: Only anterior view files were available for processing\n")
-                    elif processing_mode == 'single_view_posterior':
-                        f.write("Note: Only posterior view files were available for processing\n")
-                
-                f.write("\n")
-                
-                #   Add V1.2 BSI scores with single view support
-                if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
-                    summary_stats = self.quant_manager.current_results.get('summary_statistics', {})
-                    anterior_bsi = summary_stats.get('anterior_bsi', 0.0)
-                    posterior_bsi = summary_stats.get('posterior_bsi', 0.0)
-                    processing_mode = summary_stats.get('processing_mode', 'unknown')
-                    
-                    f.write("BSI SCORES:\n")
-                    f.write("-" * 30 + "\n")
-                    
-                    if processing_mode == 'dual_view':
-                        ant_str = f"{anterior_bsi:.10f}".rstrip('0').rstrip('.')
-                        post_str = f"{posterior_bsi:.10f}".rstrip('0').rstrip('.')
-                        f.write(f"Anterior BSI: {ant_str}\n")
-                        f.write(f"Posterior BSI: {post_str}\n")
-                    elif processing_mode == 'single_view_anterior':
-                        f.write(f"Anterior BSI: {anterior_bsi:.2f}%\n")
-                        f.write(f"Posterior BSI: N/A (files not available)\n")
-                    elif processing_mode == 'single_view_posterior':
-                        f.write(f"Anterior BSI: N/A (files not available)\n")
-                    
+                    summary = self.quant_manager.current_results.get('summary_statistics', {})
+                    mode = summary.get('processing_mode', 'unknown')
+                    f.write(f"Processing Mode: {mode}\n")
+                    if 'single_view' in mode: f.write(f"Note: Only {mode.split('_')[-1]} view files were available.\n")
+                    f.write("\nBSI SCORES:\n" + "-"*30 + "\n")
+                    if mode == 'dual_view':
+                        f.write(f"Anterior BSI: {summary.get('anterior_bsi', 0.0):.10f}".rstrip('0').rstrip('.') + "\n")
+                        f.write(f"Posterior BSI: {summary.get('posterior_bsi', 0.0):.10f}".rstrip('0').rstrip('.') + "\n")
+                    elif mode == 'single_view_anterior':
+                        f.write(f"Anterior BSI: {summary.get('anterior_bsi', 0.0):.2f}%\n")
+                        f.write("Posterior BSI: N/A\n")
+                    elif mode == 'single_view_posterior':
+                        f.write("Anterior BSI: N/A\n")
+                        f.write(f"Posterior BSI: {summary.get('posterior_bsi', 0.0):.2f}%\n")
+                f.write("\nDETAILED QUANTIFICATION DATA:\n" + "-"*30 + "\n")
+                headers = ["Malignant Ant", "Malignant Post", "Benign Ant", "Benign Post"]
+                for r in range(self.results_table_left.rowCount()):
+                    region = self.results_table_left.item(r, 0).text() if self.results_table_left.item(r, 0) else ""
+                    f.write(f"{region}:\n")
+                    for c, head in enumerate(headers):
+                        val = self.results_table_right.item(r, c).text() if self.results_table_right.item(r, c) else "N/A"
+                        f.write(f"  {head}: {val}\n")
                     f.write("\n")
-                
-                f.write("DETAILED QUANTIFICATION DATA:\n")
-                f.write("-" * 30 + "\n")
-                f.write("Format: pixel_count (decimal_ratio) - per pixel\n")
-                f.write("Note: N/A indicates data not available for that view\n\n")
-                
-                # Export table data
-                right_headers = ["Malignant Ant", "Malignant Post", "Benign Ant", "Benign Post"]
-                rows = self.results_table_left.rowCount()
-                for row in range(rows):
-                    region_item = self.results_table_left.item(row, 0)
-                    if not region_item:
-                        continue
-                    region_name = region_item.text()
-                    f.write(f"{region_name}:\n")
-
-                    for c, head in enumerate(right_headers):
-                        it = self.results_table_right.item(row, c)
-                        value = it.text() if it else "N/A"
-                        f.write(f"  {head}: {value}\n")
-                    f.write("\n")
-                
-                f.write("=" * 60 + "\n")
-                
+                f.write("="*60+"\n")
             return True
-            
         except Exception as e:
-            print(f"[BSI REPORT V1.2 SINGLE] Error exporting report: {e}")
+            print(f"[BSI REPORT] Error: {e}")
             return False

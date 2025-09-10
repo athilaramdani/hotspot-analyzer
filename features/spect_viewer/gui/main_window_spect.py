@@ -730,7 +730,7 @@ class MainWindowSpect(QMainWindow):
         main_splitter.setStretchFactor(0, 1)  # Mode selector: resizable
         main_splitter.setStretchFactor(1, 3)  # Timeline: gets most space
         main_splitter.setStretchFactor(2, 1)  # BSI panel: resizable
-        main_splitter.setSizes([280, 900, 350])  # Initial sizes (total: 1530)
+        main_splitter.setSizes([280, 900, 550])  # Initial sizes (total: 1530)
         
         # Style the splitter handles for better visibility
         main_splitter.setStyleSheet("""
