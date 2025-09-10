@@ -84,9 +84,9 @@ class BSISidePanel(QWidget):
         self.title_label = QLabel("<b>BSI Quantification Analysis </b>")
         self.title_label.setStyleSheet("font-size: 14px; color: #2c3e50; font-weight: bold; margin-bottom: 4px;")
         title_layout.addWidget(self.title_label)
-        self.patient_info_label = QLabel("Select a patient to view BSI analysis")
-        self.patient_info_label.setStyleSheet("font-size: 11px; color: #6c757d; font-style: italic;")
-        title_layout.addWidget(self.patient_info_label)
+        # self.patient_info_label = QLabel("Select a patient to view BSI analysis")
+        # self.patient_info_label.setStyleSheet("font-size: 11px; color: #6c757d; font-style: italic;")
+        # title_layout.addWidget(self.patient_info_label)
         layout.addWidget(title_frame)
         
     def _create_chart_controls_section(self, layout):
@@ -493,7 +493,7 @@ class BSISidePanel(QWidget):
             formatted_date = study_date or "N/A"
         
         #   SIMPLE: Clean patient info
-        self.patient_info_label.setText(f"Patient: {patient_id} | Study: {formatted_date} | BSI Analysis")
+        # self.patient_info_label.setText(f"Patient: {patient_id} | Study: {formatted_date} | BSI Analysis")
     
     def _update_button_states(self, has_data: bool):
         """Enable/disable control buttons"""

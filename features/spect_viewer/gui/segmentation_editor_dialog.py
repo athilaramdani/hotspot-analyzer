@@ -123,32 +123,56 @@ class SegmentationEditorDialog(BaseEditorDialog):
             print(f"✗ No segmentation data found. Creating empty mask.")
             return np.zeros_like(self.orig_arr, np.uint8)
     
+    # Di dalam file segmentation_editor_dialog.py
+    def _update_canvas_image(self, new_image_data: np.ndarray):
+        """Memperbarui gambar di kanvas dengan membuat ulang QPixmap (meniru hotspot editor)."""
+        try:
+            from PySide6.QtGui import QImage, QPixmap
+            
+            # Normalisasi data untuk memastikan formatnya adalah Grayscale8
+            if new_image_data.dtype != np.uint8:
+                normalized_data = ((new_image_data - new_image_data.min()) / 
+                                   max(1, np.ptp(new_image_data)) * 255).astype(np.uint8)
+            else:
+                normalized_data = new_image_data.copy()
+
+            # Simpan data array yang sudah diproses ke dalam kanvas
+            self.canvas._orig_base = normalized_data
+            
+            # Buat QPixmap baru dan atur ke item grafis di dalam kanvas
+            h, w = normalized_data.shape
+            q_image = QImage(normalized_data.data, w, h, w, QImage.Format_Grayscale8)
+            pixmap = QPixmap.fromImage(q_image.copy())
+            
+            # Asumsi nama item di SegmentationCanvas adalah _item_gray (sama seperti HotspotCanvas)
+            self.canvas._item_gray.setPixmap(pixmap)
+            
+            # Paksa pembaruan viewport
+            self.canvas.viewport().update()
+
+        except Exception as e:
+            print(f"✗ Error saat memperbarui gambar kanvas: {e}")
+            
     def _on_invert_changed(self, state: int):
-        """Handle image inversion toggle."""
+        """Handle image inversion toggle, meniru logika dari Hotspot Editor."""
         from features.spect_viewer.logic.image_inverter import simple_invert_image
         
         try:
             if self.invert_checkbox.isChecked():
-                inverted_data = simple_invert_image(self.original_image_data)
+                # Jika dicentang, gunakan gambar yang sudah di-invert (latar putih)
+                image_to_display = self.processed_image_data
             else:
-                inverted_data = self.original_image_data.copy()
+                # Jika tidak dicentang, gunakan gambar original (latar hitam)
+                image_to_display = self.original_image_data
             
-            # Recreate the canvas with new image data
-            old_canvas = self.canvas
-            self.canvas = SegmentationCanvas(inverted_data, self.mask_arr)
-            self.canvas.set_info_callback(self._update_info_display)
-            
-            # Replace in layout
-            self.main_area_layout.replaceWidget(old_canvas, self.canvas)
-            old_canvas.deleteLater()
-            
-            # Reconnect tool panel signals
-            self.tool_panel.connect_to_canvas(self.canvas)
-            self.opacity_panel.connect_to_canvas(self.canvas)
-            
+            # Panggil helper baru untuk memperbarui kanvas secara paksa
+            self._update_canvas_image(image_to_display.copy())
+
         except Exception as e:
-            print(f"✗ Error during image inversion: {e}")
+            print(f"✗ Error saat proses inversi gambar: {e}")
+            # Jika gagal, kembalikan status checkbox
             self.invert_checkbox.setChecked(not self.invert_checkbox.isChecked())
+
     def _load_mask_from_segmentation_png(self, segmentation_path: Path) -> np.ndarray:
         """Load mask from segmentation PNG file."""
         try:

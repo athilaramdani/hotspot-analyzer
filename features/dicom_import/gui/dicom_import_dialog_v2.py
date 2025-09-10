@@ -202,7 +202,7 @@ class DicomImportDialog(QDialog):
         main_layout.setSpacing(8)
         
         # Title with enhanced workflow info
-        title_text = "Import DICOM Files - Enhanced Auto-Detection Workflow"
+        title_text = "Import DICOM Files"
         if self.session_code:
             title_text += f" - Session: {self.session_code}"
             
@@ -270,8 +270,14 @@ class DicomImportDialog(QDialog):
         layout = QHBoxLayout()
         layout.setSpacing(10)
         
+
         file_folder_layout = QHBoxLayout()
 
+        # Tombol Cancel SEKARANG DI SINI
+        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn.setStyleSheet(DIALOG_CANCEL_BUTTON_STYLE)
+        file_folder_layout.addWidget(self.cancel_btn) # Ditambahkan ke layout kiri
+        
         self.add_dicom_btn = QPushButton("Add Files")
         self.add_dicom_btn.setStyleSheet(DIALOG_IMPORT_BUTTON_STYLE)
         file_folder_layout.addWidget(self.add_dicom_btn)
@@ -279,6 +285,8 @@ class DicomImportDialog(QDialog):
         self.add_folders_btn = QPushButton("Add Folders")
         self.add_folders_btn.setStyleSheet(DIALOG_IMPORT_BUTTON_STYLE)
         file_folder_layout.addWidget(self.add_folders_btn)
+
+        
 
         layout.addLayout(file_folder_layout)
         
@@ -296,8 +304,8 @@ class DicomImportDialog(QDialog):
         
         layout.addStretch()
         
-        # Review Data button
         self.configure_views_btn = QPushButton("Review Data")
+
         self.configure_views_btn.setEnabled(False)
         self.configure_views_btn.setStyleSheet(DIALOG_DISABLED_BUTTON_STYLE) # Gunakan style baru saat inisialisasi
         layout.addWidget(self.configure_views_btn)
@@ -308,10 +316,7 @@ class DicomImportDialog(QDialog):
         self.start_import_btn.setStyleSheet(DIALOG_START_BUTTON_STYLE)
         layout.addWidget(self.start_import_btn)
         
-        # Cancel button
-        self.cancel_btn = QPushButton("Cancel")
-        self.cancel_btn.setStyleSheet(DIALOG_CANCEL_BUTTON_STYLE)
-        layout.addWidget(self.cancel_btn)
+        # Tombol Cancel SUDAH DIPINDAHKAN DARI SINI
         
         return layout
         
@@ -1224,7 +1229,9 @@ class DicomImportDialog(QDialog):
         self.configure_views_btn.setEnabled(has_files)
         if has_files:
             if auto_configured_files == len(self.selected_files):
-                self.configure_views_btn.setText(" Review Data")
+
+                self.configure_views_btn.setText("Review Data")
+
                 self.configure_views_btn.setToolTip("All files auto-configured. Click to review and confirm.")
             elif manual_required_files == len(self.selected_files):
                 self.configure_views_btn.setText("⚙️ Configure Views")

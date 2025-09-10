@@ -586,7 +586,7 @@ class DicomPreviewThread(QThread):
                 needs_manual_config = True
                 has_reliable_detection = False
         
-        print(f"📊 Summary: {file_path.name}")
+        print(f"Summary: {file_path.name}")
         print(f"    Reliable detections: {reliable_detections}/{total_frames}")
         print(f"    Has reliable detection: {has_reliable_detection}")
         print(f"    Needs manual config: {needs_manual_config}")
@@ -726,7 +726,7 @@ class FrameWidget(QWidget):
             }.get(self.frame_info.detection_confidence, "❓")
             
             info_text += f"\nDetected: {self.frame_info.detected_view}"
-            info_text += f"\nConfidence: {confidence_icon} {self.frame_info.detection_confidence.title()}"
+            # info_text += f"\nConfidence: {confidence_icon} {self.frame_info.detection_confidence.title()}"
         else:
             info_text += f"\nDetected: None\nConfidence:  None"
         
@@ -755,7 +755,7 @@ class FrameWidget(QWidget):
         zoom_out_btn.setToolTip("Zoom Out")
         zoom_out_btn.clicked.connect(lambda: self._zoom_control(-1))
         
-        zoom_reset_btn = QPushButton("1:1")
+        zoom_reset_btn = QPushButton("Reset")
         zoom_reset_btn.setFixedSize(35, 25)
         zoom_reset_btn.setToolTip("Reset Zoom & Pan")
         zoom_reset_btn.clicked.connect(lambda: self._zoom_control(0))
@@ -844,46 +844,72 @@ class FrameWidget(QWidget):
         """)
         checkbox_layout.addWidget(status_label)
         
-        self.anterior_checkbox = QCheckBox("Anterior")
-        self.posterior_checkbox = QCheckBox("Posterior")
+        self.anterior_radio = QRadioButton("Anterior")
+        self.posterior_radio = QRadioButton("Posterior")
         
-        checkbox_style = f"""
-            QCheckBox {{
-                font-size: 12px;
-                font-weight: bold;
-                color: {Colors.DARK_GRAY};
-                padding: 4px;
+        # --- PERUBAHAN: Kontrol Pemilihan View menggunakan RadioButton ---
+        view_selection_frame = QFrame()
+        view_selection_frame.setStyleSheet(f"""
+            QFrame {{
+                background: rgba(248, 249, 250, 0.9);
+                border: 1px solid {Colors.BORDER_LIGHT};
+                border-radius: 6px;
+                padding: 6px;
             }}
-            QCheckBox::indicator {{
-                width: 18px;
-                height: 18px;
-            }}
-            QCheckBox::indicator:unchecked {{
-                border: 2px solid {Colors.BORDER_MEDIUM};
-                border-radius: 4px;
-                background: white;
-            }}
-            QCheckBox::indicator:checked {{
-                border: 2px solid {Colors.PRIMARY};
-                border-radius: 4px;
-                background: {Colors.PRIMARY};
-                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggMkw0IDZMMiA0IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K);
-            }}
-            QCheckBox::indicator:checked:hover {{
-                background: {Colors.PRIMARY};
-            }}
+        """)
+        view_selection_layout = QVBoxLayout(view_selection_frame)
+        view_selection_layout.setSpacing(8)
+
+        # Status indicator for auto-configuration (Sama seperti sebelumnya)
+        if self.frame_info.detection_confidence == "high":
+            status_text = "✔ Auto-configured"
+            status_color = Colors.SUCCESS
+        elif self.frame_info.detection_confidence == "low":
+            status_text = "⚠️ Please confirm"
+            status_color = Colors.WARNING
+        else:
+            status_text = "⚙️ Manual selection required"
+            status_color = Colors.SECONDARY
+        
+        status_label = QLabel(status_text)
+        status_label.setAlignment(Qt.AlignCenter)
+        status_label.setStyleSheet(f"color: {status_color}; font-size: 10px; font-weight: bold; padding: 2px 4px; font-style: italic;")
+        view_selection_layout.addWidget(status_label)
+
+        # Buat RadioButton dan ButtonGroup
+        self.view_button_group = QButtonGroup()
+        self.anterior_radio = QRadioButton("Anterior")
+        self.posterior_radio = QRadioButton("Posterior")
+        
+        # Gunakan style yang sama dengan radio button background
+        radio_style = f"""
+            QRadioButton {{ font-size: 11px; font-weight: bold; color: {Colors.DARK_GRAY}; padding: 2px; }}
+            QRadioButton::indicator {{ width: 14px; height: 14px; }}
+            QRadioButton::indicator:unchecked {{ border: 2px solid {Colors.BORDER_MEDIUM}; border-radius: 7px; background: white; }}
+            QRadioButton::indicator:checked {{ border: 2px solid {Colors.PRIMARY}; border-radius: 7px; background: {Colors.PRIMARY}; }}
         """
+        self.anterior_radio.setStyleSheet(radio_style)
+        self.posterior_radio.setStyleSheet(radio_style)
+
+        # Tambahkan ke group untuk mutual exclusivity
+        self.view_button_group.addButton(self.anterior_radio)
+        self.view_button_group.addButton(self.posterior_radio)
+        self.view_button_group.setExclusive(True) # Pastikan hanya satu yang bisa dipilih
+
+        # Atur status awal berdasarkan data
+        self.anterior_radio.setChecked(self.frame_info.is_anterior_checked)
+        self.posterior_radio.setChecked(self.frame_info.is_posterior_checked)
+
+        # Tambahkan ke layout horizontal agar berdampingan
+        radio_layout = QHBoxLayout()
+        # radio_layout.addStretch()
+        radio_layout.addWidget(self.anterior_radio)
+        radio_layout.addWidget(self.posterior_radio)
+        # radio_layout.addStretch()
+        view_selection_layout.addLayout(radio_layout)
         
-        self.anterior_checkbox.setStyleSheet(checkbox_style)
-        self.posterior_checkbox.setStyleSheet(checkbox_style)
-        
-        #   FIX 3: Set initial state properly based on confidence
-        self.anterior_checkbox.setChecked(self.frame_info.is_anterior_checked)
-        self.posterior_checkbox.setChecked(self.frame_info.is_posterior_checked)
-        
-        checkbox_layout.addWidget(self.anterior_checkbox)
-        checkbox_layout.addWidget(self.posterior_checkbox)
-        layout.addWidget(checkbox_frame)
+        layout.addWidget(view_selection_frame)
+        # --- AKHIR PERUBAHAN ---
         
         # TAMBAHAN BARU: Background Selection Controls
         background_frame = QFrame()
@@ -898,7 +924,7 @@ class FrameWidget(QWidget):
         """)
         background_layout = QVBoxLayout(background_frame)
         background_layout.setSpacing(6)
-        
+        bg_stats = "Background Analysis"
         # Background selection header with pixel stats
         if self.frame_info.pixel_analysis:
             analysis = self.frame_info.pixel_analysis
@@ -906,9 +932,9 @@ class FrameWidget(QWidget):
             confidence = analysis.get("confidence", 0)
             bg_percentage = analysis.get("background_percentage", 0)
             
-            bg_stats = f"📊 {bg_type.title()} background detected ({confidence}% confidence)"
+            
         else:
-            bg_stats = "📊 Background Analysis"
+            bg_stats = "Background Analysis"
         
         bg_header = QLabel(bg_stats)
         bg_header.setStyleSheet(f"""
@@ -928,8 +954,8 @@ class FrameWidget(QWidget):
         bg_radio_layout = QHBoxLayout()
         bg_radio_layout.setSpacing(12)
         
-        self.black_bg_radio = QRadioButton("🖤 Black Background")
-        self.white_bg_radio = QRadioButton("🤍 White Background")
+        self.black_bg_radio = QRadioButton("Black Background")
+        self.white_bg_radio = QRadioButton("White Background")
         
         # Set initial selection based on analysis
         detected_bg = self.frame_info.selected_background
@@ -998,6 +1024,9 @@ class FrameWidget(QWidget):
             }}
         """
         
+        self.anterior_radio.setStyleSheet(radio_style)
+        self.posterior_radio.setStyleSheet(radio_style)
+
         self.black_bg_radio.setStyleSheet(radio_style)
         self.white_bg_radio.setStyleSheet(radio_style)
         
@@ -1035,82 +1064,37 @@ class FrameWidget(QWidget):
     
     def _connect_signals(self):
         # Connect with parent reference for mutual exclusivity
-        self.anterior_checkbox.toggled.connect(
-            lambda checked: QTimer.singleShot(10, lambda: self._on_anterior_toggled(checked))
-        )
-        self.posterior_checkbox.toggled.connect(
-            lambda checked: QTimer.singleShot(10, lambda: self._on_posterior_toggled(checked))
-        )
-        
+        self.view_button_group.buttonToggled.connect(self._on_view_changed)
         self.background_group.buttonToggled.connect(self._on_background_changed)
         
-    def _on_anterior_toggled(self, checked: bool):
-        try:
-            # Block posterior signals during update
-            self.posterior_checkbox.blockSignals(True)
+    def _on_view_changed(self, button: QRadioButton, checked: bool):
+        """Handler baru untuk view radio buttons."""
+        if not checked:
+            # Hanya proses saat sebuah tombol menjadi checked
+            # Saat tombol lain di-uncheck, jangan lakukan apa-apa
+            # Ini mencegah sinyal ganda
+            return
             
-            if checked:
-                # Uncheck posterior on this frame (mutual exclusive per frame)
-                self.posterior_checkbox.setChecked(False)
-                self.frame_info.is_anterior_checked = True
-                self.frame_info.is_posterior_checked = False
-                self.frame_info.user_selected_view = "Anterior"
-                
-                # Enforce mutual exclusivity across all frames in this DICOM
-                parent_widget = self.parent()
-                while parent_widget and not isinstance(parent_widget, DicomFileWidget):
-                    parent_widget = parent_widget.parent()
-                
-                if parent_widget:
-                    parent_widget._enforce_mutual_exclusivity("Anterior", self)
-                    
-            else:
-                self.frame_info.is_anterior_checked = False
-                if not self.posterior_checkbox.isChecked():
-                    self.frame_info.user_selected_view = None
-            
-            self.posterior_checkbox.blockSignals(False)
-            
-            # Emit signal safely with delay
-            QTimer.singleShot(0, self.selection_changed.emit)
-            
-        except Exception as e:
-            print(f" ERROR in _on_anterior_toggled: {e}")
-            self.posterior_checkbox.blockSignals(False)
-    def _on_posterior_toggled(self, checked: bool):
-        try:
-            # Block anterior signals during update
-            self.anterior_checkbox.blockSignals(True)
-            
-            if checked:
-                # Uncheck anterior on this frame (mutual exclusive per frame)
-                self.anterior_checkbox.setChecked(False)
-                self.frame_info.is_posterior_checked = True
-                self.frame_info.is_anterior_checked = False
-                self.frame_info.user_selected_view = "Posterior"
-                
-                # Enforce mutual exclusivity across all frames in this DICOM
-                parent_widget = self.parent()
-                while parent_widget and not isinstance(parent_widget, DicomFileWidget):
-                    parent_widget = parent_widget.parent()
-                
-                if parent_widget:
-                    parent_widget._enforce_mutual_exclusivity("Posterior", self)
-                    
-            else:
-                self.frame_info.is_posterior_checked = False
-                if not self.anterior_checkbox.isChecked():
-                    self.frame_info.user_selected_view = None
-            
-            self.anterior_checkbox.blockSignals(False)
-            
-            # Emit signal safely with delay
-            QTimer.singleShot(0, self.selection_changed.emit)
-            
-        except Exception as e:
-            print(f" ERROR in _on_posterior_toggled: {e}")
-            self.anterior_checkbox.blockSignals(False)
-    
+        selected_view = None
+        if button == self.anterior_radio:
+            selected_view = "Anterior"
+            self.frame_info.is_anterior_checked = True
+            self.frame_info.is_posterior_checked = False
+        elif button == self.posterior_radio:
+            selected_view = "Posterior"
+            self.frame_info.is_posterior_checked = True
+            self.frame_info.is_anterior_checked = False
+
+        self.frame_info.user_selected_view = selected_view
+        
+        # Panggil parent untuk enforce exclusivity antar frame
+        parent_widget = self.get_dicom_file_widget()
+        if parent_widget and selected_view:
+            parent_widget._enforce_mutual_exclusivity(selected_view, self)
+
+        # Emit sinyal bahwa pilihan telah berubah
+        self.selection_changed.emit()
+
     def get_selection(self) -> Optional[str]:
         """Get current selection"""
         return self.frame_info.user_selected_view
@@ -1211,19 +1195,21 @@ class DicomFileWidget(QWidget):
             header_bg = "linear-gradient(135deg, #d4edda 0%, rgba(212, 237, 218, 0.8) 100%)"
             header_border = "#c3e6cb"
             status_icon = " "
-            status_text = "Auto-configured"
+            status_text = "Auto-Configured"
+            
         elif self.dicom_info.has_reliable_detection and self.dicom_info.needs_manual_config:
             # Partially auto-configured
             header_bg = "linear-gradient(135deg, #fff3cd 0%, rgba(255, 243, 205, 0.8) 100%)"
             header_border = "#ffeeba"
             status_icon = "⚠️"
-            status_text = "Partially configured"
+            status_text = "Partial - Needs Confirmation"
+            
         else:
             # Manual configuration required
             header_bg = "linear-gradient(135deg, #f8d7da 0%, rgba(248, 215, 218, 0.8) 100%)"
             header_border = "#f5c6cb"
             status_icon = "⚙️"
-            status_text = "Manual config required"
+            status_text = "Manual Selection Required"
         
         header_frame.setStyleSheet(f"""
             QFrame {{
@@ -1327,38 +1313,31 @@ class DicomFileWidget(QWidget):
         layout.addWidget(frames_container)
     
     def _enforce_mutual_exclusivity(self, selected_view: str, selected_frame_widget: 'FrameWidget'):
-        """Enforce mutual exclusivity: only one Anterior and one Posterior per DICOM file"""
+        """Enforce mutual exclusivity: hanya satu Anterior dan satu Posterior per DICOM file."""
         print(f"🔒 Enforcing mutual exclusivity: {selected_view} selected")
         
         for frame_widget in self.frame_widgets:
             if frame_widget == selected_frame_widget:
-                continue  # Skip the frame that was just selected
-            
-            # Block signals to prevent cascade updates
-            frame_widget.anterior_checkbox.blockSignals(True)
-            frame_widget.posterior_checkbox.blockSignals(True)
-            
-            if selected_view == "Anterior":
-                # Uncheck all other anterior checkboxes in this DICOM
-                if frame_widget.anterior_checkbox.isChecked():
-                    frame_widget.anterior_checkbox.setChecked(False)
-                    frame_widget.frame_info.is_anterior_checked = False
-                    if frame_widget.frame_info.user_selected_view == "Anterior":
-                        frame_widget.frame_info.user_selected_view = None
-                    print(f"  Unchecked Anterior on frame {frame_widget.frame_info.frame_index}")
-            
-            elif selected_view == "Posterior":
-                # Uncheck all other posterior checkboxes in this DICOM
-                if frame_widget.posterior_checkbox.isChecked():
-                    frame_widget.posterior_checkbox.setChecked(False)
-                    frame_widget.frame_info.is_posterior_checked = False
-                    if frame_widget.frame_info.user_selected_view == "Posterior":
-                        frame_widget.frame_info.user_selected_view = None
-                    print(f"  Unchecked Posterior on frame {frame_widget.frame_info.frame_index}")
-            
-            # Unblock signals
-            frame_widget.anterior_checkbox.blockSignals(False)
-            frame_widget.posterior_checkbox.blockSignals(False)
+                continue
+
+            # Gunakan QButtonGroup untuk me-reset pilihan di frame lain
+            if selected_view == "Anterior" and frame_widget.anterior_radio.isChecked():
+                frame_widget.view_button_group.setExclusive(False) # Matikan sementara
+                frame_widget.anterior_radio.setChecked(False)
+                frame_widget.view_button_group.setExclusive(True) # Nyalakan lagi
+                frame_widget.frame_info.is_anterior_checked = False
+                if frame_widget.frame_info.user_selected_view == "Anterior":
+                    frame_widget.frame_info.user_selected_view = None
+                print(f"  Unchecked Anterior on frame {frame_widget.frame_info.frame_index}")
+
+            elif selected_view == "Posterior" and frame_widget.posterior_radio.isChecked():
+                frame_widget.view_button_group.setExclusive(False) # Matikan sementara
+                frame_widget.posterior_radio.setChecked(False)
+                frame_widget.view_button_group.setExclusive(True) # Nyalakan lagi
+                frame_widget.frame_info.is_posterior_checked = False
+                if frame_widget.frame_info.user_selected_view == "Posterior":
+                    frame_widget.frame_info.user_selected_view = None
+                print(f"  Unchecked Posterior on frame {frame_widget.frame_info.frame_index}")
     
     
     def get_view_assignments(self) -> Dict[int, str]:
@@ -1439,7 +1418,7 @@ class DicomViewSelectorDialog(QDialog):
         self.dicom_infos: Dict[Path, DicomInfo] = {}
         self.dicom_widgets: List[DicomFileWidget] = []
 
-        self.setWindowTitle("Select Anterior/Posterior Views - Enhanced")
+        self.setWindowTitle("Select Anterior/Posterior Views ")
         self.setModal(True)
         self.resize(1400, 900)
 
@@ -1477,7 +1456,7 @@ class DicomViewSelectorDialog(QDialog):
         main_layout.setSpacing(12)
         
         # Enhanced title
-        title_label = QLabel("  Select Anterior/Posterior Views - Enhanced Auto-Detection")
+        title_label = QLabel("  Select Anterior/Posterior Views")
         title_label.setStyleSheet(f"""
             {DIALOG_TITLE_STYLE}
             font-size: 18px;
@@ -1489,38 +1468,38 @@ class DicomViewSelectorDialog(QDialog):
         title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label)
         
-        # Enhanced subtitle with pan instructions
-        subtitle_label = QLabel("Review auto-detected views • Mouse wheel: zoom • Drag: pan (when zoomed) • Double-click: reset view")
-        subtitle_label.setStyleSheet(f"""
-            {DIALOG_SUBTITLE_STYLE}
-            font-size: 13px;
-            padding: 8px;
-        """)
-        subtitle_label.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(subtitle_label)
+        # # Enhanced subtitle with pan instructions
+        # subtitle_label = QLabel("Review auto-detected views • Mouse wheel: zoom • Drag: pan (when zoomed) • Double-click: reset view")
+        # subtitle_label.setStyleSheet(f"""
+        #     {DIALOG_SUBTITLE_STYLE}
+        #     font-size: 13px;
+        #     padding: 8px;
+        # """)
+        # subtitle_label.setAlignment(Qt.AlignCenter)
+        # main_layout.addWidget(subtitle_label)
         
-        #   FIX 3: Enhanced instructions with detection status explanation
-        instructions = QLabel(
-            "  Selection Guide:\n"
-            "•   Auto-configured: Clear DICOM tags found, auto-selected\n"
-            "• ⚠️ Please confirm: Partial tags found, verify selection\n" 
-            "•  Manual required: No tags found, select manually\n"
-            "• Minimum requirement: 1 Anterior + 1 Posterior frame\n"
-            "• Extra frames can be left unselected\n"
-            "• Use zoom/pan to examine images before confirming"
-        )
-        instructions.setStyleSheet(f"""
-            QLabel {{
-                background: linear-gradient(135deg, {Colors.LIGHT_GRAY} 0%, rgba(240, 248, 255, 0.8) 100%);
-                border: 1px solid {Colors.BORDER_LIGHT};
-                border-radius: 8px;
-                padding: 12px;
-                font-size: 11px;
-                color: {Colors.DARK_GRAY};
-                line-height: 1.4;
-            }}
-        """)
-        main_layout.addWidget(instructions)
+        # #   FIX 3: Enhanced instructions with detection status explanation
+        # instructions = QLabel(
+        #     "  Selection Guide:\n"
+        #     "•   Auto-configured: Clear DICOM tags found, auto-selected\n"
+        #     "• ⚠️ Please confirm: Partial tags found, verify selection\n" 
+        #     "•  Manual required: No tags found, select manually\n"
+        #     "• Minimum requirement: 1 Anterior + 1 Posterior frame\n"
+        #     "• Extra frames can be left unselected\n"
+        #     "• Use zoom/pan to examine images before confirming"
+        # )
+        # instructions.setStyleSheet(f"""
+        #     QLabel {{
+        #         background: linear-gradient(135deg, {Colors.LIGHT_GRAY} 0%, rgba(240, 248, 255, 0.8) 100%);
+        #         border: 1px solid {Colors.BORDER_LIGHT};
+        #         border-radius: 8px;
+        #         padding: 12px;
+        #         font-size: 11px;
+        #         color: {Colors.DARK_GRAY};
+        #         line-height: 1.4;
+        #     }}
+        # """)
+        # main_layout.addWidget(instructions)
         
         # Enhanced scroll area
         self.scroll_area = QScrollArea()
