@@ -3,7 +3,7 @@
 Enhanced DICOM Import Dialog dengan improved auto-configuration status handling.
 
 FIXES:
-1. Proper status display for auto-configured vs manual configuration required
+1. Proper status display for auto-tagged vs manual configuration required
 2. Immediate status update based on detection confidence
 3. Enhanced workflow with better user feedback
 """
@@ -741,9 +741,9 @@ class DicomImportDialog(QDialog):
         
         if detection_info.get("has_reliable_detection", False):
             if not detection_info.get("needs_manual_config", True):
-                self.logger.info(f"  {truncate_text(file_path.name, 30)}: Fully auto-configured ({auto_count} frames)")
+                self.logger.info(f"  {truncate_text(file_path.name, 30)}: Fully auto-tagged ({auto_count} frames)")
             else:
-                self.logger.info(f"⚠️ {truncate_text(file_path.name, 30)}: Partially auto-configured ({auto_count} auto, {manual_count} manual)")
+                self.logger.info(f"⚠️ {truncate_text(file_path.name, 30)}: Partially auto-tagged ({auto_count} auto, {manual_count} manual)")
         else:
             self.logger.info(f" {truncate_text(file_path.name, 30)}: Manual configuration required ({manual_count} frames)")
     
@@ -761,20 +761,20 @@ class DicomImportDialog(QDialog):
         
         self.logger.info("📊 Detection Analysis Complete:")
         if fully_auto > 0:
-            self.logger.info(f"     {fully_auto} files fully auto-configured")
+            self.logger.info(f"     {fully_auto} files fully auto-tagged")
         if partially_auto > 0:
-            self.logger.info(f"   ⚠️ {partially_auto} files partially auto-configured")
+            self.logger.info(f"   ⚠️ {partially_auto} files partially auto-tagged")
         if manual_only > 0:
             self.logger.info(f"    {manual_only} files need manual configuration")
         
         if fully_auto == total_files:
-            self.logger.info("🎉 All files auto-configured! You can proceed directly to import.")
+            self.logger.info("🎉 All files auto-tagged! You can proceed directly to import.")
         elif manual_only == 0:
             self.logger.info("⚠️ Some files need verification. Please review in Configure Views.")
         else:
             self.logger.info("⚙️ Manual configuration required for some files.")
         
-        self.logger.info("Next step: Configure Views (or proceed if all auto-configured)")
+        self.logger.info("Next step: Configure Views (or proceed if all auto-tagged)")
     
     def _update_single_file_status(self, file_path: Path, detection_info: dict):
         """Update status for single file in the list"""
@@ -790,7 +790,7 @@ class DicomImportDialog(QDialog):
                     if isinstance(status_widget, QLabel):
                         if detection_info.get("has_reliable_detection", False):
                             if not detection_info.get("needs_manual_config", True):
-                                status_widget.setText("  Auto-configured")
+                                status_widget.setText("  auto-tagged")
                                 status_widget.setStyleSheet(f"""
                                     QLabel {{
                                         color: {Colors.SUCCESS};
@@ -1159,13 +1159,13 @@ class DicomImportDialog(QDialog):
                         has_anterior = "Anterior" in assignments.values()
                         has_posterior = "Posterior" in assignments.values()
                         
-                        # Check if this was originally auto-configured
+                        # Check if this was originally auto-tagged
                         detection_info = self.file_detection_status.get(file_path, {})
                         was_auto_configured = detection_info.get("has_reliable_detection", False) and not detection_info.get("needs_manual_config", True)
                         
                         if has_anterior and has_posterior:
                             if was_auto_configured:
-                                status_widget.setText("  Auto-configured")
+                                status_widget.setText("  auto-tagged")
                                 status_widget.setStyleSheet(f"""
                                     QLabel {{
                                         color: {Colors.SUCCESS};
@@ -1232,13 +1232,13 @@ class DicomImportDialog(QDialog):
 
                 self.configure_views_btn.setText("Review Data")
 
-                self.configure_views_btn.setToolTip("All files auto-configured. Click to review and confirm.")
+                self.configure_views_btn.setToolTip("All files auto-tagged. Click to review and confirm.")
             elif manual_required_files == len(self.selected_files):
                 self.configure_views_btn.setText("⚙️ Configure Views")
                 self.configure_views_btn.setToolTip("Manual configuration required for all files.")
             else:
                 self.configure_views_btn.setText("⚠️ Review & Configure")
-                self.configure_views_btn.setToolTip(f"{auto_configured_files} auto-configured, {manual_required_files} need manual config.")
+                self.configure_views_btn.setToolTip(f"{auto_configured_files} auto-tagged, {manual_required_files} need manual config.")
             self.configure_views_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
         else:
             self.configure_views_btn.setText("Configure Views")
@@ -1371,7 +1371,7 @@ class DicomImportDialog(QDialog):
         if auto_configured_count > 0 and manual_configured_count > 0:
             self.logger.info(f"Configuration: {auto_configured_count} auto + {manual_configured_count} manual")
         elif auto_configured_count == len(self.view_assignments):
-            self.logger.info(f"Configuration: All {auto_configured_count} files auto-configured")
+            self.logger.info(f"Configuration: All {auto_configured_count} files auto-tagged")
         else:
             self.logger.info(f"Configuration: All {manual_configured_count} files manually configured")
         
@@ -1420,7 +1420,7 @@ class DicomImportDialog(QDialog):
         if auto_configured_count > 0 and manual_configured_count > 0:
             self.logger.info(f"  Successfully processed: {auto_configured_count} auto + {manual_configured_count} manual files")
         elif auto_configured_count == len(self.view_assignments):
-            self.logger.info(f"  Successfully processed: All {auto_configured_count} auto-configured files")
+            self.logger.info(f"  Successfully processed: All {auto_configured_count} auto-tagged files")
         else:
             self.logger.info(f"  Successfully processed: All {manual_configured_count} manually configured files")
         
@@ -1441,7 +1441,7 @@ class DicomImportDialog(QDialog):
         if auto_configured_count > 0 and manual_configured_count > 0:
             config_summary = f"({auto_configured_count} auto + {manual_configured_count} manual)"
         elif auto_configured_count == processed_count:
-            config_summary = f"(all {auto_configured_count} auto-configured)"
+            config_summary = f"(all {auto_configured_count} auto-tagged)"
         else:
             config_summary = f"(all {manual_configured_count} manually configured)"
         
@@ -1690,9 +1690,9 @@ def debug_detection_system(file_paths: List[Path]) -> dict:
             print(f"  Manual required: {manual_count}")
             
             if has_reliable and not needs_manual:
-                print(f"    Status: Fully auto-configured")
+                print(f"    Status: Fully auto-tagged")
             elif has_reliable and needs_manual:
-                print(f"  ⚠️ Status: Partially auto-configured")
+                print(f"  ⚠️ Status: Partially auto-tagged")
             else:
                 print(f"   Status: Manual configuration required")
             
