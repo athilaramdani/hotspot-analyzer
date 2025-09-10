@@ -1,13 +1,14 @@
-# features/spect_viewer/gui/side_panel.py - REFACTORED with Unified Primary Button Style for All Exports
+# features/spect_viewer/gui/side_panel.py
 
 from pathlib import Path
 from typing import Dict, Any, List
 from datetime import datetime
+from PySide6.QtWidgets import QSizePolicy, QHeaderView, QSplitter
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QScrollArea,
-    QTableWidget, QTableWidgetItem, QAbstractItemView, QCheckBox
+    QTableWidget, QTableWidgetItem, QAbstractItemView, QCheckBox, QHeaderView
 )
 from PySide6.QtGui import QColor, QFont
 
@@ -256,7 +257,6 @@ class BSISidePanel(QWidget):
         self._two_tables_wired = True
 
     def _create_results_table_v2(self) -> QWidget:
-        from PySide6.QtWidgets import QSizePolicy, QHeaderView
         table_container = QFrame()
         table_container.setObjectName("bsiTableFrame")
         table_container.setStyleSheet("""
@@ -271,11 +271,21 @@ class BSISidePanel(QWidget):
         title = QLabel("<b>Quantification Results</b>")
         title.setStyleSheet("font-size: 12px; color: #495057; font-weight: bold; margin: 8px;")
         outer.addWidget(title)
-        row = QHBoxLayout()
-        row.setContentsMargins(0, 0, 0, 0)
-        row.setSpacing(0)
-        outer.addLayout(row)
-        self.results_table_left = QTableWidget(0, 1)
+
+        # 🟢 PENTING: Gunakan QSplitter sebagai container untuk kedua tabel
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.setHandleWidth(1) # Atur lebar handle agar terlihat seperti garis tipis
+        splitter.setStyleSheet("""
+            QSplitter::handle {
+                background-color: #e9ecef;
+                width: 1px;
+                margin: 0px;
+            }
+        """)
+
+        # LEFT (Region, frozen)
+        self.results_table_left = QTableWidget()
+        self.results_table_left.setColumnCount(1)
         self.results_table_left.setHorizontalHeaderLabels(["Region"])
         self.results_table_left.verticalHeader().setVisible(False)
         self.results_table_left.setAlternatingRowColors(True)
@@ -284,14 +294,18 @@ class BSISidePanel(QWidget):
         self.results_table_left.setSortingEnabled(False)
         self.results_table_left.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.results_table_left.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.results_table_left.horizontalHeader().setStretchLastSection(True)
+        
+        # ❗ PENTING: Set stretch last section to False for the left table
+        self.results_table_left.horizontalHeader().setStretchLastSection(False)
         self.results_table_left.verticalHeader().setDefaultSectionSize(30)
         self.results_table_left.verticalHeader().setSectionResizeMode(QHeaderView.Interactive)
-        sep = QFrame()
-        sep.setFixedWidth(1)
-        sep.setStyleSheet("background: #e9ecef;")
-        self.results_table_right = QTableWidget(0, 4)
-        self.results_table_right.setHorizontalHeaderLabels(["Malignant Ant", "Malignant Post", "Benign Ant", "Benign Post"])
+        
+        # RIGHT (data)
+        self.results_table_right = QTableWidget()
+        self.results_table_right.setColumnCount(4)
+        self.results_table_right.setHorizontalHeaderLabels([
+            "Malignant Ant", "Malignant Post", "Benign Ant", "Benign Post"
+        ])
         self.results_table_right.verticalHeader().setVisible(False)
         self.results_table_right.setAlternatingRowColors(True)
         self.results_table_right.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -301,16 +315,24 @@ class BSISidePanel(QWidget):
         header = self.results_table_right.horizontalHeader()
         header.setSortIndicatorShown(False)
         header.setSectionsClickable(False)
-        header.setSectionResizeMode(header.ResizeMode.Interactive)
+        
+        # ❗ PENTING: Set stretch last section to True for the right table
+        header.setStretchLastSection(True)
+        header.setSectionResizeMode(QHeaderView.Interactive)
         self.results_table_right.verticalHeader().setDefaultSectionSize(30)
         self.results_table_right.verticalHeader().setSectionResizeMode(QHeaderView.Interactive)
-        self.results_table_left.setMinimumWidth(200)
-        self.results_table_right.setColumnWidth(0, 130); self.results_table_right.setColumnWidth(1, 130)
-        self.results_table_right.setColumnWidth(2, 120); self.results_table_right.setColumnWidth(3, 120)
         self.results_table_right.setMinimumHeight(650)
-        row.addWidget(self.results_table_left)
-        row.addWidget(sep)
-        row.addWidget(self.results_table_right, 1)
+        
+        # 🟢 PENTING: Tambahkan kedua tabel ke splitter
+        splitter.addWidget(self.results_table_left)
+        splitter.addWidget(self.results_table_right)
+        
+        # Atur rasio lebar awal
+        splitter.setSizes([200, 600]) 
+
+        # 🟢 PENTING: Tambahkan splitter ke layout luar
+        outer.addWidget(splitter) 
+
         note = QLabel("<i>Format: pixel_count (decimal_ratio) • Drag header untuk resize</i>")
         note.setStyleSheet("font-size: 10px; color: #6c757d; font-style: italic; margin: 6px 8px;")
         outer.addWidget(note)
@@ -329,9 +351,7 @@ class BSISidePanel(QWidget):
         last = len(order)
         if last < self.results_table_left.rowCount():
             total_item = QTableWidgetItem("TOTAL")
-            f = QFont(); f.setBold(True)
-            total_item.setFont(f)
-            total_item.setData(Qt.UserRole, "zzz_total")
+            f = QFont(); f.setBold(True); total_item.setFont(f); total_item.setData(Qt.UserRole, "zzz_total")
             self.results_table_left.setItem(last, 0, total_item)
     
     def load_patient_data(self, patient_folder: Path, patient_id: str, study_date: str) -> bool:
@@ -362,43 +382,100 @@ class BSISidePanel(QWidget):
         if not anterior_data and not posterior_data:
             self.results_table_left.setRowCount(0); self.results_table_right.setRowCount(0)
             return
+
         all_regions = sorted(list(set(anterior_data.keys()) | set(posterior_data.keys()) - {'background'}))
         rows = len(all_regions) + 1
         self.results_table_left.setRowCount(rows); self.results_table_right.setRowCount(rows)
-        totals = {'ant_b': 0, 'post_b': 0, 'ant_m': 0, 'post_m': 0}
-        for row, region in enumerate(all_regions):
-            ant = anterior_data.get(region, {}) or {}; pos = posterior_data.get(region, {}) or {}
-            ant_b, ant_b_r = ant.get('benign_pixels', 0), ant.get('benign_ratio', 0.0)
-            pos_b, pos_b_r = pos.get('benign_pixels', 0), pos.get('benign_ratio', 0.0)
-            ant_m, ant_m_r = ant.get('malignant_pixels', 0), ant.get('malignant_ratio', 0.0)
-            pos_m, pos_m_r = pos.get('malignant_pixels', 0), pos.get('malignant_ratio', 0.0)
-            totals['ant_b'] += ant_b; totals['post_b'] += pos_b; totals['ant_m'] += ant_m; totals['post_m'] += pos_m
-            pos_b_txt = "N/A" if processing_mode == 'single_view_anterior' else f"{pos_b} ({pos_b_r:.3f})"
-            pos_m_txt = "N/A" if processing_mode == 'single_view_anterior' else f"{pos_m} ({pos_m_r:.3f})"
-            ant_b_txt = "N/A" if processing_mode == 'single_view_posterior' else f"{ant_b} ({ant_b_r:.3f})"
-            ant_m_txt = "N/A" if processing_mode == 'single_view_posterior' else f"{ant_m} ({ant_m_r:.3f})"
-            self.results_table_left.setItem(row, 0, QTableWidgetItem(region.title()))
-            items = [QTableWidgetItem(ant_m_txt), QTableWidgetItem(pos_m_txt), QTableWidgetItem(ant_b_txt), QTableWidgetItem(pos_b_txt)]
-            for c, it in enumerate(items):
-                it.setData(Qt.UserRole + 1, region)
-                if c in (0,1) and ( (c==0 and ant_m>0 and processing_mode!='single_view_posterior') or (c==1 and pos_m>0 and processing_mode!='single_view_anterior') ):
-                    it.setBackground(QColor(255, 200, 200))
-                elif it.text() == "N/A": it.setBackground(QColor(240, 240, 240))
+
+        total_ant_benign, total_post_benign, total_ant_malignant, total_post_malignant = 0, 0, 0, 0
+
+        for row, region_name in enumerate(all_regions):
+            ant = anterior_data.get(region_name, {}) or {}; pos = posterior_data.get(region_name, {}) or {}
+            
+            ant_benign, ant_benign_ratio = ant.get('benign_pixels', 0), ant.get('benign_ratio', 0.0)
+            pos_benign, pos_benign_ratio = pos.get('benign_pixels', 0), pos.get('benign_ratio', 0.0)
+            ant_malig, ant_malig_ratio = ant.get('malignant_pixels', 0), ant.get('malignant_ratio', 0.0)
+            pos_malig, pos_malig_ratio = pos.get('malignant_pixels', 0), pos.get('malignant_ratio', 0.0)
+
+            total_ant_benign += ant_benign; total_post_benign += pos_benign
+            total_ant_malignant += ant_malig; total_post_malignant += pos_malig
+
+            if processing_mode == 'single_view_anterior':
+                pos_benign_text, pos_malig_text = "N/A", "N/A"
+            else:
+                pos_benign_text = f"{pos_benign} ({pos_benign_ratio:.3f})"
+                pos_malig_text = f"{pos_malig} ({pos_malig_ratio:.3f})"
+
+            if processing_mode == 'single_view_posterior':
+                ant_benign_text, ant_malig_text = "N/A", "N/A"
+            else:
+                ant_benign_text = f"{ant_benign} ({ant_benign_ratio:.3f})"
+                ant_malig_text = f"{ant_malig} ({ant_malig_ratio:.3f})"
+
+            # LEFT (Region)
+            self.results_table_left.setItem(row, 0, QTableWidgetItem(region_name.title()))
+
+            # RIGHT (4 kolom)
+            right_items = [
+                QTableWidgetItem(ant_malig_text), QTableWidgetItem(pos_malig_text),
+                QTableWidgetItem(ant_benign_text), QTableWidgetItem(pos_benign_text)
+            ]
+            for c, it in enumerate(right_items):
+                it.setData(Qt.UserRole + 1, region_name)
+                if c in (0, 1):
+                    if c == 0 and ant_malig > 0 and processing_mode != 'single_view_posterior':
+                        it.setBackground(QColor(255, 200, 200))
+                    elif c == 1 and pos_malig > 0 and processing_mode != 'single_view_anterior':
+                        it.setBackground(QColor(255, 200, 200))
+                    elif it.text() == "N/A":
+                        it.setBackground(QColor(240, 240, 240))
                 self.results_table_right.setItem(row, c, it)
+
+        # TOTAL ROW
         last = len(all_regions)
         total_lbl = QTableWidgetItem("TOTAL"); f = QFont(); f.setBold(True); total_lbl.setFont(f); total_lbl.setData(Qt.UserRole, "zzz_total")
         self.results_table_left.setItem(last, 0, total_lbl)
-        if processing_mode == 'single_view_anterior': total_items = [QTableWidgetItem(str(totals['ant_m'])), QTableWidgetItem("N/A"), QTableWidgetItem(str(totals['ant_b'])), QTableWidgetItem("N/A")]
-        elif processing_mode == 'single_view_posterior': total_items = [QTableWidgetItem("N/A"), QTableWidgetItem(str(totals['post_m'])), QTableWidgetItem("N/A"), QTableWidgetItem(str(totals['post_b']))]
-        else: total_items = [QTableWidgetItem(str(totals['ant_m'])), QTableWidgetItem(str(totals['post_m'])), QTableWidgetItem(str(totals['ant_b'])), QTableWidgetItem(str(totals['post_b']))]
-        for it in total_items: it.setBackground(QColor(230, 230, 230)); it.setData(Qt.UserRole, "zzz_total")
-        for c, it in enumerate(total_items): it.setData(Qt.UserRole + 1, "__total__"); self.results_table_right.setItem(last, c, it)
-        left = self.results_table_left; left.resizeColumnsToContents()
-        left.setFixedWidth(max(200, left.verticalHeader().width() + left.sizeHintForColumn(0) + 12))
-        for r in range(min(self.results_table_left.rowCount(), self.results_table_right.rowCount())): self.results_table_left.verticalHeader().resizeSection(r, self.results_table_right.rowHeight(r))
-    
+
+        if processing_mode == 'single_view_anterior':
+            totals = [QTableWidgetItem(str(total_ant_malignant)), QTableWidgetItem("N/A"),
+                      QTableWidgetItem(str(total_ant_benign)), QTableWidgetItem("N/A")]
+        elif processing_mode == 'single_view_posterior':
+            totals = [QTableWidgetItem("N/A"), QTableWidgetItem(str(total_post_malignant)),
+                      QTableWidgetItem("N/A"), QTableWidgetItem(str(total_post_benign))]
+        else:
+            totals = [QTableWidgetItem(str(total_ant_malignant)), QTableWidgetItem(str(total_post_malignant)),
+                      QTableWidgetItem(str(total_ant_benign)), QTableWidgetItem(str(total_post_benign))]
+
+        for it in totals:
+            it.setBackground(QColor(230, 230, 230))
+            it.setData(Qt.UserRole, "zzz_total")
+        for c, it in enumerate(totals):
+            it.setData(Qt.UserRole + 1, "__total__")
+            self.results_table_right.setItem(last, c, it)
+        
+        # PENTING: Gunakan header kanan untuk mengatur lebar awal kolom
+        self.results_table_right.resizeColumnsToContents()
+        self.results_table_right.setColumnWidth(0, max(130, self.results_table_right.columnWidth(0)))
+        self.results_table_right.setColumnWidth(1, max(130, self.results_table_right.columnWidth(1)))
+        self.results_table_right.setColumnWidth(2, max(120, self.results_table_right.columnWidth(2)))
+        self.results_table_right.setColumnWidth(3, max(120, self.results_table_right.columnWidth(3)))
+
+        # Hitung lebar tabel kiri secara dinamis & atur sebagai lebar tetap
+        left_table = self.results_table_left
+        left_header = left_table.horizontalHeader()
+        left_header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        left_table.resizeColumnsToContents()
+        width = left_table.verticalHeader().width() + left_header.sectionSize(0) + left_table.frameWidth() * 2
+        left_table.setFixedWidth(width)
+        left_header.setSectionResizeMode(0, QHeaderView.Interactive)
+
+        # Samakan tinggi semua baris awal
+        rows_sync = min(self.results_table_left.rowCount(), self.results_table_right.rowCount())
+        for r in range(rows_sync):
+            self.results_table_left.verticalHeader().resizeSection(r, self.results_table_right.rowHeight(r))
+
     def _update_patient_info(self, patient_id: str, study_date: str):
-        pass 
+        pass
     
     def clear_patient_data(self):
         print("[BSI SIDE PANEL] Clearing data...")
@@ -452,7 +529,7 @@ class BSISidePanel(QWidget):
                         writer.writerow(["Anterior BSI (%)", f"{summary.get('anterior_bsi', 0.0):.2f}%"]); writer.writerow(["Posterior BSI (%)", "N/A"])
                     elif mode == 'single_view_posterior':
                         writer.writerow(["Anterior BSI (%)", "N/A"]); writer.writerow(["Posterior BSI (%)", f"{summary.get('posterior_bsi', 0.0):.2f}%"])
-            print(f"[BSI EXPORT] CSV exported to {file_path}")
+                print(f"[BSI EXPORT] CSV exported to {file_path}")
         except Exception as e: print(f"[BSI EXPORT] Error: {e}")
 
     def export_chart_to_file(self, file_path: Path) -> bool: return self.bsi_canvas.export_chart(file_path)

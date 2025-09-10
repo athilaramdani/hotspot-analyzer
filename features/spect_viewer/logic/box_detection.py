@@ -354,24 +354,12 @@ def write_pascal_voc_xml(output_path: Path, image_shape: Tuple[int, int],
         print(f"[XML ERROR] Failed to write XML: {e}")
         traceback.print_exc()
 
+
 def process_dicom_for_detection(dicom_path: Path, patient_id: str, 
                                session_code: str = None) -> Dict[str, bool]:
-    """
-      ENHANCED: FORCE YOLO execution - critical for application pipeline
-    
-    Args:
-        dicom_path: Path to DICOM file
-        patient_id: Patient ID
-        session_code: Session code (extracted from path if None)
-        
-    Returns:
-        Dictionary indicating success for each view
-    """
     try:
         print(f"[DETECTION] Processing DICOM: {dicom_path}")
         print(f"[DETECTION] FORCED YOLO execution - application requires this functionality")
-        
-        # Load frames from DICOM
         frames_dict, metadata = load_frames_and_metadata(str(dicom_path))
         
         if not frames_dict:
@@ -525,7 +513,6 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
         print(f"[DETECTION FATAL ERROR] Failed to process {dicom_path}: {e}")
         traceback.print_exc()
         return {"anterior": False, "posterior": False}
-
 # For backward compatibility
 def run_yolo_detection_for_patient(scan_path: Path, patient_id: str) -> Dict[str, bool]:
     """
