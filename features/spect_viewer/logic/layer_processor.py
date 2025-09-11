@@ -21,7 +21,7 @@ from core.utils.image_converter import (
     load_image_with_transparency,
     apply_opacity_to_image
 )
-
+import logging
 from features.dicom_import.logic.dicom_loader import extract_patient_info_from_path
 from .bounding_box_renderer import BoundingBoxRenderer
 
@@ -43,10 +43,10 @@ class LayerProcessor:
             if session_code == "UNKNOWN" and self.session_code:
                 session_code = self.session_code
                 
-            print(f"[DEBUG] Extracted from {dicom_path}: patient={patient_id}, session={session_code}")
+            logging.info(f"[DEBUG] Extracted from {dicom_path}: patient={patient_id}, session={session_code}")
             return patient_id, session_code
         except Exception as e:
-            print(f"[WARN] Failed to extract patient/session from scan: {e}")
+            logging.info(f"[WARN] Failed to extract patient/session from scan: {e}")
             return "UNKNOWN", self.session_code or "UNKNOWN"
     
     def get_layer_images(self, scan: Dict, current_view: str) -> Dict[str, Image.Image]:
@@ -69,10 +69,10 @@ class LayerProcessor:
             study_date = extract_study_date_from_dicom(dicom_path)
             patient_id, session_code = self.get_patient_session_from_scan(scan)
             filename_with_date = generate_filename_stem(patient_id, study_date)
-            print(f"[DEBUG] Using filename stem with study date: {filename_with_date}")
-            print(f"[DEBUG] Patient ID: {patient_id}, Study Date: {study_date}")
+            logging.info(f"[DEBUG] Using filename stem with study date: {filename_with_date}")
+            logging.info(f"[DEBUG] Patient ID: {patient_id}, Study Date: {study_date}")
         except Exception as e:
-            print(f"[WARN] Could not extract study date, using original filename: {e}")
+            logging.info(f"[WARN] Could not extract study date, using original filename: {e}")
             study_date = None
             filename_with_date = dicom_path.stem
             patient_id, session_code = self.get_patient_session_from_scan(scan)
@@ -107,21 +107,21 @@ class LayerProcessor:
         # Prioritize edited files
         if seg_files['png_colored_edited'].exists():
             seg_png = seg_files['png_colored_edited']
-            print(f"[DEBUG] Found edited segmentation: {seg_png}")
+            logging.info(f"[DEBUG] Found edited segmentation: {seg_png}")
         else:
             seg_png = seg_files['png_colored']
-            print(f"[DEBUG] Found original segmentation: {seg_png}")
+            logging.info(f"[DEBUG] Found original segmentation: {seg_png}")
         
         if seg_png.exists():
             try:
                 # Load with transparency (make black pixels transparent)
                 seg_image = load_image_with_transparency(seg_png, make_transparent=True)
-                print(f"[DEBUG] Loaded segmentation with transparency: {seg_png}")
+                logging.info(f"[DEBUG] Loaded segmentation with transparency: {seg_png}")
                 return seg_image
             except Exception as e:
-                print(f"[WARN] Failed to load segmentation image: {e}")
+                logging.info(f"[WARN] Failed to load segmentation image: {e}")
         else:
-            print(f"[WARN] Segmentation file not found: {seg_png}")
+            logging.info(f"[WARN] Segmentation file not found: {seg_png}")
         
         return None
     
@@ -144,27 +144,27 @@ class LayerProcessor:
         # Priority 1: Try EDITED version first (user's latest changes)
         if hotspot_files['colored_png_edited'].exists():
             hotspot_png = hotspot_files['colored_png_edited']
-            print(f"[DEBUG] Found EDITED hotspot: {hotspot_png}")
+            logging.info(f"[DEBUG] Found EDITED hotspot: {hotspot_png}")
         # Priority 2: Try original version 
         elif hotspot_files['colored_png'].exists():
             hotspot_png = hotspot_files['colored_png']
-            print(f"[DEBUG] Found original hotspot: {hotspot_png}")
+            logging.info(f"[DEBUG] Found original hotspot: {hotspot_png}")
         # Priority 3: Fallback to legacy naming for backward compatibility
         elif hotspot_files.get('colored_png_legacy') and hotspot_files['colored_png_legacy'].exists():
             hotspot_png = hotspot_files['colored_png_legacy']
-            print(f"[DEBUG] Found hotspot (legacy naming): {hotspot_png}")
+            logging.info(f"[DEBUG] Found hotspot (legacy naming): {hotspot_png}")
         
         if hotspot_png and hotspot_png.exists():
             try:
                 # Load with transparency (make black pixels transparent)
                 hotspot_image = load_image_with_transparency(hotspot_png, make_transparent=True)
-                print(f"[DEBUG] Loaded hotspot with transparency: {hotspot_png}")
+                logging.info(f"[DEBUG] Loaded hotspot with transparency: {hotspot_png}")
                 return hotspot_image
             except Exception as e:
-                print(f"[WARN] Failed to load hotspot image: {e}")
+                logging.info(f"[WARN] Failed to load hotspot image: {e}")
         else:
             filename_stem = generate_filename_stem(patient_id, study_date) if study_date else "unknown"
-            print(f"[WARN] No hotspot files found for {filename_stem}")
+            logging.info(f"[WARN] No hotspot files found for {filename_stem}")
         
         return None
     
@@ -180,21 +180,21 @@ class LayerProcessor:
         xml_file = None
         if xml_files['xml_file_edited'].exists():
             xml_file = xml_files['xml_file_edited']
-            print(f"[DEBUG] Found EDITED XML: {xml_file}")
+            logging.info(f"[DEBUG] Found EDITED XML: {xml_file}")
         elif xml_files['xml_file'].exists():
             xml_file = xml_files['xml_file']
-            print(f"[DEBUG] Found original XML: {xml_file}")
+            logging.info(f"[DEBUG] Found original XML: {xml_file}")
         
         if xml_file and xml_file.exists():
             try:
                 # Create bounding box overlay
                 bbox_image = self.bbox_renderer.create_bounding_box_overlay(xml_file, original_image.size)
-                print(f"[DEBUG] Created bounding box overlay from: {xml_file}")
+                logging.info(f"[DEBUG] Created bounding box overlay from: {xml_file}")
                 return bbox_image
             except Exception as e:
-                print(f"[WARN] Failed to create bounding box overlay: {e}")
+                logging.info(f"[WARN] Failed to create bounding box overlay: {e}")
         else:
-            print(f"[WARN] No XML file found for bounding boxes")
+            logging.info(f"[WARN] No XML file found for bounding boxes")
         
         return None
     

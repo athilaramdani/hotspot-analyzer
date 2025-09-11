@@ -15,7 +15,7 @@ from pathlib import Path
 from typing  import Dict, List, Tuple
 
 import pydicom
-
+import logging
 # Use centralized path configuration
 from core.config.paths import PLANAR_DATA_PATH, get_patient_planar_path, get_session_planar_path
 
@@ -69,13 +69,13 @@ def scan_dicom_directory(directory: Path) -> Dict[str, List[Path]]:
     patient_map: Dict[str, List[Path]] = {}
 
     dicoms = list(directory.glob("**/*.dcm"))
-    print(f"Ditemukan {len(dicoms)} file DICOM di '{directory}'")
+    logging.info(f"Ditemukan {len(dicoms)} file DICOM di '{directory}'")
 
     for p in dicoms:
         try:
             ds = pydicom.dcmread(p, stop_before_pixels=True)
         except Exception as e:
-            print(f"[WARN] Tidak bisa baca {p}: {e}")
+            logging.info(f"[WARN] Tidak bisa baca {p}: {e}")
             continue
 
         #   REMOVED: _is_primary() filter
@@ -88,7 +88,7 @@ def scan_dicom_directory(directory: Path) -> Dict[str, List[Path]]:
         patient_map.setdefault(pid, []).append(p)
 
     total_scans = sum(len(v) for v in patient_map.values())
-    print(f"Ditemukan {len(patient_map)} ID pasien (total {total_scans} file DICOM).")
+    logging.info(f"Ditemukan {len(patient_map)} ID pasien (total {total_scans} file DICOM).")
     return patient_map
 
 def scan_spect_directory_new_structure(directory: Path = None) -> Dict[str, Dict[str, List[Path]]]:
@@ -102,17 +102,17 @@ def scan_spect_directory_new_structure(directory: Path = None) -> Dict[str, Dict
     session_patient_map: Dict[str, Dict[str, List[Path]]] = {}
     
     if not directory.exists():
-        print(f"Directory tidak ditemukan: {directory}")
+        logging.info(f"Directory tidak ditemukan: {directory}")
         return session_patient_map
 
     dicoms = list(directory.glob("**/*.dcm"))
-    print(f"Ditemukan {len(dicoms)} file DICOM di '{directory}'")
+    logging.info(f"Ditemukan {len(dicoms)} file DICOM di '{directory}'")
 
     for p in dicoms:
         try:
             ds = pydicom.dcmread(p, stop_before_pixels=True)
         except Exception as e:
-            print(f"[WARN] Tidak bisa baca {p}: {e}")
+            logging.info(f"[WARN] Tidak bisa baca {p}: {e}")
             continue
 
         #   REMOVED: _is_primary() filter
@@ -143,13 +143,13 @@ def scan_spect_directory_new_structure(directory: Path = None) -> Dict[str, Dict
     total_scans = sum(len(files) for patients in session_patient_map.values() 
                      for files in patients.values())
     
-    print(f"Ditemukan {total_sessions} session, {total_patients} pasien (total {total_scans} file DICOM).")
+    logging.info(f"Ditemukan {total_sessions} session, {total_patients} pasien (total {total_scans} file DICOM).")
     
     # Print detailed breakdown
     for session_code, patients in session_patient_map.items():
         patient_count = len(patients)
         scan_count = sum(len(files) for files in patients.values())
-        print(f"    {session_code}: {patient_count} pasien, {scan_count} file")
+        logging.info(f"    {session_code}: {patient_count} pasien, {scan_count} file")
     
     return session_patient_map
 
@@ -161,7 +161,7 @@ def get_session_patients(session_code: str) -> Dict[str, List[Path]]:
     session_path = get_session_planar_path(session_code)
     
     if not session_path.exists():
-        print(f"Session directory tidak ditemukan: {session_path}")
+        logging.info(f"Session directory tidak ditemukan: {session_path}")
         return {}
     
     patient_map: Dict[str, List[Path]] = {}
@@ -182,7 +182,7 @@ def get_session_patients(session_code: str) -> Dict[str, List[Path]]:
                 ds = pydicom.dcmread(dicom_file, stop_before_pixels=True)
                 patient_files.append(dicom_file)
             except Exception as e:
-                print(f"[WARN] Tidak bisa baca {dicom_file}: {e}")
+                logging.info(f"[WARN] Tidak bisa baca {dicom_file}: {e}")
                 continue
         
         if patient_files:
@@ -242,7 +242,7 @@ def get_patient_dicom_files(session_code: str, patient_id: str, primary_only: bo
                     ds = pydicom.dcmread(dicom_file, stop_before_pixels=True)
                     dicom_files.append(dicom_file)
                 except Exception as e:
-                    print(f"[WARN] Tidak bisa baca {dicom_file}: {e}")
+                    logging.info(f"[WARN] Tidak bisa baca {dicom_file}: {e}")
                     continue
     
     # Cari juga di level patient langsung (backward compatibility)
@@ -251,7 +251,7 @@ def get_patient_dicom_files(session_code: str, patient_id: str, primary_only: bo
             ds = pydicom.dcmread(dicom_file, stop_before_pixels=True)
             dicom_files.append(dicom_file)
         except Exception as e:
-            print(f"[WARN] Tidak bisa baca {dicom_file}: {e}")
+            logging.info(f"[WARN] Tidak bisa baca {dicom_file}: {e}")
             continue
     
     return sorted(dicom_files)
@@ -266,7 +266,7 @@ def scan_and_migrate_old_structure() -> Dict[str, Dict[str, List[Path]]]:
     try:
         migrate_old_to_new_structure()
     except Exception as e:
-        print(f"[WARN] Migration failed: {e}")
+        logging.info(f"[WARN] Migration failed: {e}")
     
     # Then scan with new structure
     return scan_spect_directory_new_structure()
@@ -278,31 +278,31 @@ def validate_directory_structure() -> bool:
     """
     try:
         if not PLANAR_DATA_PATH.exists():
-            print(" SPECT data directory does not exist")
+            logging.info(" SPECT data directory does not exist")
             return False
         
         sessions = get_all_sessions()
         if not sessions:
-            print("⚠️  No sessions found")
+            logging.info("⚠️  No sessions found")
             return True  # Empty is valid
         
-        print(f"  Found {len(sessions)} sessions: {', '.join(sessions)}")
+        logging.info(f"  Found {len(sessions)} sessions: {', '.join(sessions)}")
         
         # Check each session
         for session in sessions:
             session_path = get_session_planar_path(session)
             patients = get_session_patients(session)
-            print(f"    {session}: {len(patients)} patients")
+            logging.info(f"    {session}: {len(patients)} patients")
             
             # Check if any patients have files
             total_files = sum(len(files) for files in patients.values())
             if total_files == 0:
-                print(f"  ⚠️  Session {session} has no DICOM files")
+                logging.info(f"  ⚠️  Session {session} has no DICOM files")
         
         return True
         
     except Exception as e:
-        print(f" Directory validation failed: {e}")
+        logging.info(f" Directory validation failed: {e}")
         return False
 
 # Compatibility functions for old code

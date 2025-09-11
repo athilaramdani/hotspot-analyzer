@@ -9,7 +9,7 @@ import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Dict, List
-from core.logger import _log
+import logging
 
 
 def create_classification_xml(classification_json_path: Path, output_xml_path: Path, 
@@ -35,7 +35,7 @@ def create_classification_xml(classification_json_path: Path, output_xml_path: P
         hotspots = classification_data.get("hotspots", [])
         
         if not hotspots:
-            _log(f"[XML CONVERT] No hotspots found in classification JSON")
+            logging.info(f"[XML CONVERT] No hotspots found in classification JSON")
             return False
         
         # Create XML structure (PASCAL VOC format)
@@ -146,13 +146,13 @@ def create_classification_xml(classification_json_path: Path, output_xml_path: P
         # Write XML file
         tree.write(output_xml_path, encoding="utf-8", xml_declaration=True)
         
-        _log(f"[XML CONVERT]   Created classification XML: {output_xml_path.name}")
-        _log(f"[XML CONVERT] Converted {len(hotspots)} classified hotspots")
+        logging.info(f"[XML CONVERT]   Created classification XML: {output_xml_path.name}")
+        logging.info(f"[XML CONVERT] Converted {len(hotspots)} classified hotspots")
         
         return True
         
     except Exception as e:
-        _log(f"[XML CONVERT]  Failed to create classification XML: {e}")
+        logging.info(f"[XML CONVERT]  Failed to create classification XML: {e}")
         return False
 
 
@@ -184,14 +184,14 @@ def update_classification_wrapper_with_xml_creation():
             )
             
             if xml_success:
-                _log(f"         Created classification XML: {xml_output_path.name}")
+                logging.info(f"         Created classification XML: {xml_output_path.name}")
             else:
-                _log(f"        Failed to create classification XML")
+                logging.info(f"        Failed to create classification XML")
             
             # ... rest of existing code ...
             
         except Exception as e:
-            _log(f"Failed to save classification results: {e}")
+            logging.info(f"Failed to save classification results: {e}")
     """
 
 
@@ -220,7 +220,7 @@ def get_image_dimensions_from_files(patient_folder: Path, filename_stem: str, vi
         return (512, 512)
         
     except Exception as e:
-        _log(f"[XML CONVERT] Could not determine image dimensions, using default: {e}")
+        logging.info(f"[XML CONVERT] Could not determine image dimensions, using default: {e}")
         return (512, 512)
 
 
@@ -268,16 +268,16 @@ def compare_xml_files(original_xml: Path, classification_xml: Path) -> Dict:
         # Calculate differences
         comparison["removed_hotspots"] = comparison["original_count"] - comparison["classification_count"]
         
-        _log(f"[XML COMPARE] Original hotspots: {comparison['original_count']}")
-        _log(f"[XML COMPARE] Final hotspots: {comparison['classification_count']}")
-        _log(f"[XML COMPARE] Removed hotspots (outside segments): {comparison['removed_hotspots']}")
-        _log(f"[XML COMPARE] Original classes: {comparison['original_classes']}")
-        _log(f"[XML COMPARE] Final classes: {comparison['classification_classes']}")
+        logging.info(f"[XML COMPARE] Original hotspots: {comparison['original_count']}")
+        logging.info(f"[XML COMPARE] Final hotspots: {comparison['classification_count']}")
+        logging.info(f"[XML COMPARE] Removed hotspots (outside segments): {comparison['removed_hotspots']}")
+        logging.info(f"[XML COMPARE] Original classes: {comparison['original_classes']}")
+        logging.info(f"[XML COMPARE] Final classes: {comparison['classification_classes']}")
         
         return comparison
         
     except Exception as e:
-        _log(f"[XML COMPARE] Error comparing XML files: {e}")
+        logging.info(f"[XML COMPARE] Error comparing XML files: {e}")
         return {}
 
 
@@ -317,20 +317,20 @@ def example_integration():
             )
             
             if xml_success:
-                _log(f"         Saved: {json_path.name}, {xml_output_path.name}")
+                logging.info(f"         Saved: {json_path.name}, {xml_output_path.name}")
                 
                 # Optional: Compare with original YOLO XML
                 original_xml = patient_folder / f"{filename_stem}_{view_short}.xml"
                 if original_xml.exists():
                     comparison = compare_xml_files(original_xml, xml_output_path)
-                    _log(f"       📊 Filtering removed {comparison.get('removed_hotspots', 0)} background hotspots")
+                    logging.info(f"       📊 Filtering removed {comparison.get('removed_hotspots', 0)} background hotspots")
             else:
-                _log(f"        Failed to create XML from: {json_path.name}")
+                logging.info(f"        Failed to create XML from: {json_path.name}")
             
             # ... existing mask saving code ...
             
         except Exception as e:
-            _log(f"Failed to save classification results: {e}")
+            logging.info(f"Failed to save classification results: {e}")
     '''
     
     return example_code

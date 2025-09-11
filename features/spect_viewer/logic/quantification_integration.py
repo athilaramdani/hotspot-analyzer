@@ -3,13 +3,12 @@
 from pathlib import Path
 import json
 from typing import List,Dict, Any, Optional
-from core.logger import _log
 from core.config.paths import (
     get_patient_planar_path,
     extract_study_date_from_dicom,
     generate_filename_stem
 )
-
+import logging
 class QuantificationManager:
     """
     Manager class for handling quantification results (Backend only - no GUI)
@@ -30,11 +29,11 @@ class QuantificationManager:
         if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
             # Current folder is study_date folder, go up to patient folder
             patient_base_folder = patient_folder.parent
-            print(f"  [DEBUG BSI] Detected study_date folder, using parent: {patient_base_folder}")
+            logging.info(f"  [DEBUG BSI] Detected study_date folder, using parent: {patient_base_folder}")
         else:
             # Current folder is already patient folder
             patient_base_folder = patient_folder
-            print(f"  [DEBUG BSI] Using patient folder directly: {patient_base_folder}")
+            logging.info(f"  [DEBUG BSI] Using patient folder directly: {patient_base_folder}")
         
         #   FIXED: FLEXIBLE SEARCH - check multiple locations
         search_folders = []
@@ -47,7 +46,7 @@ class QuantificationManager:
             for item in patient_base_folder.iterdir():
                 if item.is_dir() and len(item.name) == 8 and item.name.isdigit():
                     search_folders.append(("Study date folder", item, item.name))
-                    print(f"  [DEBUG BSI] Found study_date folder: {item.name}")
+                    logging.info(f"  [DEBUG BSI] Found study_date folder: {item.name}")
         
         # Location 3: If current folder is study_date folder, check parent
         if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
@@ -74,7 +73,7 @@ class QuantificationManager:
                 
             # List contents
             for item in search_folder.iterdir():
-                print(f"  [DEBUG BSI]     - {item.name} ({'DIR' if item.is_dir() else 'FILE'})")
+                logging.info(f"  [DEBUG BSI]     - {item.name} ({'DIR' if item.is_dir() else 'FILE'})")
             
             # Try both old and new patterns
             anterior_files_old = list(search_folder.glob(f"{patient_id}_*_bsi_quantification_anterior.json"))
@@ -132,7 +131,7 @@ class QuantificationManager:
                                 
                     anterior_by_date[study_date] = file_path
                 except Exception as e:
-                    print(f"  [DEBUG BSI]   Error parsing anterior file {file_path.name}: {e}")
+                    logging.info(f"  [DEBUG BSI]   Error parsing anterior file {file_path.name}: {e}")
 
             # Parse posterior files  
             for file_path in posterior_files:
@@ -157,7 +156,7 @@ class QuantificationManager:
                                 
                     posterior_by_date[study_date] = file_path
                 except Exception as e:
-                    print(f"  [DEBUG BSI]   Error parsing posterior file {file_path.name}: {e}")
+                    logging.info(f"  [DEBUG BSI]   Error parsing posterior file {file_path.name}: {e}")
             
             # Process all study dates found in this location
             location_study_dates = set(anterior_by_date.keys()) | set(posterior_by_date.keys())
@@ -316,10 +315,10 @@ class QuantificationManager:
                 }
                 
                 combined_results["patient_info"]["view"] = "combined_anterior_posterior"
-                print(f"📖 [DEBUG RESULTS] Combined BSI: {combined_results['summary_statistics']['combined_bsi']:.2f}")
+                logging.info(f"📖 [DEBUG RESULTS] Combined BSI: {combined_results['summary_statistics']['combined_bsi']:.2f}")
             
             elif ant_results and not post_results:
-                print(f"📖 [DEBUG RESULTS] Processing anterior-only data")
+                logging.info(f"📖 [DEBUG RESULTS] Processing anterior-only data")
                 
                 combined_results = {
                     "patient_info": ant_results["patient_info"].copy(),
@@ -380,11 +379,11 @@ class QuantificationManager:
             self.current_patient_id = patient_id
             self.current_study_date = study_date
             
-            print(f"📖 [DEBUG RESULTS]   Successfully loaded V1.2 results")
+            logging.info(f"📖 [DEBUG RESULTS]   Successfully loaded V1.2 results")
             return combined_results
             
         except Exception as e:
-            print(f"📖 [DEBUG RESULTS]  Failed to load V1.2 quantification results: {e}")
+            logging.info(f"📖 [DEBUG RESULTS]  Failed to load V1.2 quantification results: {e}")
             import traceback
             traceback.print_exc()
             return None
@@ -471,11 +470,11 @@ class QuantificationManager:
             with open(output_path, 'w') as f:
                 json.dump(export_data, f, indent=2)
             
-            _log(f"Quantification results exported to: {output_path}")
+            logging.info(f"Quantification results exported to: {output_path}")
             return True
             
         except Exception as e:
-            _log(f"Failed to export quantification results: {e}")
+            logging.info(f"Failed to export quantification results: {e}")
             return False
 
 
@@ -496,9 +495,9 @@ def run_quantification_for_patient_integrated(dicom_path: Path, patient_id: str,
         if not study_date:
             study_date = extract_study_date_from_dicom(dicom_path)
         
-        print(f"[QUANTIFICATION] Starting BSI quantification for patient {patient_id}")
-        print(f"[QUANTIFICATION] Study date: {study_date}")
-        print(f"[QUANTIFICATION] Using classification masks instead of Otsu results")
+        logging.info(f"[QUANTIFICATION] Starting BSI quantification for patient {patient_id}")
+        logging.info(f"[QUANTIFICATION] Study date: {study_date}")
+        logging.info(f"[QUANTIFICATION] Using classification masks instead of Otsu results")
         
         # Import quantification function
         from features.spect_viewer.logic.quantification_wrapper import run_quantification_for_patient
@@ -507,14 +506,14 @@ def run_quantification_for_patient_integrated(dicom_path: Path, patient_id: str,
         result = run_quantification_for_patient(dicom_path, patient_id, study_date)
         
         if result:
-            print(f"[QUANTIFICATION] BSI quantification completed successfully")
+            logging.info(f"[QUANTIFICATION] BSI quantification completed successfully")
         else:
-            print(f"[QUANTIFICATION] BSI quantification failed")
+            logging.info(f"[QUANTIFICATION] BSI quantification failed")
             
         return result
         
     except Exception as e:
-        print(f"[QUANTIFICATION ERROR] {e}")
+        logging.info(f"[QUANTIFICATION ERROR] {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -593,16 +592,16 @@ def get_quantification_status(dicom_path: Path, patient_id: str, study_date: str
                 status["processing_mode"] = summary.get("processing_mode", "unknown")
                 
                 #   DEBUG: Print what we're returning
-                print(f"[BSI STATUS DEBUG] Returning status with:")
-                print(f"[BSI STATUS DEBUG]   anterior_bsi: {status['anterior_bsi']}")
-                print(f"[BSI STATUS DEBUG]   posterior_bsi: {status['posterior_bsi']}")
-                print(f"[BSI STATUS DEBUG]   combined_bsi: {status['combined_bsi']}")
-                print(f"[BSI STATUS DEBUG]   processing_mode: {status['processing_mode']}")
+                logging.info(f"[BSI STATUS DEBUG] Returning status with:")
+                logging.info(f"[BSI STATUS DEBUG]   anterior_bsi: {status['anterior_bsi']}")
+                logging.info(f"[BSI STATUS DEBUG]   posterior_bsi: {status['posterior_bsi']}")
+                logging.info(f"[BSI STATUS DEBUG]   combined_bsi: {status['combined_bsi']}")
+                logging.info(f"[BSI STATUS DEBUG]   processing_mode: {status['processing_mode']}")
                         
         return status
         
     except Exception as e:
-        print(f"[QUANTIFICATION STATUS ERROR] {e}")
+        logging.info(f"[QUANTIFICATION STATUS ERROR] {e}")
         return {
             "patient_id": patient_id,
             "study_date": study_date or "unknown",

@@ -11,7 +11,7 @@ import multiprocessing
 import sys
 import os
 from pathlib import Path
-
+import logging
 #   NEW: Ensure assets directory is accessible
 def setup_assets_path():
     """Setup assets path for icon loading"""
@@ -24,12 +24,12 @@ def setup_assets_path():
             assets_path = Path(__file__).parent / "assets"
         
         if assets_path.exists():
-            print(f"[ASSETS] Assets path: {assets_path}")
+            logging.info(f"[ASSETS] Assets path: {assets_path}")
         else:
-            print(f"[ASSETS] Assets path not found: {assets_path}")
+            logging.info(f"[ASSETS] Assets path not found: {assets_path}")
             
     except Exception as e:
-        print(f"[ASSETS] Error setting up assets path: {e}")
+        logging.info(f"[ASSETS] Error setting up assets path: {e}")
 
 from app.__main__ import main
 

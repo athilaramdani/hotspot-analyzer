@@ -20,7 +20,7 @@ from core.gui.ui_constants import (
     VIEW_SELECTOR_TITLE_STYLE, ENHANCED_WORKFLOW_BADGE_STYLE,
     Colors
 )
-
+import logging
 # Import session config
 from core.config.sessions import get_session_manager
 
@@ -48,7 +48,7 @@ class DoctorTagManager:
                 self.tags = self.default_tags.copy()
                 self._save_tags()
         except Exception as e:
-            print(f"[WARNING] Failed to load doctor tags: {e}")
+            logging.info(f"[WARNING] Failed to load doctor tags: {e}")
             self.tags = self.default_tags.copy()
     
     def _save_tags(self):
@@ -62,7 +62,7 @@ class DoctorTagManager:
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            print(f"[WARNING] Failed to save doctor tags: {e}")
+            logging.info(f"[WARNING] Failed to save doctor tags: {e}")
     
     def get_tags(self):
         """Get all doctor tags"""
@@ -735,9 +735,9 @@ class DoctorSelectionDialog(QDialog):
                 self.selected_modality,
                 user_data=self.selected_tag_data
             )
-            print(f"[SESSION] Created: {session['session_id']}")
+            logging.info(f"[SESSION] Created: {session['session_id']}")
             super().accept()
             
         except Exception as e:
-            print(f"[ERROR] Failed to create session: {e}")
+            logging.info(f"[ERROR] Failed to create session: {e}")
             QMessageBox.critical(self, "Session Error", f"Failed to create session: {e}")

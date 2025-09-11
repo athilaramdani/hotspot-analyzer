@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QLabel, QScrollArea,
     QFrame, QPushButton, QSplitter, QSlider
 )
-
+import logging
 # Import NEW config paths for edited files support
 from core.config.paths import (
     extract_study_date_from_dicom,
@@ -182,43 +182,43 @@ class ScanTimelineWidget(QWidget):
         self._image_labels.clear()
         self._original_pixmaps.clear()
         
-        print(f"[CACHE CLEAR] Cleared {cache_size_before} layer cache entries")
-        print(f"[CACHE CLEAR] Cleared zoom cache ({len(self._image_labels)} labels)")
+        logging.info(f"[CACHE CLEAR] Cleared {cache_size_before} layer cache entries")
+        logging.info(f"[CACHE CLEAR] Cleared zoom cache ({len(self._image_labels)} labels)")
 
     def _print_cache_stats(self):
         """  NEW: Print cache performance statistics"""
         total = self._cache_stats["hits"] + self._cache_stats["misses"]
         if total > 0:
             hit_rate = (self._cache_stats["hits"] / total) * 100
-            print(f"[CACHE STATS] Hits: {self._cache_stats['hits']}, Misses: {self._cache_stats['misses']}, Hit Rate: {hit_rate:.1f}%")
+            logging.info(f"[CACHE STATS] Hits: {self._cache_stats['hits']}, Misses: {self._cache_stats['misses']}, Hit Rate: {hit_rate:.1f}%")
 
     def _get_cached_layers(self, scan_path: str, view: str) -> Dict[str, Image.Image]:
         """  NEW: Retrieve cached layers for a scan and view"""
         cached_layers = {}
         layers_to_check = ["Image", "Segmentation", "Hotspot", "HotspotBBox"]
         
-        print(f"[CACHE DEBUG] Checking {len(layers_to_check)} layers in cache")
-        print(f"[CACHE DEBUG] Current cache size: {len(self._layer_image_cache)} entries")
+        logging.info(f"[CACHE DEBUG] Checking {len(layers_to_check)} layers in cache")
+        logging.info(f"[CACHE DEBUG] Current cache size: {len(self._layer_image_cache)} entries")
         
         for layer in layers_to_check:
             cache_key = self._generate_cache_key(scan_path, view, layer)
-            print(f"[CACHE DEBUG] Looking for key: {cache_key}")
+            logging.info(f"[CACHE DEBUG] Looking for key: {cache_key}")
             
             if cache_key in self._layer_image_cache:
                 cached_layers[layer] = self._layer_image_cache[cache_key]
                 self._cache_stats["hits"] += 1
-                print(f"[CACHE DEBUG] Found {layer} in cache")
+                logging.info(f"[CACHE DEBUG] Found {layer} in cache")
             else:
-                print(f"[CACHE DEBUG] {layer} not in cache")
+                logging.info(f"[CACHE DEBUG] {layer} not in cache")
                 self._cache_stats["misses"] += 1
                 #   CHANGED: Don't return None immediately, try to get partial cache
         
         #   IMPROVED: Return partial cache if available
         if cached_layers:
-            print(f"[CACHE PARTIAL] Returning {len(cached_layers)} cached layers: {list(cached_layers.keys())}")
+            logging.info(f"[CACHE PARTIAL] Returning {len(cached_layers)} cached layers: {list(cached_layers.keys())}")
             return cached_layers
         else:
-            print(f"[CACHE EMPTY] No layers found in cache")
+            logging.info(f"[CACHE EMPTY] No layers found in cache")
             return None
         
         return cached_layers if cached_layers else None
@@ -227,7 +227,7 @@ class ScanTimelineWidget(QWidget):
         """  NEW: Cache a layer image"""
         cache_key = self._generate_cache_key(scan_path, view, layer)
         self._layer_image_cache[cache_key] = image.copy()  # Store copy to avoid reference issues
-        print(f"[CACHE] Cached {layer} for {view}")
+        logging.info(f"[CACHE] Cached {layer} for {view}")
     
     def _detect_changes(self, new_layers: list, new_opacities: dict, new_scan_index: int) -> dict:
         """  NEW: Detect what changed since last update"""
@@ -245,7 +245,7 @@ class ScanTimelineWidget(QWidget):
             changes["scan_changed"] = True
             changes["type"] = "scan"
             changes["full_rebuild_needed"] = True
-            print(f"[SMART UPDATE] Scan changed: {self._previous_scan_index} -> {new_scan_index}")
+            logging.info(f"[SMART UPDATE] Scan changed: {self._previous_scan_index} -> {new_scan_index}")
             return changes
         
         # Check layer changes
@@ -270,13 +270,13 @@ class ScanTimelineWidget(QWidget):
             changes["type"] = "opacity"
             changes["full_rebuild_needed"] = False  # Opacity can be updated smartly
         
-        print(f"[SMART UPDATE] Change type: {changes['type']}")
+        logging.info(f"[SMART UPDATE] Change type: {changes['type']}")
         if changes["layers_added"]:
-            print(f"[SMART UPDATE] Layers added: {changes['layers_added']}")
+            logging.info(f"[SMART UPDATE] Layers added: {changes['layers_added']}")
         if changes["layers_removed"]:
-            print(f"[SMART UPDATE] Layers removed: {changes['layers_removed']}")
+            logging.info(f"[SMART UPDATE] Layers removed: {changes['layers_removed']}")
         if changes["opacities_changed"]:
-            print(f"[SMART UPDATE] Opacities changed: {changes['opacities_changed']}")
+            logging.info(f"[SMART UPDATE] Opacities changed: {changes['opacities_changed']}")
         
         return changes
 
@@ -286,15 +286,15 @@ class ScanTimelineWidget(QWidget):
         self._previous_opacities = opacities.copy()
         self._previous_scan_index = scan_index
         self._last_update_type = update_type
-        print(f"[SMART UPDATE] State updated - Type: {update_type}")
+        logging.info(f"[SMART UPDATE] State updated - Type: {update_type}")
 
     def _smart_opacity_update(self, opacity_changes: list):
         """  NEW: Update only opacity without rebuilding"""
         if not self._image_labels:
-            print(f"[SMART UPDATE] No image labels for opacity update, falling back to rebuild")
+            logging.info(f"[SMART UPDATE] No image labels for opacity update, falling back to rebuild")
             return False
         
-        print(f"[SMART UPDATE] Applying opacity-only update for: {opacity_changes}")
+        logging.info(f"[SMART UPDATE] Applying opacity-only update for: {opacity_changes}")
         
         try:
             # Get current scan and layers
@@ -312,7 +312,7 @@ class ScanTimelineWidget(QWidget):
                 cached_layers = self._get_cached_layers(scan_path_str, view)
                 
                 if not cached_layers:
-                    print(f"[SMART UPDATE] No cached layers for {view}, fallback to rebuild")
+                    logging.info(f"[SMART UPDATE] No cached layers for {view}, fallback to rebuild")
                     return False
                 
                 # Apply new opacities and create composite
@@ -365,12 +365,12 @@ class ScanTimelineWidget(QWidget):
                         if label_index is not None and label_index < len(self._original_pixmaps):
                             self._original_pixmaps[label_index] = pixmap
                         
-                        print(f"[SMART UPDATE] Updated {view} composite without rebuild")
+                        logging.info(f"[SMART UPDATE] Updated {view} composite without rebuild")
             
             return True
             
         except Exception as e:
-            print(f"[SMART UPDATE ERROR] Opacity update failed: {e}")
+            logging.info(f"[SMART UPDATE ERROR] Opacity update failed: {e}")
             return False
     
     def _build_ui(self):
@@ -390,19 +390,19 @@ class ScanTimelineWidget(QWidget):
     def set_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
         """  Sets the B/C values for a specific view and rebuilds the timeline."""
         if view_name in self._adjustments:
-            print(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
+            logging.info(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
             self._adjustments[view_name]["brightness"] = brightness
             self._adjustments[view_name]["contrast"] = contrast
             
             #   PENTING: Clear cache karena B/C mempengaruhi gambar
             self._clear_layer_cache()
-            print(f"[DEBUG] Cleared layer cache due to B/C change")
+            logging.info(f"[DEBUG] Cleared layer cache due to B/C change")
             
             #   PENTING: Force rebuild dengan cache kosong
             self._rebuild()
-            print(f"[DEBUG] Rebuilt timeline with new B/C values")
+            logging.info(f"[DEBUG] Rebuilt timeline with new B/C values")
         else:
-            print(f"[WARN] View '{view_name}' not found in adjustments dictionary. Cannot set contrast.")
+            logging.info(f"[WARN] View '{view_name}' not found in adjustments dictionary. Cannot set contrast.")
 
     def preview_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
         """  FIXED: Applies a temporary B/C adjustment using the new override logic."""
@@ -414,7 +414,7 @@ class ScanTimelineWidget(QWidget):
 
         target_label = self._anterior_image_label if view_name == "Anterior" else self._posterior_image_label
         if not target_label:
-            print(f"[WARN] Preview failed: Could not find target label for {view_name}")
+            logging.info(f"[WARN] Preview failed: Could not find target label for {view_name}")
             return
 
         original_view_state = self.current_view
@@ -444,12 +444,12 @@ class ScanTimelineWidget(QWidget):
           Sets the B/C values for a specific view and rebuilds the timeline.
         """
         if view_name in self._adjustments:
-            print(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
+            logging.info(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
             self._adjustments[view_name]["brightness"] = brightness
             self._adjustments[view_name]["contrast"] = contrast
             self._rebuild()
         else:
-            print(f"[WARN] View '{view_name}' not found in adjustments. Cannot set contrast.")
+            logging.info(f"[WARN] View '{view_name}' not found in adjustments. Cannot set contrast.")
 
     
     def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None, session_code: str = None):
@@ -464,24 +464,24 @@ class ScanTimelineWidget(QWidget):
             from core.config.paths import get_newest_segmentation_path
             
             segmentation_path = get_newest_segmentation_path(study_date_folder, view_name)
-            print(f"[DEBUG] Looking for segmentation (NEWEST): {segmentation_path}")
+            logging.info(f"[DEBUG] Looking for segmentation (NEWEST): {segmentation_path}")
 
             if segmentation_path and segmentation_path.exists():
                 # Load with transparency (make black pixels transparent)
                 seg_image = load_image_with_transparency(segmentation_path, make_transparent=True)
                 if seg_image:
                     layers["Segmentation"] = seg_image
-                    print(f"[DEBUG]   Loaded segmentation with transparency: {segmentation_path}")
+                    logging.info(f"[DEBUG]   Loaded segmentation with transparency: {segmentation_path}")
                     
                     #   DEBUG: Show if this is edited or original file
                     is_edited = "_" in segmentation_path.stem and len(segmentation_path.stem.split('_')[-1]) == 6 and segmentation_path.stem.split('_')[-1].isdigit()
                     file_type = "EDITED" if is_edited else "ORIGINAL"
-                    print(f"[DEBUG] Segmentation type: {file_type}")
+                    logging.info(f"[DEBUG] Segmentation type: {file_type}")
             else:
-                print(f"[WARN] Segmentation file not found: {segmentation_path}")
+                logging.info(f"[WARN] Segmentation file not found: {segmentation_path}")
                     
         except Exception as e:
-            print(f"[ERROR] Failed to load segmentation layer: {e}")
+            logging.info(f"[ERROR] Failed to load segmentation layer: {e}")
 
     def _load_hotspot_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None, session_code: str = None):
         """  FIXED: Load hotspot layer using NEWEST priority system from paths.py"""
@@ -495,23 +495,23 @@ class ScanTimelineWidget(QWidget):
             from core.config.paths import get_newest_hotspot_classification_path
             
             classification_png = get_newest_hotspot_classification_path(study_date_folder, view_name)
-            print(f"[DEBUG] Looking for hotspot classification (NEWEST): {classification_png}")
+            logging.info(f"[DEBUG] Looking for hotspot classification (NEWEST): {classification_png}")
             
             if classification_png and classification_png.exists():
                 hotspot_image = load_image_with_transparency(classification_png)
                 if hotspot_image:
                     layers["Hotspot"] = hotspot_image
-                    print(f"[DEBUG]   Loaded hotspot layer: {classification_png}")
+                    logging.info(f"[DEBUG]   Loaded hotspot layer: {classification_png}")
                     
                     #   DEBUG: Show if this is edited or original file
                     is_edited = "_" in classification_png.stem and len(classification_png.stem.split('_')[-1]) == 6 and classification_png.stem.split('_')[-1].isdigit()
                     file_type = "EDITED" if is_edited else "ORIGINAL"
-                    print(f"[DEBUG] Hotspot type: {file_type}")
+                    logging.info(f"[DEBUG] Hotspot type: {file_type}")
             else:
-                print(f"[DEBUG] No hotspot classification found: {classification_png}")
+                logging.info(f"[DEBUG] No hotspot classification found: {classification_png}")
                     
         except Exception as e:
-            print(f"[ERROR] Failed to load hotspot layer: {e}")
+            logging.info(f"[ERROR] Failed to load hotspot layer: {e}")
 
     def _load_bbox_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None, session_code: str = None):
         """  FIXED: Load bounding box layer using NEWEST priority system from paths.py"""
@@ -545,7 +545,7 @@ class ScanTimelineWidget(QWidget):
             else:
                 classification_xml = study_date_folder / f"{view_short}_hotspot_classification.xml"
             
-            print(f"[DEBUG] Looking for classification XML (NEWEST): {classification_xml}")
+            logging.info(f"[DEBUG] Looking for classification XML (NEWEST): {classification_xml}")
             
             if classification_xml and classification_xml.exists():
                 if "Image" in layers:
@@ -553,17 +553,17 @@ class ScanTimelineWidget(QWidget):
                     bbox_image = self._create_bbox_visualization_from_classification(classification_xml, image_dimensions)
                     if bbox_image:
                         layers["HotspotBBox"] = bbox_image
-                        print(f"[DEBUG]   Loaded bbox layer: {classification_xml}")
+                        logging.info(f"[DEBUG]   Loaded bbox layer: {classification_xml}")
                         
                         #   DEBUG: Show if this is edited or original file
                         is_edited = "_" in classification_xml.stem and len(classification_xml.stem.split('_')[-1]) == 6 and classification_xml.stem.split('_')[-1].isdigit()
                         file_type = "EDITED" if is_edited else "ORIGINAL"
-                        print(f"[DEBUG] BBox XML type: {file_type}")
+                        logging.info(f"[DEBUG] BBox XML type: {file_type}")
             else:
-                print(f"[DEBUG] No classification XML found: {classification_xml}")
+                logging.info(f"[DEBUG] No classification XML found: {classification_xml}")
                     
         except Exception as e:
-            print(f"[ERROR] Failed to load bbox layer: {e}")
+            logging.info(f"[ERROR] Failed to load bbox layer: {e}")
 
     def has_layer_data(self, layer: str) -> bool:
         """  FIXED: Check if layer data is available using NEWEST priority system"""
@@ -613,12 +613,12 @@ class ScanTimelineWidget(QWidget):
             return False
             
         except Exception as e:
-            print(f"[WARN] Error checking layer data with newest priority system: {e}")
+            logging.info(f"[WARN] Error checking layer data with newest priority system: {e}")
             return False
     
     def set_invert_original(self, inverted: bool):
         """  OPTIMIZED: Set invert status with change detection"""
-        print(f"[DEBUG] set_invert_original called: {inverted} (current: {self.invert_original})")
+        logging.info(f"[DEBUG] set_invert_original called: {inverted} (current: {self.invert_original})")
         
         # Only rebuild if state actually changed
         if self.invert_original != inverted:
@@ -627,16 +627,16 @@ class ScanTimelineWidget(QWidget):
             
             #   UPDATED: Clear layer cache since invert affects all images
             self._clear_layer_cache()
-            print(f"[DEBUG] Cleared layer cache due to invert change")
+            logging.info(f"[DEBUG] Cleared layer cache due to invert change")
             
             # Force rebuild if we have scans loaded
             if self._scans_cache:
-                print(f"[DEBUG] Forcing timeline rebuild for invert change...")
+                logging.info(f"[DEBUG] Forcing timeline rebuild for invert change...")
                 self._rebuild()
             else:
-                print(f"[DEBUG] No scans loaded, rebuild skipped")
+                logging.info(f"[DEBUG] No scans loaded, rebuild skipped")
         else:
-            print(f"[DEBUG] Invert state unchanged, skipping rebuild")
+            logging.info(f"[DEBUG] Invert state unchanged, skipping rebuild")
         
     def _update_edit_button_states(self):
         """Update edit button enabled/disabled states and styling"""
@@ -722,7 +722,7 @@ class ScanTimelineWidget(QWidget):
         self.zoom_reset_shortcut = QShortcut(QKeySequence("Ctrl+0"), self)
         self.zoom_reset_shortcut.activated.connect(self.zoom_reset)
         
-        print("[DEBUG] Timeline keyboard shortcuts enabled: Ctrl+/- for zoom, Ctrl+0 for reset")
+        logging.info("[DEBUG] Timeline keyboard shortcuts enabled: Ctrl+/- for zoom, Ctrl+0 for reset")
 
     def wheelEvent(self, event: QWheelEvent):
         """  NEW: Handle mouse wheel events for zoom when Ctrl is pressed"""
@@ -861,29 +861,29 @@ class ScanTimelineWidget(QWidget):
     def zoom_in(self):  
         """  OPTIMIZED: Smooth zoom in using Qt scaling"""
         self._zoom_factor *= 1.15
-        print(f"[DEBUG] Timeline zoom in: {self._zoom_factor:.2f}")
+        logging.info(f"[DEBUG] Timeline zoom in: {self._zoom_factor:.2f}")
         self._update_zoom_smooth()
         
     def zoom_out(self): 
         """  OPTIMIZED: Smooth zoom out using Qt scaling"""
         self._zoom_factor *= 0.87
-        print(f"[DEBUG] Timeline zoom out: {self._zoom_factor:.2f}")
+        logging.info(f"[DEBUG] Timeline zoom out: {self._zoom_factor:.2f}")
         self._update_zoom_smooth()
 
     def zoom_reset(self):
         """  OPTIMIZED: Reset zoom using Qt scaling"""
         self._zoom_factor = 1.0
-        print(f"[DEBUG] Timeline zoom reset: {self._zoom_factor:.2f}")
+        logging.info(f"[DEBUG] Timeline zoom reset: {self._zoom_factor:.2f}")
         self._update_zoom_smooth()
 
     def _update_zoom_smooth(self):
         """  NEW: Update zoom using Qt's native scaling (no rebuild)"""
         if not self._original_pixmaps or not self._image_labels:
-            print(f"[DEBUG] No cached pixmaps, falling back to rebuild")
+            logging.info(f"[DEBUG] No cached pixmaps, falling back to rebuild")
             self._rebuild()
             return
         
-        print(f"[DEBUG] Smooth zoom update for {len(self._image_labels)} labels")
+        logging.info(f"[DEBUG] Smooth zoom update for {len(self._image_labels)} labels")
         
         for i, (label, original_pixmap) in enumerate(zip(self._image_labels, self._original_pixmaps)):
             if original_pixmap and not original_pixmap.isNull():
@@ -898,12 +898,12 @@ class ScanTimelineWidget(QWidget):
                 )
                 
                 label.setPixmap(scaled_pixmap)
-                print(f"[DEBUG] Scaled label {i}: {original_width} -> {new_width}")
+                logging.info(f"[DEBUG] Scaled label {i}: {original_width} -> {new_width}")
 
     # ------------------------------------------------------ public API
     def display_timeline(self, scans: List[Dict], active_index: int = -1):
         """  MODIFIED: Display timeline with BSI integration, defaulting to the first scan."""
-        print(f"[DEBUG] display_timeline called with {len(scans)} scan(s), focusing on index = {active_index}")
+        logging.info(f"[DEBUG] display_timeline called with {len(scans)} scan(s), focusing on index = {active_index}")
         
         updated_scans = []
         for scan in scans:
@@ -923,7 +923,7 @@ class ScanTimelineWidget(QWidget):
           MODIFIED: This method is no longer needed as Anterior/Posterior are shown together.
         Calling it will have no effect.
         """
-        print(f"[DEBUG] set_active_view called with '{v}', but is now ignored.")
+        logging.info(f"[DEBUG] set_active_view called with '{v}', but is now ignored.")
         # Intentionally do nothing. The _rebuild method now controls the view for each card.
         pass
         
@@ -940,17 +940,17 @@ class ScanTimelineWidget(QWidget):
         
         # Update active layers
         self._active_layers = new_layers
-        print(f"[DEBUG] Timeline active layers set to: {self._active_layers}")
+        logging.info(f"[DEBUG] Timeline active layers set to: {self._active_layers}")
         
         # Apply appropriate update strategy
         if changes["type"] == "none":
-            print(f"[SMART UPDATE] No changes detected, skipping update")
+            logging.info(f"[SMART UPDATE] No changes detected, skipping update")
             return
         elif changes["full_rebuild_needed"]:
-            print(f"[SMART UPDATE] Full rebuild required for change type: {changes['type']}")
+            logging.info(f"[SMART UPDATE] Full rebuild required for change type: {changes['type']}")
             self._rebuild()
         else:
-            print(f"[SMART UPDATE] Attempting smart update for change type: {changes['type']}")
+            logging.info(f"[SMART UPDATE] Attempting smart update for change type: {changes['type']}")
             self._rebuild()  # For now, always rebuild for layer changes
         
         # Update state tracking
@@ -965,7 +965,7 @@ class ScanTimelineWidget(QWidget):
         """  SMART: Set opacity with smart update detection"""
         old_opacity = self._layer_opacities.get(layer, 1.0)
         self._layer_opacities[layer] = opacity
-        print(f"[DEBUG] Set {layer} opacity to {opacity:.2f}")
+        logging.info(f"[DEBUG] Set {layer} opacity to {opacity:.2f}")
         
         # Detect changes
         changes = self._detect_changes(
@@ -976,18 +976,18 @@ class ScanTimelineWidget(QWidget):
         
         # Apply appropriate update strategy
         if changes["type"] == "opacity" and not changes["full_rebuild_needed"]:
-            print(f"[SMART UPDATE] Attempting smart opacity update")
+            logging.info(f"[SMART UPDATE] Attempting smart opacity update")
             success = self._smart_opacity_update(changes["opacities_changed"])
             if success:
-                print(f"[SMART UPDATE]   Smart opacity update successful")
+                logging.info(f"[SMART UPDATE]   Smart opacity update successful")
                 # Update state tracking
                 self._update_state_tracking(self._active_layers, self._layer_opacities, self.active_scan_index, "opacity")
                 return
             else:
-                print(f"[SMART UPDATE]  Smart opacity update failed, falling back to rebuild")
+                logging.info(f"[SMART UPDATE]  Smart opacity update failed, falling back to rebuild")
         
         # Fallback to full rebuild
-        print(f"[SMART UPDATE] Using full rebuild for opacity change")
+        logging.info(f"[SMART UPDATE] Using full rebuild for opacity change")
         self._rebuild()
         
         # Update state tracking
@@ -1004,7 +1004,7 @@ class ScanTimelineWidget(QWidget):
 
     def refresh_current_view(self):
         """Refresh current view - rebuild the timeline display"""
-        print("[DEBUG] Refreshing current timeline view...")
+        logging.info("[DEBUG] Refreshing current timeline view...")
         self._rebuild()
 
     def get_active_layers(self) -> list:
@@ -1018,7 +1018,7 @@ class ScanTimelineWidget(QWidget):
             scan_index = self.active_scan_index
             
         if not self._scans_cache or scan_index < 0:
-            print("[DEBUG PRIORITY] No active scan")
+            logging.info("[DEBUG PRIORITY] No active scan")
             return
             
         active_scan = self._scans_cache[scan_index]
@@ -1033,12 +1033,12 @@ class ScanTimelineWidget(QWidget):
             else:
                 study_date_folder = dicom_path.parent
                 
-            print(f"\n  [DEBUG PRIORITY] File priority analysis for scan {scan_index}")
-            print(f"  [DEBUG PRIORITY] Study date folder: {study_date_folder}")
-            print(f"  [DEBUG PRIORITY] Session code: {session_code}")
+            logging.info(f"\n  [DEBUG PRIORITY] File priority analysis for scan {scan_index}")
+            logging.info(f"  [DEBUG PRIORITY] Study date folder: {study_date_folder}")
+            logging.info(f"  [DEBUG PRIORITY] Session code: {session_code}")
             
             for view in ["ant", "post"]:
-                print(f"\n  [DEBUG PRIORITY] === {view.upper()} VIEW ===")
+                logging.info(f"\n  [DEBUG PRIORITY] === {view.upper()} VIEW ===")
                 
                 # Segmentation files
                 seg_files = get_planar_segmentation_files(
@@ -1046,9 +1046,9 @@ class ScanTimelineWidget(QWidget):
                 )
                 seg_file = seg_files['segmentation_png']
                 is_seg_edited = "_20" in str(seg_file) and len(seg_file.stem.split('_')[-1]) == 6
-                print(f"  [DEBUG PRIORITY] Segmentation: {seg_file}")
-                print(f"  [DEBUG PRIORITY] Segmentation type: {'EDITED' if is_seg_edited else 'ORIGINAL'}")
-                print(f"  [DEBUG PRIORITY] Segmentation exists: {seg_file.exists()}")
+                logging.info(f"  [DEBUG PRIORITY] Segmentation: {seg_file}")
+                logging.info(f"  [DEBUG PRIORITY] Segmentation type: {'EDITED' if is_seg_edited else 'ORIGINAL'}")
+                logging.info(f"  [DEBUG PRIORITY] Segmentation exists: {seg_file.exists()}")
                 
                 # Hotspot files
                 hotspot_files = get_planar_hotspot_files(
@@ -1061,16 +1061,16 @@ class ScanTimelineWidget(QWidget):
                 is_png_edited = "_20" in str(class_png) and len(class_png.stem.split('_')[-1]) == 6
                 is_xml_edited = "_20" in str(class_xml) and len(class_xml.stem.split('_')[-1]) == 6
                 
-                print(f"  [DEBUG PRIORITY] Classification PNG: {class_png}")
-                print(f"  [DEBUG PRIORITY] Classification PNG type: {'EDITED' if is_png_edited else 'ORIGINAL'}")
-                print(f"  [DEBUG PRIORITY] Classification PNG exists: {class_png.exists()}")
+                logging.info(f"  [DEBUG PRIORITY] Classification PNG: {class_png}")
+                logging.info(f"  [DEBUG PRIORITY] Classification PNG type: {'EDITED' if is_png_edited else 'ORIGINAL'}")
+                logging.info(f"  [DEBUG PRIORITY] Classification PNG exists: {class_png.exists()}")
                 
-                print(f"  [DEBUG PRIORITY] Classification XML: {class_xml}")
-                print(f"  [DEBUG PRIORITY] Classification XML type: {'EDITED' if is_xml_edited else 'ORIGINAL'}")
-                print(f"  [DEBUG PRIORITY] Classification XML exists: {class_xml.exists()}")
+                logging.info(f"  [DEBUG PRIORITY] Classification XML: {class_xml}")
+                logging.info(f"  [DEBUG PRIORITY] Classification XML type: {'EDITED' if is_xml_edited else 'ORIGINAL'}")
+                logging.info(f"  [DEBUG PRIORITY] Classification XML exists: {class_xml.exists()}")
                 
         except Exception as e:
-            print(f"  [DEBUG PRIORITY ERROR] {e}")
+            logging.info(f"  [DEBUG PRIORITY ERROR] {e}")
             import traceback
             traceback.print_exc()
 
@@ -1106,7 +1106,7 @@ class ScanTimelineWidget(QWidget):
     def _force_rebuild_if_needed(self):
         """  NEW: Force rebuild if cache is invalid"""
         if not self._validate_zoom_cache():
-            print(f"[DEBUG] Cache invalid, forcing rebuild")
+            logging.info(f"[DEBUG] Cache invalid, forcing rebuild")
             self._rebuild()
             return True
         return False
@@ -1114,7 +1114,7 @@ class ScanTimelineWidget(QWidget):
     def _rebuild(self):
         """  MODIFIED: Rebuild to show Anterior and Posterior of the active scan side-by-side."""
         self._clear()
-        print(f"[DEBUG] Rebuilding timeline for active scan index: {self.active_scan_index}")
+        logging.info(f"[DEBUG] Rebuilding timeline for active scan index: {self.active_scan_index}")
 
         if not self._scans_cache or self.active_scan_index < 0:
             placeholder = QLabel("No scan selected or available.")
@@ -1197,7 +1197,7 @@ class ScanTimelineWidget(QWidget):
     
     def _on_scan_selected(self, idx: int):
         """Handle scan selection and emit signal to parent"""
-        print(f"[DEBUG] Timeline scan selected: {idx}")
+        logging.info(f"[DEBUG] Timeline scan selected: {idx}")
         self.active_scan_index = idx
         
         
@@ -1214,12 +1214,12 @@ class ScanTimelineWidget(QWidget):
             patient_id, session_code = extract_patient_info_from_path(dicom_path)
             
             #   TAMBAHAN: Debug dan validasi
-            print(f"[DEBUG] Extracted patient info - ID: {patient_id}, Session: {session_code}")
-            print(f"[DEBUG] Original path: {dicom_path}")
+            logging.info(f"[DEBUG] Extracted patient info - ID: {patient_id}, Session: {session_code}")
+            logging.info(f"[DEBUG] Original path: {dicom_path}")
             
             #   VALIDASI: Pastikan patient_id bukan study_date (8 digit angka)
             if len(patient_id) == 8 and patient_id.isdigit():
-                print(f"[WARN] Patient ID looks like study_date: {patient_id}")
+                logging.info(f"[WARN] Patient ID looks like study_date: {patient_id}")
                 # Coba ekstrak ulang dengan manual parsing
                 parts = dicom_path.parts
                 planar_index = None
@@ -1231,7 +1231,7 @@ class ScanTimelineWidget(QWidget):
                 if planar_index is not None and len(parts) > planar_index + 2:
                     session_code = parts[planar_index + 1]  # ATL
                     patient_id = parts[planar_index + 2]    # 5001
-                    print(f"[DEBUG] Manual extraction - ID: {patient_id}, Session: {session_code}")
+                    logging.info(f"[DEBUG] Manual extraction - ID: {patient_id}, Session: {session_code}")
             
             # Fallback to session from widget if extraction fails
             if session_code == "UNKNOWN" and self.session_code:
@@ -1239,7 +1239,7 @@ class ScanTimelineWidget(QWidget):
                 
             return patient_id, session_code
         except Exception as e:
-            print(f"[WARN] Failed to extract patient/session from scan: {e}")
+            logging.info(f"[WARN] Failed to extract patient/session from scan: {e}")
             return "UNKNOWN", self.session_code or "UNKNOWN"
     
     def _create_bbox_visualization_from_classification(self, xml_path: Path, image_dimensions: tuple) -> Optional[Image.Image]:
@@ -1248,7 +1248,7 @@ class ScanTimelineWidget(QWidget):
             import xml.etree.ElementTree as ET
             from PIL import ImageDraw, ImageFont
             
-            print(f"[DEBUG] Loading CLASSIFICATION XML for bbox: {xml_path}")
+            logging.info(f"[DEBUG] Loading CLASSIFICATION XML for bbox: {xml_path}")
             
             # Parse XML file
             tree = ET.parse(xml_path)
@@ -1335,21 +1335,21 @@ class ScanTimelineWidget(QWidget):
                                     fill=text_color, font=font)
                         
                         boxes_found += 1
-                        print(f"[DEBUG] Drew CLASSIFICATION {class_name} bbox: ({xmin},{ymin}) -> ({xmax},{ymax})")
+                        logging.info(f"[DEBUG] Drew CLASSIFICATION {class_name} bbox: ({xmin},{ymin}) -> ({xmax},{ymax})")
                         
                 except (ValueError, AttributeError) as e:
-                    print(f"[WARN] Error parsing classification bbox in XML: {e}")
+                    logging.info(f"[WARN] Error parsing classification bbox in XML: {e}")
                     continue
             
             if boxes_found > 0:
-                print(f"[DEBUG]   Created CLASSIFICATION bbox visualization with {boxes_found} boxes")
+                logging.info(f"[DEBUG]   Created CLASSIFICATION bbox visualization with {boxes_found} boxes")
                 return bbox_image
             else:
-                print(f"[DEBUG]  No valid classification boxes found in XML")
+                logging.info(f"[DEBUG]  No valid classification boxes found in XML")
                 return None
                 
         except Exception as e:
-            print(f"[ERROR] Failed to create classification bbox visualization: {e}")
+            logging.info(f"[ERROR] Failed to create classification bbox visualization: {e}")
             return None
     
     def _get_layer_images(self, scan: Dict, override_b: float = None, override_c: float = None) -> Dict[str, Image.Image]:
@@ -1361,8 +1361,8 @@ class ScanTimelineWidget(QWidget):
         scan_path_str = str(dicom_path)
 
         #   DEBUG: Print current state
-        print(f"[DEBUG] DICOM path: {dicom_path}")
-        print(f"[DEBUG] Current view: {self.current_view}")
+        logging.info(f"[DEBUG] DICOM path: {dicom_path}")
+        logging.info(f"[DEBUG] Current view: {self.current_view}")
         
         #   IMPROVED: Check if we should use cache
         current_adjustments = self._adjustments[self.current_view]
@@ -1375,22 +1375,22 @@ class ScanTimelineWidget(QWidget):
         # - Invert is enabled
         use_cache = not (has_adjustments or has_overrides or self.invert_original)
         
-        print(f"[CACHE DEBUG] use_cache={use_cache}")
-        print(f"[CACHE DEBUG] has_adjustments={has_adjustments} (B={current_adjustments['brightness']:.2f}, C={current_adjustments['contrast']:.2f})")
-        print(f"[CACHE DEBUG] has_overrides={has_overrides} (override_b={override_b}, override_c={override_c})")
-        print(f"[CACHE DEBUG] invert_original={self.invert_original}")
+        logging.info(f"[CACHE DEBUG] use_cache={use_cache}")
+        logging.info(f"[CACHE DEBUG] has_adjustments={has_adjustments} (B={current_adjustments['brightness']:.2f}, C={current_adjustments['contrast']:.2f})")
+        logging.info(f"[CACHE DEBUG] has_overrides={has_overrides} (override_b={override_b}, override_c={override_c})")
+        logging.info(f"[CACHE DEBUG] invert_original={self.invert_original}")
 
         #   CACHE CHECK: Try to get cached layers if conditions allow
         if use_cache:
-            print(f"[CACHE DEBUG] Checking cache for scan: {scan_path_str}, view: {self.current_view}")
+            logging.info(f"[CACHE DEBUG] Checking cache for scan: {scan_path_str}, view: {self.current_view}")
             cached_layers = self._get_cached_layers(scan_path_str, self.current_view)
             if cached_layers:
-                print(f"[CACHE HIT] Using cached layers for {self.current_view}: {list(cached_layers.keys())}")
+                logging.info(f"[CACHE HIT] Using cached layers for {self.current_view}: {list(cached_layers.keys())}")
                 return cached_layers
             else:
-                print(f"[CACHE MISS] No cached layers found for {self.current_view}")
+                logging.info(f"[CACHE MISS] No cached layers found for {self.current_view}")
         else:
-            print(f"[CACHE SKIP] Skipping cache due to adjustments/overrides/invert")
+            logging.info(f"[CACHE SKIP] Skipping cache due to adjustments/overrides/invert")
 
         #   PATH EXTRACTION: Get correct paths for loading files
         try:
@@ -1402,7 +1402,7 @@ class ScanTimelineWidget(QWidget):
             if session_code and session_code != "UNKNOWN":
                 # Validate patient_id is not actually study_date (8 digit number)
                 if len(patient_id) == 8 and patient_id.isdigit():
-                    print(f"[DEBUG] Patient ID is study_date, using DICOM path directly")
+                    logging.info(f"[DEBUG] Patient ID is study_date, using DICOM path directly")
                     study_date_folder = dicom_path.parent  # Use folder where DICOM is located
                 else:
                     study_date_folder = get_patient_planar_path(session_code, patient_id, study_date)
@@ -1411,89 +1411,89 @@ class ScanTimelineWidget(QWidget):
 
             #   PATH VALIDATION: Ensure path exists
             if not study_date_folder.exists():
-                print(f"[WARN] Study date folder does not exist: {study_date_folder}")
-                print(f"[DEBUG] Fallback to DICOM parent: {dicom_path.parent}")
+                logging.info(f"[WARN] Study date folder does not exist: {study_date_folder}")
+                logging.info(f"[DEBUG] Fallback to DICOM parent: {dicom_path.parent}")
                 study_date_folder = dicom_path.parent
                         
             #   DEBUG: Print path resolution results
-            print(f"[DEBUG] Study date: {study_date}")
-            print(f"[DEBUG] Patient ID: {patient_id}")
-            print(f"[DEBUG] Session code: {session_code}")
-            print(f"[DEBUG] Study date folder: {study_date_folder}")
+            logging.info(f"[DEBUG] Study date: {study_date}")
+            logging.info(f"[DEBUG] Patient ID: {patient_id}")
+            logging.info(f"[DEBUG] Session code: {session_code}")
+            logging.info(f"[DEBUG] Study date folder: {study_date_folder}")
                     
         except Exception as e:
-            print(f"[DEBUG] Exception in path extraction: {e}")
+            logging.info(f"[DEBUG] Exception in path extraction: {e}")
             filename_with_date = dicom_path.stem
             study_date_folder = dicom_path.parent
-            print(f"[DEBUG] Fallback study_date_folder: {study_date_folder}")
+            logging.info(f"[DEBUG] Fallback study_date_folder: {study_date_folder}")
 
         #   LAYER LOADING: Initialize layers dictionary
         layers = {}
         view_normalized = self.current_view.lower()
         
         #   IMAGE LAYER: Load original DICOM image
-        print(f"[DEBUG] Loading original image for {self.current_view}")
+        logging.info(f"[DEBUG] Loading original image for {self.current_view}")
         original_image = load_original_image_from_path(dicom_path, self.current_view, frame_map)
         
         if original_image:
-            print(f"[DEBUG] Original image loaded: {original_image.size}")
+            logging.info(f"[DEBUG] Original image loaded: {original_image.size}")
             
             #   INVERT: Apply invert if enabled
             if self.invert_original:
-                print(f"[DEBUG] Applying invert to original image")
+                logging.info(f"[DEBUG] Applying invert to original image")
                 original_image = simple_invert_pil_image(original_image)
             
             #   BRIGHTNESS/CONTRAST: Determine which B/C values to use
             if override_b is not None and override_c is not None:
                 # Preview mode - use override values
                 brightness, contrast = override_b, override_c
-                print(f"[DEBUG] Using OVERRIDE B/C values: B={brightness:.2f}, C={contrast:.2f}")
+                logging.info(f"[DEBUG] Using OVERRIDE B/C values: B={brightness:.2f}, C={contrast:.2f}")
             else:
                 # Normal mode - use stored adjustments
                 adjustments = self._adjustments[self.current_view]
                 brightness = adjustments["brightness"]
                 contrast = adjustments["contrast"]
-                print(f"[DEBUG] Using STORED B/C values: B={brightness:.2f}, C={contrast:.2f}")
+                logging.info(f"[DEBUG] Using STORED B/C values: B={brightness:.2f}, C={contrast:.2f}")
 
             #   BRIGHTNESS/CONTRAST: Apply adjustment if needed
             if brightness != 0.0 or contrast != 1.0:
-                print(f"[DEBUG] Applying B/C adjustment to {self.current_view}")
+                logging.info(f"[DEBUG] Applying B/C adjustment to {self.current_view}")
                 original_image = apply_brightness_contrast(
                     original_image, brightness, contrast
                 )
-                print(f"[DEBUG] B/C adjustment applied successfully")
+                logging.info(f"[DEBUG] B/C adjustment applied successfully")
 
             layers["Image"] = original_image
-            print(f"[DEBUG]   Image layer loaded and processed")
+            logging.info(f"[DEBUG]   Image layer loaded and processed")
         else:
-            print(f"[WARN]  Failed to load original image for {self.current_view}")
+            logging.info(f"[WARN]  Failed to load original image for {self.current_view}")
         
         #   SEGMENTATION LAYER: Load segmentation overlay
-        print(f"[DEBUG] Loading segmentation layer for {self.current_view}")
+        logging.info(f"[DEBUG] Loading segmentation layer for {self.current_view}")
         self._load_segmentation_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder, self.session_code)
         
         #   HOTSPOT LAYER: Load hotspot classification overlay
-        print(f"[DEBUG] Loading hotspot layer for {self.current_view}")
+        logging.info(f"[DEBUG] Loading hotspot layer for {self.current_view}")
         self._load_hotspot_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder, self.session_code)  
         
         #   BBOX LAYER: Load bounding box overlay (hidden from UI but loaded)
-        print(f"[DEBUG] Loading bbox layer for {self.current_view}")
+        logging.info(f"[DEBUG] Loading bbox layer for {self.current_view}")
         self._load_bbox_layer(layers, dicom_path, filename_with_date, view_normalized, study_date_folder, self.session_code)
 
         #   CACHE STORAGE: Store loaded layers if caching is enabled
         if use_cache and layers:
-            print(f"[CACHE STORE] Storing {len(layers)} layers in cache for {self.current_view}")
+            logging.info(f"[CACHE STORE] Storing {len(layers)} layers in cache for {self.current_view}")
             for layer_name, layer_image in layers.items():
                 self._cache_layer_image(scan_path_str, self.current_view, layer_name, layer_image)
-                print(f"[CACHE STORE] Cached {layer_name}")
-            print(f"[CACHE STORE] Cache now has {len(self._layer_image_cache)} total entries")
+                logging.info(f"[CACHE STORE] Cached {layer_name}")
+            logging.info(f"[CACHE STORE] Cache now has {len(self._layer_image_cache)} total entries")
         elif not use_cache:
-            print(f"[CACHE STORE] Not caching due to adjustments/overrides/invert")
+            logging.info(f"[CACHE STORE] Not caching due to adjustments/overrides/invert")
         elif not layers:
-            print(f"[CACHE STORE] Not caching - no layers loaded")
+            logging.info(f"[CACHE STORE] Not caching - no layers loaded")
 
         #   FINAL RESULT: Return all loaded layers
-        print(f"[DEBUG]   Loaded {len(layers)} layers for {self.current_view}: {list(layers.keys())}")
+        logging.info(f"[DEBUG]   Loaded {len(layers)} layers for {self.current_view}: {list(layers.keys())}")
         return layers
     
     def _make_layered_card(self, scan: Dict, w: int, idx: int) -> QFrame:
@@ -1520,18 +1520,18 @@ class ScanTimelineWidget(QWidget):
         lbl = QLabel(alignment=Qt.AlignCenter)
         lbl.setObjectName(f"image_display_{self.current_view}")
         #   FIXED: Better debug messages
-        print(f"[DEBUG] Creating CLASSIFICATION card {idx} for view: {self.current_view}")
-        print(f"[DEBUG] Active layers selected: {self._active_layers}")
+        logging.info(f"[DEBUG] Creating CLASSIFICATION card {idx} for view: {self.current_view}")
+        logging.info(f"[DEBUG] Active layers selected: {self._active_layers}")
         
         all_layers = self._get_layer_images(scan)
-        print(f"[DEBUG] Available CLASSIFICATION layers in files: {list(all_layers.keys())}")
+        logging.info(f"[DEBUG] Available CLASSIFICATION layers in files: {list(all_layers.keys())}")
         
         # Apply opacity to individual layers before compositing
         active_layer_images = {}
         for layer_name in self._active_layers:
             # Skip HotspotBBox even if somehow it gets into active_layers
             if layer_name == "HotspotBBox":
-                print(f"[DEBUG] 🚫 Skipping HotspotBBox layer (hidden from UI)")
+                logging.info(f"[DEBUG] 🚫 Skipping HotspotBBox layer (hidden from UI)")
                 continue
                 
             if layer_name in all_layers:
@@ -1543,9 +1543,9 @@ class ScanTimelineWidget(QWidget):
                     layer_image = apply_opacity_to_image(layer_image, layer_opacity)
                 
                 active_layer_images[layer_name] = layer_image
-                print(f"[DEBUG]   Added CLASSIFICATION {layer_name} to card {idx} (opacity: {layer_opacity:.2f})")
+                logging.info(f"[DEBUG]   Added CLASSIFICATION {layer_name} to card {idx} (opacity: {layer_opacity:.2f})")
             else:
-                print(f"[DEBUG]  Layer {layer_name} not found in CLASSIFICATION files for card {idx}")
+                logging.info(f"[DEBUG]  Layer {layer_name} not found in CLASSIFICATION files for card {idx}")
                 
         if not active_layer_images:
             lbl.setText(f"No classification data available\nfor {self.current_view}")
@@ -1587,10 +1587,10 @@ class ScanTimelineWidget(QWidget):
                         tooltip_parts.append(f"{layer_name}: {opacity_pct}%")
                 
                 lbl.setToolTip("Classification layers: " + " | ".join(tooltip_parts))
-                print(f"[DEBUG]   CLASSIFICATION card {idx} composite created with layers: {list(active_layer_images.keys())}")
+                logging.info(f"[DEBUG]   CLASSIFICATION card {idx} composite created with layers: {list(active_layer_images.keys())}")
                 
             except Exception as e:
-                print(f"[ERROR] Failed to create CLASSIFICATION composite image for card {idx}: {e}")
+                logging.info(f"[ERROR] Failed to create CLASSIFICATION composite image for card {idx}: {e}")
                 lbl.setText(f"Error creating classification composite\nfor {self.current_view}")
                 lbl.setStyleSheet("color:#dc3545; font-size: 12px; padding: 20px;")
                 lbl.setToolTip(str(e))
@@ -1601,7 +1601,7 @@ class ScanTimelineWidget(QWidget):
     # ------------------------------------------------------ backward compatibility
     def set_image_mode(self, mode: str):
         """Backward compatibility method - convert old mode to layer list"""
-        print(f"[DEBUG] Legacy set_image_mode called with: {mode}")
+        logging.info(f"[DEBUG] Legacy set_image_mode called with: {mode}")
         
         if mode == "Original":
             self.set_active_layers(["Image"])
@@ -1614,6 +1614,6 @@ class ScanTimelineWidget(QWidget):
             
     def cleanup(self):
         """Cleanup resources"""
-        print("[DEBUG] Cleaning up ScanTimelineWidget...")
+        logging.info("[DEBUG] Cleaning up ScanTimelineWidget...")
         self._clear()
         self._scans_cache.clear()

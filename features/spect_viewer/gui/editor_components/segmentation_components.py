@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
 
 from .base_components import BaseCanvas, BaseEditorDialog, BaseSaveThread
 from features.spect_viewer.logic.colorizer import label_mask_to_rgb, _PALETTE
-
+import logging
 # Segmentation label information
 _SEGMENTATION_LABEL_INFO: List[Tuple[str, str]] = [
     ("Background", "kosong"),
@@ -71,11 +71,11 @@ class SegmentationCanvas(BaseCanvas):
 
     def _save_all_states(self):
         """Save initial state for all layers."""
-        print(f"🔄 Saving initial states for all layers...")
+        logging.info(f"🔄 Saving initial states for all layers...")
         for label_id in range(len(_PALETTE)):
             if label_id in self._layers:
                 self._save_layer_state(label_id)
-        print(f"  Initial states saved for {len(_PALETTE)} layers")
+        logging.info(f"  Initial states saved for {len(_PALETTE)} layers")
 
     def _save_layer_state(self, label_id: int):
         """Save state for specific layer."""
@@ -102,13 +102,13 @@ class SegmentationCanvas(BaseCanvas):
         history['undo'].append(state)
         history['redo'].clear()
         
-        print(f"🔄 Saved state for label {label_id}, history length: {len(history['undo'])}")
+        logging.info(f"🔄 Saved state for label {label_id}, history length: {len(history['undo'])}")
 
     def _save_current_state(self):
         """Save current state for active layer."""
         if hasattr(self, '_cur_label') and self._cur_label is not None:
             self._save_layer_state(self._cur_label)
-            print(f"🔄 Saved current state for active label {self._cur_label}")
+            logging.info(f"🔄 Saved current state for active label {self._cur_label}")
 
     # def set_bg_opacity(self, alpha: float):
     #     """Set background opacity."""
@@ -186,24 +186,24 @@ class SegmentationCanvas(BaseCanvas):
         if changes_made:
             self._rebuild_combined()
             self._refresh_mask()
-            print(f"🎨 Applied brush changes to label {self._cur_label}")
+            logging.info(f"🎨 Applied brush changes to label {self._cur_label}")
 
     def undo(self, label_id: int):
         """Undo for specific layer - IMPROVED implementation."""
-        print(f"🔄 Undo called for label {label_id}")
+        logging.info(f"🔄 Undo called for label {label_id}")
         
         #   FIX: Add comprehensive safety checks
         if not hasattr(self, '_layer_history'):
-            print(" No layer history available")
+            logging.info(" No layer history available")
             return
             
         history = self._layer_history.get(label_id)
         if not history:
-            print(f" No history for label {label_id}")
+            logging.info(f" No history for label {label_id}")
             return
             
         if len(history['undo']) < 2:
-            print(f" Not enough history for label {label_id} (need at least 2, have {len(history['undo'])})")
+            logging.info(f" Not enough history for label {label_id} (need at least 2, have {len(history['undo'])})")
             return
         
         # Pop current state and move to redo
@@ -213,55 +213,55 @@ class SegmentationCanvas(BaseCanvas):
         # Get previous state
         prev_state = history['undo'][-1]
         
-        print(f"🔄 Restoring previous state for label {label_id}")
+        logging.info(f"🔄 Restoring previous state for label {label_id}")
         self._restore_layer_state(label_id, prev_state)
 
 
     def redo(self, label_id: int):
         """Redo for specific layer - IMPROVED implementation."""
-        print(f"🔄 Redo called for label {label_id}")
+        logging.info(f"🔄 Redo called for label {label_id}")
         
         #   FIX: Add comprehensive safety checks
         if not hasattr(self, '_layer_history'):
-            print(" No layer history available")
+            logging.info(" No layer history available")
             return
             
         history = self._layer_history.get(label_id)
         if not history:
-            print(f" No history for label {label_id}")
+            logging.info(f" No history for label {label_id}")
             return
             
         if not history['redo']:
-            print(f" No redo history for label {label_id}")
+            logging.info(f" No redo history for label {label_id}")
             return
         
         # Get state from redo and move to undo
         state = history['redo'].pop()
         history['undo'].append(state)
         
-        print(f"🔄 Restoring redo state for label {label_id}")
+        logging.info(f"🔄 Restoring redo state for label {label_id}")
         self._restore_layer_state(label_id, state)
 
     def _restore_layer_state(self, label_id: int, state: np.ndarray):
         """Restore state for specific layer - IMPROVED implementation."""
-        print(f"🔄 Restoring layer {label_id} with state shape: {state.shape}")
+        logging.info(f"🔄 Restoring layer {label_id} with state shape: {state.shape}")
         
         #   FIX: Add safety checks
         if not hasattr(self, '_layers') or label_id not in self._layers:
-            print(f" Layer {label_id} not found in _layers")
+            logging.info(f" Layer {label_id} not found in _layers")
             return
         
         # Restore the layer
         self._layers[label_id] = state.copy()
         
         # Rebuild combined mask and refresh display
-        print(f"🔄 Rebuilding combined mask...")
+        logging.info(f"🔄 Rebuilding combined mask...")
         self._rebuild_combined()
         
-        print(f"🔄 Refreshing mask display...")
+        logging.info(f"🔄 Refreshing mask display...")
         self._refresh_mask()
         
-        print(f"  Successfully restored layer {label_id}")
+        logging.info(f"  Successfully restored layer {label_id}")
 
     def mousePressEvent(self, ev):
         """Handle mouse press - IMPROVED for proper drawing state."""
@@ -476,20 +476,20 @@ class SegmentationSaveThread(BaseSaveThread):
                 'edit_time': edit_time
             }
             
-            print(f"  Segmentation save paths initialized:")
-            print(f"   Base: {base_patient_study_folder}")
-            print(f"   Save dir: {save_dir}")
-            print(f"   Mask: {mask_filename}")
-            print(f"   Segmentation: {segm_filename}")
+            logging.info(f"  Segmentation save paths initialized:")
+            logging.info(f"   Base: {base_patient_study_folder}")
+            logging.info(f"   Save dir: {save_dir}")
+            logging.info(f"   Mask: {mask_filename}")
+            logging.info(f"   Segmentation: {segm_filename}")
             
             return True
             
         except Exception as e:
             error_msg = f"Failed to initialize segmentation save paths: {e}"
-            print(f" {error_msg}")
-            print(f"   DICOM path: {self.dicom_path}")
-            print(f"   Current session: {self.current_session}")
-            print(f"   Editor session: {getattr(self, 'editor_session', 'Not set')}")
+            logging.info(f" {error_msg}")
+            logging.info(f"   DICOM path: {self.dicom_path}")
+            logging.info(f"   Current session: {self.current_session}")
+            logging.info(f"   Editor session: {getattr(self, 'editor_session', 'Not set')}")
             self.error_occurred.emit(error_msg)
             return False
 
@@ -512,7 +512,7 @@ class SegmentationSaveThread(BaseSaveThread):
             from core.config.paths import CONFIG_ROOT
             config_path = CONFIG_ROOT / "doctor_tags.json"
             if not config_path.exists():
-                print(f"Config file not found: {config_path}")
+                logging.info(f"Config file not found: {config_path}")
                 return "NSY"  # Fallback to default
             
             with open(config_path, 'r') as f:
@@ -522,7 +522,7 @@ class SegmentationSaveThread(BaseSaveThread):
             available_tags = [tag for tag in config_data.get("doctor_tags", []) if tag.get("code") != "ALL"]
             
             if not available_tags:
-                print("No available doctor tags found")
+                logging.info("No available doctor tags found")
                 return "NSY"  # Fallback to default
             
             # Create dialog
@@ -602,7 +602,7 @@ class SegmentationSaveThread(BaseSaveThread):
             return None  # User cancelled
             
         except Exception as e:
-            print(f"Error showing session selection dialog: {e}")
+            logging.info(f"Error showing session selection dialog: {e}")
             return "NSY"  # Fallback to default
         
     def run(self):
@@ -681,10 +681,10 @@ class SegmentationSaveThread(BaseSaveThread):
         #   FIX: Use custom signal instead of built-in finished signal
         if hasattr(self, 'save_completed'):
             self.save_completed.emit(success_msg)  #   NOW success_msg IS DEFINED
-            print(f"[DEBUG] save_completed signal emitted: {len(success_msg)} chars")
+            logging.info(f"[DEBUG] save_completed signal emitted: {len(success_msg)} chars")
         else:
             # Fallback if save_completed signal doesn't exist
-            print(f"Segmentation save completed: {success_msg}")
+            logging.info(f"Segmentation save completed: {success_msg}")
             
         # Store save info for get_save_info() method
         self.save_info = {
@@ -709,7 +709,7 @@ class SegmentationSaveThread(BaseSaveThread):
             )
             
         except Exception as e:
-            print(f"Quantification failed: {e}")
+            logging.info(f"Quantification failed: {e}")
             return False
 
     def get_save_info(self) -> Dict[str, Path]:

@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QFileDialog, QMessageBox, QComboBox, QSlider, QGridLayout,
     QFrame, QApplication
 )
-
+import logging
 from features.pet_viewer.logic.pet_directory_scanner import scan_pet_directory
 from features.pet_viewer.logic.pet_loader import load_pet_data, PETData
 
@@ -46,7 +46,7 @@ class MainWindowPet(QMainWindow):
         # Ensure PET data directory exists
         self.pet_data_root.mkdir(parents=True, exist_ok=True)
         
-        print("[DEBUG] session_code in MainWindowPet =", self.session_code)
+        logging.info("[DEBUG] session_code in MainWindowPet =", self.session_code)
         
         # Caches
         self._patient_id_map: Dict[str, List[Path]] = {}
@@ -62,7 +62,7 @@ class MainWindowPet(QMainWindow):
         
     def initial_load(self):
         """Performs the initial data scan and patient selection."""
-        print("[DEBUG] Starting initial data load for PET window...")
+        logging.info("[DEBUG] Starting initial data load for PET window...")
         self._refresh_patient_list()
         if self.session_code:
             self._auto_select_patient()    
@@ -194,12 +194,12 @@ class MainWindowPet(QMainWindow):
     
     def _on_patient_selected(self, txt: str):
         """Handle patient selection from searchable combo box"""
-        print(f"[DEBUG] _on_patient_selected: {txt}")
+        logging.info(f"[DEBUG] _on_patient_selected: {txt}")
         try:
             # Extract patient ID from format "ID : patient_id"
             patient_id = txt.split(" : ")[1].strip()
         except IndexError:
-            print("[DEBUG] Failed to parse patient ID from selection")
+            logging.info("[DEBUG] Failed to parse patient ID from selection")
             return
         
         self.current_patient_id = patient_id
@@ -372,11 +372,11 @@ class MainWindowPet(QMainWindow):
                 elif item.is_dir():
                     shutil.copytree(item, patient_folder / item.name, dirs_exist_ok=True)
         
-        print(f"Copied PET data from {source_path} to {patient_folder}")
+        logging.info(f"Copied PET data from {source_path} to {patient_folder}")
     
     def closeEvent(self, event):
         """Handle application close"""
-        print("[DEBUG] Cleaning up PET window resources...")
+        logging.info("[DEBUG] Cleaning up PET window resources...")
         if hasattr(self, 'pet_viewer') and hasattr(self.pet_viewer, 'cleanup'):
             self.pet_viewer.cleanup()
         event.accept()

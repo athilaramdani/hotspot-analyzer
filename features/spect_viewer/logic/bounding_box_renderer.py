@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 from PIL import Image, ImageDraw
 
 from features.spect_viewer.logic.colorizer import _HOTSPOT_PALLETTE
-
+import logging
 
 class BoundingBoxRenderer:
     """Handles rendering of bounding boxes from XML annotations"""
@@ -48,7 +48,7 @@ class BoundingBoxRenderer:
             return overlay
             
         except Exception as e:
-            print(f"[ERROR] Failed to parse XML {xml_file}: {e}")
+            logging.info(f"[ERROR] Failed to parse XML {xml_file}: {e}")
             return overlay
     
     def _extract_bbox_coordinates(self, bndbox) -> Dict[str, int]:
@@ -62,7 +62,7 @@ class BoundingBoxRenderer:
             }
             return coords
         except (AttributeError, ValueError, TypeError) as e:
-            print(f"[WARN] Failed to extract bbox coordinates: {e}")
+            logging.info(f"[WARN] Failed to extract bbox coordinates: {e}")
             return {}
     
     def _draw_bounding_box(self, draw: ImageDraw.Draw, coords: Dict[str, int], name: str):
@@ -97,7 +97,7 @@ class BoundingBoxRenderer:
             draw.text((x+3, y-text_height-2), text, fill=(255, 255, 255, 255))
             
         except Exception as e:
-            print(f"[WARN] Failed to draw label: {e}")
+            logging.info(f"[WARN] Failed to draw label: {e}")
     
     def set_line_width(self, width: int):
         """Set bounding box line width"""

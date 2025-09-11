@@ -13,7 +13,7 @@ from PySide6.QtGui import QPixmap, QImage
 from PySide6.QtWidgets import (
     QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
 )
-
+import logging
 
 class TimelineCard(QFrame):
     """Individual timeline card for displaying scan data"""
@@ -147,7 +147,7 @@ class TimelineCard(QFrame):
             self.image_label.setPixmap(pixmap)
             self.image_label.setStyleSheet("")  # Clear any text styling
         except Exception as e:
-            print(f"[ERROR] Failed to set card image: {e}")
+            logging.info(f"[ERROR] Failed to set card image: {e}")
             self.image_label.setText("Error loading image")
             self.image_label.setStyleSheet("color:#dc3545; font-size: 12px; padding: 20px;")
     

@@ -35,7 +35,7 @@ EXPORT_CHART_BUTTON_STYLE = PRIMARY_BUTTON_STYLE + """
         border: none;
     }
 """
-
+import logging
 class BSISidePanel(QWidget):
     """
     REFACTORED: BSI Side Panel with a collapsible chart section and single view support.
@@ -478,7 +478,7 @@ class BSISidePanel(QWidget):
         pass
     
     def clear_patient_data(self):
-        print("[BSI SIDE PANEL] Clearing data...")
+        logging.info("[BSI SIDE PANEL] Clearing data...")
         self.current_patient_folder, self.current_patient_id, self.current_study_date = None, None, None
         if hasattr(self, 'bsi_canvas'): self.bsi_canvas.clear_data()
         if hasattr(self, 'results_table_left'): self.results_table_left.setRowCount(0)
@@ -490,10 +490,10 @@ class BSISidePanel(QWidget):
     
     def refresh_current_patient(self):
         if self.current_patient_folder and self.current_patient_id:
-            print(f"[BSI PANEL] Refreshing for {self.current_patient_id}")
-            if self.load_patient_data(self.current_patient_folder, self.current_patient_id, self.current_study_date or "latest"): print("[BSI PANEL] Refresh successful")
-            else: print("[BSI PANEL] Refresh failed")
-        else: print("[BSI PANEL] No patient to refresh")
+            logging.info(f"[BSI PANEL] Refreshing for {self.current_patient_id}")
+            if self.load_patient_data(self.current_patient_folder, self.current_patient_id, self.current_study_date or "latest"): logging.info("[BSI PANEL] Refresh successful")
+            else: logging.info("[BSI PANEL] Refresh failed")
+        else: logging.info("[BSI PANEL] No patient to refresh")
     
     def _export_csv_data_v2(self):
         if not self.current_patient_id or not self.current_study_date: return
@@ -529,8 +529,8 @@ class BSISidePanel(QWidget):
                         writer.writerow(["Anterior BSI (%)", f"{summary.get('anterior_bsi', 0.0):.2f}%"]); writer.writerow(["Posterior BSI (%)", "N/A"])
                     elif mode == 'single_view_posterior':
                         writer.writerow(["Anterior BSI (%)", "N/A"]); writer.writerow(["Posterior BSI (%)", f"{summary.get('posterior_bsi', 0.0):.2f}%"])
-                print(f"[BSI EXPORT] CSV exported to {file_path}")
-        except Exception as e: print(f"[BSI EXPORT] Error: {e}")
+                logging.info(f"[BSI EXPORT] CSV exported to {file_path}")
+        except Exception as e: logging.info(f"[BSI EXPORT] Error: {e}")
 
     def export_chart_to_file(self, file_path: Path) -> bool: return self.bsi_canvas.export_chart(file_path)
 
@@ -569,5 +569,5 @@ class BSISidePanel(QWidget):
                 f.write("="*60+"\n")
             return True
         except Exception as e:
-            print(f"[BSI REPORT] Error: {e}")
+            logging.info(f"[BSI REPORT] Error: {e}")
             return False

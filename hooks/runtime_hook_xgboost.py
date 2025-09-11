@@ -4,7 +4,7 @@ Runtime hook for XGBoost to handle missing VERSION file
 
 import sys
 import os
-
+import logging
 def fix_xgboost_version():
     """Create missing XGBoost VERSION file at runtime"""
     if hasattr(sys, '_MEIPASS'):
@@ -24,17 +24,17 @@ def fix_xgboost_version():
                         try:
                             with open(version_file, 'w') as f:
                                 f.write('2.0.0')  # Default version
-                            print(f"[RUNTIME-XGBOOST] Created VERSION file: {version_file}")
+                            logging.info(f"[RUNTIME-XGBOOST] Created VERSION file: {version_file}")
                         except Exception as e:
-                            print(f"[RUNTIME-XGBOOST] Failed to create VERSION file: {e}")
+                            logging.info(f"[RUNTIME-XGBOOST] Failed to create VERSION file: {e}")
                     else:
-                        print(f"[RUNTIME-XGBOOST] VERSION file already exists: {version_file}")
+                        logging.info(f"[RUNTIME-XGBOOST] VERSION file already exists: {version_file}")
                     break
             else:
-                print("[RUNTIME-XGBOOST] XGBoost directory not found")
+                logging.info("[RUNTIME-XGBOOST] XGBoost directory not found")
                 
         except Exception as e:
-            print(f"[RUNTIME-XGBOOST] Error: {e}")
+            logging.info(f"[RUNTIME-XGBOOST] Error: {e}")
 
 # Run the fix
 fix_xgboost_version()

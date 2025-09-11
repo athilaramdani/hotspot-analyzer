@@ -6,7 +6,7 @@ This hook runs BEFORE torch and ensures triton is blocked completely
 
 import sys
 import types
-
+import logging
 # Create comprehensive dummy triton structure
 triton_dummy = types.ModuleType('triton')
 triton_language = types.ModuleType('triton.language')
@@ -41,5 +41,5 @@ excludedimports = [
     'triton.backends.driver',
 ]
 
-print("[HOOK] Triton modules completely blocked and excluded")
-print(f"[HOOK] Registered {len(sys.modules)} triton dummy modules")
+logging.info("[HOOK] Triton modules completely blocked and excluded")
+logging.info(f"[HOOK] Registered {len(sys.modules)} triton dummy modules")

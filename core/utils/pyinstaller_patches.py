@@ -12,7 +12,7 @@ import types
 from pathlib import Path
 import threading
 import traceback
-
+import logging
 # Global state tracking
 _patches_applied = set()
 _patch_lock = threading.Lock()
@@ -34,17 +34,17 @@ def safe_patch(patch_name):
         def wrapper(*args, **kwargs):
             with _patch_lock:
                 if patch_name in _patches_applied:
-                    print(f"[PATCH] {patch_name} already applied, skipping")
+                    logging.info(f"[PATCH] {patch_name} already applied, skipping")
                     return True
                 
                 try:
                     result = func(*args, **kwargs)
                     _patches_applied.add(patch_name)
-                    print(f"[PATCH] {patch_name} applied successfully")
+                    logging.info(f"[PATCH] {patch_name} applied successfully")
                     return result
                 except Exception as e:
-                    print(f"[PATCH] ERROR in {patch_name}: {e}")
-                    print(f"[PATCH] Traceback: {traceback.format_exc()}")
+                    logging.info(f"[PATCH] ERROR in {patch_name}: {e}")
+                    logging.info(f"[PATCH] Traceback: {traceback.format_exc()}")
                     return False
         return wrapper
     return decorator
@@ -77,7 +77,7 @@ def setup_environment_variables():
     # HINDARI setting TORCH_LOGS atau variabel logging lainnya
     # karena ini mengganggu internal PyTorch logging initialization
     
-    print(f"[PATCH] Set {len(env_vars)} environment variables")
+    logging.info(f"[PATCH] Set {len(env_vars)} environment variables")
     return True
 
 @safe_patch("triton_blocking")
@@ -99,14 +99,14 @@ def create_triton_dummy_modules():
         module.__all__ = []
         sys.modules[name] = module
     
-    print(f"[PATCH] Created {len(triton_modules)} triton dummy modules")
+    logging.info(f"[PATCH] Created {len(triton_modules)} triton dummy modules")
     return True
 @safe_patch("torch_library_mock")
 def patch_torch_library():
     """JANGAN lakukan early patching untuk torch.library - ini menyebabkan circular import"""
     # Jangan buat stub sama sekali untuk torch.library di fase early
     # Biarkan PyTorch handle inisialisasi library secara normal
-    print("[PATCH] Skipped torch.library early patching to avoid circular imports")
+    logging.info("[PATCH] Skipped torch.library early patching to avoid circular imports")
     return True
 
 @safe_patch("torch_dynamo_structure")
@@ -114,14 +114,14 @@ def create_torch_dynamo_structure():
     """JANGAN buat stub untuk torch modules - biarkan PyTorch handle inisialisasi"""
     # Jangan buat stub apapun untuk torch._dynamo atau modules internal
     # Biarkan PyTorch melakukan inisialisasi normal
-    print("[PATCH] Skipped all torch internal structure creation to avoid circular imports")
+    logging.info("[PATCH] Skipped all torch internal structure creation to avoid circular imports")
     return True
 
 @safe_patch("torch_testing_modules")
 def create_torch_testing_modules():
     """Jangan stub torch.testing - biarkan PyInstaller handle melalui hooks"""
     # Tidak melakukan apapun, biarkan PyInstaller collect modules normally
-    print("[PATCH] Skipped torch.testing stubbing - relying on PyInstaller hooks")
+    logging.info("[PATCH] Skipped torch.testing stubbing - relying on PyInstaller hooks")
     return True
 
 def apply_early_patches():
@@ -131,10 +131,10 @@ def apply_early_patches():
     
     # Cek jika sudah di-apply untuk menghindari double patching
     if 'early_patches_applied' in globals():
-        print("[PATCH] Early patches already applied, skipping")
+        logging.info("[PATCH] Early patches already applied, skipping")
         return True
         
-    print("[PATCH] Applying early patches (before any imports)...")
+    logging.info("[PATCH] Applying early patches (before any imports)...")
     
     # HANYA patches yang benar-benar aman dan essential
     patches = [
@@ -150,7 +150,7 @@ def apply_early_patches():
         if patch():
             success_count += 1
     
-    print(f"[PATCH] Early patches completed: {success_count}/{len(patches)} successful")
+    logging.info(f"[PATCH] Early patches completed: {success_count}/{len(patches)} successful")
     
     # Tandai sudah di-apply
     globals()['early_patches_applied'] = True
@@ -226,7 +226,7 @@ def patch_torch_library_post():
             OriginalLibrary = getattr(lib_mod, 'Library', None)
 
         if OriginalLibrary is None:
-            print("[PATCH] torch.library.Library not found; skip")
+            logging.info("[PATCH] torch.library.Library not found; skip")
             return True
 
         def WrappedLibrary(name, *args, **kwargs):
@@ -242,15 +242,15 @@ def patch_torch_library_post():
                     def __getattr__(self, _):
                         def _noop(*a, **k): return None
                         return _noop
-                print("[PATCH] torch.library.Library('triton') -> no-op (post-import)")
+                logging.info("[PATCH] torch.library.Library('triton') -> no-op (post-import)")
                 return _Noop()
             return OriginalLibrary(name, *args, **kwargs)
 
         lib_mod.Library = WrappedLibrary
-        print("[PATCH] torch.library.Library wrapped post-import")
+        logging.info("[PATCH] torch.library.Library wrapped post-import")
         return True
     except Exception as e:
-        print("[PATCH] torch.library post patch skipped:", e)
+        logging.info("[PATCH] torch.library post patch skipped:", e)
         return False
 
 @safe_patch("torch_post_import")
@@ -280,7 +280,7 @@ def patch_torch_post_import():
                 class TritonBlocker:
                     def __init__(self, name, kind="DEF", dispatch_key=''):
                         if name == "triton":
-                            print(f"[PATCH] Blocked TORCH_LIBRARY('{name}')")
+                            logging.info(f"[PATCH] Blocked TORCH_LIBRARY('{name}')")
                         else:
                             # Untuk non-triton, gunakan original
                             self._lib = original_library(name, kind, dispatch_key)
@@ -308,9 +308,9 @@ def patch_torch_post_import():
                         return noop_decorator
                 
                 lib_module.Library = TritonBlocker
-                print("[PATCH] torch.library.Library wrapped for triton blocking")
+                logging.info("[PATCH] torch.library.Library wrapped for triton blocking")
         except Exception as e:
-            print(f"[PATCH] torch.library wrapping failed: {e}")
+            logging.info(f"[PATCH] torch.library wrapping failed: {e}")
 
         # 3) Nonaktifkan JIT dan optimizations
         try:
@@ -318,9 +318,9 @@ def patch_torch_post_import():
             os.environ['TORCH_COMPILE_DISABLE'] = '1'
             if hasattr(torch.jit, '_state') and hasattr(torch.jit._state, 'disable'):
                 torch.jit._state.disable()
-            print("[PATCH] PyTorch JIT disabled")
+            logging.info("[PATCH] PyTorch JIT disabled")
         except Exception as e:
-            print(f"[PATCH] JIT disable failed: {e}")
+            logging.info(f"[PATCH] JIT disable failed: {e}")
 
         # 4)   NEW: Patch torchvision to prevent extension conflicts
         try:
@@ -334,19 +334,19 @@ def patch_torch_post_import():
             for module in problematic_modules:
                 if module in sys.modules:
                     del sys.modules[module]
-                    print(f"[PATCH] Removed problematic module: {module}")
+                    logging.info(f"[PATCH] Removed problematic module: {module}")
             
             # Set torchvision environment to prevent extension loading
             os.environ['TORCHVISION_DISABLE_EXTENSIONS'] = '1'
-            print("[PATCH] torchvision extension loading disabled")
+            logging.info("[PATCH] torchvision extension loading disabled")
         except Exception as e:
-            print(f"[PATCH] torchvision patching failed: {e}")
+            logging.info(f"[PATCH] torchvision patching failed: {e}")
 
-        print("[PATCH] torch post-import patches applied successfully")
+        logging.info("[PATCH] torch post-import patches applied successfully")
         return True
 
     except Exception as e:
-        print(f"[PATCH] Error in patch_torch_post_import: {e}")
+        logging.info(f"[PATCH] Error in patch_torch_post_import: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -369,11 +369,11 @@ def patch_nnunet():
             os.environ[env_var] = str(path)
             path.mkdir(parents=True, exist_ok=True)
         
-        print(f"[PATCH] nnUNet paths configured: {len(nnunet_paths)} directories")
+        logging.info(f"[PATCH] nnUNet paths configured: {len(nnunet_paths)} directories")
         return True
         
     except Exception as e:
-        print(f"[PATCH] Error configuring nnUNet: {e}")
+        logging.info(f"[PATCH] Error configuring nnUNet: {e}")
         return False
 
 @safe_patch("library_configs")
@@ -386,22 +386,22 @@ def patch_other_libraries():
         ultralytics_dir = bundle_dir / "ultralytics_config"
         ultralytics_dir.mkdir(exist_ok=True)
         os.environ['ULTRALYTICS_CONFIG_DIR'] = str(ultralytics_dir)
-        print("[PATCH] Ultralytics config directory configured")
+        logging.info("[PATCH] Ultralytics config directory configured")
     except Exception as e:
-        print(f"[PATCH] Error configuring Ultralytics: {e}")
+        logging.info(f"[PATCH] Error configuring Ultralytics: {e}")
     
     # Matplotlib configuration
     try:
         import matplotlib
-        matplotlib.use('Agg')  # Non-interactive backend
+        matplotlib.use('QtAgg') # Non-interactive backend
         
         mpl_config_dir = bundle_dir / "matplotlib_config"
         mpl_config_dir.mkdir(exist_ok=True)
-        print("[PATCH] Matplotlib configured with Agg backend")
+        logging.info("[PATCH] Matplotlib configured with Agg backend")
     except ImportError:
         pass
     except Exception as e:
-        print(f"[PATCH] Error configuring matplotlib: {e}")
+        logging.info(f"[PATCH] Error configuring matplotlib: {e}")
     
     return True
 
@@ -425,7 +425,7 @@ def suppress_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     warnings.filterwarnings("ignore", category=FutureWarning)
     
-    print(f"[PATCH] {len(warning_filters) + 2} warning filters applied")
+    logging.info(f"[PATCH] {len(warning_filters) + 2} warning filters applied")
     return True
 
 @safe_patch("multiprocessing_setup")
@@ -437,7 +437,7 @@ def setup_multiprocessing():
         if hasattr(multiprocessing, 'set_start_method'):
             try:
                 multiprocessing.set_start_method('spawn', force=True)
-                print("[PATCH] Multiprocessing start method set to 'spawn'")
+                logging.info("[PATCH] Multiprocessing start method set to 'spawn'")
             except RuntimeError:
                 # Already set
                 pass
@@ -473,17 +473,17 @@ def patch_pathlib():
         
         return True
     except Exception as e:
-        print(f"[PATCH] Error patching pathlib: {e}")
+        logging.info(f"[PATCH] Error patching pathlib: {e}")
         return False
 
 def apply_all_patches():
     """Apply all PyInstaller compatibility patches - PRODUCTION READY"""
     if not is_pyinstaller_bundle():
-        print("[PATCH] Not running as PyInstaller bundle, skipping patches")
+        logging.info("[PATCH] Not running as PyInstaller bundle, skipping patches")
         return True
     
-    print("[PATCH] Applying comprehensive PyInstaller compatibility patches...")
-    print(f"[PATCH] Bundle directory: {get_bundle_dir()}")
+    logging.info("[PATCH] Applying comprehensive PyInstaller compatibility patches...")
+    logging.info(f"[PATCH] Bundle directory: {get_bundle_dir()}")
     
     # Apply early patches first (if not already applied)
     apply_early_patches()
@@ -504,8 +504,8 @@ def apply_all_patches():
         if patch():
             success_count += 1
     
-    print(f"[PATCH] Main patches completed: {success_count}/{len(main_patches)} successful")
-    print(f"[PATCH] Total patches applied: {len(_patches_applied)}")
+    logging.info(f"[PATCH] Main patches completed: {success_count}/{len(main_patches)} successful")
+    logging.info(f"[PATCH] Total patches applied: {len(_patches_applied)}")
     
     return success_count == len(main_patches)
 
@@ -556,9 +556,9 @@ def validate_patches():
     failed_tests = [name for name, result in validation_tests if not result]
     
     if failed_tests:
-        print(f"[VALIDATION] Failed tests: {failed_tests}")
+        logging.info(f"[VALIDATION] Failed tests: {failed_tests}")
     else:
-        print("[VALIDATION] All patch validations passed")
+        logging.info("[VALIDATION] All patch validations passed")
     
     return len(failed_tests) == 0
 
@@ -567,7 +567,7 @@ if __name__ != "__main__" and is_pyinstaller_bundle():
     try:
         apply_early_patches()
     except Exception as e:
-        print(f"[PATCH] Error in auto-apply patches: {e}")
+        logging.info(f"[PATCH] Error in auto-apply patches: {e}")
 
 # Decorator for functions that need post-import patches
 def with_post_import_patches(func):
@@ -580,11 +580,11 @@ def with_post_import_patches(func):
 
 if __name__ == "__main__":
     # Test mode
-    print("Testing PyInstaller patches...")
+    logging.info("Testing PyInstaller patches...")
     if is_pyinstaller_bundle():
         success = apply_all_patches()
-        print(f"Patch application {'successful' if success else 'failed'}")
+        logging.info(f"Patch application {'successful' if success else 'failed'}")
         validate_patches()
-        print("Patch status:", get_patch_status())
+        logging.info("Patch status:", get_patch_status())
     else:
-        print("Not running as PyInstaller bundle, patches not needed")
+        logging.info("Not running as PyInstaller bundle, patches not needed")

@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.image as mpimg
 from PIL import Image
-
+import logging
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent))
@@ -131,7 +131,7 @@ def region_to_key_value(image_region_path):
 
         return key_array
     except Exception as e:
-        print(f"[ERROR] Failed to convert colored segmentation: {e}")
+        logging.info(f"[ERROR] Failed to convert colored segmentation: {e}")
         return None
 
 def convert_colored_segmentation_if_needed(segment_path):
@@ -146,38 +146,38 @@ def convert_colored_segmentation_if_needed(segment_path):
     """
     segment_path_obj = Path(segment_path)
     
-    print(f"[DEBUG] Checking segmentation: {segment_path_obj.name}")
+    logging.info(f"[DEBUG] Checking segmentation: {segment_path_obj.name}")
     
     # Check if this is a colored segmentation file
     if 'colored' in segment_path_obj.name and not 'grayscaledSegmentation' in segment_path_obj.name:
-        print(f"[DEBUG] Detected colored segmentation, converting to grayscale...")
+        logging.info(f"[DEBUG] Detected colored segmentation, converting to grayscale...")
         
         # Generate output path: [original_name]_grayscaledSegmentation.png
         output_path = segment_path_obj.parent / f"{segment_path_obj.stem}_grayscaledSegmentation{segment_path_obj.suffix}"
         
         # Check if grayscale version already exists
         if output_path.exists():
-            print(f"[DEBUG] Using existing grayscale version: {output_path.name}")
+            logging.info(f"[DEBUG] Using existing grayscale version: {output_path.name}")
             return str(output_path)
         
         # Convert colored to grayscale using backup method
-        print(f"[DEBUG] Converting colored to grayscale and saving...")
+        logging.info(f"[DEBUG] Converting colored to grayscale and saving...")
         grayscale_array = region_to_key_value(segment_path_obj)
         
         if grayscale_array is None:
-            print(f"[ERROR] Failed to convert, using original path")
+            logging.info(f"[ERROR] Failed to convert, using original path")
             return str(segment_path)
         
         # Save grayscale version for future use
         try:
             Image.fromarray(grayscale_array, mode="L").save(output_path)
-            print(f"[DEBUG] Saved grayscale segmentation: {output_path.name}")
+            logging.info(f"[DEBUG] Saved grayscale segmentation: {output_path.name}")
             return str(output_path)
         except Exception as e:
-            print(f"[ERROR] Failed to save grayscale version: {e}")
+            logging.info(f"[ERROR] Failed to save grayscale version: {e}")
             return str(segment_path)
     else:
-        print(f"[DEBUG] Using segmentation as-is: {segment_path_obj.name}")
+        logging.info(f"[DEBUG] Using segmentation as-is: {segment_path_obj.name}")
         return str(segment_path)
 
 def get_exact_segment_name(segment_id):
@@ -253,8 +253,8 @@ def create_hotspot_mask(image_shape, results):
     """Create hotspot mask from results with proper coloring"""
     mask = np.zeros(image_shape[:2], dtype=np.uint8)
     
-    print(f"[DEBUG] Creating hotspot mask with shape: {image_shape[:2]}")
-    print(f"[DEBUG] Processing {len(results)} results")
+    logging.info(f"[DEBUG] Creating hotspot mask with shape: {image_shape[:2]}")
+    logging.info(f"[DEBUG] Processing {len(results)} results")
     
     for i, result in enumerate(results):
         #   FIXED: Use correct values for _HOTSPOT_PALLETTE
@@ -264,7 +264,7 @@ def create_hotspot_mask(image_shape, results):
             pixel_value = 2  # Index 2 in _HOTSPOT_PALLETTE = [255, 241, 188] (Light cream)
         
         coordinates = result.get('coordinates', [])
-        print(f"[DEBUG] Result {i}: {result['prediction']}, {len(coordinates)} coordinates, pixel_value={pixel_value}")
+        logging.info(f"[DEBUG] Result {i}: {result['prediction']}, {len(coordinates)} coordinates, pixel_value={pixel_value}")
         
         for coord in coordinates:
             if len(coord) >= 2:
@@ -272,9 +272,9 @@ def create_hotspot_mask(image_shape, results):
                 if 0 <= y < mask.shape[0] and 0 <= x < mask.shape[1]:
                     mask[y, x] = pixel_value
         
-        print(f"[DEBUG] After processing result {i}, mask has {np.sum(mask > 0)} non-zero pixels")
+        logging.info(f"[DEBUG] After processing result {i}, mask has {np.sum(mask > 0)} non-zero pixels")
     
-    print(f"[DEBUG] Final mask stats: shape={mask.shape}, unique_values={np.unique(mask)}, non_zero_count={np.sum(mask > 0)}")
+    logging.info(f"[DEBUG] Final mask stats: shape={mask.shape}, unique_values={np.unique(mask)}, non_zero_count={np.sum(mask > 0)}")
     return mask
 
 def extractFeatures(image_raw, image_segment, image_hotspot, bb, file_path):
@@ -288,7 +288,7 @@ def extractFeatures(image_raw, image_segment, image_hotspot, bb, file_path):
     #   FIXED: Use exact segment mapping
     segment_name = get_exact_segment_name(segmentID)
     
-    print(f"[SEGMENT MAPPING] ID {segmentID} → {segment_name}")
+    logging.info(f"[SEGMENT MAPPING] ID {segmentID} → {segment_name}")
 
     if segmentID == 0:
         return None
@@ -312,7 +312,7 @@ def extractFeatures(image_raw, image_segment, image_hotspot, bb, file_path):
     try:
         all_features_hotspot = extractor.execute(image_sitk_hotspot, mask_sitk_hotspot)
     except Exception as e:
-        print(f"Feature extraction failed for {file_path} (hotspot): {str(e)}")
+        logging.info(f"Feature extraction failed for {file_path} (hotspot): {str(e)}")
         return None
 
     flattened_hotspot_features = {
@@ -334,7 +334,7 @@ def extractFeatures(image_raw, image_segment, image_hotspot, bb, file_path):
     try:
         all_features_segment = extractor.execute(image_sitk_segment, mask_sitk_segment)
     except Exception as e:
-        print(f"Feature extraction failed for {file_path} (segment): {str(e)}")
+        logging.info(f"Feature extraction failed for {file_path} (segment): {str(e)}")
         return None
 
     flattened_segment_features = {
@@ -410,16 +410,16 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
     Returns:
         Tuple of (results_list, classification_mask)
     """
-    print(f"[INFERENCE DEBUG] Starting inference with automatic conversion")
-    print(f"[INFERENCE DEBUG] Input paths:")
-    print(f"  Raw: {path_raw}")
-    print(f"  Segment: {path_segment}")
-    print(f"  Hotspot: {path_hotspot}")
-    print(f"  XML: {len(path_xml) if isinstance(path_xml, list) else path_xml}")
+    logging.info(f"[INFERENCE DEBUG] Starting inference with automatic conversion")
+    logging.info(f"[INFERENCE DEBUG] Input paths:")
+    logging.info(f"  Raw: {path_raw}")
+    logging.info(f"  Segment: {path_segment}")
+    logging.info(f"  Hotspot: {path_hotspot}")
+    logging.info(f"  XML: {len(path_xml) if isinstance(path_xml, list) else path_xml}")
     
     #   STEP 1: Convert colored segmentation to grayscale if needed
     converted_segment_path = convert_colored_segmentation_if_needed(path_segment)
-    print(f"[INFERENCE DEBUG] Using segmentation: {Path(converted_segment_path).name}")
+    logging.info(f"[INFERENCE DEBUG] Using segmentation: {Path(converted_segment_path).name}")
     
     #   STEP 2: Load images using OpenCV (same as backup)
     image_raw = cv2.imread(path_raw, cv2.IMREAD_GRAYSCALE)
@@ -436,42 +436,42 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
     image_segment = np.squeeze(image_segment)
     image_hotspot = np.squeeze(image_hotspot)
     
-    print(f"[INFERENCE DEBUG] Images loaded:")
-    print(f"  Raw: {image_raw.shape if image_raw is not None else 'Failed'}")
-    print(f"  Segment: {image_segment.shape if image_segment is not None else 'Failed'}")
-    print(f"  Hotspot: {image_hotspot.shape if image_hotspot is not None else 'Failed'}")
+    logging.info(f"[INFERENCE DEBUG] Images loaded:")
+    logging.info(f"  Raw: {image_raw.shape if image_raw is not None else 'Failed'}")
+    logging.info(f"  Segment: {image_segment.shape if image_segment is not None else 'Failed'}")
+    logging.info(f"  Hotspot: {image_hotspot.shape if image_hotspot is not None else 'Failed'}")
     
     if image_raw is None or image_segment is None or image_hotspot is None:
-        print(f"[INFERENCE ERROR] Failed to load one or more images")
+        logging.info(f"[INFERENCE ERROR] Failed to load one or more images")
         return [], None
     
     # Process bounding boxes
     list_bb = loadBoundingBox2List(path_xml)
-    print(f"[INFERENCE DEBUG] Loaded {len(list_bb)} bounding boxes")
+    logging.info(f"[INFERENCE DEBUG] Loaded {len(list_bb)} bounding boxes")
 
     # Extract features (same processing as backup)
     list_features = []
     for i, bb in enumerate(list_bb):
-        print(f"[INFERENCE DEBUG] Processing bbox {i}: {bb}")
+        logging.info(f"[INFERENCE DEBUG] Processing bbox {i}: {bb}")
         feature = extractFeatures(image_raw, image_segment, image_hotspot, bb, path_raw)
         if feature is None:
-            print(f"[INFERENCE DEBUG] Feature extraction failed for bbox {i}")
+            logging.info(f"[INFERENCE DEBUG] Feature extraction failed for bbox {i}")
             continue
         list_features.append(feature)
-        print(f"[INFERENCE DEBUG] Feature extracted for bbox {i}: segment={feature.get('segment')}")
+        logging.info(f"[INFERENCE DEBUG] Feature extracted for bbox {i}: segment={feature.get('segment')}")
 
     if not list_features:
-        print(f"[INFERENCE DEBUG] No valid features extracted")
+        logging.info(f"[INFERENCE DEBUG] No valid features extracted")
         return [], None
 
-    print(f"[INFERENCE DEBUG] Extracted {len(list_features)} valid features")
+    logging.info(f"[INFERENCE DEBUG] Extracted {len(list_features)} valid features")
 
     # Predict (same as backup)
     try:
         results = predict_features(list_features)
-        print(f"[INFERENCE DEBUG] Prediction completed: {len(results)} results")
+        logging.info(f"[INFERENCE DEBUG] Prediction completed: {len(results)} results")
     except Exception as e:
-        print(f"[INFERENCE ERROR] Prediction failed: {e}")
+        logging.info(f"[INFERENCE ERROR] Prediction failed: {e}")
         return [], None
     
     # Format output (same as backup)
@@ -508,7 +508,7 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
         }
         output_list.append(output_dict)
         
-    print(f"[INFERENCE DEBUG] Final output: {len(output_list)} classifications")
+    logging.info(f"[INFERENCE DEBUG] Final output: {len(output_list)} classifications")
     
     #   Create output mask with RGB format (will be converted to BGR in save function)
     if output_list:
@@ -518,18 +518,18 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
         h, w = hotspot_mask_gray.shape
         hotspot_mask = np.zeros((h, w, 3), dtype=np.uint8)
         
-        print(f"[INFERENCE DEBUG] Creating RGB mask for BGR conversion in save")
+        logging.info(f"[INFERENCE DEBUG] Creating RGB mask for BGR conversion in save")
         
         # Apply RGB colors (will be converted to BGR when saving)
         hotspot_mask[hotspot_mask_gray == 0] = [0, 0, 0]        # Black background
         hotspot_mask[hotspot_mask_gray == 1] = [255, 0, 0]      # Red for Abnormal
         hotspot_mask[hotspot_mask_gray == 2] = [255, 241, 188]  # Cream for Normal
         
-        print(f"[INFERENCE DEBUG] RGB mask created - will be converted to BGR in save function")
+        logging.info(f"[INFERENCE DEBUG] RGB mask created - will be converted to BGR in save function")
         
     else:
         hotspot_mask = np.zeros((image_raw.shape[0], image_raw.shape[1], 3), dtype=np.uint8)
-        print(f"[INFERENCE DEBUG] Created empty mask - no results")
+        logging.info(f"[INFERENCE DEBUG] Created empty mask - no results")
     
     return output_list, hotspot_mask
     """
@@ -544,16 +544,16 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
     Returns:
         Tuple of (results_list, classification_mask)
     """
-    print(f"[INFERENCE DEBUG] Starting inference with automatic conversion")
-    print(f"[INFERENCE DEBUG] Input paths:")
-    print(f"  Raw: {path_raw}")
-    print(f"  Segment: {path_segment}")
-    print(f"  Hotspot: {path_hotspot}")
-    print(f"  XML: {len(path_xml) if isinstance(path_xml, list) else path_xml}")
+    logging.info(f"[INFERENCE DEBUG] Starting inference with automatic conversion")
+    logging.info(f"[INFERENCE DEBUG] Input paths:")
+    logging.info(f"  Raw: {path_raw}")
+    logging.info(f"  Segment: {path_segment}")
+    logging.info(f"  Hotspot: {path_hotspot}")
+    logging.info(f"  XML: {len(path_xml) if isinstance(path_xml, list) else path_xml}")
     
     #   STEP 1: Convert colored segmentation to grayscale if needed
     converted_segment_path = convert_colored_segmentation_if_needed(path_segment)
-    print(f"[INFERENCE DEBUG] Using segmentation: {Path(converted_segment_path).name}")
+    logging.info(f"[INFERENCE DEBUG] Using segmentation: {Path(converted_segment_path).name}")
     
     #   STEP 2: Load images using OpenCV (same as backup)
     image_raw = cv2.imread(path_raw, cv2.IMREAD_GRAYSCALE)
@@ -570,42 +570,42 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
     image_segment = np.squeeze(image_segment)
     image_hotspot = np.squeeze(image_hotspot)
     
-    print(f"[INFERENCE DEBUG] Images loaded:")
-    print(f"  Raw: {image_raw.shape if image_raw is not None else 'Failed'}")
-    print(f"  Segment: {image_segment.shape if image_segment is not None else 'Failed'}")
-    print(f"  Hotspot: {image_hotspot.shape if image_hotspot is not None else 'Failed'}")
+    logging.info(f"[INFERENCE DEBUG] Images loaded:")
+    logging.info(f"  Raw: {image_raw.shape if image_raw is not None else 'Failed'}")
+    logging.info(f"  Segment: {image_segment.shape if image_segment is not None else 'Failed'}")
+    logging.info(f"  Hotspot: {image_hotspot.shape if image_hotspot is not None else 'Failed'}")
     
     if image_raw is None or image_segment is None or image_hotspot is None:
-        print(f"[INFERENCE ERROR] Failed to load one or more images")
+        logging.info(f"[INFERENCE ERROR] Failed to load one or more images")
         return [], None
     
     # Process bounding boxes
     list_bb = loadBoundingBox2List(path_xml)
-    print(f"[INFERENCE DEBUG] Loaded {len(list_bb)} bounding boxes")
+    logging.info(f"[INFERENCE DEBUG] Loaded {len(list_bb)} bounding boxes")
 
     # Extract features (same processing as backup)
     list_features = []
     for i, bb in enumerate(list_bb):
-        print(f"[INFERENCE DEBUG] Processing bbox {i}: {bb}")
+        logging.info(f"[INFERENCE DEBUG] Processing bbox {i}: {bb}")
         feature = extractFeatures(image_raw, image_segment, image_hotspot, bb, path_raw)
         if feature is None:
-            print(f"[INFERENCE DEBUG] Feature extraction failed for bbox {i}")
+            logging.info(f"[INFERENCE DEBUG] Feature extraction failed for bbox {i}")
             continue
         list_features.append(feature)
-        print(f"[INFERENCE DEBUG] Feature extracted for bbox {i}: segment={feature.get('segment')}")
+        logging.info(f"[INFERENCE DEBUG] Feature extracted for bbox {i}: segment={feature.get('segment')}")
 
     if not list_features:
-        print(f"[INFERENCE DEBUG] No valid features extracted")
+        logging.info(f"[INFERENCE DEBUG] No valid features extracted")
         return [], None
 
-    print(f"[INFERENCE DEBUG] Extracted {len(list_features)} valid features")
+    logging.info(f"[INFERENCE DEBUG] Extracted {len(list_features)} valid features")
 
     # Predict (same as backup)
     try:
         results = predict_features(list_features)
-        print(f"[INFERENCE DEBUG] Prediction completed: {len(results)} results")
+        logging.info(f"[INFERENCE DEBUG] Prediction completed: {len(results)} results")
     except Exception as e:
-        print(f"[INFERENCE ERROR] Prediction failed: {e}")
+        logging.info(f"[INFERENCE ERROR] Prediction failed: {e}")
         return [], None
     
     # Format output (same as backup)
@@ -642,7 +642,7 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
         }
         output_list.append(output_dict)
         
-    print(f"[INFERENCE DEBUG] Final output: {len(output_list)} classifications")
+    logging.info(f"[INFERENCE DEBUG] Final output: {len(output_list)} classifications")
     
 def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
     """
@@ -657,16 +657,16 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
     Returns:
         Tuple of (results_list, classification_mask)
     """
-    print(f"[INFERENCE DEBUG] Starting inference with automatic conversion")
-    print(f"[INFERENCE DEBUG] Input paths:")
-    print(f"  Raw: {path_raw}")
-    print(f"  Segment: {path_segment}")
-    print(f"  Hotspot: {path_hotspot}")
-    print(f"  XML: {len(path_xml) if isinstance(path_xml, list) else path_xml}")
+    logging.info(f"[INFERENCE DEBUG] Starting inference with automatic conversion")
+    logging.info(f"[INFERENCE DEBUG] Input paths:")
+    logging.info(f"  Raw: {path_raw}")
+    logging.info(f"  Segment: {path_segment}")
+    logging.info(f"  Hotspot: {path_hotspot}")
+    logging.info(f"  XML: {len(path_xml) if isinstance(path_xml, list) else path_xml}")
     
     #   STEP 1: Convert colored segmentation to grayscale if needed
     converted_segment_path = convert_colored_segmentation_if_needed(path_segment)
-    print(f"[INFERENCE DEBUG] Using segmentation: {Path(converted_segment_path).name}")
+    logging.info(f"[INFERENCE DEBUG] Using segmentation: {Path(converted_segment_path).name}")
     
     #   STEP 2: Load images using OpenCV (same as backup)
     image_raw = cv2.imread(path_raw, cv2.IMREAD_GRAYSCALE)
@@ -683,42 +683,42 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
     image_segment = np.squeeze(image_segment)
     image_hotspot = np.squeeze(image_hotspot)
     
-    print(f"[INFERENCE DEBUG] Images loaded:")
-    print(f"  Raw: {image_raw.shape if image_raw is not None else 'Failed'}")
-    print(f"  Segment: {image_segment.shape if image_segment is not None else 'Failed'}")
-    print(f"  Hotspot: {image_hotspot.shape if image_hotspot is not None else 'Failed'}")
+    logging.info(f"[INFERENCE DEBUG] Images loaded:")
+    logging.info(f"  Raw: {image_raw.shape if image_raw is not None else 'Failed'}")
+    logging.info(f"  Segment: {image_segment.shape if image_segment is not None else 'Failed'}")
+    logging.info(f"  Hotspot: {image_hotspot.shape if image_hotspot is not None else 'Failed'}")
     
     if image_raw is None or image_segment is None or image_hotspot is None:
-        print(f"[INFERENCE ERROR] Failed to load one or more images")
+        logging.info(f"[INFERENCE ERROR] Failed to load one or more images")
         return [], None
     
     # Process bounding boxes
     list_bb = loadBoundingBox2List(path_xml)
-    print(f"[INFERENCE DEBUG] Loaded {len(list_bb)} bounding boxes")
+    logging.info(f"[INFERENCE DEBUG] Loaded {len(list_bb)} bounding boxes")
 
     # Extract features (same processing as backup)
     list_features = []
     for i, bb in enumerate(list_bb):
-        print(f"[INFERENCE DEBUG] Processing bbox {i}: {bb}")
+        logging.info(f"[INFERENCE DEBUG] Processing bbox {i}: {bb}")
         feature = extractFeatures(image_raw, image_segment, image_hotspot, bb, path_raw)
         if feature is None:
-            print(f"[INFERENCE DEBUG] Feature extraction failed for bbox {i}")
+            logging.info(f"[INFERENCE DEBUG] Feature extraction failed for bbox {i}")
             continue
         list_features.append(feature)
-        print(f"[INFERENCE DEBUG] Feature extracted for bbox {i}: segment={feature.get('segment')}")
+        logging.info(f"[INFERENCE DEBUG] Feature extracted for bbox {i}: segment={feature.get('segment')}")
 
     if not list_features:
-        print(f"[INFERENCE DEBUG] No valid features extracted")
+        logging.info(f"[INFERENCE DEBUG] No valid features extracted")
         return [], None
 
-    print(f"[INFERENCE DEBUG] Extracted {len(list_features)} valid features")
+    logging.info(f"[INFERENCE DEBUG] Extracted {len(list_features)} valid features")
 
     # Predict (same as backup)
     try:
         results = predict_features(list_features)
-        print(f"[INFERENCE DEBUG] Prediction completed: {len(results)} results")
+        logging.info(f"[INFERENCE DEBUG] Prediction completed: {len(results)} results")
     except Exception as e:
-        print(f"[INFERENCE ERROR] Prediction failed: {e}")
+        logging.info(f"[INFERENCE ERROR] Prediction failed: {e}")
         return [], None
     
     # Format output (same as backup)
@@ -755,7 +755,7 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
         }
         output_list.append(output_dict)
         
-    print(f"[INFERENCE DEBUG] Final output: {len(output_list)} classifications")
+    logging.info(f"[INFERENCE DEBUG] Final output: {len(output_list)} classifications")
     
     #   Create output mask with RGB format for PIL save
     if output_list:
@@ -765,17 +765,17 @@ def inference_classification(path_raw, path_segment, path_hotspot, path_xml):
         h, w = hotspot_mask_gray.shape
         hotspot_mask = np.zeros((h, w, 3), dtype=np.uint8)
         
-        print(f"[INFERENCE DEBUG] Creating RGB mask for PIL save")
+        logging.info(f"[INFERENCE DEBUG] Creating RGB mask for PIL save")
         
         # Apply RGB colors (PIL will preserve RGB order)
         hotspot_mask[hotspot_mask_gray == 0] = [0, 0, 0]        # Black background
         hotspot_mask[hotspot_mask_gray == 1] = [255, 0, 0]      # Red for Abnormal
         hotspot_mask[hotspot_mask_gray == 2] = [255, 241, 188]  # Cream for Normal
         
-        print(f"[INFERENCE DEBUG] RGB mask created - PIL will preserve colors correctly")
+        logging.info(f"[INFERENCE DEBUG] RGB mask created - PIL will preserve colors correctly")
         
     else:
         hotspot_mask = np.zeros((image_raw.shape[0], image_raw.shape[1], 3), dtype=np.uint8)
-        print(f"[INFERENCE DEBUG] Created empty mask - no results")
+        logging.info(f"[INFERENCE DEBUG] Created empty mask - no results")
     
     return output_list, hotspot_mask

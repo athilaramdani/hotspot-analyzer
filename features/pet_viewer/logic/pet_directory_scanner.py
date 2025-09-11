@@ -7,7 +7,7 @@ data/PET/[patient_id]/
 from pathlib import Path
 from typing import Dict, List
 import nibabel as nib
-
+import logging
 
 def scan_pet_directory(directory: Path) -> Dict[str, List[Path]]:
     """
@@ -22,7 +22,7 @@ def scan_pet_directory(directory: Path) -> Dict[str, List[Path]]:
     patient_map: Dict[str, List[Path]] = {}
     
     if not directory.exists():
-        print(f"PET directory tidak ditemukan: {directory}")
+        logging.info(f"PET directory tidak ditemukan: {directory}")
         return patient_map
     
     # Scan semua subfolder dalam direktori PET
@@ -35,10 +35,10 @@ def scan_pet_directory(directory: Path) -> Dict[str, List[Path]]:
         # Cek apakah folder mengandung file PET yang valid
         if _has_valid_pet_data(patient_folder):
             patient_map.setdefault(patient_id, []).append(patient_folder)
-            print(f"Found PET data for patient {patient_id} in {patient_folder}")
+            logging.info(f"Found PET data for patient {patient_id} in {patient_folder}")
     
     total_patients = len(patient_map)
-    print(f"Found {total_patients} patients with PET data")
+    logging.info(f"Found {total_patients} patients with PET data")
     
     return patient_map
 
@@ -115,7 +115,7 @@ def validate_pet_file(file_path: Path) -> bool:
         return True
         
     except Exception as e:
-        print(f"Error validating PET file {file_path}: {e}")
+        logging.info(f"Error validating PET file {file_path}: {e}")
         return False
 
 
@@ -139,5 +139,5 @@ def get_pet_metadata(file_path: Path) -> Dict:
         return metadata
         
     except Exception as e:
-        print(f"Error extracting metadata from {file_path}: {e}")
+        logging.info(f"Error extracting metadata from {file_path}: {e}")
         return {}
