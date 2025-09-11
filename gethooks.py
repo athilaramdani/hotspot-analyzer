@@ -15,4 +15,4 @@ with open(output_file, "w", encoding="utf-8") as out:
                     out.write(f.read())
                 out.write("\n\n")  # kasih spasi antar file biar rapi
 
-print(f"  Semua kode Python dari folder '{folder}' udah dikumpulin ke '{output_file}'")
+logging.info(f"  Semua kode Python dari folder '{folder}' udah dikumpulin ke '{output_file}'")

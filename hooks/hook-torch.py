@@ -1,6 +1,6 @@
 
 from PyInstaller.utils.hooks import collect_all, collect_submodules
-
+import logging
 # Kumpulkan semua resource utama dari torch
 datas, binaries, hiddenimports = collect_all('torch')
 
@@ -44,4 +44,4 @@ excludedimports += [
     'ultralytics.tests',
 ]
 
-print(f"Torch hook: collected {len(hiddenimports)} hidden imports, {len(datas)} datas, {len(binaries)} binaries")
+logging.info(f"Torch hook: collected {len(hiddenimports)} hidden imports, {len(datas)} datas, {len(binaries)} binaries")

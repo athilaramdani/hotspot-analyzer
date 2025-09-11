@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFrame, QCheckBox,QScrollArea  
 )
 from PySide6.QtGui import QGuiApplication
-
+import logging
 # Import NEW config paths and cloud storage
 from core.config.paths import (
     get_planar_segmentation_files,
@@ -111,16 +111,16 @@ class SegmentationEditorDialog(BaseEditorDialog):
         """Load existing mask with proper priority using NEWEST paths."""
         
         # Debug output to show which files we're using
-        print(f"  [SEGMENTATION LOAD] Loading mask for {self.view_short}")
-        print(f"  [SEGMENTATION LOAD] Segmentation file: {self.segmentation_path}")
-        print(f"  [SEGMENTATION LOAD] File exists: {self.segmentation_path.exists() if self.segmentation_path else False}")
+        logging.info(f"  [SEGMENTATION LOAD] Loading mask for {self.view_short}")
+        logging.info(f"  [SEGMENTATION LOAD] Segmentation file: {self.segmentation_path}")
+        logging.info(f"  [SEGMENTATION LOAD] File exists: {self.segmentation_path.exists() if self.segmentation_path else False}")
         
         # The path self.segmentation_path now points to the NEWEST file
         if self.segmentation_path and self.segmentation_path.exists():
-            print(f"✓ Loading NEWEST segmentation mask from: {self.segmentation_path.name}")
+            logging.info(f"✓ Loading NEWEST segmentation mask from: {self.segmentation_path.name}")
             return self._load_mask_from_segmentation_png(self.segmentation_path)
         else:
-            print(f"✗ No segmentation data found. Creating empty mask.")
+            logging.info(f"✗ No segmentation data found. Creating empty mask.")
             return np.zeros_like(self.orig_arr, np.uint8)
     
     def _on_invert_changed(self, state: int):
@@ -147,7 +147,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
             self.opacity_panel.connect_to_canvas(self.canvas)
             
         except Exception as e:
-            print(f"✗ Error during image inversion: {e}")
+            logging.info(f"✗ Error during image inversion: {e}")
             self.invert_checkbox.setChecked(not self.invert_checkbox.isChecked())
     def _load_mask_from_segmentation_png(self, segmentation_path: Path) -> np.ndarray:
         """Load mask from segmentation PNG file."""
@@ -156,21 +156,21 @@ class SegmentationEditorDialog(BaseEditorDialog):
             
             # Check if image is colored (RGB/RGBA) or grayscale
             if img.mode in ['RGB', 'RGBA']:
-                print(f"  Loading as colored segmentation from: {segmentation_path.name}")
+                logging.info(f"  Loading as colored segmentation from: {segmentation_path.name}")
                 return self._load_mask_from_colored_png(segmentation_path)
             else:
                 # Load as grayscale mask
-                print(f"  Loading as grayscale segmentation from: {segmentation_path.name}")
+                logging.info(f"  Loading as grayscale segmentation from: {segmentation_path.name}")
                 mask = np.array(img.convert('L'))
                 
                 # Convert grayscale values to label indices if needed
                 # Assuming segmentation uses label indices directly
                 unique_vals = np.unique(mask)
-                print(f"✓ Loaded grayscale mask with unique values: {unique_vals}")
+                logging.info(f"✓ Loaded grayscale mask with unique values: {unique_vals}")
                 return mask
                 
         except Exception as e:
-            print(f"✗ Failed to load segmentation mask: {e}")
+            logging.info(f"✗ Failed to load segmentation mask: {e}")
             return np.zeros_like(self.orig_arr, np.uint8)
 
     def _load_mask_from_colored_png(self, png_path: Path) -> np.ndarray:
@@ -186,13 +186,13 @@ class SegmentationEditorDialog(BaseEditorDialog):
                 matches = (rgb == col).all(-1)
                 mask[matches] = lbl
                 if matches.any():
-                    print(f"  Found {matches.sum()} pixels for label {lbl} (color {col})")
+                    logging.info(f"  Found {matches.sum()} pixels for label {lbl} (color {col})")
             
-            print(f"✓ Loaded colored segmentation mask with {len(np.unique(mask))} unique labels: {np.unique(mask)}")
+            logging.info(f"✓ Loaded colored segmentation mask with {len(np.unique(mask))} unique labels: {np.unique(mask)}")
             return mask
             
         except Exception as e:
-            print(f"✗ Failed to load colored segmentation mask from {png_path}: {e}")
+            logging.info(f"✗ Failed to load colored segmentation mask from {png_path}: {e}")
             return np.zeros_like(self.orig_arr, np.uint8)
         
     def _setup_data_paths(self):
@@ -241,10 +241,10 @@ class SegmentationEditorDialog(BaseEditorDialog):
         self.seg_files = corrected_seg_files
         
         # Debug: Print available keys and actual paths
-        print(f"DEBUG: Available seg_files keys: {list(self.seg_files.keys())}")
+        logging.info(f"DEBUG: Available seg_files keys: {list(self.seg_files.keys())}")
         for key, path in self.seg_files.items():
             exists = path.exists() if path else False
-            print(f"  {key}: {path} (exists: {exists})")
+            logging.info(f"  {key}: {path} (exists: {exists})")
 
     def _validate_session_info(self):
         """Validate session and patient info."""
@@ -276,19 +276,19 @@ class SegmentationEditorDialog(BaseEditorDialog):
         # Look for original PNG file
         orig_png_path = patient_folder / f"{filename_stem_with_date}_{view_normalized}_original.png"
         
-        print(f"Looking for original PNG: {orig_png_path}")
+        logging.info(f"Looking for original PNG: {orig_png_path}")
         
         if orig_png_path.exists():
             try:
                 self.orig_arr = np.array(Image.open(orig_png_path).convert('L'))
-                print(f"✓ Loaded original PNG: {orig_png_path}")
+                logging.info(f"✓ Loaded original PNG: {orig_png_path}")
                 self.has_orig_png = True
             except Exception as e:
-                print(f"✗ Failed to load PNG {orig_png_path}: {e}")
+                logging.info(f"✗ Failed to load PNG {orig_png_path}: {e}")
                 self._load_from_scan_frames()
                 self.has_orig_png = False
         else:
-            print(f"✗ Original PNG not found: {orig_png_path}")
+            logging.info(f"✗ Original PNG not found: {orig_png_path}")
             self._load_from_scan_frames()
             self.has_orig_png = False
 
@@ -297,14 +297,14 @@ class SegmentationEditorDialog(BaseEditorDialog):
 
         # Ensure mask has same dimensions as original image
         if self.mask_arr.shape != self.orig_arr.shape:
-            print(f"⚠️ WARNING: Mask shape {self.mask_arr.shape} != original shape {self.orig_arr.shape}")
-            print("🔄 Resizing mask to match original image...")
+            logging.info(f"⚠️ WARNING: Mask shape {self.mask_arr.shape} != original shape {self.orig_arr.shape}")
+            logging.info("🔄 Resizing mask to match original image...")
             mask_pil = Image.fromarray(self.mask_arr)
             mask_resized = mask_pil.resize((self.orig_arr.shape[1], self.orig_arr.shape[0]), Image.NEAREST)
             self.mask_arr = np.array(mask_resized)
-            print(f"  Mask resized to: {self.mask_arr.shape}")
+            logging.info(f"  Mask resized to: {self.mask_arr.shape}")
 
-        print(f"  Final mask loaded with shape: {self.mask_arr.shape}, unique values: {np.unique(self.mask_arr)}")
+        logging.info(f"  Final mask loaded with shape: {self.mask_arr.shape}, unique values: {np.unique(self.mask_arr)}")
 
     def _load_from_scan_frames(self):
         """Load from scan frames with case-insensitive matching."""
@@ -320,14 +320,14 @@ class SegmentationEditorDialog(BaseEditorDialog):
         matching_view = find_matching_view(self.view, list(self.scan_data["frames"].keys()))
         if matching_view:
             self.orig_arr = self.scan_data["frames"][matching_view]
-            print(f"✓ Using scan frame '{matching_view}' for view '{self.view}'")
+            logging.info(f"✓ Using scan frame '{matching_view}' for view '{self.view}'")
         else:
             available_views = list(self.scan_data["frames"].keys())
             raise KeyError(f"View '{self.view}' not found in frames: {available_views}")
 
     def _load_mask_from_available_sources(self) -> np.ndarray:
         """  FIXED: Load mask from available files with safe key access."""
-        print(f"DEBUG: Looking for mask files for view '{self.view}'")
+        logging.info(f"DEBUG: Looking for mask files for view '{self.view}'")
         
         # Define possible key mappings based on your actual file structure
         possible_keys = [
@@ -345,9 +345,9 @@ class SegmentationEditorDialog(BaseEditorDialog):
         for key in possible_keys:
             if key in self.seg_files:
                 path = self.seg_files[key]
-                print(f"  Checking key '{key}': {path}")
+                logging.info(f"  Checking key '{key}': {path}")
                 if path and path.exists():
-                    print(f"  Loading mask from: {path}")
+                    logging.info(f"  Loading mask from: {path}")
                     
                     # Handle different file types
                     if key in ['segmentation_png', 'mask_png']:
@@ -360,14 +360,14 @@ class SegmentationEditorDialog(BaseEditorDialog):
                     if mask is not None:
                         # Check if the loaded mask is empty
                         if np.all(mask == 0):
-                            print(f"⚠️ WARNING: Loaded mask file '{path.name}' is all black (empty).")
+                            logging.info(f"⚠️ WARNING: Loaded mask file '{path.name}' is all black (empty).")
                         else:
-                            print(f"  Loaded mask with {len(np.unique(mask))} unique values: {np.unique(mask)}")
+                            logging.info(f"  Loaded mask with {len(np.unique(mask))} unique values: {np.unique(mask)}")
                         return mask
                 else:
-                    print(f"  Key '{key}' path does not exist: {path}")
+                    logging.info(f"  Key '{key}' path does not exist: {path}")
         
-        print(f" No valid segmentation file found. Creating empty mask.")
+        logging.info(f" No valid segmentation file found. Creating empty mask.")
         return np.zeros_like(self.orig_arr, dtype=np.uint8)
 
     def _load_mask_from_file(self, png_path: Path) -> np.ndarray:
@@ -377,17 +377,17 @@ class SegmentationEditorDialog(BaseEditorDialog):
             
             # Check if image is colored (RGB/RGBA) or grayscale
             if img.mode in ['RGB', 'RGBA']:
-                print(f"  Loading as colored mask from: {png_path.name}")
+                logging.info(f"  Loading as colored mask from: {png_path.name}")
                 return self._load_mask_from_colored_png(png_path)
             else:
                 # Load as grayscale mask
-                print(f"  Loading as grayscale mask from: {png_path.name}")
+                logging.info(f"  Loading as grayscale mask from: {png_path.name}")
                 mask = np.array(img.convert('L'))
-                print(f"✓ Loaded grayscale mask with unique values: {np.unique(mask)}")
+                logging.info(f"✓ Loaded grayscale mask with unique values: {np.unique(mask)}")
                 return mask
                 
         except Exception as e:
-            print(f"✗ Failed to load mask from {png_path}: {e}")
+            logging.info(f"✗ Failed to load mask from {png_path}: {e}")
             return np.zeros((self.orig_arr.shape[0], self.orig_arr.shape[1]), np.uint8)
 
     def _create_toolbar(self):
@@ -608,7 +608,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
         self.btn_cancel.clicked.connect(self.reject)
         self.setFocus()
         
-        print("  All signals connected in SegmentationEditorDialog")
+        logging.info("  All signals connected in SegmentationEditorDialog")
 
     def _change_label(self, idx: int):
         """Handle palette selection."""
@@ -619,57 +619,57 @@ class SegmentationEditorDialog(BaseEditorDialog):
     def _perform_undo(self):
         """Perform undo for current layer."""
         """Perform undo for current layer - IMPROVED implementation."""
-        print("  _perform_undo called in SegmentationEditorDialog")
+        logging.info("  _perform_undo called in SegmentationEditorDialog")
         
         #   FIX: Add safety checks and better error handling
         if not hasattr(self, 'palette') or not self.palette:
-            print(" No palette available for undo")
+            logging.info(" No palette available for undo")
             return
             
         if not hasattr(self, 'canvas') or not self.canvas:
-            print(" No canvas available for undo")
+            logging.info(" No canvas available for undo")
             return
         
         current_label = self.palette.list_palette.currentRow()
         if current_label < 0:
-            print(" No valid label selected for undo")
+            logging.info(" No valid label selected for undo")
             return
             
-        print(f"🔄 Performing undo for label {current_label}")
+        logging.info(f"🔄 Performing undo for label {current_label}")
         
         # Call canvas undo method
         try:
             self.canvas.undo(current_label)
-            print("  Undo operation completed")
+            logging.info("  Undo operation completed")
         except Exception as e:
-            print(f" Undo failed: {e}")
+            logging.info(f" Undo failed: {e}")
 
     def _perform_redo(self):
         """Perform redo for current layer."""
-        print("  _perform_redo called in SegmentationEditorDialog")
+        logging.info("  _perform_redo called in SegmentationEditorDialog")
         
         #   FIX: Add safety checks and better error handling
         if not hasattr(self, 'palette') or not self.palette:
-            print(" No palette available for redo")
+            logging.info(" No palette available for redo")
             return
             
         if not hasattr(self, 'canvas') or not self.canvas:
-            print(" No canvas available for redo")
+            logging.info(" No canvas available for redo")
             return
         
         current_label = self.palette.list_palette.currentRow()
         if current_label < 0:
-            print(" No valid label selected for redo")
+            logging.info(" No valid label selected for redo")
             return
             
-        print(f"🔄 Performing redo for label {current_label}")
+        logging.info(f"🔄 Performing redo for label {current_label}")
         
         # Call canvas redo method
         try:
             self.canvas.redo(current_label)
-            print("  Redo operation completed")
+            logging.info("  Redo operation completed")
         except Exception as e:
-            print(f" Redo failed: {e}")
+            logging.info(f" Redo failed: {e}")
 
 
     def _save_all(self):
@@ -833,7 +833,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
             config_path = CONFIG_ROOT / "doctor_tags.json"
             
             if not config_path.exists():
-                print(f"Config file not found: {config_path}")
+                logging.info(f"Config file not found: {config_path}")
                 return "NSY"  # Fallback to default
             
             with open(config_path, 'r') as f:
@@ -843,7 +843,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
             available_tags = [tag for tag in config_data.get("doctor_tags", []) if tag.get("code") != "ALL"]
             
             if not available_tags:
-                print("No available doctor tags found")
+                logging.info("No available doctor tags found")
                 return "NSY"  # Fallback to default
             
             # Create dialog
@@ -912,12 +912,12 @@ class SegmentationEditorDialog(BaseEditorDialog):
             return None  # User cancelled
             
         except Exception as e:
-            print(f"Error showing session selection dialog: {e}")
+            logging.info(f"Error showing session selection dialog: {e}")
             return "NSY"  # Fallback to default
 
     def _update_progress(self, value: int, message: str):
         """Update progress bar and message (same as hotspot editor)."""
-        print(f"Save progress: {value}% - {message}")
+        logging.info(f"Save progress: {value}% - {message}")
         
         # Update loading dialog if exists
         if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
@@ -928,9 +928,9 @@ class SegmentationEditorDialog(BaseEditorDialog):
         """Handle save thread completion (same as hotspot editor)."""
         from PySide6.QtWidgets import QMessageBox
         
-        print("  [DEBUG SEGMENTATION] ===================")
-        print("  [DEBUG SEGMENTATION] Save finished!")
-        print("  [DEBUG SEGMENTATION] About to emit signal...")
+        logging.info("  [DEBUG SEGMENTATION] ===================")
+        logging.info("  [DEBUG SEGMENTATION] Save finished!")
+        logging.info("  [DEBUG SEGMENTATION] About to emit signal...")
         
         # Close loading dialog
         if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
@@ -956,13 +956,13 @@ class SegmentationEditorDialog(BaseEditorDialog):
         self.btn_save.setEnabled(True)
             
         #   EMIT SIGNAL SEPERTI HOTSPOT EDITOR
-        print("  [DEBUG SEGMENTATION] Checking if signal exists...")
+        logging.info("  [DEBUG SEGMENTATION] Checking if signal exists...")
         if hasattr(self, 'editor_completed'):
-            print("  [DEBUG SEGMENTATION] Signal exists, emitting...")
+            logging.info("  [DEBUG SEGMENTATION] Signal exists, emitting...")
             self.editor_completed.emit()
-            print("  [DEBUG SEGMENTATION] Signal emitted!")
+            logging.info("  [DEBUG SEGMENTATION] Signal emitted!")
         else:
-            print("  [DEBUG SEGMENTATION]  Signal does not exist!")
+            logging.info("  [DEBUG SEGMENTATION]  Signal does not exist!")
         
         # Close dialog
         self.accept()
@@ -1100,11 +1100,11 @@ class SegmentationEditorDialog(BaseEditorDialog):
                     writer.writeheader()
                 writer.writerow(log_entry)
             
-            print(f"   Editing time logged to '{log_file.name}': {formatted_time} for patient {self.patient_id}")
+            logging.info(f"   Editing time logged to '{log_file.name}': {formatted_time} for patient {self.patient_id}")
 
         except Exception as e:
             from PySide6.QtWidgets import QMessageBox
-            print(f" Failed to save editing time log: {e}")
+            logging.info(f" Failed to save editing time log: {e}")
             # Sekarang blok ini aman karena 'log_file' pasti punya nilai
             QMessageBox.critical(
                 self, "Error Menyimpan Log",

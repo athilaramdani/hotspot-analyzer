@@ -94,10 +94,10 @@ def extract_view_labels(ds) -> list:
    if all(lbl is None for lbl in labels):
        if n_frames == 2:
            labels = ["Anterior", "Posterior"]
-           print(f"     Using bone scan assumption: [Anterior, Posterior]")
+           logging.info(f"     Using bone scan assumption: [Anterior, Posterior]")
        else:
            labels = [f"Frame_{i+1}" for i in range(n_frames)]
-           print(f"   ⚠️  Generic fallback: {labels}")
+           logging.info(f"   ⚠️  Generic fallback: {labels}")
 
    return labels
 
@@ -118,7 +118,7 @@ def convert_dicom_to_png(dicom_path: Path, output_dir: Path = None, prefix: str 
        raise FileNotFoundError(f"DICOM file not found: {dicom_path}")
    
    if not dicom_path.suffix.lower() in ['.dcm', '.dicom']:
-       print(f"⚠️  Warning: File doesn't have .dcm/.dicom extension: {dicom_path}")
+       logging.info(f"⚠️  Warning: File doesn't have .dcm/.dicom extension: {dicom_path}")
    
    # Set output directory
    if output_dir is None:
@@ -131,33 +131,33 @@ def convert_dicom_to_png(dicom_path: Path, output_dir: Path = None, prefix: str 
    if prefix is None:
        prefix = dicom_path.stem
    
-   print(f"🏥 Processing DICOM: {dicom_path.name}")
-   print(f"  Output directory: {output_dir}")
-   print(f"🏷️  Filename prefix: {prefix}")
+   logging.info(f"🏥 Processing DICOM: {dicom_path.name}")
+   logging.info(f"  Output directory: {output_dir}")
+   logging.info(f"🏷️  Filename prefix: {prefix}")
    
    try:
        # Read DICOM file
-       print("📖 Reading DICOM file...")
+       logging.info("📖 Reading DICOM file...")
        ds = pydicom.dcmread(dicom_path)
        
        # Extract pixel array
        pixel_array = ds.pixel_array
-       print(f"🖼️  Pixel array shape: {pixel_array.shape}")
-       print(f"🔢 Data type: {pixel_array.dtype}")
+       logging.info(f"🖼️  Pixel array shape: {pixel_array.shape}")
+       logging.info(f"🔢 Data type: {pixel_array.dtype}")
        
        # Handle single frame vs multi-frame
        if pixel_array.ndim == 2:
            # Single frame - add frame dimension
            pixel_array = pixel_array[np.newaxis, ...]
-           print("📄 Single frame detected, expanding dimensions")
+           logging.info("📄 Single frame detected, expanding dimensions")
        
        n_frames = pixel_array.shape[0]
-       print(f"🎬 Number of frames: {n_frames}")
+       logging.info(f"🎬 Number of frames: {n_frames}")
        
        # Extract view labels
-       print("🏷️  Extracting view labels...")
+       logging.info("🏷️  Extracting view labels...")
        view_labels = extract_view_labels(ds)
-       print(f"📋 View labels: {view_labels}")
+       logging.info(f"📋 View labels: {view_labels}")
        
        # Convert each frame to PNG
        created_files = []
@@ -166,13 +166,13 @@ def convert_dicom_to_png(dicom_path: Path, output_dir: Path = None, prefix: str 
            frame_data = pixel_array[frame_idx]
            view_label = view_labels[frame_idx]
            
-           print(f"\n🖼️  Processing Frame {frame_idx + 1}/{n_frames}: {view_label}")
-           print(f"   Frame shape: {frame_data.shape}")
-           print(f"   Value range: {frame_data.min()} - {frame_data.max()}")
+           logging.info(f"\n🖼️  Processing Frame {frame_idx + 1}/{n_frames}: {view_label}")
+           logging.info(f"   Frame shape: {frame_data.shape}")
+           logging.info(f"   Value range: {frame_data.min()} - {frame_data.max()}")
            
            # Normalize frame
            frame_uint8 = normalize_frame_to_uint8(frame_data)
-           print(f"   Normalized range: {frame_uint8.min()} - {frame_uint8.max()}")
+           logging.info(f"   Normalized range: {frame_uint8.min()} - {frame_uint8.max()}")
            
            # Create filename
            safe_view_label = view_label.replace(" ", "_").replace("/", "_")
@@ -190,21 +190,21 @@ def convert_dicom_to_png(dicom_path: Path, output_dir: Path = None, prefix: str 
                pil_image = Image.fromarray(frame_uint8, mode="L")
                pil_image.save(output_path)
                created_files.append(output_path)
-               print(f"     Saved: {filename}")
-               print(f"   📏 Image size: {pil_image.size}")
+               logging.info(f"     Saved: {filename}")
+               logging.info(f"   📏 Image size: {pil_image.size}")
            except Exception as e:
-               print(f"    Failed to save {filename}: {e}")
+               logging.info(f"    Failed to save {filename}: {e}")
        
-       print(f"\n🎉 Conversion completed!")
-       print(f"📊 Created {len(created_files)} PNG files:")
+       logging.info(f"\n🎉 Conversion completed!")
+       logging.info(f"📊 Created {len(created_files)} PNG files:")
        for file_path in created_files:
            file_size = file_path.stat().st_size / 1024  # KB
-           print(f"   📄 {file_path.name} ({file_size:.1f} KB)")
+           logging.info(f"   📄 {file_path.name} ({file_size:.1f} KB)")
        
        return created_files
        
    except Exception as e:
-       print(f" Error processing DICOM file: {e}")
+       logging.info(f" Error processing DICOM file: {e}")
        import traceback
        traceback.print_exc()
        raise
@@ -255,8 +255,8 @@ Examples:
    dicom_path = Path(args.dicom_file)
    output_dir = Path(args.output) if args.output else None
    
-   print("🩻 TELPLASTINA DICOM to PNG Converter")
-   print("=" * 50)
+   logging.info("🩻 TELPLASTINA DICOM to PNG Converter")
+   logging.info("=" * 50)
    
    try:
        created_files = convert_dicom_to_png(
@@ -265,14 +265,14 @@ Examples:
            prefix=args.prefix
        )
        
-       print("\n  Conversion successful!")
+       logging.info("\n  Conversion successful!")
        return 0
        
    except FileNotFoundError as e:
-       print(f" File not found: {e}")
+       logging.info(f" File not found: {e}")
        return 1
    except Exception as e:
-       print(f" Error: {e}")
+       logging.info(f" Error: {e}")
        if args.verbose:
            import traceback
            traceback.print_exc()

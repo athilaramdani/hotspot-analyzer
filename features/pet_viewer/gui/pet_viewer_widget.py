@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QFont
 
 from features.pet_viewer.logic.pet_loader import PETData, get_slice_data, normalize_image_for_display
-
+import logging
 
 class PETSliceViewer(QWidget):
     """Widget untuk menampilkan single slice dengan slider control"""
@@ -145,7 +145,7 @@ class PETSliceViewer(QWidget):
     
     def set_image_data(self, image_data: np.ndarray):
         """Set image data untuk ditampilkan"""
-        print(f"[DEBUG] {self.title} - set_image_data called with data shape: {image_data.shape if image_data is not None else 'None'}")
+        logging.info(f"[DEBUG] {self.title} - set_image_data called with data shape: {image_data.shape if image_data is not None else 'None'}")
         
         self.image_data = image_data
         
@@ -159,7 +159,7 @@ class PETSliceViewer(QWidget):
             self.slice_slider.setValue(middle_slice)
             self.current_slice = middle_slice
             
-            print(f"[DEBUG] {self.title} - max_slices: {self.max_slices}, middle_slice: {middle_slice}")
+            logging.info(f"[DEBUG] {self.title} - max_slices: {self.max_slices}, middle_slice: {middle_slice}")
             
             self._update_display()
         else:
@@ -183,7 +183,7 @@ class PETSliceViewer(QWidget):
             return
 
         # Debug: Print slice info
-        print(f"[DEBUG] Displaying {self.title} - axis: {self.axis}, slice: {self.current_slice}, shape: {slice_data.shape}")
+        logging.info(f"[DEBUG] Displaying {self.title} - axis: {self.axis}, slice: {self.current_slice}, shape: {slice_data.shape}")
         
         # Make a copy to avoid modifying original data
         slice_data = slice_data.copy()
@@ -210,7 +210,7 @@ class PETSliceViewer(QWidget):
         # Normalisasi dan pastikan buffer C-contiguous
         normalized = normalize_image_for_display(slice_data)
         if normalized is None:
-            print(f"[ERROR] Failed to normalize image for {self.title}")
+            logging.info(f"[ERROR] Failed to normalize image for {self.title}")
             self.clear()
             return
             
@@ -221,7 +221,7 @@ class PETSliceViewer(QWidget):
         bytes_per_line = width
         
         # Debug print
-        print(f"[DEBUG] Creating QImage: width={width}, height={height}, bytes_per_line={bytes_per_line}")
+        logging.info(f"[DEBUG] Creating QImage: width={width}, height={height}, bytes_per_line={bytes_per_line}")
         
         q_image = QImage(
             normalized.data,
@@ -232,7 +232,7 @@ class PETSliceViewer(QWidget):
         )
 
         if q_image.isNull():
-            print(f"[ERROR] QImage is null for {self.title}")
+            logging.info(f"[ERROR] QImage is null for {self.title}")
             self.clear()
             return
 
@@ -240,7 +240,7 @@ class PETSliceViewer(QWidget):
         pixmap = QPixmap.fromImage(q_image)
         
         if pixmap.isNull():
-            print(f"[ERROR] QPixmap is null for {self.title}")
+            logging.info(f"[ERROR] QPixmap is null for {self.title}")
             self.clear()
             return
         
@@ -262,7 +262,7 @@ class PETSliceViewer(QWidget):
 
     def clear(self):
         """Clear the display"""
-        print(f"[DEBUG] {self.title}.clear() called")
+        logging.info(f"[DEBUG] {self.title}.clear() called")
         self.image_label.clear()
         self.image_label.setText("No data")
         self.slice_info_label.setText("0/0")
@@ -431,7 +431,7 @@ class PETViewerWidget(QWidget):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        print("[DEBUG] PETViewerWidget.__init__ called")
+        logging.info("[DEBUG] PETViewerWidget.__init__ called")
         self.pet_data: Optional[PETData] = None
         self.current_image_type: str = "PET"  # PET, CT, SEG, SUV
         self.fullscreen_widget: Optional[QWidget] = None  # Widget yang sedang fullscreen
@@ -478,7 +478,7 @@ class PETViewerWidget(QWidget):
         self.slice_panels = [self.red_panel, self.green_panel, self.yellow_panel]
         self.all_panels = [self.red_panel, self.green_panel, self.yellow_panel, self.plot_panel]
         
-        print("[DEBUG] PETViewerWidget._create_ui completed")
+        logging.info("[DEBUG] PETViewerWidget._create_ui completed")
     
     def _handle_fullscreen_toggle(self, widget):
         """Handle fullscreen toggle from any panel"""
@@ -513,7 +513,7 @@ class PETViewerWidget(QWidget):
         # Show the widget
         widget.show()
         
-        print(f"[DEBUG] Entered fullscreen mode for {widget.title if hasattr(widget, 'title') else 'Plot'}")
+        logging.info(f"[DEBUG] Entered fullscreen mode for {widget.title if hasattr(widget, 'title') else 'Plot'}")
     
     def _exit_fullscreen(self):
         """Exit fullscreen mode and restore 2x2 grid layout"""
@@ -541,7 +541,7 @@ class PETViewerWidget(QWidget):
         # Reset fullscreen widget
         self.fullscreen_widget = None
         
-        print("[DEBUG] Exited fullscreen mode")
+        logging.info("[DEBUG] Exited fullscreen mode")
     
     def _clear_layout(self, layout):
         """Clear all items from layout without deleting widgets"""
@@ -553,9 +553,9 @@ class PETViewerWidget(QWidget):
     
     def set_pet_data(self, pet_data: PETData):
         """Set PET data untuk ditampilkan"""
-        print(f"[DEBUG] PETViewerWidget.set_pet_data called with patient_id: {pet_data.patient_id if pet_data else 'None'}")
+        logging.info(f"[DEBUG] PETViewerWidget.set_pet_data called with patient_id: {pet_data.patient_id if pet_data else 'None'}")
         if pet_data:
-            print(f"[DEBUG] Available images: PET={pet_data.pet_image is not None}, CT={pet_data.ct_image is not None}, SEG={pet_data.seg_image is not None}, SUV={pet_data.suv_image is not None}")
+            logging.info(f"[DEBUG] Available images: PET={pet_data.pet_image is not None}, CT={pet_data.ct_image is not None}, SEG={pet_data.seg_image is not None}, SUV={pet_data.suv_image is not None}")
         self.pet_data = pet_data
         self._update_display()
         
@@ -571,7 +571,7 @@ class PETViewerWidget(QWidget):
         # Ambil image 3-D sesuai tipe
         image_data = self._get_current_image_data()
         
-        print(f"[DEBUG] PETViewerWidget._update_display - image_type: {self.current_image_type}, data shape: {image_data.shape if image_data is not None else 'None'}")
+        logging.info(f"[DEBUG] PETViewerWidget._update_display - image_type: {self.current_image_type}, data shape: {image_data.shape if image_data is not None else 'None'}")
 
         if image_data is not None:
             # Kirim image ke semua slice viewer panels
@@ -581,24 +581,24 @@ class PETViewerWidget(QWidget):
             # Update plot panel with statistics
             self.plot_panel.update_statistics(self.pet_data, self.current_image_type)
         else:
-            print("[WARNING] No image data available to display")
+            logging.info("[WARNING] No image data available to display")
             self.clear()
     
     def _get_current_image_data(self) -> Optional[np.ndarray]:
         """Get image data berdasarkan tipe yang dipilih"""
         if not self.pet_data:
-            print("[DEBUG] _get_current_image_data: No pet_data available")
+            logging.info("[DEBUG] _get_current_image_data: No pet_data available")
             return None
 
-        print(f"[DEBUG] _get_current_image_data: Getting {self.current_image_type} data")
+        logging.info(f"[DEBUG] _get_current_image_data: Getting {self.current_image_type} data")
         
         if self.current_image_type == "PET":
             # Gunakan PET mentah; jika tidak ada, fallback ke PET korr
             pet_image = self.pet_data.pet_image
             pet_corr_image = self.pet_data.pet_corr_image
             
-            print(f"[DEBUG] PET image shape: {pet_image.shape if pet_image is not None else 'None'}")
-            print(f"[DEBUG] PET corr image shape: {pet_corr_image.shape if pet_corr_image is not None else 'None'}")
+            logging.info(f"[DEBUG] PET image shape: {pet_image.shape if pet_image is not None else 'None'}")
+            logging.info(f"[DEBUG] PET corr image shape: {pet_corr_image.shape if pet_corr_image is not None else 'None'}")
             
             return (
                 pet_image

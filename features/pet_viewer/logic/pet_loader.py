@@ -9,7 +9,7 @@ import numpy as np
 import nibabel as nib
 
 from .pet_directory_scanner import get_pet_files, validate_pet_file, get_pet_metadata
-
+import logging
 
 @dataclass
 class PETData:
@@ -61,7 +61,7 @@ def load_pet_data(patient_folder: Path, progress_callback: Optional[Callable[[st
     
     try:
         patient_id = patient_folder.name
-        print(f"Loading PET data for patient {patient_id} from {patient_folder}")
+        logging.info(f"Loading PET data for patient {patient_id} from {patient_folder}")
         
         report_progress("Scanning folder for PET files...", 10)
         
@@ -69,7 +69,7 @@ def load_pet_data(patient_folder: Path, progress_callback: Optional[Callable[[st
         pet_files = get_pet_files(patient_folder)
         
         if not pet_files:
-            print(f"No PET files found in {patient_folder}")
+            logging.info(f"No PET files found in {patient_folder}")
             return None
         
         report_progress("Initializing data structure...", 20)
@@ -114,16 +114,16 @@ def load_pet_data(patient_folder: Path, progress_callback: Optional[Callable[[st
         if (pet_data.pet_image is None and 
             pet_data.pet_corr_image is None and 
             pet_data.ct_image is None):
-            print(f"No valid images loaded for patient {patient_id}")
+            logging.info(f"No valid images loaded for patient {patient_id}")
             return None
         
         report_progress("Loading completed successfully!", 100)
         
-        print(f"Successfully loaded PET data for patient {patient_id}")
+        logging.info(f"Successfully loaded PET data for patient {patient_id}")
         return pet_data
         
     except Exception as e:
-        print(f"Error loading PET data from {patient_folder}: {e}")
+        logging.info(f"Error loading PET data from {patient_folder}: {e}")
         if progress_callback:
             progress_callback(f"Error: {str(e)}", 0)
         return None
@@ -137,11 +137,11 @@ def _load_nii_file(file_path: Path) -> tuple[Optional[np.ndarray], Optional[np.n
         tuple: (image_data, affine_matrix, metadata)
     """
     try:
-        print(f"Loading NIfTI file: {file_path}")
+        logging.info(f"Loading NIfTI file: {file_path}")
         
         # Validasi file
         if not validate_pet_file(file_path):
-            print(f"Invalid PET file: {file_path}")
+            logging.info(f"Invalid PET file: {file_path}")
             return None, None, {}
         
         # Load dengan nibabel
@@ -158,12 +158,12 @@ def _load_nii_file(file_path: Path) -> tuple[Optional[np.ndarray], Optional[np.n
             p99 = np.percentile(image_data[image_data > 0], 99)
             image_data = np.clip(image_data, 0, p99)
         
-        print(f"Loaded image shape: {image_data.shape}, dtype: {image_data.dtype}")
+        logging.info(f"Loaded image shape: {image_data.shape}, dtype: {image_data.dtype}")
         
         return image_data, affine, metadata
         
     except Exception as e:
-        print(f"Error loading NIfTI file {file_path}: {e}")
+        logging.info(f"Error loading NIfTI file {file_path}: {e}")
         return None, None, {}
 
 

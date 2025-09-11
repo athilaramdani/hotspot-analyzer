@@ -4,7 +4,7 @@ Simple environment setup only
 """
 import sys
 import os
-
+import logging
 def setup_runtime_environment():
     """Setup environment at runtime - SIMPLE VERSION"""
     if hasattr(sys, '_MEIPASS'):
@@ -20,7 +20,7 @@ def setup_runtime_environment():
             if key not in os.environ:
                 os.environ[key] = value
         
-        print("[RUNTIME] PyInstaller environment configured")
+        logging.info("[RUNTIME] PyInstaller environment configured")
 
 # Run setup
 setup_runtime_environment()

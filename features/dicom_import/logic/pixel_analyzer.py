@@ -5,34 +5,34 @@
 import numpy as np
 from typing import Tuple, Dict
 from PIL import Image
-
+import logging
 def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
     """Enhanced with extensive debugging"""
-    print(f"\n  === BACKGROUND ANALYSIS DEBUG ===")
-    print(f"Frame shape: {frame_data.shape}")
-    print(f"Frame dtype: {frame_data.dtype}")
-    print(f"Frame range: {frame_data.min()} to {frame_data.max()}")
+    logging.info(f"\n  === BACKGROUND ANALYSIS DEBUG ===")
+    logging.info(f"Frame shape: {frame_data.shape}")
+    logging.info(f"Frame dtype: {frame_data.dtype}")
+    logging.info(f"Frame range: {frame_data.min()} to {frame_data.max()}")
     
     if frame_data is None or frame_data.size == 0:
-        print(" ERROR: Empty or None frame data")
+        logging.info(" ERROR: Empty or None frame data")
         return {"background_type": "black", "confidence": 0}
     
     # Normalize to uint8 if needed
     if frame_data.dtype != np.uint8:
         frame_norm = (frame_data - frame_data.min()) / max(frame_data.max() - frame_data.min(), 1)
         frame_uint8 = (frame_norm * 255).astype(np.uint8)
-        print(f"🔄 Normalized to uint8: {frame_uint8.min()} to {frame_uint8.max()}")
+        logging.info(f"🔄 Normalized to uint8: {frame_uint8.min()} to {frame_uint8.max()}")
     else:
         frame_uint8 = frame_data.copy()
-        print(f"  Already uint8: {frame_uint8.min()} to {frame_uint8.max()}")
+        logging.info(f"  Already uint8: {frame_uint8.min()} to {frame_uint8.max()}")
     
     height, width = frame_uint8.shape
     total_pixels = height * width
-    print(f"📐 Image dimensions: {width}x{height} ({total_pixels:,} pixels)")
+    logging.info(f"📐 Image dimensions: {width}x{height} ({total_pixels:,} pixels)")
     
     # STRATEGY 1: Corner Analysis (DEBUG)
     corner_size = min(20, height//8, width//8)
-    print(f"🏠 Corner analysis with size: {corner_size}x{corner_size}")
+    logging.info(f"🏠 Corner analysis with size: {corner_size}x{corner_size}")
     
     corners = [
         frame_uint8[0:corner_size, 0:corner_size],           # Top-left
@@ -45,8 +45,8 @@ def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
     corner_pixels = np.concatenate([corner.flatten() for corner in corners])
     corner_mean = np.mean(corner_pixels)
     
-    print(f"🏠 Corner means: {corner_means}")
-    print(f"🏠 Overall corner mean: {corner_mean:.1f}")
+    logging.info(f"🏠 Corner means: {corner_means}")
+    logging.info(f"🏠 Overall corner mean: {corner_mean:.1f}")
     
     # STRATEGY 2: Edge Analysis (DEBUG)
     edge_pixels = []
@@ -64,10 +64,10 @@ def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
     dark_edge_ratio = dark_edge_count / total_edge_pixels
     bright_edge_ratio = bright_edge_count / total_edge_pixels
     
-    print(f"🔲 Edge analysis:")
-    print(f"   Edge mean: {edge_mean:.1f}")
-    print(f"   Dark edges (<50): {dark_edge_count}/{total_edge_pixels} ({dark_edge_ratio:.1%})")
-    print(f"   Bright edges (>200): {bright_edge_count}/{total_edge_pixels} ({bright_edge_ratio:.1%})")
+    logging.info(f"🔲 Edge analysis:")
+    logging.info(f"   Edge mean: {edge_mean:.1f}")
+    logging.info(f"   Dark edges (<50): {dark_edge_count}/{total_edge_pixels} ({dark_edge_ratio:.1%})")
+    logging.info(f"   Bright edges (>200): {bright_edge_count}/{total_edge_pixels} ({bright_edge_ratio:.1%})")
     
     # STRATEGY 3: Overall Statistics (DEBUG)
     image_mean = np.mean(frame_uint8)
@@ -75,11 +75,11 @@ def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
     bright_pixels = np.sum(frame_uint8 > 200)
     mid_pixels = total_pixels - dark_pixels - bright_pixels
     
-    print(f"📊 Overall statistics:")
-    print(f"   Image mean: {image_mean:.1f}")
-    print(f"   Dark pixels (<50): {dark_pixels:,} ({dark_pixels/total_pixels:.1%})")
-    print(f"   Bright pixels (>200): {bright_pixels:,} ({bright_pixels/total_pixels:.1%})")
-    print(f"   Mid-range pixels: {mid_pixels:,} ({mid_pixels/total_pixels:.1%})")
+    logging.info(f"📊 Overall statistics:")
+    logging.info(f"   Image mean: {image_mean:.1f}")
+    logging.info(f"   Dark pixels (<50): {dark_pixels:,} ({dark_pixels/total_pixels:.1%})")
+    logging.info(f"   Bright pixels (>200): {bright_pixels:,} ({bright_pixels/total_pixels:.1%})")
+    logging.info(f"   Mid-range pixels: {mid_pixels:,} ({mid_pixels/total_pixels:.1%})")
     
     # STRATEGY 4: Histogram Analysis (DEBUG)
     hist, bins = np.histogram(frame_uint8, bins=50, range=(0, 255))
@@ -88,15 +88,15 @@ def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
         if hist[i] > hist[i-1] and hist[i] > hist[i+1] and hist[i] > np.max(hist) * 0.05:
             peak_bins.append((bins[i], hist[i]))
     
-    print(f"📈 Histogram analysis:")
-    print(f"   Found {len(peak_bins)} peaks: {[(int(b), int(h)) for b, h in peak_bins]}")
+    logging.info(f"📈 Histogram analysis:")
+    logging.info(f"   Found {len(peak_bins)} peaks: {[(int(b), int(h)) for b, h in peak_bins]}")
     
     # DECISION LOGIC WITH DEBUG
     confidence = 0
     background_type = "black"  # Default
     decision_factors = []
     
-    print(f"\n  DECISION PROCESS:")
+    logging.info(f"\n  DECISION PROCESS:")
     
     # Rule 1: Corner analysis
     if corner_mean < 50:
@@ -143,14 +143,14 @@ def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
     # Clamp confidence
     confidence = min(100, max(0, confidence))
     
-    print(f"\n📋 DECISION FACTORS:")
+    logging.info(f"\n📋 DECISION FACTORS:")
     for factor in decision_factors:
-        print(f"   {factor}")
+        logging.info(f"   {factor}")
     
-    print(f"\n  FINAL DECISION:")
-    print(f"   Background Type: {background_type.upper()}")
-    print(f"   Confidence: {confidence}%")
-    print(f"   Reasoning: {len(decision_factors)} factors analyzed")
+    logging.info(f"\n  FINAL DECISION:")
+    logging.info(f"   Background Type: {background_type.upper()}")
+    logging.info(f"   Confidence: {confidence}%")
+    logging.info(f"   Reasoning: {len(decision_factors)} factors analyzed")
     
     # Calculate background pixels for result
     if background_type == "black":
@@ -177,8 +177,8 @@ def analyze_background_type(frame_data: np.ndarray) -> Dict[str, any]:
         }
     }
     
-    print(f"📊 RESULT: {result}")
-    print(f"  === END BACKGROUND ANALYSIS ===\n")
+    logging.info(f"📊 RESULT: {result}")
+    logging.info(f"  === END BACKGROUND ANALYSIS ===\n")
     
     return result
 
@@ -200,16 +200,16 @@ def convert_to_black_background(frame_data: np.ndarray, current_bg: str = "auto"
     if current_bg == "auto":
         analysis = analyze_background_type(frame_data)
         current_bg = analysis["background_type"]
-        print(f"  Auto-detected background: {current_bg} (confidence: {analysis['confidence']}%)")
+        logging.info(f"  Auto-detected background: {current_bg} (confidence: {analysis['confidence']}%)")
     
     # If already black background, return as-is
     if current_bg == "black":
-        print(f"  Keeping black background")
+        logging.info(f"  Keeping black background")
         return frame_data
     
     # If white background, invert to make it black background  
     if current_bg == "white":
-        print(f"🔄 Converting white background to black (inverting)")
+        logging.info(f"🔄 Converting white background to black (inverting)")
         
         # Normalize to uint8 if needed
         if frame_data.dtype != np.uint8:
@@ -220,7 +220,7 @@ def convert_to_black_background(frame_data: np.ndarray, current_bg: str = "auto"
         
         # Invert: white becomes black, black becomes white
         inverted = 255 - frame_uint8
-        print(f"  White background inverted to black")
+        logging.info(f"  White background inverted to black")
         return inverted
     
     return frame_data

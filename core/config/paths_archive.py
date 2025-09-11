@@ -6,7 +6,7 @@ These functions are no longer used in the main application but kept for referenc
 from pathlib import Path
 import os
 from typing import Optional
-
+import logging
 # ===== ARCHIVED PET FUNCTIONS =====
 def get_patient_pet_path(patient_id: str, session_code: str = None) -> Path:
     """ARCHIVED: Get path to patient's PET data folder"""
@@ -199,7 +199,7 @@ def migrate_old_to_new_structure():
     if not SPECT_DATA_PATH.exists():
         return
     
-    print("🔄 Migrating SPECT directory structure...")
+    logging.info("🔄 Migrating SPECT directory structure...")
     
     old_directories = []
     for item in SPECT_DATA_PATH.iterdir():
@@ -220,15 +220,15 @@ def migrate_old_to_new_structure():
             if not new_path.exists():
                 new_path.parent.mkdir(parents=True, exist_ok=True)
                 old_dir.rename(new_path)
-                print(f"  Migrated: {old_dir} → {new_path}")
+                logging.info(f"  Migrated: {old_dir} → {new_path}")
                 migrated_count += 1
             else:
-                print(f"⚠️  Target already exists: {new_path}")
+                logging.info(f"⚠️  Target already exists: {new_path}")
                 
         except Exception as e:
-            print(f" Failed to migrate {old_dir}: {e}")
+            logging.info(f" Failed to migrate {old_dir}: {e}")
     
-    print(f"  Migration completed: {migrated_count} directories migrated")
+    logging.info(f"  Migration completed: {migrated_count} directories migrated")
 
 def migrate_filenames_to_study_date():
     """ARCHIVED: Migrate existing files to include study date in filenames"""
@@ -238,7 +238,7 @@ def migrate_filenames_to_study_date():
     if not SPECT_DATA_PATH.exists():
         return
     
-    print("🔄 Migrating filenames to include study date...")
+    logging.info("🔄 Migrating filenames to include study date...")
     
     migrated_count = 0
     for session_dir in SPECT_DATA_PATH.iterdir():
@@ -261,7 +261,7 @@ def migrate_filenames_to_study_date():
                 break
             
             if not primary_dicom:
-                print(f"⚠️  No primary DICOM found in {patient_dir}")
+                logging.info(f"⚠️  No primary DICOM found in {patient_dir}")
                 continue
             
             try:
@@ -283,13 +283,13 @@ def migrate_filenames_to_study_date():
                         
                         if new_path != file_path:
                             file_path.rename(new_path)
-                            print(f"  Renamed: {old_name} → {new_name}")
+                            logging.info(f"  Renamed: {old_name} → {new_name}")
                             migrated_count += 1
                     
             except Exception as e:
-                print(f" Failed to migrate files in {patient_dir}: {e}")
+                logging.info(f" Failed to migrate files in {patient_dir}: {e}")
     
-    print(f"  Filename migration completed: {migrated_count} files renamed")
+    logging.info(f"  Filename migration completed: {migrated_count} files renamed")
 
 def migrate_spect_to_planar():
     """ARCHIVED: Migrate SPECT directory structure to PLANAR structure"""
@@ -300,7 +300,7 @@ def migrate_spect_to_planar():
     if not SPECT_DATA_PATH.exists():
         return
     
-    print("🔄 Migrating SPECT to PLANAR structure...")
+    logging.info("🔄 Migrating SPECT to PLANAR structure...")
     
     migrated_count = 0
     for session_dir in SPECT_DATA_PATH.iterdir():
@@ -334,13 +334,13 @@ def migrate_spect_to_planar():
                             if not new_file_path.exists():
                                 import shutil
                                 shutil.copy2(file_path, new_file_path)
-                                print(f"  Migrated: {file_path} → {new_file_path}")
+                                logging.info(f"  Migrated: {file_path} → {new_file_path}")
                                 migrated_count += 1
                     
                 except Exception as e:
-                    print(f" Failed to migrate {patient_dir}: {e}")
+                    logging.info(f" Failed to migrate {patient_dir}: {e}")
     
-    print(f"  SPECT to PLANAR migration completed: {migrated_count} files migrated")
+    logging.info(f"  SPECT to PLANAR migration completed: {migrated_count} files migrated")
 
 # ===== ARCHIVED FILE FUNCTIONS =====
 def get_original_image_files(patient_folder: Path, filename_stem: str) -> dict:

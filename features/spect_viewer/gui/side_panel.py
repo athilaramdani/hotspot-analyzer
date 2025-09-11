@@ -18,6 +18,12 @@ from features.spect_viewer.logic.quantification_integration import Quantificatio
 # as we will use the unified EXPORT_CHART_BUTTON_STYLE for all main export buttons.
 from core.gui.ui_constants import PRIMARY_BUTTON_STYLE
 
+try:
+    import openpyxl
+    EXCEL_AVAILABLE = True
+except ImportError:
+    EXCEL_AVAILABLE = False
+
 # --- Helper Class for Clickable Header ---
 class ClickableFrame(QFrame):
     """A QFrame that emits a 'clicked' signal when pressed."""
@@ -35,7 +41,7 @@ EXPORT_CHART_BUTTON_STYLE = PRIMARY_BUTTON_STYLE + """
         border: none;
     }
 """
-
+import logging
 class BSISidePanel(QWidget):
     """
     REFACTORED: BSI Side Panel with a collapsible chart section and single view support.
@@ -220,20 +226,18 @@ class BSISidePanel(QWidget):
         
         buttons_layout = QHBoxLayout()
         
-        self.export_csv_btn = QPushButton("Export CSV")
-        # CHANGED: Applied the same primary button style as the chart export button
-        # for a consistent user interface.
-        self.export_csv_btn.setStyleSheet(EXPORT_CHART_BUTTON_STYLE) 
-        buttons_layout.addWidget(self.export_csv_btn)
+        self.export_excel_btn = QPushButton("Export Excel")
+        self.export_excel_btn.setStyleSheet(EXPORT_CHART_BUTTON_STYLE) 
+        self.export_excel_btn.clicked.connect(self._export_excel_data)  # ADD
+        buttons_layout.addWidget(self.export_excel_btn)
         
         buttons_layout.addStretch()
         controls_layout.addLayout(buttons_layout)
         return controls_frame
         
     def _update_button_states(self, has_data: bool):
-        """Enable/disable control buttons based on data availability."""
-        if hasattr(self, 'export_csv_btn'):
-            self.export_csv_btn.setEnabled(has_data)
+        if hasattr(self, 'export_excel_btn'):
+            self.export_excel_btn.setEnabled(has_data)
         
         self._update_export_chart_button_state()
 
@@ -478,7 +482,7 @@ class BSISidePanel(QWidget):
         pass
     
     def clear_patient_data(self):
-        print("[BSI SIDE PANEL] Clearing data...")
+        logging.info("[BSI SIDE PANEL] Clearing data...")
         self.current_patient_folder, self.current_patient_id, self.current_study_date = None, None, None
         if hasattr(self, 'bsi_canvas'): self.bsi_canvas.clear_data()
         if hasattr(self, 'results_table_left'): self.results_table_left.setRowCount(0)
@@ -490,48 +494,129 @@ class BSISidePanel(QWidget):
     
     def refresh_current_patient(self):
         if self.current_patient_folder and self.current_patient_id:
-            print(f"[BSI PANEL] Refreshing for {self.current_patient_id}")
-            if self.load_patient_data(self.current_patient_folder, self.current_patient_id, self.current_study_date or "latest"): print("[BSI PANEL] Refresh successful")
-            else: print("[BSI PANEL] Refresh failed")
-        else: print("[BSI PANEL] No patient to refresh")
+            logging.info(f"[BSI PANEL] Refreshing for {self.current_patient_id}")
+            if self.load_patient_data(self.current_patient_folder, self.current_patient_id, self.current_study_date or "latest"): logging.info("[BSI PANEL] Refresh successful")
+            else: logging.info("[BSI PANEL] Refresh failed")
+        else: logging.info("[BSI PANEL] No patient to refresh")
     
-    def _export_csv_data_v2(self):
-        if not self.current_patient_id or not self.current_study_date: return
+    def _export_excel_data(self):
+        if not self.current_patient_id or not self.current_study_date:
+            return
+            
         try:
             from PySide6.QtWidgets import QFileDialog
-            import csv
-            filename = f"BSI_Results_{self.current_patient_id}_{self.current_study_date}.csv"
-            file_path, _ = QFileDialog.getSaveFileName(self, "Export BSI CSV", filename, "CSV Files (*.csv)")
-            if not file_path: return
-            with open(file_path, 'w', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                writer.writerow(["BSI Quantification Results"]); writer.writerow([])
-                if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
-                    summary = self.quant_manager.current_results.get('summary_statistics', {})
-                    writer.writerow(["Processing Mode", summary.get('processing_mode', 'unknown')]); writer.writerow([])
-                writer.writerow(["Region", "Malignant Ant", "Malignant Post", "Benign Ant", "Benign Post"])
-                for r in range(self.results_table_left.rowCount()):
-                    row_data = [self.results_table_left.item(r, 0).text() if self.results_table_left.item(r, 0) else ""]
-                    row_data.extend([self.results_table_right.item(r, c).text() if self.results_table_right.item(r, c) else "" for c in range(4)])
-                    writer.writerow(row_data)
-                writer.writerow([]); writer.writerow(["Summary Information"])
-                writer.writerow(["Patient ID", self.current_patient_id])
-                writer.writerow(["Study Date", datetime.strptime(self.current_study_date, "%Y%m%d").strftime("%Y-%m-%d")])
-                writer.writerow(["Export Date", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
-                if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
-                    summary = self.quant_manager.current_results.get('summary_statistics', {})
-                    mode = summary.get('processing_mode', 'unknown')
-                    writer.writerow([]); writer.writerow(["BSI Summary"])
-                    if mode == 'dual_view':
-                        writer.writerow(["Anterior BSI", f"{summary.get('anterior_bsi', 0.0):.10f}".rstrip('0').rstrip('.')])
-                        writer.writerow(["Posterior BSI", f"{summary.get('posterior_bsi', 0.0):.10f}".rstrip('0').rstrip('.')])
-                    elif mode == 'single_view_anterior':
-                        writer.writerow(["Anterior BSI (%)", f"{summary.get('anterior_bsi', 0.0):.2f}%"]); writer.writerow(["Posterior BSI (%)", "N/A"])
-                    elif mode == 'single_view_posterior':
-                        writer.writerow(["Anterior BSI (%)", "N/A"]); writer.writerow(["Posterior BSI (%)", f"{summary.get('posterior_bsi', 0.0):.2f}%"])
-                print(f"[BSI EXPORT] CSV exported to {file_path}")
-        except Exception as e: print(f"[BSI EXPORT] Error: {e}")
+            import pandas as pd
+            from openpyxl import Workbook
+            from openpyxl.styles import Border, Side, Font, Alignment, PatternFill
+            
+            filename = f"BSI_Results_{self.current_patient_id}_{self.current_study_date}.xlsx"
+            file_path, _ = QFileDialog.getSaveFileName(
+                self, "Export BSI Excel", filename, "Excel Files (*.xlsx)"
+            )
+            if not file_path:
+                return
+                
+            # Create workbook
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "BSI Results"
+            
+            # Header styling
+            header_font = Font(bold=True, color="FFFFFF")
+            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            border = Border(
+                left=Side(style='thin'), right=Side(style='thin'),
+                top=Side(style='thin'), bottom=Side(style='thin')
+            )
+            
+            # Title
+            ws['A1'] = f"BSI Quantification Results - {self.current_patient_id}"
+            ws['A1'].font = Font(bold=True, size=14)
+            ws.merge_cells('A1:E1')
+            
+            # Headers (row 3)
+            headers = ["Region", "Malignant Ant", "Malignant Post", "Benign Ant", "Benign Post"]
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=3, column=col, value=header)
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.border = border
+                cell.alignment = Alignment(horizontal='center')
+            
+            # Data rows
+            for r in range(self.results_table_left.rowCount()):
+                row_num = r + 4
+                
+                # Region name
+                region_cell = ws.cell(row=row_num, column=1)
+                region_cell.value = self.results_table_left.item(r, 0).text() if self.results_table_left.item(r, 0) else ""
+                region_cell.border = border
+                
+                # Data columns
+                for c in range(4):
+                    data_cell = ws.cell(row=row_num, column=c + 2)
+                    data_cell.value = self.results_table_right.item(r, c).text() if self.results_table_right.item(r, c) else ""
+                    data_cell.border = border
+                    data_cell.alignment = Alignment(horizontal='center')
+                    
+                    # Highlight malignant cells (red background)
+                    if c in (0, 1) and "N/A" not in str(data_cell.value):
+                        try:
+                            pixel_count = int(data_cell.value.split()[0])
+                            if pixel_count > 0:
+                                data_cell.fill = PatternFill(start_color="FFE6E6", end_color="FFE6E6", fill_type="solid")
+                        except:
+                            pass
+            
+            if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
+                summary = self.quant_manager.current_results.get('summary_statistics', {})
+                processing_mode = summary.get('processing_mode', 'unknown')
+                
+                bsi_row_num = ws.max_row + 1
+                
+                # Left cell: "BSI Score"
+                bsi_label_cell = ws.cell(row=bsi_row_num, column=1, value="BSI Score")
+                bsi_label_cell.font = Font(bold=True)
+                bsi_label_cell.border = border
+                bsi_label_cell.fill = PatternFill(start_color="E6F3FF", end_color="E6F3FF", fill_type="solid")
+                
+                # Right merged cell: BSI value
+                if processing_mode == 'dual_view':
+                    bsi_text = f"Anterior: {summary.get('anterior_bsi', 0.0):.2f}% | Posterior: {summary.get('posterior_bsi', 0.0):.2f}%"
+                elif processing_mode == 'single_view_anterior':
+                    bsi_text = f"Anterior: {summary.get('anterior_bsi', 0.0):.2f}% (Posterior: N/A)"
+                elif processing_mode == 'single_view_posterior':
+                    bsi_text = f"Posterior: {summary.get('posterior_bsi', 0.0):.2f}% (Anterior: N/A)"
+                else:
+                    bsi_text = f"BSI: {summary.get('bsi_score', 0.0):.2f}%"
+                
+                # Merge cells B to E untuk BSI value
+                ws.merge_cells(f'B{bsi_row_num}:E{bsi_row_num}')
+                bsi_value_cell = ws.cell(row=bsi_row_num, column=2, value=bsi_text)
+                bsi_value_cell.font = Font(bold=True)
+                bsi_value_cell.border = border
+                bsi_value_cell.fill = PatternFill(start_color="E6F3FF", end_color="E6F3FF", fill_type="solid")
+                bsi_value_cell.alignment = Alignment(horizontal='center')
+            # Auto-adjust column widths
+            # Auto-adjust column widths (skip merged cells)
+            column_widths = {
+                'A': 15,  # Region
+                'B': 12,  # Malignant Ant  
+                'C': 12,  # Malignant Post
+                'D': 12,  # Benign Ant
+                'E': 12   # Benign Post
+            }
 
+            for col_letter, width in column_widths.items():
+                ws.column_dimensions[col_letter].width = width
+            
+            # Save
+            wb.save(file_path)
+            logging.info(f"[BSI EXPORT] Excel exported to {file_path}")
+            
+        except Exception as e:
+            logging.info(f"[BSI EXPORT] Error: {e}")
+    
     def export_chart_to_file(self, file_path: Path) -> bool: return self.bsi_canvas.export_chart(file_path)
 
     def export_report_to_file(self, file_path: Path) -> bool:
@@ -569,5 +654,5 @@ class BSISidePanel(QWidget):
                 f.write("="*60+"\n")
             return True
         except Exception as e:
-            print(f"[BSI REPORT] Error: {e}")
+            logging.info(f"[BSI REPORT] Error: {e}")
             return False

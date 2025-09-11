@@ -15,6 +15,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 from typing import Dict, List, Tuple, Optional
+from .model_cleanup import safe_inference, memory_monitor, force_model_cleanup
 
 # Add project root to path for imports
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
@@ -30,7 +31,7 @@ from core.config.paths import (
     extract_study_date_from_dicom,
     YOLO_MODEL_PATH
 )
-
+import logging
 from features.dicom_import.logic.dicom_loader import load_frames_and_metadata
 
 #   ENHANCED: Global model with thread-safe lazy loading
@@ -49,12 +50,12 @@ def is_safe_to_load_model():
     """Check if it's safe to load YOLO model - FORCE ALLOW FOR PROCESSING"""
     #   AGGRESSIVE FIX: Only skip for actual multiprocessing-fork
     if is_multiprocessing_fork():
-        print("[YOLO] Skipping model load in multiprocessing fork")
+        logging.info("[YOLO] Skipping model load in multiprocessing fork")
         return False
     
     #   FORCE ALLOW: YOLO is critical for the application pipeline
     # We'll handle any issues with proper error handling instead of skipping
-    print(f"[YOLO] FORCING model load - application requires YOLO functionality")
+    logging.info(f"[YOLO] FORCING model load - application requires YOLO functionality")
     return True
 
 def initialize_yolo_model():
@@ -62,11 +63,11 @@ def initialize_yolo_model():
     global model, _model_loading
     
     #   REMOVE SAFETY CHECK: Force model loading
-    print("[YOLO] FORCING model initialization - critical for application")
+    logging.info("[YOLO] FORCING model initialization - critical for application")
     
     #   THREAD SAFETY: Prevent concurrent loading
     if _model_loading:
-        print("[YOLO] Model already being loaded by another thread")
+        logging.info("[YOLO] Model already being loaded by another thread")
         return None
     
     _model_loading = True
@@ -81,10 +82,10 @@ def initialize_yolo_model():
         #   ADDITIONAL SAFETY: Force CPU mode to avoid GPU conflicts
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
         
-        print(f"[YOLO] Attempting to load model from: {YOLO_MODEL_PATH}")
+        logging.info(f"[YOLO] Attempting to load model from: {YOLO_MODEL_PATH}")
         
         if not YOLO_MODEL_PATH.exists():
-            print(f"[YOLO ERROR] Model not found at: {YOLO_MODEL_PATH}")
+            logging.info(f"[YOLO ERROR] Model not found at: {YOLO_MODEL_PATH}")
             
             # Try alternative paths
             from core.config.paths import get_safe_project_root
@@ -97,10 +98,10 @@ def initialize_yolo_model():
             
             found_model = None
             for alt_path in alternative_paths:
-                print(f"[YOLO] Checking alternative: {alt_path}")
+                logging.info(f"[YOLO] Checking alternative: {alt_path}")
                 if alt_path.exists():
                     found_model = alt_path
-                    print(f"[YOLO] Found model at alternative location: {alt_path}")
+                    logging.info(f"[YOLO] Found model at alternative location: {alt_path}")
                     break
             
             if not found_model:
@@ -119,16 +120,16 @@ def initialize_yolo_model():
             loaded_model.predictor.args.workers = 0  # Single worker
             loaded_model.predictor.args.batch = 1    # Single batch
         
-        print(f"[YOLO] Model loaded successfully (FORCED CPU mode)")
+        logging.info(f"[YOLO] Model loaded successfully (FORCED CPU mode)")
         return loaded_model
         
     except Exception as e:
-        print(f"[YOLO ERROR] Failed to load model: {e}")
-        print(f"[YOLO ERROR] Traceback: {traceback.format_exc()}")
+        logging.info(f"[YOLO ERROR] Failed to load model: {e}")
+        logging.info(f"[YOLO ERROR] Traceback: {traceback.format_exc()}")
         
         #   ENHANCED FALLBACK: Try to create a minimal YOLO instance
         try:
-            print("[YOLO] Attempting fallback model initialization...")
+            logging.info("[YOLO] Attempting fallback model initialization...")
             # Try with minimal settings
             os.environ.update({
                 'YOLO_VERBOSE': 'False',
@@ -137,11 +138,11 @@ def initialize_yolo_model():
             
             fallback_model = YOLO(str(YOLO_MODEL_PATH))
             fallback_model.to('cpu')
-            print("[YOLO] Fallback model initialization successful")
+            logging.info("[YOLO] Fallback model initialization successful")
             return fallback_model
             
         except Exception as fallback_error:
-            print(f"[YOLO ERROR] Fallback initialization also failed: {fallback_error}")
+            logging.info(f"[YOLO ERROR] Fallback initialization also failed: {fallback_error}")
             return None
     finally:
         _model_loading = False
@@ -155,7 +156,7 @@ def get_yolo_model():
         return model
     
     #   FORCE LOADING: Application requires YOLO to function
-    print("[YOLO] FORCING model load - application critical functionality")
+    logging.info("[YOLO] FORCING model load - application critical functionality")
     
     #   THREAD SAFETY: Use lock if available
     if _model_lock is not None:
@@ -163,16 +164,16 @@ def get_yolo_model():
             with _model_lock:
                 # Double-check after acquiring lock
                 if model is None:
-                    print("[YOLO] Loading model on-demand (FORCED, thread-safe)...")
+                    logging.info("[YOLO] Loading model on-demand (FORCED, thread-safe)...")
                     model = initialize_yolo_model()
                 return model
         except Exception as e:
-            print(f"[YOLO WARNING] Lock-based loading failed: {e}")
+            logging.info(f"[YOLO WARNING] Lock-based loading failed: {e}")
             # Fallback to non-lock loading
     
     # Fallback without lock
     if model is None:
-        print("[YOLO] Loading model on-demand (FORCED, no lock)...")
+        logging.info("[YOLO] Loading model on-demand (FORCED, no lock)...")
         model = initialize_yolo_model()
     
     return model
@@ -192,7 +193,7 @@ def inference_detection_from_array(frame_array: np.ndarray) -> List[Dict]:
         yolo_model = get_yolo_model()
         
         if yolo_model is None:
-            print("[YOLO WARNING] Model not available, returning empty results")
+            logging.info("[YOLO WARNING] Model not available, returning empty results")
             return []
         
         # Ensure frame is in proper format
@@ -210,7 +211,7 @@ def inference_detection_from_array(frame_array: np.ndarray) -> List[Dict]:
         try:
             results = yolo_model(frame_array)
         except Exception as inference_error:
-            print(f"[YOLO ERROR] Inference execution failed: {inference_error}")
+            logging.info(f"[YOLO ERROR] Inference execution failed: {inference_error}")
             return []
         
         if not results or len(results) == 0:
@@ -239,7 +240,7 @@ def inference_detection_from_array(frame_array: np.ndarray) -> List[Dict]:
         return detection_results
         
     except Exception as e:
-        print(f"[YOLO ERROR] Inference failed: {e}")
+        logging.info(f"[YOLO ERROR] Inference failed: {e}")
         traceback.print_exc()
         return []
 
@@ -258,14 +259,14 @@ def inference_detection_from_path(image_path: str) -> List[Dict]:
         yolo_model = get_yolo_model()
         
         if yolo_model is None:
-            print("[YOLO WARNING] Model not available, returning empty results")
+            logging.info("[YOLO WARNING] Model not available, returning empty results")
             return []
         
         #   ENHANCED: Run inference with error handling
         try:
             results = yolo_model(image_path)
         except Exception as inference_error:
-            print(f"[YOLO ERROR] Inference execution failed: {inference_error}")
+            logging.info(f"[YOLO ERROR] Inference execution failed: {inference_error}")
             return []
         
         if not results or len(results) == 0:
@@ -294,7 +295,7 @@ def inference_detection_from_path(image_path: str) -> List[Dict]:
         return detection_results
         
     except Exception as e:
-        print(f"[YOLO ERROR] Inference from path failed: {e}")
+        logging.info(f"[YOLO ERROR] Inference from path failed: {e}")
         return []
 
 def write_pascal_voc_xml(output_path: Path, image_shape: Tuple[int, int], 
@@ -348,10 +349,10 @@ def write_pascal_voc_xml(output_path: Path, image_shape: Tuple[int, int],
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(xml_str)
             
-        print(f"[XML] Saved detection XML to: {output_path}")
+        logging.info(f"[XML] Saved detection XML to: {output_path}")
         
     except Exception as e:
-        print(f"[XML ERROR] Failed to write XML: {e}")
+        logging.info(f"[XML ERROR] Failed to write XML: {e}")
         traceback.print_exc()
 
 def process_dicom_for_detection(dicom_path: Path, patient_id: str, 
@@ -368,14 +369,14 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
         Dictionary indicating success for each view
     """
     try:
-        print(f"[DETECTION] Processing DICOM: {dicom_path}")
-        print(f"[DETECTION] FORCED YOLO execution - application requires this functionality")
+        logging.info(f"[DETECTION] Processing DICOM: {dicom_path}")
+        logging.info(f"[DETECTION] FORCED YOLO execution - application requires this functionality")
         
         # Load frames from DICOM
         frames_dict, metadata = load_frames_and_metadata(str(dicom_path))
         
         if not frames_dict:
-            print(f"[DETECTION ERROR] No frames loaded from {dicom_path}")
+            logging.info(f"[DETECTION ERROR] No frames loaded from {dicom_path}")
             return {"anterior": False, "posterior": False}
         
         # Extract study date
@@ -393,19 +394,19 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
             
             if planar_index is not None and len(path_parts) > planar_index + 1:
                 session_code = path_parts[planar_index + 1]  # Session after PLANAR
-                print(f"[DETECTION] Extracted session from path: {session_code}")
+                logging.info(f"[DETECTION] Extracted session from path: {session_code}")
             else:
                 #   FALLBACK: Get from config
                 from core.config.paths import get_current_session_code
                 session_code = get_current_session_code()
-                print(f"[DETECTION] Using session from config: {session_code}")
+                logging.info(f"[DETECTION] Using session from config: {session_code}")
                 
                 if session_code == "unknown":
                     session_code = "ATL"  # Safe default
-                    print(f"[DETECTION] Using default session: {session_code}")
+                    logging.info(f"[DETECTION] Using default session: {session_code}")
         
-        print(f"[DETECTION] Patient: {patient_id}, Session: {session_code}, Study Date: {study_date}")
-        print(f"[DETECTION] Loaded {len(frames_dict)} frames: {list(frames_dict.keys())}")
+        logging.info(f"[DETECTION] Patient: {patient_id}, Session: {session_code}, Study Date: {study_date}")
+        logging.info(f"[DETECTION] Loaded {len(frames_dict)} frames: {list(frames_dict.keys())}")
         
         results = {"anterior": False, "posterior": False}
         
@@ -413,7 +414,7 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
         patient_folder = get_patient_planar_path(session_code, patient_id, study_date)
         
         if not patient_folder.exists():
-            print(f"[DETECTION ERROR] Patient folder not found: {patient_folder}")
+            logging.info(f"[DETECTION ERROR] Patient folder not found: {patient_folder}")
             
             #   FALLBACK: Try to find in other sessions
             potential_sessions = ["ATL", "NSY", "NBL", "ALL"]
@@ -425,11 +426,11 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
                     patient_folder = test_folder
                     session_code = potential_session
                     found_folder = test_folder
-                    print(f"[DETECTION] Found patient folder in session: {potential_session}")
+                    logging.info(f"[DETECTION] Found patient folder in session: {potential_session}")
                     break
             
             if not found_folder:
-                print(f"[DETECTION ERROR] No valid patient folder found for patient {patient_id}")
+                logging.info(f"[DETECTION ERROR] No valid patient folder found for patient {patient_id}")
                 return {"anterior": False, "posterior": False}
         
         # Process each view
@@ -447,9 +448,9 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
                     # Default to anterior for unknown views
                     view_type = "ant"
                     view_full = "anterior"
-                    print(f"[DETECTION WARNING] Unknown view '{view_name}', defaulting to anterior")
+                    logging.info(f"[DETECTION WARNING] Unknown view '{view_name}', defaulting to anterior")
                 
-                print(f"[DETECTION] Processing view: {view_name} -> {view_full}")
+                logging.info(f"[DETECTION] Processing view: {view_name} -> {view_full}")
                 
                 #   FIX: Get output paths using correct patient folder
                 hotspot_files = get_planar_hotspot_files(patient_folder, view_type, with_priority=False)
@@ -457,7 +458,7 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
                 
                 # Skip if XML already exists
                 if xml_output_path.exists():
-                    print(f"[DETECTION] XML already exists for {view_full}: {xml_output_path}")
+                    logging.info(f"[DETECTION] XML already exists for {view_full}: {xml_output_path}")
                     results[view_full] = True
                     continue
                 
@@ -466,30 +467,30 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
                     if frame_data.ndim == 3:
                         # Multi-frame: create sum projection
                         processed_frame = np.sum(frame_data, axis=0)
-                        print(f"[DETECTION] Created sum projection from {frame_data.shape[0]} frames")
+                        logging.info(f"[DETECTION] Created sum projection from {frame_data.shape[0]} frames")
                     else:
                         # Single frame
                         processed_frame = frame_data
                 else:
-                    print(f"[DETECTION ERROR] Invalid frame data type: {type(frame_data)}")
+                    logging.info(f"[DETECTION ERROR] Invalid frame data type: {type(frame_data)}")
                     continue
                 
                 #   ENHANCED: Run YOLO detection with FORCED execution
-                print(f"[DETECTION] Running YOLO on {view_full} view...")
+                logging.info(f"[DETECTION] Running YOLO on {view_full} view...")
                 
                 #   FORCE YOLO: Always attempt detection, create XML regardless
                 detections = inference_detection_from_array(processed_frame)
                 
                 #   FALLBACK: If no detections but we need XML files for pipeline
                 if not detections:
-                    print(f"[DETECTION] No detections found, creating empty XML for pipeline continuity")
+                    logging.info(f"[DETECTION] No detections found, creating empty XML for pipeline continuity")
                     detections = []  # Ensure we have empty list to create XML
                 
                 #   ENSURE output directory exists
                 xml_output_path.parent.mkdir(parents=True, exist_ok=True)
                 
                 if detections:
-                    print(f"[DETECTION] Found {len(detections)} hotspots in {view_full}")
+                    logging.info(f"[DETECTION] Found {len(detections)} hotspots in {view_full}")
                     
                     # Write XML file
                     write_pascal_voc_xml(
@@ -502,7 +503,7 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
                     results[view_full] = True
                     
                 else:
-                    print(f"[DETECTION] No hotspots detected in {view_full}")
+                    logging.info(f"[DETECTION] No hotspots detected in {view_full}")
                     
                     # Create empty XML file to indicate processing was done
                     write_pascal_voc_xml(
@@ -515,18 +516,20 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
                     results[view_full] = True
                 
             except Exception as e:
-                print(f"[DETECTION ERROR] Failed to process view {view_name}: {e}")
+                logging.info(f"[DETECTION ERROR] Failed to process view {view_name}: {e}")
                 traceback.print_exc()
                 continue
         
         return results
         
     except Exception as e:
-        print(f"[DETECTION FATAL ERROR] Failed to process {dicom_path}: {e}")
+        logging.info(f"[DETECTION FATAL ERROR] Failed to process {dicom_path}: {e}")
         traceback.print_exc()
         return {"anterior": False, "posterior": False}
 
 # For backward compatibility
+@safe_inference(cleanup_after=True)
+@memory_monitor
 def run_yolo_detection_for_patient(scan_path: Path, patient_id: str) -> Dict[str, bool]:
     """
       FIXED: Main function to run YOLO detection for a patient scan
@@ -539,12 +542,12 @@ def run_yolo_detection_for_patient(scan_path: Path, patient_id: str) -> Dict[str
         Dictionary indicating success for each view
     """
     try:
-        print(f"[YOLO WRAPPER] Starting detection for patient {patient_id}")
-        print(f"[YOLO WRAPPER] DICOM file: {scan_path}")
+        logging.info(f"[YOLO WRAPPER] Starting detection for patient {patient_id}")
+        logging.info(f"[YOLO WRAPPER] DICOM file: {scan_path}")
         
         #   EARLY SAFETY CHECK
         if not is_safe_to_load_model():
-            print("[YOLO WRAPPER] Skipping detection - unsafe environment")
+            logging.info("[YOLO WRAPPER] Skipping detection - unsafe environment")
             return {"anterior": False, "posterior": False}
         
         #   FIX: Extract session code from correct path structure
@@ -560,28 +563,28 @@ def run_yolo_detection_for_patient(scan_path: Path, patient_id: str) -> Dict[str
         
         if planar_index is not None and len(path_parts) > planar_index + 1:
             session_code = path_parts[planar_index + 1]
-            print(f"[YOLO WRAPPER] Extracted session from path: {session_code}")
+            logging.info(f"[YOLO WRAPPER] Extracted session from path: {session_code}")
         else:
             #   FALLBACK: Get from config
             from core.config.paths import get_current_session_code
             session_code = get_current_session_code()
-            print(f"[YOLO WRAPPER] Using session from config: {session_code}")
+            logging.info(f"[YOLO WRAPPER] Using session from config: {session_code}")
             
             if session_code == "unknown":
                 session_code = "ATL"  # Safe default
-                print(f"[YOLO WRAPPER] Using default session: {session_code}")
+                logging.info(f"[YOLO WRAPPER] Using default session: {session_code}")
         
         # Process DICOM for detection
         results = process_dicom_for_detection(scan_path, patient_id, session_code)
         
-        print(f"[YOLO WRAPPER] Detection completed:")
-        print(f"  Anterior: {'✓' if results['anterior'] else '✗'}")
-        print(f"  Posterior: {'✓' if results['posterior'] else '✗'}")
+        logging.info(f"[YOLO WRAPPER] Detection completed:")
+        logging.info(f"  Anterior: {'✓' if results['anterior'] else '✗'}")
+        logging.info(f"  Posterior: {'✓' if results['posterior'] else '✗'}")
         
         return results
         
     except Exception as e:
-        print(f"[YOLO WRAPPER ERROR] Failed to process patient {patient_id}: {e}")
+        logging.info(f"[YOLO WRAPPER ERROR] Failed to process patient {patient_id}: {e}")
         traceback.print_exc()
         return {"anterior": False, "posterior": False}
 
@@ -592,8 +595,15 @@ def inference_detection(path_image: str) -> List[Dict]:
     return inference_detection_from_path(path_image)
 
 #   SAFE INITIALIZATION: No global model loading at import time
-print("[YOLO] Module loaded - model will be loaded on-demand")
+logging.info("[YOLO] Module loaded - model will be loaded on-demand")
 
+def cleanup_yolo_model():
+    global model
+    if model is not None:
+        del model
+        model = None
+    force_model_cleanup()
+    
 if __name__ == "__main__":
     # Test the detection system
     if len(sys.argv) > 2:
@@ -602,8 +612,10 @@ if __name__ == "__main__":
         
         if dicom_path.exists():
             results = run_yolo_detection_for_patient(dicom_path, patient_id)
-            print(f"Detection results: {results}")
+            logging.info(f"Detection results: {results}")
         else:
-            print(f"DICOM file not found: {dicom_path}")
+            logging.info(f"DICOM file not found: {dicom_path}")
     else:
-        print("Usage: python box_detection.py <dicom_path> <patient_id>")
+        logging.info("Usage: python box_detection.py <dicom_path> <patient_id>")
+        
+    

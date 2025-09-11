@@ -5,7 +5,7 @@ from typing import Optional
 
 import numpy as np
 from PIL import Image
-
+import logging
 
 def analyze_background_type(frame_data: np.ndarray) -> dict:
     """
@@ -57,7 +57,7 @@ def simple_invert_image(frame_data: np.ndarray) -> np.ndarray:
     if frame_data is None or frame_data.size == 0:
         return frame_data
     
-    print(f"[DEBUG] simple_invert_image: input shape = {frame_data.shape}, dtype = {frame_data.dtype}")
+    logging.info(f"[DEBUG] simple_invert_image: input shape = {frame_data.shape}, dtype = {frame_data.dtype}")
     
     # Normalize to uint8 if needed
     if frame_data.dtype != np.uint8:
@@ -69,7 +69,7 @@ def simple_invert_image(frame_data: np.ndarray) -> np.ndarray:
     # Simple inversion: 255 - pixel_value
     inverted = 255 - frame_uint8
     
-    print(f"[DEBUG] Simple inversion completed: [{frame_uint8.min()}-{frame_uint8.max()}] -> [{inverted.min()}-{inverted.max()}]")
+    logging.info(f"[DEBUG] Simple inversion completed: [{frame_uint8.min()}-{frame_uint8.max()}] -> [{inverted.min()}-{inverted.max()}]")
     return inverted
 
 
@@ -87,22 +87,22 @@ def convert_to_white_background(frame_data: np.ndarray, current_bg: str = "auto"
     if frame_data is None or frame_data.size == 0:
         return frame_data
     
-    print(f"[DEBUG] convert_to_white_background: input shape = {frame_data.shape}, dtype = {frame_data.dtype}")
+    logging.info(f"[DEBUG] convert_to_white_background: input shape = {frame_data.shape}, dtype = {frame_data.dtype}")
     
     # Auto-detect background if needed
     if current_bg == "auto":
         analysis = analyze_background_type(frame_data)
         current_bg = analysis["background_type"]
-        print(f"  Auto-detected background: {current_bg} (confidence: {analysis['confidence']}%)")
+        logging.info(f"  Auto-detected background: {current_bg} (confidence: {analysis['confidence']}%)")
     
     # If already white background, return as-is
     if current_bg == "white":
-        print(f"  Keeping white background (skeleton already black)")
+        logging.info(f"  Keeping white background (skeleton already black)")
         return frame_data
     
     # If black background, invert to make it white background with black skeleton
     if current_bg == "black":
-        print(f"🔄 Converting black background to white (inverting for medical display)")
+        logging.info(f"🔄 Converting black background to white (inverting for medical display)")
         
         # Normalize to uint8 if needed
         if frame_data.dtype != np.uint8:
@@ -115,11 +115,11 @@ def convert_to_white_background(frame_data: np.ndarray, current_bg: str = "auto"
         # This will make black background -> white, and bright skeleton areas -> dark
         inverted = 255 - frame_uint8
         
-        print(f"  Black background inverted to white (skeleton now black)")
-        print(f"[DEBUG] Output range: [{inverted.min()}, {inverted.max()}]")
+        logging.info(f"  Black background inverted to white (skeleton now black)")
+        logging.info(f"[DEBUG] Output range: [{inverted.min()}, {inverted.max()}]")
         return inverted
     
-    print(f"⚠️ Unknown background type '{current_bg}', returning original")
+    logging.info(f"⚠️ Unknown background type '{current_bg}', returning original")
     return frame_data
 
 
@@ -138,7 +138,7 @@ def convert_pil_to_white_background(image, current_bg: str = "auto"):
     if image is None:
         return None
     
-    print(f"[DEBUG] convert_pil_to_white_background: PIL mode = {image.mode}")
+    logging.info(f"[DEBUG] convert_pil_to_white_background: PIL mode = {image.mode}")
     
     # Convert PIL to numpy array
     img_array = np.array(image)
@@ -149,7 +149,7 @@ def convert_pil_to_white_background(image, current_bg: str = "auto"):
     # Convert back to PIL Image
     result = Image.fromarray(processed_array, image.mode)
     
-    print(f"[DEBUG] convert_pil_to_white_background: completed")
+    logging.info(f"[DEBUG] convert_pil_to_white_background: completed")
     return result
 
 
@@ -167,7 +167,7 @@ def simple_invert_pil_image(image: Optional[Image.Image]) -> Optional[Image.Imag
     if image is None:
         return None
     
-    print(f"[DEBUG] simple_invert_pil_image: Processing {image.mode} image, size = {image.size}")
+    logging.info(f"[DEBUG] simple_invert_pil_image: Processing {image.mode} image, size = {image.size}")
     
     # Convert PIL to numpy array
     img_array = np.array(image)
@@ -178,7 +178,7 @@ def simple_invert_pil_image(image: Optional[Image.Image]) -> Optional[Image.Imag
     # Convert back to PIL Image
     result = Image.fromarray(inverted_array, image.mode)
     
-    print(f"[DEBUG] simple_invert_pil_image: completed")
+    logging.info(f"[DEBUG] simple_invert_pil_image: completed")
     return result
 
 
@@ -188,14 +188,14 @@ def simple_invert_pil_image(image: Optional[Image.Image]) -> Optional[Image.Imag
 
 def invert_medical_image(image: Optional[Image.Image], simple_invert: bool = False) -> Optional[Image.Image]:
     if image is None:
-        print("[DEBUG] invert_medical_image: Input image is None")
+        logging.info("[DEBUG] invert_medical_image: Input image is None")
         return None
     
-    print(f"[DEBUG] invert_medical_image: Processing {image.mode} image, size = {image.size}, simple_invert = {simple_invert}")
+    logging.info(f"[DEBUG] invert_medical_image: Processing {image.mode} image, size = {image.size}, simple_invert = {simple_invert}")
     
     # Always use simple inversion for user toggle (black↔white)
     result = simple_invert_pil_image(image)
-    print("[DEBUG] Used simple inversion (black↔white toggle)")
+    logging.info("[DEBUG] Used simple inversion (black↔white toggle)")
     
     return result
 
@@ -233,10 +233,10 @@ def invert_image_simple(image: Optional[Image.Image], simple_invert: bool = True
         return None
     
     if simple_invert:
-        print("[DEBUG] invert_image_simple: Using simple black↔white inversion")
+        logging.info("[DEBUG] invert_image_simple: Using simple black↔white inversion")
         return simple_invert_pil_image(image)
     else:
-        print("[DEBUG] invert_image_simple: Using smart medical inversion")
+        logging.info("[DEBUG] invert_image_simple: Using smart medical inversion")
         return invert_medical_image(image, simple_invert=False)
 
 
@@ -253,7 +253,7 @@ def invert_medical_image_hsv(image: Optional[Image.Image]) -> Optional[Image.Ima
     if image is None:
         return None
     
-    print("[DEBUG] invert_medical_image_hsv: Redirecting to smart medical inversion")
+    logging.info("[DEBUG] invert_medical_image_hsv: Redirecting to smart medical inversion")
     return invert_medical_image(image, simple_invert=False)
 
 
@@ -289,18 +289,18 @@ def test_inversion():
     test_array = np.array([[0, 50, 100, 150, 200, 255]], dtype=np.uint8)
     test_image = Image.fromarray(test_array, 'L')
     
-    print("[DEBUG] Testing simple inversion:")
-    print(f"Original values: {list(test_array[0])}")
+    logging.info("[DEBUG] Testing simple inversion:")
+    logging.info(f"Original values: {list(test_array[0])}")
     
     # Test simple inversion
     simple_inverted = invert_medical_image(test_image, simple_invert=True)
     simple_array = np.array(simple_inverted)
-    print(f"Simple inverted values: {list(simple_array[0])}")
+    logging.info(f"Simple inverted values: {list(simple_array[0])}")
     
     # Test medical inversion  
     medical_inverted = invert_medical_image(test_image, simple_invert=False)
     medical_array = np.array(medical_inverted)
-    print(f"Medical inverted values: {list(medical_array[0])}")
+    logging.info(f"Medical inverted values: {list(medical_array[0])}")
     
     return simple_inverted, medical_inverted
 

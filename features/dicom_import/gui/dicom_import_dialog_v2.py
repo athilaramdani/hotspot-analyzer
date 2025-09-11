@@ -107,7 +107,7 @@ class QuickDetectionThread(QThread):
                 detection_info = self._quick_detection_check(file_path)
                 self.detection_completed.emit(file_path, detection_info)
             except Exception as e:
-                print(f"Quick detection failed for {file_path}: {e}")
+                logging.info(f"Quick detection failed for {file_path}: {e}")
                 # Emit default info on error
                 self.detection_completed.emit(file_path, {
                     "has_reliable_detection": False,
@@ -332,7 +332,7 @@ class DicomImportDialog(QDialog):
         """Add DICOM files to the list dengan instant detection analysis dan duplicate checking"""
         #   FIXED: Close any open view dialog first
         if hasattr(self, '_view_dialog') and self._view_dialog:
-            print("  DEBUG: Closing existing view dialog before adding files...")
+            logging.info("  DEBUG: Closing existing view dialog before adding files...")
             try:
                 self._view_dialog.close()
             except:
@@ -379,7 +379,7 @@ class DicomImportDialog(QDialog):
             else:
                 #   FIXED: Clear existing view assignments if adding to existing list
                 if self.selected_files and self.view_assignments:
-                    print("  DEBUG: Clearing existing view assignments due to file list change...")
+                    logging.info("  DEBUG: Clearing existing view assignments due to file list change...")
                     self.view_assignments.clear()
                     self.logger.info("⚠️ View assignments cleared - files list changed")
                 
@@ -521,7 +521,7 @@ class DicomImportDialog(QDialog):
             
             # Reset detection status for consistency
             if new_files:
-                print(f"  DEBUG: Added {added_count} new files")
+                logging.info(f"  DEBUG: Added {added_count} new files")
                 for existing_file in list(self.file_detection_status.keys()):
                     if existing_file not in self.selected_files:
                         del self.file_detection_status[existing_file]
@@ -685,11 +685,11 @@ class DicomImportDialog(QDialog):
         #   FIXED: More thorough thread cleanup
         if hasattr(self, 'quick_detection_thread') and self.quick_detection_thread:
             if self.quick_detection_thread.isRunning():
-                print("  DEBUG: Terminating existing quick detection thread...")
+                logging.info("  DEBUG: Terminating existing quick detection thread...")
                 self.quick_detection_thread.terminate()
                 self.quick_detection_thread.wait(2000)  # Wait max 2 seconds
                 if self.quick_detection_thread.isRunning():
-                    print("⚠️ WARNING: Thread did not terminate, forcing...")
+                    logging.info("⚠️ WARNING: Thread did not terminate, forcing...")
             
             # Disconnect old signals
             try:
@@ -700,7 +700,7 @@ class DicomImportDialog(QDialog):
             
             self.quick_detection_thread = None
         
-        print(f"  DEBUG: Starting quick detection for {len(file_paths)} files...")
+        logging.info(f"  DEBUG: Starting quick detection for {len(file_paths)} files...")
         
         try:
             self.quick_detection_thread = QuickDetectionThread(file_paths)
@@ -708,31 +708,31 @@ class DicomImportDialog(QDialog):
             self.quick_detection_thread.finished.connect(self._on_quick_detection_finished)
             self.quick_detection_thread.start()
         except Exception as e:
-            print(f" ERROR starting quick detection: {e}")
+            logging.info(f" ERROR starting quick detection: {e}")
             self.logger.info(f" Error starting file analysis: {str(e)}")
         
     def _on_quick_detection_completed(self, file_path: Path, detection_info: dict):
         """Handle completed quick detection for single file"""
         #   FIXED: Check if file still exists in selected files
         if file_path not in self.selected_files:
-            print(f"⚠️ WARNING: File {file_path.name} no longer in selected files, skipping detection update")
+            logging.info(f"⚠️ WARNING: File {file_path.name} no longer in selected files, skipping detection update")
             return
         
         #   FIXED: Prevent duplicate detection processing
         if file_path in self.file_detection_status:
             existing_info = self.file_detection_status[file_path]
             if existing_info.get("total_frames") == detection_info.get("total_frames"):
-                print(f"  DEBUG: Detection for {file_path.name} already exists and unchanged, skipping...")
+                logging.info(f"  DEBUG: Detection for {file_path.name} already exists and unchanged, skipping...")
                 return
         
-        print(f"  DEBUG: Processing detection result for {file_path.name}")
+        logging.info(f"  DEBUG: Processing detection result for {file_path.name}")
         self.file_detection_status[file_path] = detection_info
         
         # Update file status immediately
         try:
             self._update_single_file_status(file_path, detection_info)
         except Exception as e:
-            print(f" ERROR updating file status for {file_path.name}: {e}")
+            logging.info(f" ERROR updating file status for {file_path.name}: {e}")
         
         # Log detection result
         patient_id = detection_info.get("patient_id", "Unknown")
@@ -881,15 +881,15 @@ class DicomImportDialog(QDialog):
         
     def _add_duplicate_file_to_list(self, file_path: Path, duplicate_info: Dict[str, any]):
         """Add a duplicate file to the list widget with special styling and SKIP label"""
-        print(f"  DEBUG: _add_duplicate_file_to_list called for {file_path.name}")
-        print(f"  DEBUG: duplicate_info = {duplicate_info}")
+        logging.info(f"  DEBUG: _add_duplicate_file_to_list called for {file_path.name}")
+        logging.info(f"  DEBUG: duplicate_info = {duplicate_info}")
         
         item = QListWidgetItem()
         item.setData(Qt.UserRole, file_path)
         # Mark this item as duplicate so it won't be processed
         item.setData(Qt.UserRole + 1, "DUPLICATE")
         
-        print(f"  DEBUG: Set item data - UserRole: {file_path}, UserRole+1: DUPLICATE")
+        logging.info(f"  DEBUG: Set item data - UserRole: {file_path}, UserRole+1: DUPLICATE")
         
         # Create widget untuk item
         widget = QWidget()
@@ -1008,7 +1008,7 @@ class DicomImportDialog(QDialog):
         
         #   FIXED: Check if dialog is already open
         if hasattr(self, '_view_dialog') and self._view_dialog:
-            print("⚠️ WARNING: View dialog already open, bringing to front...")
+            logging.info("⚠️ WARNING: View dialog already open, bringing to front...")
             self._view_dialog.raise_()
             self._view_dialog.activateWindow()
             return
@@ -1020,7 +1020,7 @@ class DicomImportDialog(QDialog):
                 missing_detection.append(file_path)
         
         if missing_detection:
-            print(f"⚠️ WARNING: {len(missing_detection)} files missing detection status, starting analysis...")
+            logging.info(f"⚠️ WARNING: {len(missing_detection)} files missing detection status, starting analysis...")
             self.logger.info(f"⚠️ Analyzing {len(missing_detection)} files without detection status...")
             
             # Start detection for missing files
@@ -1035,7 +1035,7 @@ class DicomImportDialog(QDialog):
             return
             
         self.logger.info("  Opening enhanced view configuration dialog...")
-        print(f"  DEBUG: Opening view selector with {len(self.selected_files)} files")
+        logging.info(f"  DEBUG: Opening view selector with {len(self.selected_files)} files")
         
         #   FIXED: Create dialog and store reference
         try:
@@ -1061,33 +1061,33 @@ class DicomImportDialog(QDialog):
             self._view_dialog = DicomViewSelectorDialog(self.selected_files, self)
             
             def on_views_confirmed_debug(view_assignments):
-                print(f"  DEBUG: Signal received! Processing {len(view_assignments)} assignments")
+                logging.info(f"  DEBUG: Signal received! Processing {len(view_assignments)} assignments")
                 self._on_views_configured(view_assignments)
                 #   FIXED: Clear dialog reference after use
                 self._view_dialog = None
             
             def on_dialog_finished():
-                print("  DEBUG: Dialog finished, cleaning up...")
+                logging.info("  DEBUG: Dialog finished, cleaning up...")
                 #   FIXED: Clear dialog reference when closed
                 self._view_dialog = None
                 self._update_ui_state()
                 QCoreApplication.processEvents()
             
-            print("  DEBUG: Connecting signals...")
+            logging.info("  DEBUG: Connecting signals...")
             self._view_dialog.views_confirmed.connect(on_views_confirmed_debug)
             self._view_dialog.finished.connect(on_dialog_finished)
             
-            print("  DEBUG: Executing dialog...")
+            logging.info("  DEBUG: Executing dialog...")
             result = self._view_dialog.exec()
             
-            print(f"  DEBUG: View dialog result: {result}")
+            logging.info(f"  DEBUG: View dialog result: {result}")
             if result == QDialog.Rejected:
                 self.logger.info(" View configuration cancelled")
             elif result == QDialog.Accepted:
-                print("  Dialog accepted")
+                logging.info("  Dialog accepted")
             
         except Exception as e:
-            print(f" ERROR creating view dialog: {e}")
+            logging.info(f" ERROR creating view dialog: {e}")
             import traceback
             traceback.print_exc()
             self.logger.info(f" Error opening view configuration: {str(e)}")
@@ -1102,22 +1102,22 @@ class DicomImportDialog(QDialog):
         
     def _on_views_configured(self, payload: Dict[str, any]):
         """Handle confirmed view assignments with background selections"""
-        print(f"  DEBUG: _on_views_configured called with payload keys: {list(payload.keys())}")
+        logging.info(f"  DEBUG: _on_views_configured called with payload keys: {list(payload.keys())}")
         
         
         # Debug: Check what files are in the payload
         if isinstance(payload, dict) and "view_assignments" in payload:
             view_assignments = payload["view_assignments"]
-            print(f"  DEBUG: view_assignments contains {len(view_assignments)} files")
+            logging.info(f"  DEBUG: view_assignments contains {len(view_assignments)} files")
             for file_key in view_assignments.keys():
-                print(f"   📄 {file_key}")
+                logging.info(f"   📄 {file_key}")
             background_assignments = payload.get("background_assignments", {})
-            print(f"🎨 Background assignments received: {len(background_assignments)} files")
+            logging.info(f"🎨 Background assignments received: {len(background_assignments)} files")
         else:
             # Legacy format (backward compatibility)
             view_assignments = payload
             background_assignments = {}
-            print("⚠️ Legacy format detected - no background assignments")
+            logging.info("⚠️ Legacy format detected - no background assignments")
 
         # Normalize keys to Path objects
         normalized_views = {}
@@ -1629,7 +1629,7 @@ def test_import_dialog(session_code: str = "TEST", mode: str = "enhanced"):
     # Validate requirements
     is_valid, error_msg = validate_import_requirements(test_data_root, session_code)
     if not is_valid:
-        print(f"Validation failed: {error_msg}")
+        logging.info(f"Validation failed: {error_msg}")
         return
     
     # Show dialog
@@ -1640,13 +1640,13 @@ def test_import_dialog(session_code: str = "TEST", mode: str = "enhanced"):
         use_enhanced_mode=use_enhanced
     )
     
-    print(f"Testing {mode} mode import dialog...")
+    logging.info(f"Testing {mode} mode import dialog...")
     result = dialog.exec()
     
     if result == QDialog.Accepted:
-        print("  Import completed successfully")
+        logging.info("  Import completed successfully")
     else:
-        print(" Import cancelled")
+        logging.info(" Import cancelled")
     
     if app and not QApplication.instance():
         app.quit()
@@ -1666,7 +1666,7 @@ def debug_detection_system(file_paths: List[Path]) -> dict:
     
     for file_path in file_paths:
         try:
-            print(f"  Testing detection on: {file_path.name}")
+            logging.info(f"  Testing detection on: {file_path.name}")
             
             # Create quick detection thread for testing
             thread = QuickDetectionThread([file_path])
@@ -1684,20 +1684,20 @@ def debug_detection_system(file_paths: List[Path]) -> dict:
             auto_count = detection_info.get("auto_configured_count", 0)
             manual_count = detection_info.get("manual_required_count", 0)
             
-            print(f"  Reliable detection: {has_reliable}")
-            print(f"  Needs manual config: {needs_manual}")
-            print(f"  Auto configured: {auto_count}")
-            print(f"  Manual required: {manual_count}")
+            logging.info(f"  Reliable detection: {has_reliable}")
+            logging.info(f"  Needs manual config: {needs_manual}")
+            logging.info(f"  Auto configured: {auto_count}")
+            logging.info(f"  Manual required: {manual_count}")
             
             if has_reliable and not needs_manual:
-                print(f"    Status: Fully auto-tagged")
+                logging.info(f"    Status: Fully auto-tagged")
             elif has_reliable and needs_manual:
-                print(f"  ⚠️ Status: Partially auto-tagged")
+                logging.info(f"  ⚠️ Status: Partially auto-tagged")
             else:
-                print(f"   Status: Manual configuration required")
+                logging.info(f"   Status: Manual configuration required")
             
         except Exception as e:
-            print(f"   Error testing {file_path.name}: {e}")
+            logging.info(f"   Error testing {file_path.name}: {e}")
             results[str(file_path)] = {"error": str(e)}
     
     return results
@@ -1746,11 +1746,11 @@ def safe_import_with_validation(
         valid_files = []
         for file_path in file_paths:
             if not file_path.exists():
-                print(f"⚠️ File not found: {file_path}")
+                logging.info(f"⚠️ File not found: {file_path}")
                 continue
             
             if not file_path.suffix.lower() in ['.dcm', '.dicom']:
-                print(f"⚠️ Invalid file extension: {file_path}")
+                logging.info(f"⚠️ Invalid file extension: {file_path}")
                 continue
             
             try:
@@ -1758,19 +1758,19 @@ def safe_import_with_validation(
                 import pydicom
                 ds = pydicom.dcmread(file_path, stop_before_pixels=True)
                 if not hasattr(ds, 'PatientID'):
-                    print(f"⚠️ Invalid DICOM (no PatientID): {file_path}")
+                    logging.info(f"⚠️ Invalid DICOM (no PatientID): {file_path}")
                     continue
                 
                 valid_files.append(file_path)
                 
             except Exception as e:
-                print(f"⚠️ DICOM validation failed for {file_path}: {e}")
+                logging.info(f"⚠️ DICOM validation failed for {file_path}: {e}")
                 continue
         
         if not valid_files:
             raise ImportValidationError("No valid DICOM files found")
         
-        print(f"  Validated {len(valid_files)} of {len(file_paths)} files")
+        logging.info(f"  Validated {len(valid_files)} of {len(file_paths)} files")
         
         # Step 3: Create and show dialog
         dialog = create_dicom_import_dialog(
@@ -1884,7 +1884,7 @@ def get_version_info() -> dict:
 
 def _reset_import_state(self):
     """Reset import state when file list changes"""
-    print("  DEBUG: Resetting import state...")
+    logging.info("  DEBUG: Resetting import state...")
     
     # Clear view assignments
     self.view_assignments.clear()
@@ -1909,4 +1909,4 @@ def _reset_import_state(self):
             self.quick_detection_thread.wait(1000)
         self.quick_detection_thread = None
     
-    print("  Import state reset completed")
+    logging.info("  Import state reset completed")

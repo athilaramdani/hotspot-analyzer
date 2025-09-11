@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QCheckBox, 
     QSlider, QLabel, QGroupBox
 )
+import logging
 from core.gui.ui_constants import GROUP_BOX_STYLE, OPACITY_SLIDER_STYLE, OPACITY_VALUE_LABEL_STYLE
 OPACITY_SLIDER_STYLE_DISABLED = """
     QSlider::groove:horizontal {
@@ -224,7 +225,7 @@ class ModeSelector(QWidget):
         
     # def _on_checkbox_toggled(self, layer: str, checked: bool):
     #     """Handle checkbox toggle"""
-    #     print(f"[DEBUG] Checkbox {layer} toggled: {checked}")
+    #     logging.info(f"[DEBUG] Checkbox {layer} toggled: {checked}")
         
     #     if layer == "All":
     #         self._handle_all_checkbox(checked)
@@ -297,7 +298,7 @@ class ModeSelector(QWidget):
             if self._checkboxes[layer].isChecked():
                 self._active_layers.append(layer)
 
-        print(f"[DEBUG] Active layers: {self._active_layers}")
+        logging.info(f"[DEBUG] Active layers: {self._active_layers}")
         self.layers_changed.emit(self._active_layers)
         self._update_slider_states() # Panggil pembaruan state slider di sini
         
@@ -335,7 +336,7 @@ class ModeSelector(QWidget):
         # Update label
         self._opacity_labels[layer].setText(f"{value}%")
         
-        print(f"[DEBUG] {layer} opacity changed to: {opacity:.2f}")
+        logging.info(f"[DEBUG] {layer} opacity changed to: {opacity:.2f}")
         
         # Map slider layer to active layer name for emission
         layer_mapping = {

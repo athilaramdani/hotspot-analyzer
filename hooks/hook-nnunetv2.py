@@ -4,7 +4,7 @@ PyInstaller hook for nnUNetv2 to handle dynamic trainer class imports
 """
 
 from PyInstaller.utils.hooks import collect_all, collect_submodules
-
+import logging
 # Collect all nnunetv2 resources
 datas, binaries, hiddenimports = collect_all('nnunetv2')
 
@@ -51,8 +51,8 @@ try:
 except:
     pass
 
-print(f"[HOOK-NNUNET] Added {len(hiddenimports)} hidden imports for nnUNetv2")
-print(f"[HOOK-NNUNET] Trainer classes included for dynamic loading")
+logging.info(f"[HOOK-NNUNET] Added {len(hiddenimports)} hidden imports for nnUNetv2")
+logging.info(f"[HOOK-NNUNET] Trainer classes included for dynamic loading")
 
 #   Exclude test modules
 excludedimports = [

@@ -10,6 +10,7 @@ import numpy as np
 from pathlib import Path
 from typing import Dict, List, Optional
 from PIL import Image
+from .model_cleanup import safe_inference, memory_monitor, ModelSession
 
 # Add project root to path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
@@ -27,7 +28,7 @@ from core.config.paths import (
     extract_study_date_from_dicom,
     YOLO_MODEL_PATH
 )
-
+import logging
 # Import DICOM loader
 from features.dicom_import.logic.dicom_loader import (
     load_frames_and_metadata,
@@ -44,18 +45,19 @@ from .box_detection import run_yolo_detection_for_patient
 try:
     from .hotspot_processor import HotspotProcessor
 except ImportError as e:
-    print(f"Warning: Could not import HotspotProcessor: {e}")
+    logging.info(f"Warning: Could not import HotspotProcessor: {e}")
     
     class HotspotProcessor:
         """Fallback HotspotProcessor for when the real one isn't available"""
         def process_frame_with_xml(self, frame, xml_path, patient_id, view, study_date=None):
-            print(f"[FALLBACK] HotspotProcessor not available, returning original frame")
+            logging.info(f"[FALLBACK] HotspotProcessor not available, returning original frame")
             return frame
         
         def cleanup(self):
             pass
 
-
+@safe_inference(cleanup_after=True)
+@memory_monitor
 def run_yolo_detection_wrapper(scan_path: Path, patient_id: str) -> Dict[str, bool]:
     """
       UPDATED: Wrapper function to run YOLO detection with proper session handling
@@ -68,35 +70,37 @@ def run_yolo_detection_wrapper(scan_path: Path, patient_id: str) -> Dict[str, bo
         Dictionary indicating success for each view
     """
     try:
-        print(f"[YOLO WRAPPER] Starting YOLO detection for {patient_id}")
-        print(f"[YOLO WRAPPER] Model path: {YOLO_MODEL_PATH}")
-        print(f"[YOLO WRAPPER] DICOM path: {scan_path}")
+        logging.info(f"[YOLO WRAPPER] Starting YOLO detection for {patient_id}")
+        logging.info(f"[YOLO WRAPPER] Model path: {YOLO_MODEL_PATH}")
+        logging.info(f"[YOLO WRAPPER] DICOM path: {scan_path}")
         
         if not YOLO_MODEL_PATH.exists():
-            print(f"[YOLO ERROR] Model file not found: {YOLO_MODEL_PATH}")
+            logging.info(f"[YOLO ERROR] Model file not found: {YOLO_MODEL_PATH}")
             return {"anterior": False, "posterior": False}
         
         if not scan_path.exists():
-            print(f"[YOLO ERROR] DICOM file not found: {scan_path}")
+            logging.info(f"[YOLO ERROR] DICOM file not found: {scan_path}")
             return {"anterior": False, "posterior": False}
         
         #   IMPORT and run the fixed detection
         from .box_detection import run_yolo_detection_for_patient
         results = run_yolo_detection_for_patient(scan_path, patient_id)
         
-        print(f"[YOLO WRAPPER] Detection completed with results: {results}")
+        logging.info(f"[YOLO WRAPPER] Detection completed with results: {results}")
         return results
         
     except Exception as e:
-        print(f"[YOLO WRAPPER ERROR] Exception in YOLO detection: {e}")
+        logging.info(f"[YOLO WRAPPER ERROR] Exception in YOLO detection: {e}")
         traceback.print_exc()
         return {"anterior": False, "posterior": False}
 
+@safe_inference(cleanup_after=True)
+@memory_monitor
 def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
     """
       FIXED: Get session code from sessions.json config
     """
-    print("--- MENJALANKAN FUNGSI HOTSPOT DENGAN LOGIKA PENYIMPANAN FILE ---")
+    logging.info("--- MENJALANKAN FUNGSI HOTSPOT DENGAN LOGIKA PENYIMPANAN FILE ---")
     try:
         from .hotspot_processor import HotspotProcessor
         from features.dicom_import.logic.dicom_loader import load_frames_and_metadata
@@ -123,7 +127,7 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
             
             #   FALLBACK: Extract from path structure if config fails
             if session_code == "unknown":
-                print(f"[DEBUG] Config session failed, extracting from path...")
+                logging.info(f"[DEBUG] Config session failed, extracting from path...")
                 path_parts = scan_path.parts
                 planar_index = None
                 for i, part in enumerate(path_parts):
@@ -133,16 +137,16 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
                 
                 if planar_index is not None and len(path_parts) > planar_index + 1:
                     session_code = path_parts[planar_index + 1]
-                    print(f"[DEBUG] Extracted session from path: {session_code}")
+                    logging.info(f"[DEBUG] Extracted session from path: {session_code}")
                 else:
                     session_code = "ATL"  # Safe default
-                    print(f"[DEBUG] Using default session: {session_code}")
+                    logging.info(f"[DEBUG] Using default session: {session_code}")
             
             filename_stem = generate_filename_stem(patient_id, study_date)
-            print(f"[DEBUG] Using session: {session_code}, patient: {patient_id}, study_date: {study_date}")
+            logging.info(f"[DEBUG] Using session: {session_code}, patient: {patient_id}, study_date: {study_date}")
             
         except Exception as e:
-            print(f"[WARN] Could not extract session/study info: {e}")
+            logging.info(f"[WARN] Could not extract session/study info: {e}")
             study_date = meta.get("study_date", "20250101")
             session_code = get_current_session_code()
             if session_code == "unknown":
@@ -152,10 +156,10 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
         #   FIX: Use correct path with session code from config
         patient_folder = get_patient_planar_path(session_code, patient_id, study_date)
         
-        print(f"[DEBUG] Expected patient folder: {patient_folder}")
+        logging.info(f"[DEBUG] Expected patient folder: {patient_folder}")
         
         if not patient_folder.exists():
-            print(f"[ERROR] Patient folder does not exist: {patient_folder}")
+            logging.info(f"[ERROR] Patient folder does not exist: {patient_folder}")
             
             #   FALLBACK: Try to find the correct folder
             potential_sessions = ["ATL", "NSY", "NBL", "ALL"]
@@ -163,17 +167,17 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
             
             for potential_session in potential_sessions:
                 test_folder = get_patient_planar_path(potential_session, patient_id, study_date)
-                print(f"[DEBUG] Testing folder: {test_folder}")
+                logging.info(f"[DEBUG] Testing folder: {test_folder}")
                 if test_folder.exists():
                     found_folder = test_folder
-                    print(f"[DEBUG] Found patient folder in session: {potential_session}")
+                    logging.info(f"[DEBUG] Found patient folder in session: {potential_session}")
                     break
             
             if found_folder:
                 patient_folder = found_folder
-                print(f"[DEBUG] Using found folder: {patient_folder}")
+                logging.info(f"[DEBUG] Using found folder: {patient_folder}")
             else:
-                print(f"[ERROR] No valid patient folder found for patient {patient_id}")
+                logging.info(f"[ERROR] No valid patient folder found for patient {patient_id}")
                 return {"frames": [], "ant_frames": [], "post_frames": []}
         
         ant_hotspot_files = get_planar_hotspot_files(patient_folder, "ant")
@@ -192,71 +196,73 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
 
             # Process Anterior
             if ant_xml_path.exists() and "ant" in view_name.lower():
-                print(f"[DEBUG] Processing anterior with XML: {ant_xml_path}")
+                logging.info(f"[DEBUG] Processing anterior with XML: {ant_xml_path}")
                 ant_processed = processor.process_frame_with_xml(
                     processing_frame, str(ant_xml_path), patient_id, "ant", study_date=study_date
                 )
                 if ant_processed is not None:
-                    print(f"[PROCESS] Anterior hotspot processing completed")
+                    logging.info(f"[PROCESS] Anterior hotspot processing completed")
                     result["ant_frames"].append(ant_processed)
                 else:
-                    print(f"[PROCESS] Anterior processing failed, using original frame")
+                    logging.info(f"[PROCESS] Anterior processing failed, using original frame")
                     result["ant_frames"].append(processing_frame)
             elif "ant" in view_name.lower():
                 result["ant_frames"].append(processing_frame)
 
             # Process Posterior
             if post_xml_path.exists() and "post" in view_name.lower():
-                print(f"[DEBUG] Processing posterior with XML: {post_xml_path}")
+                logging.info(f"[DEBUG] Processing posterior with XML: {post_xml_path}")
                 post_processed = processor.process_frame_with_xml(
                     processing_frame, str(post_xml_path), patient_id, "post", study_date=study_date
                 )
                 if post_processed is not None:
-                    print(f"[PROCESS] Posterior hotspot processing completed")
+                    logging.info(f"[PROCESS] Posterior hotspot processing completed")
                     result["post_frames"].append(post_processed)
                 else:
-                    print(f"[PROCESS] Posterior processing failed, using original frame")
+                    logging.info(f"[PROCESS] Posterior processing failed, using original frame")
                     result["post_frames"].append(processing_frame)
             elif "post" in view_name.lower():
                 result["post_frames"].append(processing_frame)
         
         result["frames"] = result["ant_frames"] + result["post_frames"]
 
-        print(f"[PROCESS] Hotspot processing completed for {scan_path.name}")
+        logging.info(f"[PROCESS] Hotspot processing completed for {scan_path.name}")
         
         return result
 
     except Exception as e:
         import traceback
-        print(f"[PROCESS FATAL ERROR] Exception in hotspot processing: {e}")
+        logging.info(f"[PROCESS FATAL ERROR] Exception in hotspot processing: {e}")
         traceback.print_exc()
         return {"frames": [], "ant_frames": [], "post_frames": []}
-
+    
+@safe_inference(cleanup_after=True)
+@memory_monitor
 def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date: str, source_is_editor: bool = False) -> bool:
     """
       UPDATED: Use session from config
     """
     try:
-        print(f"[CLASSIFICATION] Starting classification for patient {patient_id}")
+        logging.info(f"[CLASSIFICATION] Starting classification for patient {patient_id}")
         
         #   ADD: Get session from config  
         from core.config.paths import get_current_session_code
         session_code = get_current_session_code()
         
-        print(f"[CLASSIFICATION] Using session: {session_code}")
+        logging.info(f"[CLASSIFICATION] Using session: {session_code}")
         
         from .classification_wrapper import run_classification_for_patient as clf_runner
         result = clf_runner(dicom_path, patient_id, study_date, source_is_editor=source_is_editor)
         
         if result:
-            print(f"[CLASSIFICATION] Classification completed successfully")
+            logging.info(f"[CLASSIFICATION] Classification completed successfully")
         else:
-            print(f"[CLASSIFICATION] Classification failed")
+            logging.info(f"[CLASSIFICATION] Classification failed")
             
         return result
         
     except Exception as e:
-        print(f"[CLASSIFICATION ERROR] Classification import/run failed: {e}")
+        logging.info(f"[CLASSIFICATION ERROR] Classification import/run failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -269,36 +275,38 @@ def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date
         from core.config.paths import get_current_session_code
         
         session_code = get_current_session_code()
-        print(f"[PROCESSING] Running V1.2 quantification for patient {patient_id} in session {session_code}")
+        logging.info(f"[PROCESSING] Running V1.2 quantification for patient {patient_id} in session {session_code}")
         
         result = run_quantification_for_patient_v2(dicom_path, patient_id, study_date)
         
         if result:
-            print(f"[PROCESSING]   V1.2 quantification completed for {patient_id}")
+            logging.info(f"[PROCESSING]   V1.2 quantification completed for {patient_id}")
         else:
-            print(f"[PROCESSING]  V1.2 quantification failed for {patient_id}")
+            logging.info(f"[PROCESSING]  V1.2 quantification failed for {patient_id}")
             
         return result
         
     except Exception as e:
-        print(f"[PROCESSING] V1.2 quantification error: {e}")
+        logging.info(f"[PROCESSING] V1.2 quantification error: {e}")
         return False
 
 
+@safe_inference(cleanup_after=True)
+@memory_monitor
 def run_segmentation_in_process(dicom_path: Path, patient_id: str) -> Dict[str, str]:
     """
     Menjalankan proses segmentasi tulang dalam proses terpisah.
     Menyimpan hasilnya sebagai file PNG.
     """
     try:
-        print(f"[SEGMENTER-PROC] Starting segmentation for {dicom_path.name}")
+        logging.info(f"[SEGMENTER-PROC] Starting segmentation for {dicom_path.name}")
 
         # 1. Load frame original dari DICOM (misal, hanya view Anterior)
         frames, meta = load_frames_and_metadata(str(dicom_path))
         anterior_frame = frames.get("Anterior")
 
         if anterior_frame is None:
-            print(f"[SEGMENTER-ERROR] No 'Anterior' view found in {dicom_path.name}")
+            logging.info(f"[SEGMENTER-ERROR] No 'Anterior' view found in {dicom_path.name}")
             return {"status": "error", "message": "Anterior frame not found."}
         
         # Jika frame multi-slice, buat sum projection
@@ -319,16 +327,16 @@ def run_segmentation_in_process(dicom_path: Path, patient_id: str) -> Dict[str, 
         # Simpan gambar menggunakan PIL
         Image.fromarray(segmented_rgb).save(output_path)
         
-        print(f"[SEGMENTER-PROC] Segmentation saved to: {output_path}")
+        logging.info(f"[SEGMENTER-PROC] Segmentation saved to: {output_path}")
         return {"status": "success", "output_path": str(output_path)}
 
     except Exception as e:
         import traceback
-        print(f"[SEGMENTER-FATAL-ERROR] Failed to process segmentation for {dicom_path.name}: {e}")
+        logging.info(f"[SEGMENTER-FATAL-ERROR] Failed to process segmentation for {dicom_path.name}: {e}")
         traceback.print_exc()
         return {"status": "error", "message": str(e)}
 
-
+@safe_inference(cleanup_after=True)
 def run_complete_analysis_pipeline(dicom_path: Path, patient_id: str, study_date: str = None) -> Dict:
     """
     NEW: Run complete analysis pipeline for a patient
@@ -346,9 +354,9 @@ def run_complete_analysis_pipeline(dicom_path: Path, patient_id: str, study_date
     if not study_date:
         study_date = extract_study_date_from_dicom(dicom_path)
     
-    print(f"## Starting complete analysis pipeline for patient {patient_id}")
-    print(f"## Study date: {study_date}")
-    print(f"## Pipeline: YOLO → Otsu → Classification → QUANTIFICATION")
+    logging.info(f"## Starting complete analysis pipeline for patient {patient_id}")
+    logging.info(f"## Study date: {study_date}")
+    logging.info(f"## Pipeline: YOLO → Otsu → Classification → QUANTIFICATION")
     
     results = {
         "patient_id": patient_id,
@@ -366,64 +374,64 @@ def run_complete_analysis_pipeline(dicom_path: Path, patient_id: str, study_date
     
     try:
         # Step 1: YOLO Detection
-        print(f"## Step 1: YOLO Detection")
+        logging.info(f"## Step 1: YOLO Detection")
         yolo_result = run_yolo_detection_wrapper(dicom_path, patient_id)
         yolo_success = any(yolo_result.values())
         results["steps"]["yolo_detection"] = yolo_success
         if yolo_success:
             results["files_generated"].extend(["XML files"])
-            print(f"[PIPELINE] YOLO detection completed successfully")
+            logging.info(f"[PIPELINE] YOLO detection completed successfully")
         else:
             results["errors"].append("YOLO detection failed")
-            print(f"[PIPELINE] YOLO detection failed")
+            logging.info(f"[PIPELINE] YOLO detection failed")
         
         # Step 2: Otsu Processing
-        print(f"## Step 2: Otsu Hotspot Processing")
+        logging.info(f"## Step 2: Otsu Hotspot Processing")
         otsu_result = run_hotspot_processing_in_process(dicom_path, patient_id)
         otsu_success = len(otsu_result.get("frames", [])) > 0
         results["steps"]["otsu_processing"] = otsu_success
         if otsu_success:
             results["files_generated"].extend(["Hotspot PNG files"])
-            print(f"[PIPELINE] Otsu processing completed successfully")
+            logging.info(f"[PIPELINE] Otsu processing completed successfully")
         else:
             results["errors"].append("Otsu processing failed")
-            print(f"[PIPELINE] Otsu processing failed")
+            logging.info(f"[PIPELINE] Otsu processing failed")
         
         # Step 3: Classification
-        print(f"## Step 3: Classification Analysis")
+        logging.info(f"## Step 3: Classification Analysis")
         classification_result = run_classification_for_patient(dicom_path, patient_id, study_date)
         results["steps"]["classification"] = classification_result
         if classification_result:
             results["files_generated"].extend(["Classification JSON", "Classification mask PNG"])
-            print(f"[PIPELINE] Classification completed successfully")
+            logging.info(f"[PIPELINE] Classification completed successfully")
         else:
             results["errors"].append("Classification failed")
-            print(f"[PIPELINE] Classification failed")
+            logging.info(f"[PIPELINE] Classification failed")
         
         # Step 4: NEW Quantification (only if classification successful)
-        print(f"## Step 4: BSI Quantification")
+        logging.info(f"## Step 4: BSI Quantification")
         if classification_result:
             quantification_result = run_quantification_for_patient(dicom_path, patient_id, study_date)
             results["steps"]["quantification"] = quantification_result
             if quantification_result:
                 results["files_generated"].extend(["BSI quantification JSON"])
-                print(f"[PIPELINE] BSI quantification completed successfully")
+                logging.info(f"[PIPELINE] BSI quantification completed successfully")
             else:
                 results["errors"].append("Quantification failed")
-                print(f"[PIPELINE] BSI quantification failed")
+                logging.info(f"[PIPELINE] BSI quantification failed")
         else:
             results["errors"].append("Quantification skipped - classification required")
-            print(f"[PIPELINE] Quantification skipped - classification required for input")
+            logging.info(f"[PIPELINE] Quantification skipped - classification required for input")
         
         # Summary
         success_count = sum(1 for step in results["steps"].values() if step)
         total_steps = len(results["steps"])
         
-        print(f"## Pipeline completed: {success_count}/{total_steps} steps successful")
-        print(f"## Files generated: {', '.join(results['files_generated'])}")
+        logging.info(f"## Pipeline completed: {success_count}/{total_steps} steps successful")
+        logging.info(f"## Files generated: {', '.join(results['files_generated'])}")
         
         if results["errors"]:
-            print(f"## Errors: {', '.join(results['errors'])}")
+            logging.info(f"## Errors: {', '.join(results['errors'])}")
         
         results["success_rate"] = success_count / total_steps
         results["pipeline_successful"] = success_count == total_steps
@@ -431,7 +439,7 @@ def run_complete_analysis_pipeline(dicom_path: Path, patient_id: str, study_date
         return results
         
     except Exception as e:
-        print(f"## Pipeline error: {e}")
+        logging.info(f"## Pipeline error: {e}")
         results["errors"].append(f"Pipeline error: {e}")
         results["success_rate"] = 0.0
         results["pipeline_successful"] = False
@@ -541,8 +549,8 @@ def run_missing_analysis_steps(dicom_path: Path, patient_id: str, study_date: st
     # Check current status
     status = get_patient_analysis_status(dicom_path, patient_id, study_date)
     
-    print(f"## Checking analysis status for patient {patient_id}")
-    print(f"## Next step needed: {status['next_step']}")
+    logging.info(f"## Checking analysis status for patient {patient_id}")
+    logging.info(f"## Next step needed: {status['next_step']}")
     
     results = {
         "patient_id": patient_id,
@@ -553,7 +561,7 @@ def run_missing_analysis_steps(dicom_path: Path, patient_id: str, study_date: st
     }
     
     if status["next_step"] == "complete":
-        print(f"## All analysis steps already complete")
+        logging.info(f"## All analysis steps already complete")
         results["success"] = True
         return results
     
@@ -563,7 +571,7 @@ def run_missing_analysis_steps(dicom_path: Path, patient_id: str, study_date: st
     try:
         # YOLO Detection (if needed)
         if not completion["yolo_detection"]:
-            print(f"## Running missing step: YOLO Detection")
+            logging.info(f"## Running missing step: YOLO Detection")
             yolo_result = run_yolo_detection_wrapper(dicom_path, patient_id)
             yolo_success = any(yolo_result.values())
             results["steps_run"].append(("yolo_detection", yolo_success))
@@ -572,7 +580,7 @@ def run_missing_analysis_steps(dicom_path: Path, patient_id: str, study_date: st
         
         # Otsu Processing (if needed)
         if not completion["otsu_processing"]:
-            print(f"## Running missing step: Otsu Processing")
+            logging.info(f"## Running missing step: Otsu Processing")
             otsu_result = run_hotspot_processing_in_process(dicom_path, patient_id)
             otsu_success = len(otsu_result.get("frames", [])) > 0
             results["steps_run"].append(("otsu_processing", otsu_success))
@@ -581,7 +589,7 @@ def run_missing_analysis_steps(dicom_path: Path, patient_id: str, study_date: st
         
         # Classification (if needed)
         if not completion["classification"]:
-            print(f"## Running missing step: Classification")
+            logging.info(f"## Running missing step: Classification")
             classification_result = run_classification_for_patient(dicom_path, patient_id, study_date)
             results["steps_run"].append(("classification", classification_result))
             if not classification_result:
@@ -589,17 +597,17 @@ def run_missing_analysis_steps(dicom_path: Path, patient_id: str, study_date: st
         
         # Quantification (if needed)
         if not completion["quantification"]:
-            print(f"## Running missing step: Quantification")
+            logging.info(f"## Running missing step: Quantification")
             quantification_result = run_quantification_for_patient(dicom_path, patient_id, study_date)
             results["steps_run"].append(("quantification", quantification_result))
             if not quantification_result:
                 return results
         
         results["success"] = True
-        print(f"## Missing analysis steps completed successfully")
+        logging.info(f"## Missing analysis steps completed successfully")
         
     except Exception as e:
-        print(f"## Error running missing steps: {e}")
+        logging.info(f"## Error running missing steps: {e}")
         results["error"] = str(e)
     
     return results
@@ -613,48 +621,48 @@ def validate_processing_environment() -> bool:
         True if environment is valid, False otherwise
     """
     try:
-        print("[VALIDATION] Checking processing environment...")
+        logging.info("[VALIDATION] Checking processing environment...")
         
         # Check YOLO model
         if not YOLO_MODEL_PATH.exists():
-            print(f"[VALIDATION ERROR] YOLO model not found: {YOLO_MODEL_PATH}")
+            logging.info(f"[VALIDATION ERROR] YOLO model not found: {YOLO_MODEL_PATH}")
             return False
         
-        print(f"[VALIDATION] YOLO model found: {YOLO_MODEL_PATH}")
+        logging.info(f"[VALIDATION] YOLO model found: {YOLO_MODEL_PATH}")
         
         # Try to import required modules
         try:
             from ultralytics import YOLO
-            print("[VALIDATION] YOLO import successful")
+            logging.info("[VALIDATION] YOLO import successful")
         except ImportError as e:
-            print(f"[VALIDATION ERROR] Cannot import YOLO: {e}")
+            logging.info(f"[VALIDATION ERROR] Cannot import YOLO: {e}")
             return False
         
         try:
             from features.dicom_import.logic.dicom_loader import load_frames_and_metadata
-            print("[VALIDATION] DICOM loader import successful")
+            logging.info("[VALIDATION] DICOM loader import successful")
         except ImportError as e:
-            print(f"[VALIDATION ERROR] Cannot import DICOM loader: {e}")
+            logging.info(f"[VALIDATION ERROR] Cannot import DICOM loader: {e}")
             return False
         
         # Check classification and quantification modules
         try:
             from .classification_wrapper import run_classification_for_patient
-            print("[VALIDATION] Classification wrapper import successful")
+            logging.info("[VALIDATION] Classification wrapper import successful")
         except ImportError as e:
-            print(f"[VALIDATION WARNING] Classification wrapper not available: {e}")
+            logging.info(f"[VALIDATION WARNING] Classification wrapper not available: {e}")
         
         try:
             from .quantification_wrapper import run_quantification_for_patient
-            print("[VALIDATION] Quantification wrapper import successful")
+            logging.info("[VALIDATION] Quantification wrapper import successful")
         except ImportError as e:
-            print(f"[VALIDATION WARNING] Quantification wrapper not available: {e}")
+            logging.info(f"[VALIDATION WARNING] Quantification wrapper not available: {e}")
         
-        print("[VALIDATION] Processing environment is valid")
+        logging.info("[VALIDATION] Processing environment is valid")
         return True
         
     except Exception as e:
-        print(f"[VALIDATION ERROR] Environment validation failed: {e}")
+        logging.info(f"[VALIDATION ERROR] Environment validation failed: {e}")
         return False
 
 
@@ -723,23 +731,23 @@ if __name__ == "__main__":
         patient_id = sys.argv[2]
         
         if not validate_processing_environment():
-            print("Environment validation failed")
+            logging.info("Environment validation failed")
             sys.exit(1)
         
         if dicom_path.exists():
-            print(f"Testing complete pipeline for: {dicom_path}")
+            logging.info(f"Testing complete pipeline for: {dicom_path}")
             
             # Run complete analysis
             results = run_complete_analysis_pipeline(dicom_path, patient_id)
-            print(f"Pipeline completed with success rate: {results['success_rate']:.2f}")
+            logging.info(f"Pipeline completed with success rate: {results['success_rate']:.2f}")
             
             # Print summary
             summary = get_processing_summary(dicom_path, patient_id)
-            print(summary)
+            logging.info(summary)
             
         else:
-            print(f"DICOM file not found: {dicom_path}")
+            logging.info(f"DICOM file not found: {dicom_path}")
     else:
-        print("Usage: python processing_wrapper.py <dicom_path> <patient_id>")
-        print("Running environment validation...")
+        logging.info("Usage: python processing_wrapper.py <dicom_path> <patient_id>")
+        logging.info("Running environment validation...")
         validate_processing_environment()
