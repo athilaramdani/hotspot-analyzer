@@ -6,6 +6,7 @@ import sys
 import warnings
 import os
 import logging
+from .model_cleanup import safe_inference, memory_monitor
 if hasattr(sys, '_MEIPASS'):
     #   ENHANCED: Complete module system reset for problematic modules
     logging.info("[SEGMENTER]   PyInstaller mode - applying enhanced torchvision fixes")
@@ -427,9 +428,9 @@ def run_prediction(image: np.ndarray, model) -> np.ndarray:
 
 
 # ------------------------------------------------------------------ PUBLIC API
-def predict_bone_mask(
-    image: np.ndarray, *, to_rgb: bool = False
-) -> np.ndarray:
+@safe_inference(cleanup_after=True)
+@memory_monitor
+def predict_bone_mask(image: np.ndarray, *, to_rgb: bool = False) -> np.ndarray:
     """
     Performs bone segmentation on an input image using simple resize preprocessing.
     

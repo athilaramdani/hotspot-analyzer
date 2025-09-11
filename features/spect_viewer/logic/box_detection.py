@@ -15,6 +15,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 from typing import Dict, List, Tuple, Optional
+from .model_cleanup import safe_inference, memory_monitor, force_model_cleanup
 
 # Add project root to path for imports
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
@@ -527,6 +528,8 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
         return {"anterior": False, "posterior": False}
 
 # For backward compatibility
+@safe_inference(cleanup_after=True)
+@memory_monitor
 def run_yolo_detection_for_patient(scan_path: Path, patient_id: str) -> Dict[str, bool]:
     """
       FIXED: Main function to run YOLO detection for a patient scan
@@ -594,6 +597,13 @@ def inference_detection(path_image: str) -> List[Dict]:
 #   SAFE INITIALIZATION: No global model loading at import time
 logging.info("[YOLO] Module loaded - model will be loaded on-demand")
 
+def cleanup_yolo_model():
+    global model
+    if model is not None:
+        del model
+        model = None
+    force_model_cleanup()
+    
 if __name__ == "__main__":
     # Test the detection system
     if len(sys.argv) > 2:
@@ -607,3 +617,5 @@ if __name__ == "__main__":
             logging.info(f"DICOM file not found: {dicom_path}")
     else:
         logging.info("Usage: python box_detection.py <dicom_path> <patient_id>")
+        
+    

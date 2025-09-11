@@ -10,6 +10,7 @@ import numpy as np
 from pathlib import Path
 from typing import Dict, List, Optional
 from PIL import Image
+from .model_cleanup import safe_inference, memory_monitor, ModelSession
 
 # Add project root to path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
@@ -55,7 +56,8 @@ except ImportError as e:
         def cleanup(self):
             pass
 
-
+@safe_inference(cleanup_after=True)
+@memory_monitor
 def run_yolo_detection_wrapper(scan_path: Path, patient_id: str) -> Dict[str, bool]:
     """
       UPDATED: Wrapper function to run YOLO detection with proper session handling
@@ -92,6 +94,8 @@ def run_yolo_detection_wrapper(scan_path: Path, patient_id: str) -> Dict[str, bo
         traceback.print_exc()
         return {"anterior": False, "posterior": False}
 
+@safe_inference(cleanup_after=True)
+@memory_monitor
 def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
     """
       FIXED: Get session code from sessions.json config
@@ -231,7 +235,9 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
         logging.info(f"[PROCESS FATAL ERROR] Exception in hotspot processing: {e}")
         traceback.print_exc()
         return {"frames": [], "ant_frames": [], "post_frames": []}
-
+    
+@safe_inference(cleanup_after=True)
+@memory_monitor
 def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date: str, source_is_editor: bool = False) -> bool:
     """
       UPDATED: Use session from config
@@ -285,6 +291,8 @@ def run_quantification_for_patient(dicom_path: Path, patient_id: str, study_date
         return False
 
 
+@safe_inference(cleanup_after=True)
+@memory_monitor
 def run_segmentation_in_process(dicom_path: Path, patient_id: str) -> Dict[str, str]:
     """
     Menjalankan proses segmentasi tulang dalam proses terpisah.
@@ -328,7 +336,7 @@ def run_segmentation_in_process(dicom_path: Path, patient_id: str) -> Dict[str, 
         traceback.print_exc()
         return {"status": "error", "message": str(e)}
 
-
+@safe_inference(cleanup_after=True)
 def run_complete_analysis_pipeline(dicom_path: Path, patient_id: str, study_date: str = None) -> Dict:
     """
     NEW: Run complete analysis pipeline for a patient
