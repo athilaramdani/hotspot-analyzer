@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
 
 from .base_components import BaseCanvas, BaseEditorDialog, BaseSaveThread
 from features.spect_viewer.logic.colorizer import label_mask_to_rgb, _PALETTE
-import logging
+
 # Segmentation label information
 _SEGMENTATION_LABEL_INFO: List[Tuple[str, str]] = [
     ("Background", "kosong"),
@@ -45,13 +45,13 @@ class SegmentationCanvas(BaseCanvas):
         # Initialize segmentation-specific attributes BEFORE calling parent
         self._layers = {}
         self._bg_alpha = 0.0  # Background opacity
+        self._last_brush_pos = None  # Track last brush position for smooth lines
         
         super().__init__(orig, mask, parent)
-        
+
         # Now populate the layers after parent initialization is complete
-        self._layers = {lbl: (self._mask_arr == lbl).astype(np.uint8)
-                        for lbl in range(len(_PALETTE))}
-        
+        self._layers = {lbl: (self._mask_arr == lbl).astype(np.uint8) for lbl in range(len(_PALETTE))}
+
         # Create mask display
         self._mask_img = self._mask_to_qimage(show_all=False, label=1)
         self._item_mask = QGraphicsPixmapItem(QPixmap.fromImage(self._mask_img))
@@ -59,61 +59,51 @@ class SegmentationCanvas(BaseCanvas):
 
     def _init_history(self):
         """Initialize history for segmentation layers."""
-        #   FIX: Initialize _layer_history if it doesn't exist
+        # FIX: Initialize _layer_history if it doesn't exist
         if not hasattr(self, '_layer_history'):
             self._layer_history = {}
-            
         for label_id in range(len(_PALETTE)):
             self._layer_history[label_id] = {'undo': [], 'redo': []}
-        
-        #   FIX: DON'T save states here - layers might not be ready yet
-        # _save_all_states() will be called later when layers are properly initialized
 
     def _save_all_states(self):
         """Save initial state for all layers."""
-        logging.info(f"🔄 Saving initial states for all layers...")
+        print(f"🔄 Saving initial states for all layers...")
         for label_id in range(len(_PALETTE)):
             if label_id in self._layers:
                 self._save_layer_state(label_id)
-        logging.info(f"  Initial states saved for {len(_PALETTE)} layers")
+        print(f"  Initial states saved for {len(_PALETTE)} layers")
 
     def _save_layer_state(self, label_id: int):
         """Save state for specific layer."""
-        #   FIX: Ensure _layer_history exists
+        # FIX: Ensure _layer_history exists
         if not hasattr(self, '_layer_history'):
             self._layer_history = {}
-        
-        #   FIX: Ensure the label_id exists in _layer_history
+
+        # FIX: Ensure the label_id exists in _layer_history
         if label_id not in self._layer_history:
             self._layer_history[label_id] = {'undo': [], 'redo': []}
-        
+
         history = self._layer_history[label_id]
-        
-        #   FIX: Use layers if available
+
+        # FIX: Use layers if available
         if hasattr(self, '_layers') and label_id in self._layers:
             state = self._layers[label_id].copy()
         else:
             # Fallback to mask-based approach
             state = (self._mask_arr == label_id).astype(np.uint8) if hasattr(self, '_mask_arr') else np.zeros((100, 100), dtype=np.uint8)
-        
+
         if len(history['undo']) >= self._max_history:
             history['undo'].pop(0)
-        
         history['undo'].append(state)
         history['redo'].clear()
-        
-        logging.info(f"🔄 Saved state for label {label_id}, history length: {len(history['undo'])}")
+
+        print(f"🔄 Saved state for label {label_id}, history length: {len(history['undo'])}")
 
     def _save_current_state(self):
         """Save current state for active layer."""
         if hasattr(self, '_cur_label') and self._cur_label is not None:
             self._save_layer_state(self._cur_label)
-            logging.info(f"🔄 Saved current state for active label {self._cur_label}")
-
-    # def set_bg_opacity(self, alpha: float):
-    #     """Set background opacity."""
-    #     self._bg_alpha = alpha
-    #     self._refresh_mask()
+            print(f"🔄 Saved current state for active label {self._cur_label}")
 
     def _mask_to_qimage(self, *, show_all: bool, label: int) -> QImage:
         """Convert mask to QImage with segmentation colors."""
@@ -154,7 +144,7 @@ class SegmentationCanvas(BaseCanvas):
         x, y = self._get_pixel_coordinates(scene_pos)
         targets = self._get_brush_targets(x, y)
 
-        #   FIX: Save state BEFORE making changes (not after)
+        # FIX: Save state BEFORE making changes (not after)
         if not hasattr(self, '_drawing') or not self._drawing:
             # This is the start of a new drawing operation
             self._save_current_state()
@@ -163,21 +153,16 @@ class SegmentationCanvas(BaseCanvas):
         # Get active layer
         if not hasattr(self, '_cur_label') or self._cur_label not in self._layers:
             return
-            
+
         layer = self._layers[self._cur_label]
-        
+
         # Track if any changes were made
         changes_made = False
-        
+        new_value = 0 if self._eraser else 1
+
         for px, py in targets:
             if 0 <= py < layer.shape[0] and 0 <= px < layer.shape[1]:
                 old_value = layer[py, px]
-                
-                if self._eraser:
-                    new_value = 0
-                else:
-                    new_value = 1
-                
                 if old_value != new_value:
                     layer[py, px] = new_value
                     changes_made = True
@@ -186,89 +171,144 @@ class SegmentationCanvas(BaseCanvas):
         if changes_made:
             self._rebuild_combined()
             self._refresh_mask()
-            logging.info(f"🎨 Applied brush changes to label {self._cur_label}")
+
+    def _apply_brush_line(self, start_pos: QPointF, end_pos: QPointF):
+        """Apply brush along a line from start to end position for smooth drawing."""
+        start_x, start_y = self._get_pixel_coordinates(start_pos)
+        end_x, end_y = self._get_pixel_coordinates(end_pos)
+
+        # Calculate distance to determine number of interpolation points
+        distance = max(abs(end_x - start_x), abs(end_y - start_y))
+
+        if distance == 0:
+            # No movement, just brush at current position
+            self._apply_brush(end_pos)
+            return
+
+        if not hasattr(self, '_cur_label') or self._cur_label not in self._layers:
+            return
+
+        layer = self._layers[self._cur_label]
+        new_value = 0 if self._eraser else 1
+        overall_changes_made = False
+
+        # Create points along the line - ensure no gaps
+        num_points = max(distance, self._brush_radius * 2, 3)
+
+        # PERBAIKAN: Batch semua perubahan sebelum refresh
+        for i in range(num_points + 1):
+            t = i / num_points if num_points > 0 else 0
+
+            # Linear interpolation
+            interp_x = start_x + t * (end_x - start_x)
+            interp_y = start_y + t * (end_y - start_y)
+
+            # Get pixel coordinates
+            x, y = int(interp_x + 0.5), int(interp_y + 0.5)
+            targets = self._get_brush_targets(x, y)
+
+            # Apply changes to layer
+            for px, py in targets:
+                if 0 <= py < layer.shape[0] and 0 <= px < layer.shape[1]:
+                    if layer[py, px] != new_value:
+                        layer[py, px] = new_value
+                        overall_changes_made = True
+
+        # PERBAIKAN: Hanya rebuild dan refresh SEKALI di akhir
+        if overall_changes_made:
+            self._rebuild_combined()
+            self._refresh_mask()
+
+    def set_brush(self):
+        """Set brush mode (disable eraser)."""
+        self._eraser = False
+        self._refresh_mask()
+        print("🎨 Brush mode activated")
+
+    def set_eraser(self):
+        """Set eraser mode."""
+        self._eraser = True
+        self._refresh_mask()
+        print("🗑️ Eraser mode activated")
 
     def undo(self, label_id: int):
         """Undo for specific layer - IMPROVED implementation."""
-        logging.info(f"🔄 Undo called for label {label_id}")
+        print(f"🔄 Undo called for label {label_id}")
         
-        #   FIX: Add comprehensive safety checks
+        # FIX: Add comprehensive safety checks
         if not hasattr(self, '_layer_history'):
-            logging.info(" No layer history available")
+            print("  No layer history available")
             return
-            
+
         history = self._layer_history.get(label_id)
         if not history:
-            logging.info(f" No history for label {label_id}")
+            print(f"  No history for label {label_id}")
             return
-            
+
         if len(history['undo']) < 2:
-            logging.info(f" Not enough history for label {label_id} (need at least 2, have {len(history['undo'])})")
+            print(f"  Not enough history for label {label_id} (need at least 2, have {len(history['undo'])})")
             return
-        
+
         # Pop current state and move to redo
         current_state = history['undo'].pop()
         history['redo'].append(current_state)
-        
+
         # Get previous state
         prev_state = history['undo'][-1]
-        
-        logging.info(f"🔄 Restoring previous state for label {label_id}")
+        print(f"🔄 Restoring previous state for label {label_id}")
         self._restore_layer_state(label_id, prev_state)
-
 
     def redo(self, label_id: int):
         """Redo for specific layer - IMPROVED implementation."""
-        logging.info(f"🔄 Redo called for label {label_id}")
+        print(f"🔄 Redo called for label {label_id}")
         
-        #   FIX: Add comprehensive safety checks
+        # FIX: Add comprehensive safety checks
         if not hasattr(self, '_layer_history'):
-            logging.info(" No layer history available")
+            print("  No layer history available")
             return
-            
+
         history = self._layer_history.get(label_id)
         if not history:
-            logging.info(f" No history for label {label_id}")
+            print(f"  No history for label {label_id}")
             return
-            
+
         if not history['redo']:
-            logging.info(f" No redo history for label {label_id}")
+            print(f"  No redo history for label {label_id}")
             return
-        
+
         # Get state from redo and move to undo
         state = history['redo'].pop()
         history['undo'].append(state)
-        
-        logging.info(f"🔄 Restoring redo state for label {label_id}")
+
+        print(f"🔄 Restoring redo state for label {label_id}")
         self._restore_layer_state(label_id, state)
 
     def _restore_layer_state(self, label_id: int, state: np.ndarray):
         """Restore state for specific layer - IMPROVED implementation."""
-        logging.info(f"🔄 Restoring layer {label_id} with state shape: {state.shape}")
+        print(f"🔄 Restoring layer {label_id} with state shape: {state.shape}")
         
-        #   FIX: Add safety checks
+        # FIX: Add safety checks
         if not hasattr(self, '_layers') or label_id not in self._layers:
-            logging.info(f" Layer {label_id} not found in _layers")
+            print(f"  Layer {label_id} not found in _layers")
             return
-        
+
         # Restore the layer
         self._layers[label_id] = state.copy()
-        
+
         # Rebuild combined mask and refresh display
-        logging.info(f"🔄 Rebuilding combined mask...")
+        print(f"🔄 Rebuilding combined mask...")
         self._rebuild_combined()
-        
-        logging.info(f"🔄 Refreshing mask display...")
+        print(f"🔄 Refreshing mask display...")
         self._refresh_mask()
-        
-        logging.info(f"  Successfully restored layer {label_id}")
+        print(f"  Successfully restored layer {label_id}")
 
     def mousePressEvent(self, ev):
-        """Handle mouse press - IMPROVED for proper drawing state."""
+        """Handle mouse press - IMPROVED for proper drawing state and smooth brushing."""
         if ev.button() == Qt.LeftButton and not self._pan_mode:
-            #   FIX: Reset drawing state and start new operation
+            # FIX: Reset drawing state and start new operation
             self._drawing = False  # Reset first
             scene_pos = self.mapToScene(ev.position().toPoint())
+            self._last_brush_pos = scene_pos  # Set starting position
             self._apply_brush(scene_pos)
             ev.accept()
         elif ev.button() == Qt.MiddleButton:
@@ -281,7 +321,40 @@ class SegmentationCanvas(BaseCanvas):
         else:
             super().mousePressEvent(ev)
 
+    def mouseMoveEvent(self, ev):
+        """Handle mouse move with smooth line interpolation."""
+        scene_pos = self.mapToScene(ev.position().toPoint())
+        self._mouse_pos = scene_pos
 
+        if self._drawing and (ev.buttons() & Qt.LeftButton) and not self._pan_mode:
+            # PERBAIKAN: Interpolate line from last position to current position
+            if self._last_brush_pos is not None:
+                self._apply_brush_line(self._last_brush_pos, scene_pos)
+            else:
+                self._apply_brush(scene_pos)
+
+            self._last_brush_pos = scene_pos  # Update last position
+            ev.accept()
+        elif self._pan_mode:
+            super().mouseMoveEvent(ev)
+        else:
+            self.viewport().update()  # Update to draw brush cursor
+            super().mouseMoveEvent(ev)
+
+    def mouseReleaseEvent(self, ev):
+        """Handle mouse release - IMPROVED for smooth brushing."""
+        if ev.button() == Qt.LeftButton and self._drawing:
+            self._save_current_state()
+            self._drawing = False
+            self._last_brush_pos = None  # Reset last position
+            ev.accept()
+        elif ev.button() == Qt.MiddleButton and self._pan_mode:
+            self._pan_mode = False
+            self.setDragMode(QGraphicsView.NoDrag)
+            self.setCursor(QCursor(Qt.CrossCursor))
+            super().mouseReleaseEvent(ev)
+        else:
+            super().mouseReleaseEvent(ev)
 class SegmentationOpacityPanel(QWidget):
     """Opacity control panel for segmentation editing."""
     
@@ -476,20 +549,20 @@ class SegmentationSaveThread(BaseSaveThread):
                 'edit_time': edit_time
             }
             
-            logging.info(f"  Segmentation save paths initialized:")
-            logging.info(f"   Base: {base_patient_study_folder}")
-            logging.info(f"   Save dir: {save_dir}")
-            logging.info(f"   Mask: {mask_filename}")
-            logging.info(f"   Segmentation: {segm_filename}")
+            print(f"  Segmentation save paths initialized:")
+            print(f"   Base: {base_patient_study_folder}")
+            print(f"   Save dir: {save_dir}")
+            print(f"   Mask: {mask_filename}")
+            print(f"   Segmentation: {segm_filename}")
             
             return True
             
         except Exception as e:
             error_msg = f"Failed to initialize segmentation save paths: {e}"
-            logging.info(f" {error_msg}")
-            logging.info(f"   DICOM path: {self.dicom_path}")
-            logging.info(f"   Current session: {self.current_session}")
-            logging.info(f"   Editor session: {getattr(self, 'editor_session', 'Not set')}")
+            print(f" {error_msg}")
+            print(f"   DICOM path: {self.dicom_path}")
+            print(f"   Current session: {self.current_session}")
+            print(f"   Editor session: {getattr(self, 'editor_session', 'Not set')}")
             self.error_occurred.emit(error_msg)
             return False
 
@@ -512,8 +585,8 @@ class SegmentationSaveThread(BaseSaveThread):
             from core.config.paths import CONFIG_ROOT
             config_path = CONFIG_ROOT / "doctor_tags.json"
             if not config_path.exists():
-                logging.info(f"Config file not found: {config_path}")
-                return "NONE"  # Fallback to default
+                print(f"Config file not found: {config_path}")
+                return "NSY"  # Fallback to default
             
             with open(config_path, 'r') as f:
                 config_data = json.load(f)
@@ -522,8 +595,8 @@ class SegmentationSaveThread(BaseSaveThread):
             available_tags = [tag for tag in config_data.get("doctor_tags", []) if tag.get("code") != "ALL"]
             
             if not available_tags:
-                logging.info("No available doctor tags found")
-                return "NONE"  # Fallback to default
+                print("No available doctor tags found")
+                return "NSY"  # Fallback to default
             
             # Create dialog
             dialog = QDialog()
@@ -602,8 +675,8 @@ class SegmentationSaveThread(BaseSaveThread):
             return None  # User cancelled
             
         except Exception as e:
-            logging.info(f"Error showing session selection dialog: {e}")
-            return "NONE"  # Fallback to default
+            print(f"Error showing session selection dialog: {e}")
+            return "NSY"  # Fallback to default
         
     def run(self):
         """Main thread execution with proper path initialization (same as hotspot)."""
@@ -681,10 +754,10 @@ class SegmentationSaveThread(BaseSaveThread):
         #   FIX: Use custom signal instead of built-in finished signal
         if hasattr(self, 'save_completed'):
             self.save_completed.emit(success_msg)  #   NOW success_msg IS DEFINED
-            logging.info(f"[DEBUG] save_completed signal emitted: {len(success_msg)} chars")
+            print(f"[DEBUG] save_completed signal emitted: {len(success_msg)} chars")
         else:
             # Fallback if save_completed signal doesn't exist
-            logging.info(f"Segmentation save completed: {success_msg}")
+            print(f"Segmentation save completed: {success_msg}")
             
         # Store save info for get_save_info() method
         self.save_info = {
@@ -709,7 +782,7 @@ class SegmentationSaveThread(BaseSaveThread):
             )
             
         except Exception as e:
-            logging.info(f"Quantification failed: {e}")
+            print(f"Quantification failed: {e}")
             return False
 
     def get_save_info(self) -> Dict[str, Path]:
@@ -794,7 +867,7 @@ class SegmentationToolPanel(QWidget):
     def _select_brush(self, canvas: SegmentationCanvas):
         """Select brush tool."""
         self.btn_eraser.setChecked(False)
-        # Canvas will be updated via palette selection
+        canvas.set_brush()  # Use the new method
 
     def _select_eraser(self, canvas: SegmentationCanvas):
         """Select eraser tool."""
