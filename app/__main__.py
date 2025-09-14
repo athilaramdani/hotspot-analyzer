@@ -744,7 +744,7 @@ def main():
         datefmt="%Y-%m-%d %H:%M:%S",
         handlers=[
             logging.FileHandler(log_file_path, encoding='utf-8'),
-            logging.StreamHandler(sys.stdout) # Tambahkan StreamHandler untuk tetap mencetak ke konsol
+            # logging.StreamHandler(sys.stdout) # Tambahkan StreamHandler untuk tetap mencetak ke konsol
         ]
     )
     

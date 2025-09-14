@@ -643,7 +643,7 @@ class MainWindowSpect(QMainWindow):
         # 4. Tombol Edit (PINDAHAN) - DENGAN FONT KECIL
         self.seg_edit_btn = QPushButton("Edit Segmentation")
         self.seg_edit_btn.clicked.connect(self._open_segmentation_editor)
-        self.seg_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
+        self.seg_edit_btn.setStyleSheet(PRIMARY_BUTTON_STYLE + """
             QPushButton { 
                 font-size: 11px; 
                 min-width: 100px;
@@ -661,7 +661,7 @@ class MainWindowSpect(QMainWindow):
 
         self.hotspot_edit_btn = QPushButton("Edit Hotspot")
         self.hotspot_edit_btn.clicked.connect(self._open_hotspot_editor)
-        self.hotspot_edit_btn.setStyleSheet(ZOOM_BUTTON_STYLE + """
+        self.hotspot_edit_btn.setStyleSheet(PRIMARY_BUTTON_STYLE + """
             QPushButton {
                 min-width: 100px;
                 height: 22px;
@@ -680,20 +680,15 @@ class MainWindowSpect(QMainWindow):
         edit_layout.addWidget(self.hotspot_edit_btn)
         self.left_layout.addLayout(edit_layout)
 
-        # # 5. Label Info Scan (PINDAHAN)
-        # self.scan_info_label = QLabel("No scan selected")
-        # self.scan_info_label.setWordWrap(True)
-        # self.left_layout.addWidget(self.scan_info_label)
-        
         # Layout horizontal untuk tombol zoom
         zoom_buttons_layout = QHBoxLayout()
         zoom_in_btn = QPushButton("Zoom In")
         zoom_in_btn.clicked.connect(self.zoom_in)
-        zoom_in_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
+        zoom_in_btn.setStyleSheet(ZOOM_BUTTON_STYLE)
 
         zoom_out_btn = QPushButton("Zoom Out")
         zoom_out_btn.clicked.connect(self.zoom_out)
-        zoom_out_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
+        zoom_out_btn.setStyleSheet(ZOOM_BUTTON_STYLE)
 
         zoom_buttons_layout.addWidget(zoom_in_btn)
         zoom_buttons_layout.addWidget(zoom_out_btn)
@@ -730,7 +725,7 @@ class MainWindowSpect(QMainWindow):
         main_splitter.setStretchFactor(0, 1)  # Mode selector: resizable
         main_splitter.setStretchFactor(1, 3)  # Timeline: gets most space
         main_splitter.setStretchFactor(2, 1)  # BSI panel: resizable
-        main_splitter.setSizes([280, 900, 550])  # Initial sizes (total: 1530)
+        main_splitter.setSizes([320, 900, 550])  # Initial sizes (total: 1530)
         
         # Style the splitter handles for better visibility
         main_splitter.setStyleSheet("""
