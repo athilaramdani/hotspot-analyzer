@@ -162,7 +162,7 @@ def run_hotspot_processing_in_process(scan_path: Path, patient_id: str) -> Dict:
             logging.info(f"[ERROR] Patient folder does not exist: {patient_folder}")
             
             #   FALLBACK: Try to find the correct folder
-            potential_sessions = ["ATL", "NSY", "NBL", "ALL"]
+            potential_sessions = ["ALL"]
             found_folder = None
             
             for potential_session in potential_sessions:

@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
     QPushButton, QSlider, QWidget, QMessageBox, QGraphicsView, QGraphicsScene,
     QGraphicsPixmapItem, QFrame
 )
-import logging
+
 import pydicom
 from pydicom.uid import ExplicitVRLittleEndian, SecondaryCaptureImageStorage, generate_uid
 from core.gui.loading_dialog import LoadingDialog
@@ -678,7 +678,7 @@ class BaseEditorDialog(QDialog):
         self.undo_shortcut.setEnabled(True)
         self.redo_shortcut.setEnabled(True)
         
-        logging.info("  Keyboard shortcuts setup: Ctrl+Z (Undo), Ctrl+Y (Redo)")
+        print("  Keyboard shortcuts setup: Ctrl+Z (Undo), Ctrl+Y (Redo)")
 
     def _create_main_area(self):
         """Create main canvas area - to be implemented by subclasses."""
@@ -729,12 +729,12 @@ class BaseEditorDialog(QDialog):
         #   FIX: Handle Ctrl+Z and Ctrl+Y with proper modifier checking
         if event.modifiers() & Qt.ControlModifier:
             if event.key() == Qt.Key_Z:
-                logging.info("  Ctrl+Z detected in keyPressEvent")
+                print("  Ctrl+Z detected in keyPressEvent")
                 self._perform_undo()
                 event.accept()
                 return
             elif event.key() == Qt.Key_Y:
-                logging.info("  Ctrl+Y detected in keyPressEvent")
+                print("  Ctrl+Y detected in keyPressEvent")
                 self._perform_redo()
                 event.accept()
                 return

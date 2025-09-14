@@ -102,22 +102,6 @@ EDITABLE_FILES = [
     "post_hotspot_classification.png"
 ]
 def get_newest_hotspot_classification_path(patient_folder: Path, view: str) -> Path:
-    """
-    Get the newest hotspot classification file path by comparing date and timestamp.
-    
-    Args:
-        patient_folder: Patient directory path (e.g., data/PLANAR/ALL/102/20251211 or data/PLANAR/NSY/101)
-        view: View name ("ant" or "post" or "anterior" or "posterior")
-        
-    Returns:
-        Path to the newest hotspot classification PNG file
-        
-    Logic:
-        1. If patient folder has date subfolders (YYYYMMDD), search in all of them
-        2. Find all hotspot classification files with timestamps
-        3. Compare by date first, then by timestamp
-        4. If no timestamped files found, return the original file from base folder
-    """
     view_short = "ant" if view.lower() in ["anterior", "ant"] else "post"
     base_filename = f"{view_short}_hotspot_classification.png"
     
@@ -426,18 +410,6 @@ def extract_study_date_from_dicom(dicom_path: Path) -> str:
         return datetime.now().strftime("%Y%m%d")
 
 def check_dicom_exists(session_code: str, patient_id: str, study_date: str, original_filename: str = None) -> bool:
-    """
-    Check if DICOM already exists based on patient ID and study date
-    
-    Args:
-        session_code: Session code (NSY, ATL, etc.)
-        patient_id: Patient ID from DICOM
-        study_date: Study date in YYYYMMDD format
-        original_filename: Original DICOM filename (optional for specific file check)
-        
-    Returns:
-        True if DICOM already exists, False otherwise
-    """
     try:
         logging.info(f"  [CHECK_DICOM_EXISTS] Checking: session={session_code}, patient={patient_id}, study_date={study_date}")
         
@@ -561,19 +533,6 @@ def get_study_date_path(session_code: str, patient_id: str, study_date: str) -> 
     return get_patient_planar_path(session_code, patient_id, study_date)
 
 def get_edit_timestamp_path(session_code: str, patient_id: str, study_date: str, editor_code: str = None, edit_date: str = None) -> Path:
-    """
-    Get path for timestamp-based edits (both individual and ALL user)
-    
-    Args:
-        session_code: Session code (NSY, ATL, NBL, ALL)
-        patient_id: Patient ID
-        study_date: Study date in YYYYMMDD format
-        editor_code: Doctor code who made the edit (for ALL user only)
-        edit_date: Date of edit in YYYYMMDD format
-        
-    Returns:
-        Path for edit folder
-    """
     base_path = get_patient_planar_path(session_code, patient_id, study_date)
     
     if session_code == "ALL":
@@ -582,7 +541,6 @@ def get_edit_timestamp_path(session_code: str, patient_id: str, study_date: str,
             raise ValueError("editor_code required for ALL user edits")
         return base_path / editor_code / edit_date
     else:
-        # Individual user: data/PLANAR/NSY/101/20250101/20250816/
         if not edit_date:
             edit_date = datetime.now().strftime("%Y%m%d")
         return base_path / edit_date
@@ -647,18 +605,6 @@ def get_planar_segmentation_files(patient_folder: Path, view: str, with_priority
             'mask_png': patient_folder / mask_filename
         }
 def get_planar_hotspot_files(patient_folder: Path, view: str, with_priority: bool = True, session_code: str = None):
-    """
-      UPDATED: Get hotspot file paths with priority system for edited files
-    
-    Args:
-        patient_folder: Patient directory path (study_date folder)
-        view: View name (ant/post or anterior/posterior)
-        with_priority: Whether to use priority system (edited > original)
-        session_code: Session code for ALL user context (NSY, ATL, etc.)
-        
-    Returns:
-        Dictionary with hotspot file paths using priority system
-    """
     vtag = "ant" if view.lower() in ["anterior", "ant"] else "post"
     
     #   Base files (non-editable) - always from study_date folder

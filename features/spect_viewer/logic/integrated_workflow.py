@@ -26,18 +26,6 @@ class SPECTAnalysisWorkflow:
         ]
         
     def run_full_workflow(self, dicom_path: Path, patient_id: str, session_code: str, study_date: str = None) -> Dict:
-        """
-        Run the complete SPECT analysis workflow
-        
-        Args:
-            dicom_path: Path to DICOM file
-            patient_id: Patient ID
-            session_code: Session code (NSY, ATL, etc.)
-            study_date: Study date (optional, will be extracted if not provided)
-            
-        Returns:
-            Dictionary with workflow results
-        """
         
         if not study_date:
             study_date = extract_study_date_from_dicom(dicom_path)
