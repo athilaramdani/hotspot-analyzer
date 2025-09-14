@@ -522,7 +522,7 @@ class HotspotSaveThread(BaseSaveThread):
                 raise ValueError("Invalid path structure - missing components")
                 
             base_planar = Path(*path_parts[:planar_idx + 1])  # .../PLANAR
-            session_folder = path_parts[planar_idx + 1]       # ALL or NSY/ATL/NBL
+            session_folder = path_parts[planar_idx + 1]       # ALL or doctor
             patient_id = path_parts[planar_idx + 2]           # 5001
             study_date = path_parts[planar_idx + 3]           # 20250115
             
@@ -626,7 +626,7 @@ class HotspotSaveThread(BaseSaveThread):
             config_path = CONFIG_ROOT / "doctor_tags.json"
             if not config_path.exists():
                 logging.info(f"Config file not found: {config_path}")
-                return "NSY"  # Fallback to default
+                return "NONE"  # Fallback to default
             
             with open(config_path, 'r') as f:
                 config_data = json.load(f)
@@ -636,7 +636,7 @@ class HotspotSaveThread(BaseSaveThread):
             
             if not available_tags:
                 logging.info("No available doctor tags found")
-                return "NSY"  # Fallback to default
+                return "NONE"  # Fallback to default
             
             # Create dialog
             dialog = QDialog()
@@ -716,7 +716,7 @@ class HotspotSaveThread(BaseSaveThread):
             
         except Exception as e:
             logging.info(f"Error showing session selection dialog: {e}")
-            return "NSY"  # Fallback to default
+            return "NONE"  # Fallback to default
 
     # ... rest of your existing methods remain the same ...        
     def _get_save_path_preview(self, doctor_code: str) -> str:

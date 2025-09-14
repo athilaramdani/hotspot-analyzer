@@ -834,7 +834,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
             
             if not config_path.exists():
                 logging.info(f"Config file not found: {config_path}")
-                return "NSY"  # Fallback to default
+                return "NONE"  # Fallback to default
             
             with open(config_path, 'r') as f:
                 config_data = json.load(f)
@@ -844,7 +844,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
             
             if not available_tags:
                 logging.info("No available doctor tags found")
-                return "NSY"  # Fallback to default
+                return "NONE"  # Fallback to default
             
             # Create dialog
             dialog = QDialog(self)
@@ -913,7 +913,7 @@ class SegmentationEditorDialog(BaseEditorDialog):
             
         except Exception as e:
             logging.info(f"Error showing session selection dialog: {e}")
-            return "NSY"  # Fallback to default
+            return "NONE"  # Fallback to default
 
     def _update_progress(self, value: int, message: str):
         """Update progress bar and message (same as hotspot editor)."""

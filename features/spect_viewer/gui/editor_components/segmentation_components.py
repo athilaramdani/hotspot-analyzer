@@ -513,7 +513,7 @@ class SegmentationSaveThread(BaseSaveThread):
             config_path = CONFIG_ROOT / "doctor_tags.json"
             if not config_path.exists():
                 logging.info(f"Config file not found: {config_path}")
-                return "NSY"  # Fallback to default
+                return "NONE"  # Fallback to default
             
             with open(config_path, 'r') as f:
                 config_data = json.load(f)
@@ -523,7 +523,7 @@ class SegmentationSaveThread(BaseSaveThread):
             
             if not available_tags:
                 logging.info("No available doctor tags found")
-                return "NSY"  # Fallback to default
+                return "NONE"  # Fallback to default
             
             # Create dialog
             dialog = QDialog()
@@ -603,7 +603,7 @@ class SegmentationSaveThread(BaseSaveThread):
             
         except Exception as e:
             logging.info(f"Error showing session selection dialog: {e}")
-            return "NSY"  # Fallback to default
+            return "NONE"  # Fallback to default
         
     def run(self):
         """Main thread execution with proper path initialization (same as hotspot)."""
