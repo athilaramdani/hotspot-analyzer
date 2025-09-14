@@ -509,7 +509,12 @@ class BSISidePanel(QWidget):
             from openpyxl import Workbook
             from openpyxl.styles import Border, Side, Font, Alignment, PatternFill
             
-            filename = f"BSI_Results_{self.current_patient_id}_{self.current_study_date}.xlsx"
+            # --- PERUBAHAN DI SINI ---
+            # Mengubah format nama file default sesuai permintaan
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{self.current_patient_id}_{timestamp}.xlsx"
+            # --- AKHIR PERUBAHAN ---
+
             file_path, _ = QFileDialog.getSaveFileName(
                 self, "Export BSI Excel", filename, "Excel Files (*.xlsx)"
             )
