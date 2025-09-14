@@ -15,7 +15,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Signal
-
+import logging
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
@@ -55,11 +55,11 @@ class BSICanvas(FigureCanvas):
         if len(patient_folder.name) == 8 and patient_folder.name.isdigit():
             # Current folder is study_date folder, go up to patient folder for trend
             self.patient_folder = patient_folder.parent
-            print(f"[BSI CANVAS] Using patient base folder for trend: {self.patient_folder}")
+            logging.info(f"[BSI CANVAS] Using patient base folder for trend: {self.patient_folder}")
         else:
             # Current folder is already patient folder
             self.patient_folder = patient_folder
-            print(f"[BSI CANVAS] Using patient folder for trend: {self.patient_folder}")
+            logging.info(f"[BSI CANVAS] Using patient folder for trend: {self.patient_folder}")
         
         self.patient_id = patient_id
         
@@ -68,7 +68,7 @@ class BSICanvas(FigureCanvas):
             return True
             
         except Exception as e:
-            print(f"[BSI CANVAS V1.0 SINGLE] Error loading BSI data: {e}")
+            logging.info(f"[BSI CANVAS V1.0 SINGLE] Error loading BSI data: {e}")
             self._plot_error_chart(str(e))
             return False
     
@@ -161,19 +161,19 @@ class BSICanvas(FigureCanvas):
                     date_str = entry["study_date"]
                     processing_mode = entry.get('processing_mode', 'unknown')
                     
-                    print(f"[DEBUG BSI CANVAS] Processing date: {date_str}, mode: {processing_mode}")
+                    logging.info(f"[DEBUG BSI CANVAS] Processing date: {date_str}, mode: {processing_mode}")
                     
                     try:
                         if len(date_str) == 8 and date_str.isdigit():
                             date_obj = datetime.strptime(date_str, "%Y%m%d")
                             formatted_date = date_obj.strftime("%d %b %Y")
                         else:
-                            print(f"[WARN] Invalid date format in BSI data: {date_str}, using current date")
+                            logging.info(f"[WARN] Invalid date format in BSI data: {date_str}, using current date")
                             date_obj = datetime.now()
                             formatted_date = f"{date_str} (Invalid)"
                             
                     except ValueError as ve:
-                        print(f"[WARN] Date parsing failed for {date_str}: {ve}, using current date")
+                        logging.info(f"[WARN] Date parsing failed for {date_str}: {ve}, using current date")
                         date_obj = datetime.now()
                         formatted_date = f"{date_str} (Invalid)"
                         
@@ -188,10 +188,10 @@ class BSICanvas(FigureCanvas):
                     combined_scores.append(combined_bsi)
                     date_labels.append(formatted_date)
                     
-                    print(f"[DEBUG BSI CANVAS] Added: Ant={ant_bsi} Post={post_bsi}")
+                    logging.info(f"[DEBUG BSI CANVAS] Added: Ant={ant_bsi} Post={post_bsi}")
                     
                 except Exception as e:
-                    print(f"[WARN] Error processing BSI entry: {e}")
+                    logging.info(f"[WARN] Error processing BSI entry: {e}")
                     continue
 
             if not dates:
@@ -229,7 +229,7 @@ class BSICanvas(FigureCanvas):
             ax.grid(True, linestyle='--', alpha=0.6)
             self.figure.suptitle(f'BSI Analysis for Patient: {self.patient_id}', fontsize=14, fontweight='bold')
         except Exception as e:
-            print(f"[BSI CANVAS] Failed to plot BSI trend: {e}")
+            logging.info(f"[BSI CANVAS] Failed to plot BSI trend: {e}")
             import traceback
             traceback.print_exc()
             self._plot_error_chart(str(e))
@@ -253,7 +253,7 @@ class BSICanvas(FigureCanvas):
         terlepas dari state checkbox di UI.
         """
         try:
-            print("[BSI CANVAS] Exporting chart with all data visible...")
+            logging.info("[BSI CANVAS] Exporting chart with all data visible...")
             
             # Simpan state visibility chart saat ini
             original_anterior_state = self.anterior_visible
@@ -269,7 +269,7 @@ class BSICanvas(FigureCanvas):
             # Ekspor gambar
             self.figure.savefig(str(file_path), dpi=dpi, bbox_inches='tight', facecolor='white')
             
-            print(f"[BSI CANVAS] Chart exported to: {file_path}")
+            logging.info(f"[BSI CANVAS] Chart exported to: {file_path}")
             
             # Kembalikan state visibility chart ke kondisi awal
             self.anterior_visible = original_anterior_state
@@ -280,7 +280,7 @@ class BSICanvas(FigureCanvas):
             
             return True
         except Exception as e:
-            print(f"[BSI CANVAS] Export failed: {e}")
+            logging.info(f"[BSI CANVAS] Export failed: {e}")
             return False
     # END: Perubahan pada export_chart
 

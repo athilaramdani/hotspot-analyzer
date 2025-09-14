@@ -9,7 +9,7 @@ DICT_HOTSPOT_ID = {
     1: "normal",
     2: "abnormal"
 }
-
+import logging
 def enhance_CLAHE(image, limit=1.5, tile_grid_size=(8, 8)):
     if image.dtype != np.uint8:
         image = normalize_image(image, (0, 255)).astype(np.uint8)
@@ -25,10 +25,10 @@ def normalize_image(image, range=(0, 1)):
 
 def threshold_otsu(image, nbins=0.01):
     if image.ndim != 2:
-        print("must be a grayscale image.")
+        logging.info("must be a grayscale image.")
         return
     if np.min(image) == np.max(image):
-        print("the image must have multiple colors")
+        logging.info("the image must have multiple colors")
         return
 
     all_colors = image.flatten()

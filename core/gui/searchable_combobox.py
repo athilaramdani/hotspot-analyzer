@@ -2,6 +2,8 @@
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QMouseEvent
 from PySide6.QtWidgets import QComboBox, QLineEdit, QListView, QVBoxLayout, QWidget, QFrame
+import logging
+
 class SearchableComboBox(QComboBox):
     """
     Versi final dengan perbaikan stabilitas popup.
@@ -94,13 +96,13 @@ class SearchableComboBox(QComboBox):
         """
         popup_frame = self.view().parentWidget()
         if not popup_frame:
-            print("Peringatan: Tidak dapat menemukan frame popup.")
+            logging.info("Peringatan: Tidak dapat menemukan frame popup.")
             return
 
         # Dapatkan layout yang sudah ada dari frame popup.
         layout = popup_frame.layout()
         if not layout:
-            print("Peringatan: Frame popup tidak memiliki layout.")
+            logging.info("Peringatan: Frame popup tidak memiliki layout.")
             return
 
         # Buat widget search bar dan separator
@@ -156,8 +158,8 @@ class SearchableComboBox(QComboBox):
         Mengirim sinyal 'item_selected' dengan teks dari item yang dipilih.
         """
         text = self.itemText(index)
-        print(f"[DEBUG] item activated → {text} @ index {index}")
+        logging.info(f"[DEBUG] item activated → {text} @ index {index}")
         if index >= 0:
             text = self.itemText(index)
-            print(f"[DEBUG] item activated → {text}")
+            logging.info(f"[DEBUG] item activated → {text}")
             self.item_selected.emit(text)

@@ -22,11 +22,11 @@ def count_files_recursive(directory_path, extensions=['.pyd', '.dll']):
     directory = Path(directory_path)
     
     if not directory.exists():
-        print(f"❌ Direktori tidak ditemukan: {directory_path}")
+        logging.info(f"❌ Direktori tidak ditemukan: {directory_path}")
         return None
     
     if not directory.is_dir():
-        print(f"❌ Path bukan direktori: {directory_path}")
+        logging.info(f"❌ Path bukan direktori: {directory_path}")
         return None
     
     # Counter untuk menyimpan hasil
@@ -38,8 +38,8 @@ def count_files_recursive(directory_path, extensions=['.pyd', '.dll']):
         'total_size': 0
     }
     
-    print(f"🔍 Mencari file {', '.join(extensions)} di: {directory_path}")
-    print("=" * 60)
+    logging.info(f"🔍 Mencari file {', '.join(extensions)} di: {directory_path}")
+    logging.info("=" * 60)
     
     try:
         # Scan semua file secara rekursif
@@ -58,14 +58,14 @@ def count_files_recursive(directory_path, extensions=['.pyd', '.dll']):
                     
                     # Print setiap file yang ditemukan
                     size_mb = file_size / (1024 * 1024)
-                    print(f"  {ext}: {file_path.name} ({size_mb:.2f} MB)")
+                    logging.info(f"  {ext}: {file_path.name} ({size_mb:.2f} MB)")
                     
                 except (OSError, PermissionError) as e:
-                    print(f"  ⚠️  Error accessing {file_path}: {e}")
+                    logging.info(f"  ⚠️  Error accessing {file_path}: {e}")
                     continue
     
     except Exception as e:
-        print(f"❌ Error during scan: {e}")
+        logging.info(f"❌ Error during scan: {e}")
         return None
     
     return results
@@ -75,22 +75,22 @@ def print_summary(results):
     if not results:
         return
     
-    print("\n" + "=" * 60)
-    print("📊 RINGKASAN HASIL")
-    print("=" * 60)
+    logging.info("\n" + "=" * 60)
+    logging.info("📊 RINGKASAN HASIL")
+    logging.info("=" * 60)
     
     for ext in results['counts'].keys():
         count = results['counts'][ext]
         size_mb = results['sizes'][ext] / (1024 * 1024)
-        print(f"Ekstensi {ext}:")
-        print(f"  📁 Jumlah file: {count}")
-        print(f"  💾 Total ukuran: {size_mb:.2f} MB")
-        print()
+        logging.info(f"Ekstensi {ext}:")
+        logging.info(f"  📁 Jumlah file: {count}")
+        logging.info(f"  💾 Total ukuran: {size_mb:.2f} MB")
+        logging.info()
     
     total_size_mb = results['total_size'] / (1024 * 1024)
-    print(f"🎯 TOTAL:")
-    print(f"  📁 Total semua file: {results['total_files']}")
-    print(f"  💾 Total ukuran: {total_size_mb:.2f} MB")
+    logging.info(f"🎯 TOTAL:")
+    logging.info(f"  📁 Total semua file: {results['total_files']}")
+    logging.info(f"  💾 Total ukuran: {total_size_mb:.2f} MB")
 
 def save_to_file(results, output_file="file_count_result.txt"):
     """Simpan hasil ke file teks"""
@@ -117,10 +117,10 @@ def save_to_file(results, output_file="file_count_result.txt"):
             total_size_mb = results['total_size'] / (1024 * 1024)
             f.write(f"TOTAL: {results['total_files']} files, {total_size_mb:.2f} MB\n")
         
-        print(f"📄 Hasil disimpan ke: {output_file}")
+        logging.info(f"📄 Hasil disimpan ke: {output_file}")
         
     except Exception as e:
-        print(f"❌ Error saving to file: {e}")
+        logging.info(f"❌ Error saving to file: {e}")
 
 def main():
     """Main function"""

@@ -10,7 +10,7 @@ import numpy as np
 from PIL import Image
 import datetime
 from core.config.paths import generate_edit_date, generate_edit_timestamp
-
+import logging
 from PySide6.QtCore import Qt, QPointF, Signal
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import (
@@ -162,7 +162,7 @@ class HotspotCanvas(BaseCanvas):
                 return True
             return False
         except Exception as e:
-            print(f"Failed to load segmentation: {e}")
+            logging.info(f"Failed to load segmentation: {e}")
             return False
 
     def _segmentation_to_qimage(self) -> QImage:
@@ -583,20 +583,20 @@ class HotspotSaveThread(BaseSaveThread):
                 'edit_time': edit_time
             }
             
-            print(f"  Save paths initialized:")
-            print(f"   Base: {base_patient_study_folder}")
-            print(f"   Save dir: {save_dir}")
-            print(f"   PNG: {png_filename}")
-            print(f"   XML: {xml_filename}")
+            logging.info(f"  Save paths initialized:")
+            logging.info(f"   Base: {base_patient_study_folder}")
+            logging.info(f"   Save dir: {save_dir}")
+            logging.info(f"   PNG: {png_filename}")
+            logging.info(f"   XML: {xml_filename}")
             
             return True
             
         except Exception as e:
             error_msg = f"Failed to initialize save paths: {e}"
-            print(f" {error_msg}")
-            print(f"   DICOM path: {self.dicom_path}")
-            print(f"   Current session: {self.current_session}")
-            print(f"   Editor session: {getattr(self, 'editor_session', 'Not set')}")
+            logging.info(f" {error_msg}")
+            logging.info(f"   DICOM path: {self.dicom_path}")
+            logging.info(f"   Current session: {self.current_session}")
+            logging.info(f"   Editor session: {getattr(self, 'editor_session', 'Not set')}")
             self.error_occurred.emit(error_msg)
             return False
 
@@ -625,7 +625,7 @@ class HotspotSaveThread(BaseSaveThread):
             from core.config.paths import CONFIG_ROOT
             config_path = CONFIG_ROOT / "doctor_tags.json"
             if not config_path.exists():
-                print(f"Config file not found: {config_path}")
+                logging.info(f"Config file not found: {config_path}")
                 return "NSY"  # Fallback to default
             
             with open(config_path, 'r') as f:
@@ -635,7 +635,7 @@ class HotspotSaveThread(BaseSaveThread):
             available_tags = [tag for tag in config_data.get("doctor_tags", []) if tag.get("code") != "ALL"]
             
             if not available_tags:
-                print("No available doctor tags found")
+                logging.info("No available doctor tags found")
                 return "NSY"  # Fallback to default
             
             # Create dialog
@@ -715,7 +715,7 @@ class HotspotSaveThread(BaseSaveThread):
             return None  # User cancelled
             
         except Exception as e:
-            print(f"Error showing session selection dialog: {e}")
+            logging.info(f"Error showing session selection dialog: {e}")
             return "NSY"  # Fallback to default
 
     # ... rest of your existing methods remain the same ...        
@@ -793,10 +793,10 @@ class HotspotSaveThread(BaseSaveThread):
         #   FIX: Use custom signal instead of built-in finished signal
         if hasattr(self, 'save_completed'):
             self.save_completed.emit(success_msg)  #   NOW success_msg IS DEFINED
-            print(f"[DEBUG] save_completed signal emitted: {len(success_msg)} chars")
+            logging.info(f"[DEBUG] save_completed signal emitted: {len(success_msg)} chars")
         else:
             # Fallback if save_completed signal doesn't exist
-            print(f"Hotspot save completed: {success_msg}")
+            logging.info(f"Hotspot save completed: {success_msg}")
             
         # Store save info for get_save_info() method
         self.save_info = {
@@ -843,7 +843,7 @@ class HotspotSaveThread(BaseSaveThread):
             }
             
         except Exception as e:
-            print(f"Failed to save XML: {e}")
+            logging.info(f"Failed to save XML: {e}")
             return None
 
     def _trigger_quantification(self) -> bool:
@@ -860,7 +860,7 @@ class HotspotSaveThread(BaseSaveThread):
             )
             
         except Exception as e:
-            print(f"Quantification failed: {e}")
+            logging.info(f"Quantification failed: {e}")
             return False
 
     def get_save_info(self) -> Dict[str, Path]:

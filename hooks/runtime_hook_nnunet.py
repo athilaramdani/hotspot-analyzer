@@ -6,7 +6,7 @@ Runtime hook for nnUNet to setup environment and handle trainer classes
 import sys
 import os
 from pathlib import Path
-
+import logging
 def setup_nnunet_environment():
     """Setup nnUNet environment variables for PyInstaller"""
     if hasattr(sys, '_MEIPASS'):
@@ -29,12 +29,12 @@ def setup_nnunet_environment():
             os.environ["nnUNet_preprocessed"] = str(seg_models / "_nn_pre") 
             os.environ["nnUNet_results"] = str(seg_models / "nnUNet_results")
             
-            print(f"[RUNTIME-NNUNET] Set nnUNet paths:")
-            print(f"[RUNTIME-NNUNET]   nnUNet_raw: {os.environ['nnUNet_raw']}")
-            print(f"[RUNTIME-NNUNET]   nnUNet_preprocessed: {os.environ['nnUNet_preprocessed']}")
-            print(f"[RUNTIME-NNUNET]   nnUNet_results: {os.environ['nnUNet_results']}")
+            logging.info(f"[RUNTIME-NNUNET] Set nnUNet paths:")
+            logging.info(f"[RUNTIME-NNUNET]   nnUNet_raw: {os.environ['nnUNet_raw']}")
+            logging.info(f"[RUNTIME-NNUNET]   nnUNet_preprocessed: {os.environ['nnUNet_preprocessed']}")
+            logging.info(f"[RUNTIME-NNUNET]   nnUNet_results: {os.environ['nnUNet_results']}")
         else:
-            print("[RUNTIME-NNUNET]  Models directory not found")
+            logging.info("[RUNTIME-NNUNET]  Models directory not found")
 
 def fix_triton_conflicts():
     """Fix triton conflicts that cause _register_fake errors"""
@@ -43,7 +43,7 @@ def fix_triton_conflicts():
     triton_modules = [key for key in sys.modules.keys() if key.startswith('triton')]
     for module in triton_modules:
         if 'TritonBlocker' in str(sys.modules[module]):
-            print(f"[RUNTIME-NNUNET] Removing conflicting triton module: {module}")
+            logging.info(f"[RUNTIME-NNUNET] Removing conflicting triton module: {module}")
             del sys.modules[module]
     
     #   Set additional triton disable flags
@@ -57,28 +57,28 @@ def fix_triton_conflicts():
         'TORCH_DISABLE_TRITON_REGISTRATION': '1'
     })
     
-    print("[RUNTIME-NNUNET]   Triton conflicts resolved")
+    logging.info("[RUNTIME-NNUNET]   Triton conflicts resolved")
 
 def preregister_nnunet_trainers():
     """BYPASS nnUNet trainer pre-registration to prevent loops"""
     try:
-        print("[RUNTIME-NNUNET] Attempting to pre-register nnUNet trainers...")
-        print(f"[DEBUG-NNUNET] Current process PID: {os.getpid()}")
-        print(f"[DEBUG-NNUNET] Parent PID: {os.getppid()}")
+        logging.info("[RUNTIME-NNUNET] Attempting to pre-register nnUNet trainers...")
+        logging.info(f"[DEBUG-NNUNET] Current process PID: {os.getpid()}")
+        logging.info(f"[DEBUG-NNUNET] Parent PID: {os.getppid()}")
         
         #   CHECK: Skip in spawned processes
         if len(sys.argv) > 1 and '--multiprocessing-fork' in sys.argv:
-            print("[DEBUG-NNUNET] Skipping nnUNet import in multiprocessing fork")
+            logging.info("[DEBUG-NNUNET] Skipping nnUNet import in multiprocessing fork")
             return
         
         #   CHECK: Skip if already spawned process detected
         current_pid = os.getpid()
         parent_pid = os.getppid() 
         if current_pid != parent_pid and parent_pid > 0:
-            print(f"[DEBUG-NNUNET] Skipping nnUNet import in spawned process (PID: {current_pid})")
+            logging.info(f"[DEBUG-NNUNET] Skipping nnUNet import in spawned process (PID: {current_pid})")
             return
         
-        print("[DEBUG-NNUNET] About to import nnunetv2.training...")
+        logging.info("[DEBUG-NNUNET] About to import nnunetv2.training...")
         
         #   SAFE IMPORT: Add timeout protection
         import signal
@@ -90,15 +90,15 @@ def preregister_nnunet_trainers():
         
         try:
             import nnunetv2.training.nnUNetTrainer.nnUNetTrainer
-            print("[RUNTIME-NNUNET]   nnUNet training module imported")
+            logging.info("[RUNTIME-NNUNET]   nnUNet training module imported")
         finally:
             signal.alarm(0)  # Cancel timeout
         
     except TimeoutError:
-        print("[RUNTIME-NNUNET] ⚠️ nnUNet import timeout - skipping for safety")
+        logging.info("[RUNTIME-NNUNET] ⚠️ nnUNet import timeout - skipping for safety")
     except Exception as e:
-        print(f"[RUNTIME-NNUNET] Note: Trainer pre-registration failed: {e}")
-        print("[RUNTIME-NNUNET] Will attempt dynamic loading during inference")
+        logging.info(f"[RUNTIME-NNUNET] Note: Trainer pre-registration failed: {e}")
+        logging.info("[RUNTIME-NNUNET] Will attempt dynamic loading during inference")
 
 # Run fixes
 if hasattr(sys, '_MEIPASS'):

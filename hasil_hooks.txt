@@ -52,8 +52,8 @@ try:
 except:
     pass
 
-print(f"[HOOK-NNUNET] Added {len(hiddenimports)} hidden imports for nnUNetv2")
-print(f"[HOOK-NNUNET] Trainer classes included for dynamic loading")
+logging.info(f"[HOOK-NNUNET] Added {len(hiddenimports)} hidden imports for nnUNetv2")
+logging.info(f"[HOOK-NNUNET] Trainer classes included for dynamic loading")
 
 #   Exclude test modules
 excludedimports = [
@@ -152,7 +152,7 @@ excludedimports += [
     'ultralytics.tests',
 ]
 
-print(f"Torch hook: collected {len(hiddenimports)} hidden imports, {len(datas)} datas, {len(binaries)} binaries")
+logging.info(f"Torch hook: collected {len(hiddenimports)} hidden imports, {len(datas)} datas, {len(binaries)} binaries")
 
 
 ==== hook-torchvision.py
@@ -165,14 +165,14 @@ from PyInstaller.utils.hooks import collect_all, collect_submodules, collect_dat
 import os
 import sys
 
-print("[HOOK] torchvision: Starting comprehensive collection...")
+logging.info("[HOOK] torchvision: Starting comprehensive collection...")
 
 # Collect ALL torchvision modules including extensions
 try:
     datas, binaries, hiddenimports = collect_all('torchvision')
-    print(f"[HOOK] torchvision: base collection successful")
+    logging.info(f"[HOOK] torchvision: base collection successful")
 except Exception as e:
-    print(f"[HOOK] torchvision: base collection failed: {e}")
+    logging.info(f"[HOOK] torchvision: base collection failed: {e}")
     datas, binaries, hiddenimports = [], [], []
 
 # Core torchvision modules that should always be included
@@ -210,11 +210,11 @@ for module in extension_modules:
         if module not in hiddenimports:
             hiddenimports.append(module)
         extensions_found.append(module)
-        print(f"[HOOK] torchvision:   Found extension: {module}")
+        logging.info(f"[HOOK] torchvision:   Found extension: {module}")
     except ImportError:
-        print(f"[HOOK] torchvision: ⚠️ Extension not available: {module}")
+        logging.info(f"[HOOK] torchvision: ⚠️ Extension not available: {module}")
     except Exception as e:
-        print(f"[HOOK] torchvision:  Error testing {module}: {e}")
+        logging.info(f"[HOOK] torchvision:  Error testing {module}: {e}")
 
 # Collect torchvision binary files (DLLs, shared libraries)
 try:
@@ -241,23 +241,23 @@ try:
                 extension_files.append((src_path, dest_dir))
                 
     datas.extend(extension_files)
-    print(f"[HOOK] torchvision:   Found {len(extension_files)} binary extension files")
+    logging.info(f"[HOOK] torchvision:   Found {len(extension_files)} binary extension files")
     
     # Log some example extension files for debugging
     for i, (src, dest) in enumerate(extension_files[:3]):
-        print(f"[HOOK] torchvision: Extension file {i+1}: {os.path.basename(src)} -> {dest}")
+        logging.info(f"[HOOK] torchvision: Extension file {i+1}: {os.path.basename(src)} -> {dest}")
     
 except Exception as e:
-    print(f"[HOOK] torchvision: ⚠️ Binary collection failed: {e}")
+    logging.info(f"[HOOK] torchvision: ⚠️ Binary collection failed: {e}")
 
 # Try to collect additional data files that might be needed
 try:
     # Collect any additional data files from torchvision
     additional_datas = collect_data_files('torchvision', include_py_files=False)
     datas.extend(additional_datas)
-    print(f"[HOOK] torchvision:   Found {len(additional_datas)} additional data files")
+    logging.info(f"[HOOK] torchvision:   Found {len(additional_datas)} additional data files")
 except Exception as e:
-    print(f"[HOOK] torchvision: ⚠️ Additional data collection failed: {e}")
+    logging.info(f"[HOOK] torchvision: ⚠️ Additional data collection failed: {e}")
 
 # Special handling for torchvision.ops which often contains extensions
 try:
@@ -265,19 +265,19 @@ try:
     for module in ops_modules:
         if module not in hiddenimports:
             hiddenimports.append(module)
-    print(f"[HOOK] torchvision:   Collected {len(ops_modules)} ops modules")
+    logging.info(f"[HOOK] torchvision:   Collected {len(ops_modules)} ops modules")
 except Exception as e:
-    print(f"[HOOK] torchvision: ⚠️ Ops modules collection failed: {e}")
+    logging.info(f"[HOOK] torchvision: ⚠️ Ops modules collection failed: {e}")
 
 # Remove duplicates from hiddenimports
 hiddenimports = list(set(hiddenimports))
 
 # Final summary
-print(f"[HOOK] torchvision: FINAL SUMMARY:")
-print(f"[HOOK] torchvision:   - {len(hiddenimports)} hidden imports")
-print(f"[HOOK] torchvision:   - {len(datas)} data files") 
-print(f"[HOOK] torchvision:   - {len(binaries)} binaries")
-print(f"[HOOK] torchvision:   - {len(extensions_found)} extensions found: {extensions_found}")
+logging.info(f"[HOOK] torchvision: FINAL SUMMARY:")
+logging.info(f"[HOOK] torchvision:   - {len(hiddenimports)} hidden imports")
+logging.info(f"[HOOK] torchvision:   - {len(datas)} data files") 
+logging.info(f"[HOOK] torchvision:   - {len(binaries)} binaries")
+logging.info(f"[HOOK] torchvision:   - {len(extensions_found)} extensions found: {extensions_found}")
 
 # Export for PyInstaller
 excludedimports = [
@@ -328,8 +328,8 @@ excludedimports = [
     'triton.backends.driver',
 ]
 
-print("[HOOK] Triton modules completely blocked and excluded")
-print(f"[HOOK] Registered {len(sys.modules)} triton dummy modules")
+logging.info("[HOOK] Triton modules completely blocked and excluded")
+logging.info(f"[HOOK] Registered {len(sys.modules)} triton dummy modules")
 
 ==== hook-xgboost.py
 """
@@ -353,10 +353,10 @@ try:
     version_file = os.path.join(xgb_path, 'VERSION')
     if os.path.exists(version_file):
         datas.append((version_file, 'xgboost'))
-        print(f"[HOOK-XGBOOST] Found VERSION file: {version_file}")
+        logging.info(f"[HOOK-XGBOOST] Found VERSION file: {version_file}")
     else:
         # Create dummy VERSION file if not found
-        print("[HOOK-XGBOOST] VERSION file not found, will create dummy")
+        logging.info("[HOOK-XGBOOST] VERSION file not found, will create dummy")
     
     # Look for xgboost.dll in common locations
     potential_dll_paths = [
@@ -369,15 +369,15 @@ try:
         if os.path.exists(dll_path):
             binaries.append((dll_path, 'lib'))
             binaries.append((dll_path, 'xgboost/lib'))
-            print(f"[HOOK-XGBOOST] Found XGBoost DLL: {dll_path}")
+            logging.info(f"[HOOK-XGBOOST] Found XGBoost DLL: {dll_path}")
             break
     else:
-        print("[HOOK-XGBOOST] XGBoost DLL not found in common locations")
+        logging.info("[HOOK-XGBOOST] XGBoost DLL not found in common locations")
         
 except Exception as e:
-    print(f"[HOOK-XGBOOST] Error collecting XGBoost files: {e}")
+    logging.info(f"[HOOK-XGBOOST] Error collecting XGBoost files: {e}")
 
-print(f"[HOOK-XGBOOST] Collected {len(binaries)} binaries and {len(datas)} data files")
+logging.info(f"[HOOK-XGBOOST] Collected {len(binaries)} binaries and {len(datas)} data files")
 
 ==== runtime_hook.py
 """
@@ -402,7 +402,7 @@ def setup_runtime_environment():
             if key not in os.environ:
                 os.environ[key] = value
         
-        print("[RUNTIME] PyInstaller environment configured")
+        logging.info("[RUNTIME] PyInstaller environment configured")
 
 # Run setup
 setup_runtime_environment()
@@ -439,12 +439,12 @@ def setup_nnunet_environment():
             os.environ["nnUNet_preprocessed"] = str(seg_models / "_nn_pre") 
             os.environ["nnUNet_results"] = str(seg_models / "nnUNet_results")
             
-            print(f"[RUNTIME-NNUNET] Set nnUNet paths:")
-            print(f"[RUNTIME-NNUNET]   nnUNet_raw: {os.environ['nnUNet_raw']}")
-            print(f"[RUNTIME-NNUNET]   nnUNet_preprocessed: {os.environ['nnUNet_preprocessed']}")
-            print(f"[RUNTIME-NNUNET]   nnUNet_results: {os.environ['nnUNet_results']}")
+            logging.info(f"[RUNTIME-NNUNET] Set nnUNet paths:")
+            logging.info(f"[RUNTIME-NNUNET]   nnUNet_raw: {os.environ['nnUNet_raw']}")
+            logging.info(f"[RUNTIME-NNUNET]   nnUNet_preprocessed: {os.environ['nnUNet_preprocessed']}")
+            logging.info(f"[RUNTIME-NNUNET]   nnUNet_results: {os.environ['nnUNet_results']}")
         else:
-            print("[RUNTIME-NNUNET]  Models directory not found")
+            logging.info("[RUNTIME-NNUNET]  Models directory not found")
 
 def fix_triton_conflicts():
     """Fix triton conflicts that cause _register_fake errors"""
@@ -453,7 +453,7 @@ def fix_triton_conflicts():
     triton_modules = [key for key in sys.modules.keys() if key.startswith('triton')]
     for module in triton_modules:
         if 'TritonBlocker' in str(sys.modules[module]):
-            print(f"[RUNTIME-NNUNET] Removing conflicting triton module: {module}")
+            logging.info(f"[RUNTIME-NNUNET] Removing conflicting triton module: {module}")
             del sys.modules[module]
     
     #   Set additional triton disable flags
@@ -467,28 +467,28 @@ def fix_triton_conflicts():
         'TORCH_DISABLE_TRITON_REGISTRATION': '1'
     })
     
-    print("[RUNTIME-NNUNET]   Triton conflicts resolved")
+    logging.info("[RUNTIME-NNUNET]   Triton conflicts resolved")
 
 def preregister_nnunet_trainers():
     """BYPASS nnUNet trainer pre-registration to prevent loops"""
     try:
-        print("[RUNTIME-NNUNET] Attempting to pre-register nnUNet trainers...")
-        print(f"[DEBUG-NNUNET] Current process PID: {os.getpid()}")
-        print(f"[DEBUG-NNUNET] Parent PID: {os.getppid()}")
+        logging.info("[RUNTIME-NNUNET] Attempting to pre-register nnUNet trainers...")
+        logging.info(f"[DEBUG-NNUNET] Current process PID: {os.getpid()}")
+        logging.info(f"[DEBUG-NNUNET] Parent PID: {os.getppid()}")
         
         #   CHECK: Skip in spawned processes
         if len(sys.argv) > 1 and '--multiprocessing-fork' in sys.argv:
-            print("[DEBUG-NNUNET] Skipping nnUNet import in multiprocessing fork")
+            logging.info("[DEBUG-NNUNET] Skipping nnUNet import in multiprocessing fork")
             return
         
         #   CHECK: Skip if already spawned process detected
         current_pid = os.getpid()
         parent_pid = os.getppid() 
         if current_pid != parent_pid and parent_pid > 0:
-            print(f"[DEBUG-NNUNET] Skipping nnUNet import in spawned process (PID: {current_pid})")
+            logging.info(f"[DEBUG-NNUNET] Skipping nnUNet import in spawned process (PID: {current_pid})")
             return
         
-        print("[DEBUG-NNUNET] About to import nnunetv2.training...")
+        logging.info("[DEBUG-NNUNET] About to import nnunetv2.training...")
         
         #   SAFE IMPORT: Add timeout protection
         import signal
@@ -500,15 +500,15 @@ def preregister_nnunet_trainers():
         
         try:
             import nnunetv2.training.nnUNetTrainer.nnUNetTrainer
-            print("[RUNTIME-NNUNET]   nnUNet training module imported")
+            logging.info("[RUNTIME-NNUNET]   nnUNet training module imported")
         finally:
             signal.alarm(0)  # Cancel timeout
         
     except TimeoutError:
-        print("[RUNTIME-NNUNET] ⚠️ nnUNet import timeout - skipping for safety")
+        logging.info("[RUNTIME-NNUNET] ⚠️ nnUNet import timeout - skipping for safety")
     except Exception as e:
-        print(f"[RUNTIME-NNUNET] Note: Trainer pre-registration failed: {e}")
-        print("[RUNTIME-NNUNET] Will attempt dynamic loading during inference")
+        logging.info(f"[RUNTIME-NNUNET] Note: Trainer pre-registration failed: {e}")
+        logging.info("[RUNTIME-NNUNET] Will attempt dynamic loading during inference")
 
 # Run fixes
 if hasattr(sys, '_MEIPASS'):
@@ -527,13 +527,13 @@ import types
 def create_comprehensive_torchvision_stub():
     """Create complete torchvision stub with all required modules"""
     if hasattr(sys, '_MEIPASS'):
-        print("[RUNTIME-TORCHVISION] Creating comprehensive torchvision stub...")
+        logging.info("[RUNTIME-TORCHVISION] Creating comprehensive torchvision stub...")
         
         try:
             # Test if torchvision is working
             import torchvision
             if hasattr(torchvision, 'ops') and hasattr(torchvision.ops, 'nms'):
-                print("[RUNTIME-TORCHVISION]   torchvision already working")
+                logging.info("[RUNTIME-TORCHVISION]   torchvision already working")
                 return
         except:
             pass
@@ -585,7 +585,7 @@ def create_comprehensive_torchvision_stub():
         sys.modules['torchvision.io'] = io
         sys.modules['torchvision.datasets'] = datasets
         
-        print("[RUNTIME-TORCHVISION]   Comprehensive stub created")
+        logging.info("[RUNTIME-TORCHVISION]   Comprehensive stub created")
 
 # Run the stub creation
 create_comprehensive_torchvision_stub()
@@ -617,17 +617,17 @@ def fix_xgboost_version():
                         try:
                             with open(version_file, 'w') as f:
                                 f.write('2.0.0')  # Default version
-                            print(f"[RUNTIME-XGBOOST] Created VERSION file: {version_file}")
+                            logging.info(f"[RUNTIME-XGBOOST] Created VERSION file: {version_file}")
                         except Exception as e:
-                            print(f"[RUNTIME-XGBOOST] Failed to create VERSION file: {e}")
+                            logging.info(f"[RUNTIME-XGBOOST] Failed to create VERSION file: {e}")
                     else:
-                        print(f"[RUNTIME-XGBOOST] VERSION file already exists: {version_file}")
+                        logging.info(f"[RUNTIME-XGBOOST] VERSION file already exists: {version_file}")
                     break
             else:
-                print("[RUNTIME-XGBOOST] XGBoost directory not found")
+                logging.info("[RUNTIME-XGBOOST] XGBoost directory not found")
                 
         except Exception as e:
-            print(f"[RUNTIME-XGBOOST] Error: {e}")
+            logging.info(f"[RUNTIME-XGBOOST] Error: {e}")
 
 # Run the fix
 fix_xgboost_version()

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from skimage.filters import threshold_otsu
 from skimage.morphology import binary_dilation, disk
-
+import logging
 # Import untuk extract study date
 try:
     from features.dicom_import.logic.dicom_loader import extract_study_date_from_dicom
@@ -104,7 +104,7 @@ def parse_xml_annotations(xml_file: str) -> List[Tuple[int, int, int, int, str]]
         root = tree.getroot()
         
         bounding_boxes = []
-        print("root", root.findall('.//object'))
+        logging.info("root", root.findall('.//object'))
         # Try different XML structures
         # Structure 1: <annotation><object><bndbox>
         for obj in root.findall('.//object'):
@@ -134,7 +134,7 @@ def parse_xml_annotations(xml_file: str) -> List[Tuple[int, int, int, int, str]]
         return bounding_boxes
     
     except Exception as e:
-        print(f"Error parsing XML file {xml_file}: {e}")
+        logging.info(f"Error parsing XML file {xml_file}: {e}")
         return []
 
 
@@ -280,13 +280,13 @@ def create_hotspot_mask(image_file: str, bounding_boxes: List[Tuple[int, int, in
             
             # Save files using correct naming from paths.py
             overlayed_image.save(hotspot_files['otsu_colored_blend'])
-            print(f"Blended hotspot image saved: {hotspot_files['otsu_colored_blend']}")
+            logging.info(f"Blended hotspot image saved: {hotspot_files['otsu_colored_blend']}")
             
             pure_colored_image.save(hotspot_files['otsu_colored'])
-            print(f"Pure hotspot image saved: {hotspot_files['otsu_colored']}")
+            logging.info(f"Pure hotspot image saved: {hotspot_files['otsu_colored']}")
             
             Image.fromarray(mask).save(hotspot_files['otsu_grayscale'])
-            print(f"Hotspot mask saved: {hotspot_files['otsu_grayscale']}")
+            logging.info(f"Hotspot mask saved: {hotspot_files['otsu_grayscale']}")
         
         return mask, overlayed_image, pure_colored_image
 
@@ -445,19 +445,19 @@ class HotspotProcessor:
                         study_date = extract_study_date_from_dicom(dicom_file)
                         break
                 except Exception as e:
-                    print(f"[WARN] Could not extract study date from {dicom_file}: {e}")
+                    logging.info(f"[WARN] Could not extract study date from {dicom_file}: {e}")
                     continue
             
             # Fallback to current date
             if not study_date:
                 from datetime import datetime
                 study_date = datetime.now().strftime("%Y%m%d")
-                print(f"[WARN] Using current date as study date: {study_date}")
+                logging.info(f"[WARN] Using current date as study date: {study_date}")
             
             return patient_id, study_date
             
         except Exception as e:
-            print(f"[ERROR] Failed to extract patient/study info: {e}")
+            logging.info(f"[ERROR] Failed to extract patient/study info: {e}")
             from datetime import datetime
             return patient_id or "UNKNOWN", datetime.now().strftime("%Y%m%d")
     
@@ -475,21 +475,21 @@ class HotspotProcessor:
             PIL.Image or None: Processed image with hotspots overlayed
         """
         if not Path(image_path).exists():
-            print(f"Image file not found: {image_path}")
+            logging.info(f"Image file not found: {image_path}")
             return None
         
         if not Path(xml_path).exists():
-            print(f"XML file not found: {xml_path}")
+            logging.info(f"XML file not found: {xml_path}")
             return None
         
         # Parse XML annotations
         bounding_boxes = parse_xml_annotations(xml_path)
         
         if not bounding_boxes:
-            print(f"No bounding boxes found in {xml_path}")
+            logging.info(f"No bounding boxes found in {xml_path}")
             return None
         
-        print("hotspot processing started")
+        logging.info("hotspot processing started")
         
         # Extract patient_id, study_date, and view from paths if not provided
         final_patient_id, study_date = self._extract_patient_and_study_info(image_path, patient_id)
@@ -508,11 +508,11 @@ class HotspotProcessor:
                 study_date,
                 output_dir=str(Path(image_path).parent)  # Save mask in same directory as image
             )
-            print("Image mask saved at:", Path(image_path).parent)
-            print("hotspot processing completed")
+            logging.info("Image mask saved at:", Path(image_path).parent)
+            logging.info("hotspot processing completed")
             return overlayed_image
         except Exception as e:
-            print(f"Error processing image {image_path}: {e}")
+            logging.info(f"Error processing image {image_path}: {e}")
             return None
     
     # UPDATE process_frame_with_xml method in hotspot_processor.py
@@ -556,7 +556,7 @@ class HotspotProcessor:
             if study_date is None:
                 _, study_date = self._extract_patient_and_study_info(str(temp_path), patient_id)
             
-            print(f"[DEBUG] Processing frame with study_date: {study_date}")
+            logging.info(f"[DEBUG] Processing frame with study_date: {study_date}")
             
             #   FIX: Process with create_hotspot_mask - now returns 3 values
             
@@ -583,7 +583,7 @@ class HotspotProcessor:
             return np.array(overlayed_image)
             
         except Exception as e:
-            print(f"Error processing frame with XML {xml_path}: {e}")
+            logging.info(f"Error processing frame with XML {xml_path}: {e}")
             import traceback
             traceback.print_exc()
             return None
@@ -644,10 +644,10 @@ class HotspotProcessor:
         for name in possible_names:
             xml_path = xml_dir / name
             if xml_path.exists():
-                print(f"Found XML file: {xml_path}")
+                logging.info(f"Found XML file: {xml_path}")
                 return str(xml_path)
         
-        print(f"No XML file found for {image_path} with patient_id={patient_id}, study_date={study_date}")
+        logging.info(f"No XML file found for {image_path} with patient_id={patient_id}, study_date={study_date}")
         return None
     
     def process_image_auto_xml(self, image_path: str, xml_dir: str = None) -> Optional[Image.Image]:
@@ -664,7 +664,7 @@ class HotspotProcessor:
         xml_path = self.find_xml_for_image(image_path, xml_dir)
         
         if xml_path is None:
-            print(f"No XML annotation file found for {image_path}")
+            logging.info(f"No XML annotation file found for {image_path}")
             return None
         
         return self.process_image_with_xml(image_path, xml_path)
@@ -675,4 +675,4 @@ class HotspotProcessor:
             for temp_file in self.temp_dir.glob("temp_*.png"):
                 temp_file.unlink(missing_ok=True)
         except Exception as e:
-            print(f"[WARN] Failed to cleanup temp files: {e}")
+            logging.info(f"[WARN] Failed to cleanup temp files: {e}")

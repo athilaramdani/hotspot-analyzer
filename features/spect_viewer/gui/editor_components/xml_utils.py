@@ -8,7 +8,7 @@ from typing import Dict, List
 import numpy as np
 import xml.etree.ElementTree as ET
 from skimage import measure
-
+import logging
 # Segment names mapping
 _SEGMENT_NAMES = {
     0: "background", 1: "skull", 2: "cervical_vertebrae", 3: "thoracic_vertebrae",
@@ -99,7 +99,7 @@ def mask_to_bounding_boxes(mask: np.ndarray, segmentation_arr: np.ndarray = None
             
             #   DEBUG: Show label conversion
             ui_term = 'Malignant' if label_value == 1 else 'Benign'
-            print(f"[XML] Converted {ui_term} (UI) -> {xml_label} (XML) for bbox at ({x_min},{y_min})")
+            logging.info(f"[XML] Converted {ui_term} (UI) -> {xml_label} (XML) for bbox at ({x_min},{y_min})")
     
     return bounding_boxes
 
@@ -162,7 +162,7 @@ def create_xml_from_bboxes(bounding_boxes: List[Dict], img_width: int, img_heigh
         
         #   DEBUG: Show final XML label
         ui_label = bbox.get('ui_label', 'Unknown')
-        print(f"[XML] Saved as <name>{label_name}</name> (from UI: {ui_label})")
+        logging.info(f"[XML] Saved as <name>{label_name}</name> (from UI: {ui_label})")
     
     # Convert to string with proper formatting
     ET.indent(root, space="  ")
@@ -221,10 +221,10 @@ def load_xml_annotations(xml_path: Path) -> List[Dict]:
                 annotations.append(annotation)
                 
                 #   DEBUG: Show conversion
-                print(f"[XML LOAD] {xml_label} (XML) -> {ui_label} (UI) at ({xmin},{ymin})")
+                logging.info(f"[XML LOAD] {xml_label} (XML) -> {ui_label} (UI) at ({xmin},{ymin})")
     
     except Exception as e:
-        print(f"[ERROR] Failed to load XML annotations: {e}")
+        logging.info(f"[ERROR] Failed to load XML annotations: {e}")
         
     return annotations
 
@@ -234,7 +234,7 @@ def save_xml_file(xml_content: str, file_path: Path):
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         f.write(xml_content)
     
-    print(f"[XML SAVE] Saved classification XML: {file_path}")
+    logging.info(f"[XML SAVE] Saved classification XML: {file_path}")
 
 def get_ui_label_from_xml(xml_label: str) -> str:
     """
@@ -306,7 +306,7 @@ save_xml_file(xml_content, xml_path)
 # When loading existing XML:
 annotations = load_xml_annotations(xml_path)
 for ann in annotations:
-    print(f"XML: {ann['xml_label']} -> UI: {ann['ui_label']}")
+    logging.info(f"XML: {ann['xml_label']} -> UI: {ann['ui_label']}")
     # Shows: "XML: abnormal -> UI: Malignant"
     #        "XML: normal -> UI: Benign"
 """
