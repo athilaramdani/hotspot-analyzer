@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, 
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,
     QLineEdit, QMessageBox, QFrame, QGroupBox, QCheckBox, QTextEdit,
     QScrollArea, QWidget, QGridLayout, QSpacerItem, QSizePolicy
 )
@@ -113,6 +113,8 @@ class DoctorTagManager:
                 break
         self._save_tags()
 
+# Ganti kelas DoctorTagWidget yang lama dengan yang ini
+
 class DoctorTagWidget(QFrame):
     """Individual doctor tag widget with selection capability"""
     
@@ -139,41 +141,45 @@ class DoctorTagWidget(QFrame):
         header_layout = QHBoxLayout()
         header_layout.setSpacing(8)
         
-        # Color indicator
+        # --- PERUBAHAN DI SINI ---
+        # Color indicator sekarang selalu menggunakan warna primer
         color_indicator = QLabel()
         color_indicator.setFixedSize(12, 12)
         color_indicator.setStyleSheet(f"""
             QLabel {{
-                background: {self.tag_data.get('color', Colors.SECONDARY)};
+                background: {Colors.PRIMARY};
                 border-radius: 6px;
                 border: 1px solid #dee2e6;
             }}
         """)
         header_layout.addWidget(color_indicator)
         
-        # Tag code
+        # --- PERUBAHAN DI SINI ---
+        # Tag code sekarang selalu menggunakan warna primer
         code_label = QLabel(self.tag_data['code'])
         code_label.setFont(QFont("Arial", 14, QFont.Bold))
         code_label.setStyleSheet(f"""
             QLabel {{
-                color: {self.tag_data.get('color', Colors.SECONDARY)};
+                color: {Colors.PRIMARY};
                 font-weight: bold;
             }}
         """)
         header_layout.addWidget(code_label)
         
-        # Shared badge for ALL user
+        # Shared badge for ALL user (warnanya tetap kuning, jadi tidak diubah)
         if self.tag_data.get('shared', False):
+            # Mengganti warna badge 'SHARED' agar kontras dengan warna utama yang kini seragam
+            shared_badge_color = "#ffc107" # Warna kuning untuk 'ALL'
             shared_badge = QLabel("SHARED")
-            shared_badge.setStyleSheet("""
-                QLabel {
-                    background: #4e73ff;
-                    color: white;
+            shared_badge.setStyleSheet(f"""
+                QLabel {{
+                    background: {shared_badge_color};
+                    color: black;
                     border-radius: 8px;
                     padding: 2px 8px;
                     font-size: 9px;
                     font-weight: bold;
-                }
+                }}
             """)
             header_layout.addWidget(shared_badge)
         
@@ -223,7 +229,9 @@ class DoctorTagWidget(QFrame):
     
     def _apply_style(self, selected: bool):
         """Apply style based on selection state"""
-        color = self.tag_data.get('color', Colors.SECONDARY)
+        # --- PERUBAHAN DI SINI ---
+        # Warna sekarang selalu merujuk ke warna primer, bukan dari data tag
+        color = Colors.PRIMARY
         
         if selected:
             self.setStyleSheet(f"""
@@ -236,7 +244,7 @@ class DoctorTagWidget(QFrame):
         else:
             self.setStyleSheet(f"""
                 QFrame {{
-                    border: 2px solid {color};
+                    border: 2px solid #dee2e6;
                     border-radius: 8px;
                     background: white;
                 }}
@@ -247,7 +255,7 @@ class DoctorTagWidget(QFrame):
             """)
     
     def _edit_tag(self):
-        """Edit tag name and color"""
+        """Edit tag name"""
         dialog = EditDoctorDialog(self.tag_data, self)
         if dialog.exec() == QDialog.Accepted:
             try:
@@ -255,14 +263,12 @@ class DoctorTagWidget(QFrame):
                 tag_manager = DoctorTagManager()
                 tag_manager.update_tag(
                     self.tag_data['code'], 
-                    name=dialog.new_name, 
-                    color=dialog.new_color
+                    name=dialog.new_name
                 )
                 
                 # Update local data
                 old_name = self.tag_data['name']
                 self.tag_data['name'] = dialog.new_name
-                self.tag_data['color'] = dialog.new_color
                 
                 # Refresh parent dialog to reload all tags
                 if hasattr(self.parent(), '_populate_doctor_tags'):
@@ -295,11 +301,10 @@ class AddDoctorDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Add New Doctor Tag")
         self.setModal(True)
-        self.setFixedSize(380, 300)
+        self.setFixedSize(380, 250)
         
         self.code = ""
         self.name = ""
-        self.color = Colors.PRIMARY
         
         self._setup_ui()
     
@@ -326,39 +331,6 @@ class AddDoctorDialog(QDialog):
         self.name_input.setPlaceholderText("e.g., Emergency Medicine Associates")
         layout.addWidget(self.name_input)
         
-        # Color selection
-        layout.addWidget(QLabel("Color:"))
-        color_layout = QHBoxLayout()
-        
-        self.color_buttons = []
-        colors = [Colors.PRIMARY, Colors.SUCCESS, Colors.WARNING, Colors.DANGER, 
-                  "#9C27B0", "#FF5722", "#607D8B", Colors.SECONDARY]
-        
-        for color in colors:
-            btn = QPushButton()
-            btn.setFixedSize(28, 28)
-            btn.setStyleSheet(f"""
-                QPushButton {{
-                    background: {color};
-                    border: 2px solid #dee2e6;
-                    border-radius: 14px;
-                }}
-                QPushButton:checked {{
-                    border: 3px solid #000;
-                }}
-            """)
-            btn.setCheckable(True)
-            btn.clicked.connect(lambda checked, c=color: self._select_color(c))
-            self.color_buttons.append(btn)
-            color_layout.addWidget(btn)
-        
-        # Set default color
-        self.color_buttons[0].setChecked(True)
-        self.color = colors[0]
-        
-        color_layout.addStretch()
-        layout.addLayout(color_layout)
-        
         layout.addStretch()
         
         # Buttons
@@ -375,18 +347,6 @@ class AddDoctorDialog(QDialog):
         button_layout.addWidget(add_btn)
         
         layout.addLayout(button_layout)
-    
-    def _select_color(self, color: str):
-        """Select color for the new tag"""
-        self.color = color
-        for btn in self.color_buttons:
-            btn.setChecked(False)
-        
-        # Find and check the clicked button
-        for btn in self.color_buttons:
-            if btn.styleSheet().find(color) != -1:
-                btn.setChecked(True)
-                break
     
     def _validate_and_accept(self):
         """Validate input and accept dialog"""
@@ -410,11 +370,10 @@ class EditDoctorDialog(QDialog):
         super().__init__(parent)
         self.tag_data = tag_data
         self.new_name = tag_data['name']
-        self.new_color = tag_data['color']
         
         self.setWindowTitle("Edit Doctor")
         self.setModal(True)
-        self.setFixedSize(500, 400)
+        self.setFixedSize(380, 250)
         
         self._setup_ui()
     
@@ -441,39 +400,6 @@ class EditDoctorDialog(QDialog):
         self.name_input.setPlaceholderText("Enter doctor name")
         layout.addWidget(self.name_input)
         
-        # Color selection
-        layout.addWidget(QLabel("Color:"))
-        color_layout = QHBoxLayout()
-        
-        self.color_buttons = []
-        colors = [Colors.PRIMARY, Colors.SUCCESS, Colors.WARNING, Colors.DANGER, 
-                  "#9C27B0", "#FF5722", "#607D8B", Colors.SECONDARY]
-        
-        for color in colors:
-            btn = QPushButton()
-            btn.setFixedSize(28, 28)
-            btn.setStyleSheet(f"""
-                QPushButton {{
-                    background: {color};
-                    border: 2px solid #dee2e6;
-                    border-radius: 14px;
-                }}
-                QPushButton:checked {{
-                    border: 3px solid #000;
-                }}
-            """)
-            btn.setCheckable(True)
-            btn.clicked.connect(lambda checked, c=color: self._select_color(c))
-            self.color_buttons.append(btn)
-            color_layout.addWidget(btn)
-            
-            # Check current color
-            if color == self.tag_data['color']:
-                btn.setChecked(True)
-        
-        color_layout.addStretch()
-        layout.addLayout(color_layout)
-        
         layout.addStretch()
         
         # Buttons
@@ -490,18 +416,6 @@ class EditDoctorDialog(QDialog):
         button_layout.addWidget(save_btn)
         
         layout.addLayout(button_layout)
-    
-    def _select_color(self, color: str):
-        """Select color for the tag"""
-        self.new_color = color
-        for btn in self.color_buttons:
-            btn.setChecked(False)
-        
-        # Find and check the clicked button
-        for btn in self.color_buttons:
-            if btn.styleSheet().find(color) != -1:
-                btn.setChecked(True)
-                break
     
     def _validate_and_accept(self):
         """Validate input and accept dialog"""
@@ -694,10 +608,10 @@ class DoctorSelectionDialog(QDialog):
         dialog = AddDoctorDialog(self)
         if dialog.exec():
             try:
+                # Call add_tag without the color argument to use the default
                 new_tag = self.tag_manager.add_tag(
                     dialog.code, 
-                    dialog.name, 
-                    dialog.color
+                    dialog.name
                 )
                 self._populate_doctor_tags()
                 QMessageBox.information(
