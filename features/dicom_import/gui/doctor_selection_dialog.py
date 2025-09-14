@@ -113,8 +113,6 @@ class DoctorTagManager:
                 break
         self._save_tags()
 
-# Ganti kelas DoctorTagWidget yang lama dengan yang ini
-
 class DoctorTagWidget(QFrame):
     """Individual doctor tag widget with selection capability"""
     
@@ -141,8 +139,7 @@ class DoctorTagWidget(QFrame):
         header_layout = QHBoxLayout()
         header_layout.setSpacing(8)
         
-        # --- PERUBAHAN DI SINI ---
-        # Color indicator sekarang selalu menggunakan warna primer
+        # Color indicator
         color_indicator = QLabel()
         color_indicator.setFixedSize(12, 12)
         color_indicator.setStyleSheet(f"""
@@ -154,8 +151,7 @@ class DoctorTagWidget(QFrame):
         """)
         header_layout.addWidget(color_indicator)
         
-        # --- PERUBAHAN DI SINI ---
-        # Tag code sekarang selalu menggunakan warna primer
+        # Tag code
         code_label = QLabel(self.tag_data['code'])
         code_label.setFont(QFont("Arial", 14, QFont.Bold))
         code_label.setStyleSheet(f"""
@@ -166,10 +162,9 @@ class DoctorTagWidget(QFrame):
         """)
         header_layout.addWidget(code_label)
         
-        # Shared badge for ALL user (warnanya tetap kuning, jadi tidak diubah)
+        # Shared badge for ALL user
         if self.tag_data.get('shared', False):
-            # Mengganti warna badge 'SHARED' agar kontras dengan warna utama yang kini seragam
-            shared_badge_color = "#ffc107" # Warna kuning untuk 'ALL'
+            shared_badge_color = "#ffc107" # Yellow for 'ALL'
             shared_badge = QLabel("SHARED")
             shared_badge.setStyleSheet(f"""
                 QLabel {{
@@ -229,8 +224,6 @@ class DoctorTagWidget(QFrame):
     
     def _apply_style(self, selected: bool):
         """Apply style based on selection state"""
-        # --- PERUBAHAN DI SINI ---
-        # Warna sekarang selalu merujuk ke warna primer, bukan dari data tag
         color = Colors.PRIMARY
         
         if selected:
@@ -259,18 +252,15 @@ class DoctorTagWidget(QFrame):
         dialog = EditDoctorDialog(self.tag_data, self)
         if dialog.exec() == QDialog.Accepted:
             try:
-                # Update through tag manager
                 tag_manager = DoctorTagManager()
                 tag_manager.update_tag(
                     self.tag_data['code'], 
                     name=dialog.new_name
                 )
                 
-                # Update local data
                 old_name = self.tag_data['name']
                 self.tag_data['name'] = dialog.new_name
                 
-                # Refresh parent dialog to reload all tags
                 if hasattr(self.parent(), '_populate_doctor_tags'):
                     self.parent()._populate_doctor_tags()
                 
@@ -313,19 +303,16 @@ class AddDoctorDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         
-        # Title
         title = QLabel("Add New Doctor Tag")
         title.setStyleSheet(DIALOG_TITLE_STYLE)
         layout.addWidget(title)
         
-        # Code input
         layout.addWidget(QLabel("Doctor Code (2-4 characters):"))
         self.code_input = QLineEdit()
         self.code_input.setPlaceholderText("e.g., EMA, JDN")
         self.code_input.setMaxLength(4)
         layout.addWidget(self.code_input)
         
-        # Name input
         layout.addWidget(QLabel("Doctor Name:"))
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("e.g., Emergency Medicine Associates")
@@ -333,7 +320,6 @@ class AddDoctorDialog(QDialog):
         
         layout.addStretch()
         
-        # Buttons
         button_layout = QHBoxLayout()
         
         cancel_btn = QPushButton("Cancel")
@@ -382,19 +368,16 @@ class EditDoctorDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         
-        # Title
         title = QLabel(f"Edit Doctor: {self.tag_data['code']}")
         title.setStyleSheet(DIALOG_TITLE_STYLE)
         layout.addWidget(title)
         
-        # Code info (read-only)
         layout.addWidget(QLabel("Doctor Code (cannot be changed):"))
         code_display = QLineEdit(self.tag_data['code'])
         code_display.setReadOnly(True)
         code_display.setStyleSheet("background: #f8f9fa; color: #6c757d;")
         layout.addWidget(code_display)
         
-        # Name input
         layout.addWidget(QLabel("Doctor Name:"))
         self.name_input = QLineEdit(self.tag_data['name'])
         self.name_input.setPlaceholderText("Enter doctor name")
@@ -402,7 +385,6 @@ class EditDoctorDialog(QDialog):
         
         layout.addStretch()
         
-        # Buttons
         button_layout = QHBoxLayout()
         
         cancel_btn = QPushButton("Cancel")
@@ -501,33 +483,42 @@ class DoctorSelectionDialog(QDialog):
         
         scroll_widget = QWidget()
         scroll_layout = QVBoxLayout(scroll_widget)
+        scroll_layout.setSpacing(20)
+
+        # 1. Joint Account Section
+        joint_account_group = QGroupBox("Shared Account")
+        joint_account_group.setStyleSheet(GROUP_BOX_STYLE)
+        joint_layout = QVBoxLayout(joint_account_group)
         
-        # Doctor selection section
-        doctor_group = QGroupBox("Select Doctor Code")
-        doctor_group.setStyleSheet(GROUP_BOX_STYLE)
-        doctor_layout = QVBoxLayout(doctor_group)
+        self.joint_tags_layout = QGridLayout()
+        self.joint_tags_layout.setSpacing(12)
+        self.joint_tags_layout.setContentsMargins(10, 10, 10, 10)
+        joint_layout.addLayout(self.joint_tags_layout)
+        joint_layout.addStretch(1)
         
-        # Tags grid
-        self.tags_widget = QWidget()
-        self.tags_layout = QGridLayout(self.tags_widget)
-        self.tags_layout.setSpacing(12)
-        self.tags_layout.setContentsMargins(10, 10, 10, 10)
+        scroll_layout.addWidget(joint_account_group)
+
+        # 2. Personal Account Section
+        personal_account_group = QGroupBox("Personal Account")
+        personal_account_group.setStyleSheet(GROUP_BOX_STYLE)
+        personal_layout = QVBoxLayout(personal_account_group)
+
+        self.personal_tags_layout = QGridLayout()
+        self.personal_tags_layout.setSpacing(12)
+        self.personal_tags_layout.setContentsMargins(10, 10, 10, 10)
+        personal_layout.addLayout(self.personal_tags_layout)
+        personal_layout.addStretch(1)
+
+        scroll_layout.addWidget(personal_account_group)
         
-        self._populate_doctor_tags()
-        
-        doctor_layout.addWidget(self.tags_widget)
-        
-        # [FIX] Add stretch to push the grid of cards to the top of the GroupBox
-        doctor_layout.addStretch(1)
-        
-        scroll_layout.addWidget(doctor_group)
+        scroll_layout.addStretch(1)
         
         scroll.setWidget(scroll_widget)
         main_layout.addWidget(scroll)
 
-        # Add doctor button moved here, aligned to the right
+        # Add doctor button
         add_doctor_layout = QHBoxLayout()
-        add_doctor_layout.addStretch()  # Aligns the button to the right
+        add_doctor_layout.addStretch()
         add_doctor_btn = QPushButton("➕ Add New Doctor")
         add_doctor_btn.setStyleSheet(PRIMARY_BUTTON_STYLE)
         add_doctor_btn.clicked.connect(self._add_new_doctor)
@@ -537,7 +528,6 @@ class DoctorSelectionDialog(QDialog):
         # Action buttons
         button_layout = QHBoxLayout()
         
-        # Exit button
         exit_btn = QPushButton("Exit Application")
         exit_btn.setStyleSheet(DIALOG_CANCEL_BUTTON_STYLE)
         exit_btn.clicked.connect(self.reject)
@@ -545,7 +535,6 @@ class DoctorSelectionDialog(QDialog):
         
         button_layout.addStretch()
         
-        # Start button
         self.start_btn = QPushButton("Start Analysis Session")
         self.start_btn.setStyleSheet(SUCCESS_BUTTON_STYLE)
         self.start_btn.setEnabled(False)
@@ -554,28 +543,41 @@ class DoctorSelectionDialog(QDialog):
         
         main_layout.addLayout(button_layout)
     
+        # Populate tags after UI is built
+        self._populate_doctor_tags()
+
     def _populate_doctor_tags(self):
-        """Populate doctor tags from the tag manager"""
-        # Clear existing widgets
+        """Populate doctor tags into their respective layouts"""
         for widget in self.tag_widgets:
             widget.deleteLater()
         self.tag_widgets.clear()
         
-        # Clear layout
-        while self.tags_layout.count():
-            child = self.tags_layout.takeAt(0)
-            if child.widget():
-                child.widget().deleteLater()
+        def clear_layout(layout):
+            while layout.count():
+                child = layout.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
+
+        clear_layout(self.joint_tags_layout)
+        clear_layout(self.personal_tags_layout)
         
-        # Sort tags: ALL first, then others
         all_tags = self.tag_manager.get_tags()
         shared_tags = [tag for tag in all_tags if tag.get('shared', False)]
         individual_tags = [tag for tag in all_tags if not tag.get('shared', False)]
-        sorted_tags = shared_tags + individual_tags
         
-        cols = 4  # 4 columns for better layout
+        cols = 4
+
+        # Populate Joint Account (ALL)
+        for i, tag_data in enumerate(shared_tags):
+            tag_widget = DoctorTagWidget(tag_data, self)
+            tag_widget.tag_selected.connect(self._on_tag_selected)
+            self.tag_widgets.append(tag_widget)
+            self.joint_tags_layout.addWidget(tag_widget, 0, 0)
         
-        for i, tag_data in enumerate(sorted_tags):
+        self.joint_tags_layout.setColumnStretch(1, 1)
+
+        # Populate Personal Accounts
+        for i, tag_data in enumerate(individual_tags):
             row = i // cols
             col = i % cols
             
@@ -583,17 +585,14 @@ class DoctorSelectionDialog(QDialog):
             tag_widget.tag_selected.connect(self._on_tag_selected)
             self.tag_widgets.append(tag_widget)
             
-            self.tags_layout.addWidget(tag_widget, row, col)
+            self.personal_tags_layout.addWidget(tag_widget, row, col)
             
-        # Add row and column stretch to push all widgets to the top-left corner.
-        num_rows = (len(sorted_tags) + cols - 1) // cols
-        self.tags_layout.setRowStretch(num_rows, 1)
-        self.tags_layout.setColumnStretch(cols, 1)
-
+        num_rows = (len(individual_tags) + cols - 1) // cols
+        self.personal_tags_layout.setRowStretch(num_rows, 1)
+        self.personal_tags_layout.setColumnStretch(cols, 1)
 
     def _on_tag_selected(self, tag_data: dict):
         """Handle tag selection"""
-        # Deselect all other tags
         for widget in self.tag_widgets:
             if widget.tag_data['code'] != tag_data['code']:
                 widget.set_selected(False)
@@ -608,7 +607,6 @@ class DoctorSelectionDialog(QDialog):
         dialog = AddDoctorDialog(self)
         if dialog.exec():
             try:
-                # Call add_tag without the color argument to use the default
                 new_tag = self.tag_manager.add_tag(
                     dialog.code, 
                     dialog.name
@@ -629,7 +627,6 @@ class DoctorSelectionDialog(QDialog):
             if last_session:
                 session_code = last_session.get("session_code")
                 if session_code:
-                    # Find and select the corresponding tag widget
                     for widget in self.tag_widgets:
                         if widget.tag_data['code'] == session_code:
                             widget.set_selected(True)
@@ -643,7 +640,6 @@ class DoctorSelectionDialog(QDialog):
             return
         
         try:
-            # Create session using session manager
             session = self.session_manager.create_session(
                 self.selected_doctor_id,
                 self.selected_modality,
