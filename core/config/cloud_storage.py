@@ -295,17 +295,6 @@ class CloudStorageManager:
     
     def sync_patient_data(self, session_code: str, patient_id: str = None, 
                          modality: str = "SPECT") -> Tuple[int, int]:
-        """
-        Sync specific patient data with new directory structure
-        
-        Args:
-            session_code: Session/doctor code (NSY, ATL, NBL)
-            patient_id: Patient ID (optional, sync all if None)
-            modality: SPECT or PET
-            
-        Returns:
-            Tuple of (uploaded_count, downloaded_count)
-        """
         try:
             if modality.upper() == "SPECT":
                 if patient_id:

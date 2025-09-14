@@ -19,43 +19,79 @@ import logging
 # Use centralized path configuration
 from core.config.paths import PLANAR_DATA_PATH, get_patient_planar_path, get_session_planar_path
 
-#   REMOVED: _UID_SC constant and _is_primary() function
-# No more filtering - read all DICOM files
+CONFIG_PATH = Path("config/doctor_tags.json")
+import json
+from functools import lru_cache
 
-# ---------------------------------------------------------------- helpers
+@lru_cache(maxsize=1)
+def _load_session_codes_from_config(include_shared: bool = True) -> set[str]:
+    """
+    Baca daftar session code dari config JSON:
+    {
+      "doctor_tags": [
+        {"code": "ATL", "description": "Athila ..."},
+        {"code": "NSY", "description": "Nasywa ..."}
+      ]
+    }
+    Gagal / tidak ada file → return set() (tanpa asumsi).
+    """
+    codes: set[str] = set()
+    try:
+        if CONFIG_PATH.exists():
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            for tag in data.get("doctor_tags", []):
+                if isinstance(tag, dict) and "code" in tag:
+                    code = str(tag["code"]).strip().upper()
+                    if code:
+                        codes.add(code)
+    except Exception:
+        pass
+    if include_shared:
+        codes.add("ALL")
+    return codes
+
 def _extract_session_patient_from_path(dicom_path: Path) -> Tuple[str, str]:
     try:
         parts = dicom_path.parts
-        
-        # Find PLANAR directory index
+
+        # index folder "PLANAR"
         planar_index = None
         for i, part in enumerate(parts):
             if part == "PLANAR":
                 planar_index = i
                 break
-        
+
+        # daftar session code dinamis dari JSON (cached)
+        dynamic_codes = _load_session_codes_from_config(include_shared=True)
+
+        # Struktur BARU: .../PLANAR/<session_code>/<patient_id>/...
         if planar_index is not None and len(parts) > planar_index + 2:
             session_code = parts[planar_index + 1]
-            patient_id = parts[planar_index + 2]
-            
-            # Validate if this looks like new structure (no underscore in session_code for patient_id)
-            if "_" not in patient_id or session_code in ["NSY", "ATL", "NBL"]:
+            patient_id   = parts[planar_index + 2]
+
+            # 1) Kalau patient_id TIDAK ada underscore → valid (struktur baru jelas)
+            if "_" not in patient_id:
                 return session_code, patient_id
-        
-        # Check for OLD structure: [patient_id]_[session_code]
+
+            # 2) Jika patient_id ada underscore, tetap valid JIKA session_code terdaftar dinamis
+            if session_code.upper() in dynamic_codes:
+                return session_code, patient_id
+
+        # Struktur LAMA: .../PLANAR/<patient_id>_<session_code>/...
         if planar_index is not None and len(parts) > planar_index + 1:
             folder_name = parts[planar_index + 1]
             if "_" in folder_name:
-                parts_old = folder_name.split("_")
-                if len(parts_old) >= 2:
-                    patient_id = parts_old[0]
-                    session_code = "_".join(parts_old[1:])
+                pieces = folder_name.split("_")
+                if len(pieces) >= 2:
+                    patient_id   = pieces[0]
+                    session_code = "_".join(pieces[1:])
                     return session_code, patient_id
-        
+
         # Fallback
         parent_name = dicom_path.parent.name
         return "UNKNOWN", parent_name
-        
+
     except Exception:
         return "UNKNOWN", "UNKNOWN"
 

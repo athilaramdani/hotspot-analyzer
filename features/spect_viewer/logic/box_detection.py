@@ -417,7 +417,7 @@ def process_dicom_for_detection(dicom_path: Path, patient_id: str,
             logging.info(f"[DETECTION ERROR] Patient folder not found: {patient_folder}")
             
             #   FALLBACK: Try to find in other sessions
-            potential_sessions = ["ATL", "NSY", "NBL", "ALL"]
+            potential_sessions = ["ALL"]
             found_folder = None
             
             for potential_session in potential_sessions:

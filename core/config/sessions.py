@@ -20,7 +20,7 @@ def get_dynamic_session_codes() -> List[str]:
         pass
     
     # Fallback to default codes
-    return ["NSY", "ATL", "NBL", "ALL"]
+    return []
 
 # Available patient session codes
 AVAILABLE_SESSION_CODES = get_dynamic_session_codes()
@@ -32,9 +32,6 @@ AVAILABLE_MODALITIES = [
 
 # Session code descriptions (optional)
 SESSION_CODE_DESCRIPTIONS = {
-    "NSY": "Nasywa Kamila",
-    "ATL": "Athila Ramdani Saputra", 
-    "NBL": "Nabila Putri Azhari",
     "ALL": "Shared Access (All Users)"
 }
 

@@ -4,13 +4,14 @@ Enhanced Doctor Selection Dialog with dynamic tag management and ALL User functi
 """
 import json
 from pathlib import Path
-from PySide6.QtCore import Qt, Signal, QTimer
+from PySide6.QtCore import Qt, Signal, QTimer, QRegularExpression
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, 
     QLineEdit, QMessageBox, QFrame, QGroupBox, QCheckBox, QTextEdit,
     QScrollArea, QWidget, QGridLayout, QSpacerItem, QSizePolicy
 )
-from PySide6.QtGui import QFont, QPixmap, QPainter, QIcon, QGuiApplication
+from PySide6.QtGui import QFont, QPixmap, QPainter, QIcon, QGuiApplication,QRegularExpressionValidator
+import re
 
 # Import UI constants
 from core.gui.ui_constants import (
@@ -20,98 +21,151 @@ from core.gui.ui_constants import (
     VIEW_SELECTOR_TITLE_STYLE, ENHANCED_WORKFLOW_BADGE_STYLE,
     Colors
 )
+from typing import List, Dict
 import logging
 # Import session config
 from core.config.sessions import get_session_manager
 
 class DoctorTagManager:
     """Manages dynamic doctor tags stored in JSON"""
-    
+
     def __init__(self, config_path: Path = None):
         self.config_path = config_path or Path("config/doctor_tags.json")
         self.default_tags = [
-            {"code": "NSY", "name": "Nasywa Kamila", "color": "#4e73ff"},
-            {"code": "ATL", "name": "Athila Ramdani Saputra", "color": "#28a745"},
-            {"code": "NBL", "name": "Nabila Putri Azhari", "color": "#dc3545"},
             {"code": "ALL", "name": "Shared Access (All Users)", "color": "#ffc107", "shared": True}
         ]
+        self.tags: List[Dict] = []
         self._load_tags()
-    
-    def _load_tags(self):
-        """Load doctor tags from JSON file"""
-        try:
-            if self.config_path.exists():
-                with open(self.config_path, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    self.tags = data.get('doctor_tags', self.default_tags)
-            else:
-                self.tags = self.default_tags.copy()
-                self._save_tags()
-        except Exception as e:
-            logging.info(f"[WARNING] Failed to load doctor tags: {e}")
-            self.tags = self.default_tags.copy()
-    
-    def _save_tags(self):
+
+    # ------------------------------------------------------------------ helpers
+    def _ensure_all_and_normalize(self, tags: List[Dict]) -> List[Dict]:
+        """
+        - Normalisasi code → UPPER
+        - Deduplicate by code
+        - Isi field default kalau kurang
+        - Tambahkan "ALL" jika belum ada
+        """
+        seen = set()
+        normalized: List[Dict] = []
+        for t in tags or []:
+            if not isinstance(t, dict):
+                continue
+            code = str(t.get("code", "")).strip()
+            if not code:
+                continue
+            code_up = code.upper()
+            if code_up in seen:
+                continue
+            item = {
+                "code": code_up,
+                "name": t.get("name", code_up),
+                "color": t.get("color", "#E5E7EB"),
+                "shared": bool(t.get("shared", False)),
+            }
+            normalized.append(item)
+            seen.add(code_up)
+
+        if "ALL" not in seen:
+            normalized.append(self.default_tags[0])
+            seen.add("ALL")
+
+        return normalized
+
+    def _save_tags(self, tags: List[Dict], last_updated: int = -1) -> None:
         """Save doctor tags to JSON file"""
         try:
-            self.config_path.parent.mkdir(parents=True, exist_ok=True)
-            data = {
-                "doctor_tags": self.tags,
-                "last_updated": QTimer().remainingTime()
+            payload = {
+                "doctor_tags": tags,
+                "last_updated": last_updated
             }
-            with open(self.config_path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
+            self.config_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.config_path, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
         except Exception as e:
             logging.info(f"[WARNING] Failed to save doctor tags: {e}")
-    
-    def get_tags(self):
+
+    def _load_tags(self):
+        """Load doctor tags from JSON file and ensure ALL tag exists"""
+        try:
+            last_updated = -1
+            if self.config_path.exists():
+                with open(self.config_path, "r", encoding="utf-8") as f:
+                    data = json.load(f) or {}
+                raw_tags = data.get("doctor_tags", [])
+                last_updated = data.get("last_updated", -1)
+
+                normalized = self._ensure_all_and_normalize(raw_tags)
+                self.tags = normalized
+
+                # kalau file aslinya tidak punya ALL → kita tambahin → simpan balik
+                had_all = any(str(t.get("code", "")).upper() == "ALL" for t in raw_tags)
+                if not had_all:
+                    self._save_tags(self.tags, last_updated)
+            else:
+                # file tidak ada → tulis default dengan ALL
+                self.tags = self._ensure_all_and_normalize(self.default_tags)
+                self._save_tags(self.tags, -1)
+
+        except Exception as e:
+            logging.info(f"[WARNING] Failed to load doctor tags: {e}")
+            self.tags = self._ensure_all_and_normalize(self.default_tags)
+
+    # ------------------------------------------------------------------ public API
+    def get_tags(self) -> List[Dict]:
         """Get all doctor tags"""
         return self.tags.copy()
-    
-    def get_tag_codes(self):
+
+    def get_tag_codes(self) -> List[str]:
         """Get list of tag codes"""
-        return [tag['code'] for tag in self.tags]
-    
-    def get_tag_by_code(self, code: str):
+        return [tag["code"] for tag in self.tags]
+
+    def get_tag_by_code(self, code: str) -> Dict:
         """Get tag by code"""
+        code_up = code.upper()
         for tag in self.tags:
-            if tag['code'] == code:
+            if tag["code"] == code_up:
                 return tag
         return None
-    
-    def add_tag(self, code: str, name: str, color: str = "#6c757d", shared: bool = False):
+
+    def add_tag(self, code: str, name: str, color: str = "#6c757d", shared: bool = False) -> Dict:
         """Add new doctor tag"""
-        if any(tag['code'] == code for tag in self.tags):
+        code_up = code.upper()
+        if any(tag["code"] == code_up for tag in self.tags):
             raise ValueError(f"Tag with code '{code}' already exists")
-        
+
         new_tag = {
-            "code": code,
+            "code": code_up,
             "name": name,
             "color": color,
             "shared": shared
         }
         self.tags.append(new_tag)
-        self._save_tags()
+        self.tags = self._ensure_all_and_normalize(self.tags)
+        self._save_tags(self.tags)
         return new_tag
-    
-    def remove_tag(self, code: str):
-        """Remove doctor tag"""
-        if code == "ALL":
+
+    def remove_tag(self, code: str) -> None:
+        """Remove doctor tag (cannot remove ALL)"""
+        code_up = code.upper()
+        if code_up == "ALL":
             raise ValueError("Cannot remove ALL user tag")
-        
-        self.tags = [tag for tag in self.tags if tag['code'] != code]
-        self._save_tags()
-    
-    def update_tag(self, code: str, name: str = None, color: str = None):
+
+        self.tags = [tag for tag in self.tags if tag["code"] != code_up]
+        self.tags = self._ensure_all_and_normalize(self.tags)
+        self._save_tags(self.tags)
+
+    def update_tag(self, code: str, name: str = None, color: str = None) -> None:
         """Update existing tag"""
+        code_up = code.upper()
         for tag in self.tags:
-            if tag['code'] == code:
+            if tag["code"] == code_up:
                 if name is not None:
-                    tag['name'] = name
+                    tag["name"] = name
                 if color is not None:
-                    tag['color'] = color
+                    tag["color"] = color
                 break
-        self._save_tags()
+        self.tags = self._ensure_all_and_normalize(self.tags)
+        self._save_tags(self.tags)
 
 class DoctorTagWidget(QFrame):
     """Individual doctor tag widget with selection capability"""
@@ -140,27 +194,30 @@ class DoctorTagWidget(QFrame):
         header_layout.setSpacing(8)
         
         # Color indicator
-        color_indicator = QLabel()
-        color_indicator.setFixedSize(12, 12)
-        color_indicator.setStyleSheet(f"""
+        self._base_color = self.tag_data.get('color', Colors.SECONDARY)
+
+        # Color indicator (keep reference)
+        self.color_indicator = QLabel()
+        self.color_indicator.setFixedSize(12, 12)
+        self.color_indicator.setStyleSheet(f"""
             QLabel {{
-                background: {self.tag_data.get('color', Colors.SECONDARY)};
+                background: {self._base_color};
                 border-radius: 6px;
                 border: 1px solid #dee2e6;
             }}
         """)
-        header_layout.addWidget(color_indicator)
-        
-        # Tag code
-        code_label = QLabel(self.tag_data['code'])
-        code_label.setFont(QFont("Arial", 14, QFont.Bold))
-        code_label.setStyleSheet(f"""
+        header_layout.addWidget(self.color_indicator)
+
+        # Tag code (keep reference)
+        self.code_label = QLabel(self.tag_data['code'])
+        self.code_label.setFont(QFont("Arial", 14, QFont.Bold))
+        self.code_label.setStyleSheet(f"""
             QLabel {{
-                color: {self.tag_data.get('color', Colors.SECONDARY)};
+                color: {self._base_color};
                 font-weight: bold;
             }}
         """)
-        header_layout.addWidget(code_label)
+        header_layout.addWidget(self.code_label)
         
         # Shared badge for ALL user
         if self.tag_data.get('shared', False):
@@ -223,8 +280,9 @@ class DoctorTagWidget(QFrame):
     
     def _apply_style(self, selected: bool):
         """Apply style based on selection state"""
-        color = self.tag_data.get('color', Colors.SECONDARY)
-        
+        # gunakan effective color jika ada
+        color = getattr(self, "_effective_color", self._base_color)
+
         if selected:
             self.setStyleSheet(f"""
                 QFrame {{
@@ -245,6 +303,42 @@ class DoctorTagWidget(QFrame):
                     border-color: {color};
                 }}
             """)
+        
+    
+    def apply_shared_disabled_state(self, disabled: bool):
+        """
+        Jika disabled=True, tampilkan ALL dengan full style abu (border + background).
+        """
+        disabled_gray = "#ADB5BD"
+        self._effective_color = disabled_gray if disabled else self._base_color
+
+        # indikator warna + label kode
+        self.color_indicator.setStyleSheet(f"""
+            QLabel {{
+                background: {self._effective_color};
+                border-radius: 6px;
+                border: 1px solid #dee2e6;
+            }}
+        """)
+        self.code_label.setStyleSheet(f"""
+            QLabel {{
+                color: {self._effective_color};
+                font-weight: bold;
+            }}
+        """)
+
+        # full card: abu untuk background juga
+        if disabled:
+            self.setStyleSheet(f"""
+                QFrame {{
+                    border: 2px solid {self._effective_color};
+                    border-radius: 8px;
+                    background: #E9ECEF;   /* abu muda untuk background card */
+                }}
+            """)
+        else:
+            # normal state → panggil apply_style biasa
+            self._apply_style(self.selected)
     
     def _edit_tag(self):
         """Edit tag name and color"""
@@ -314,10 +408,25 @@ class AddDoctorDialog(QDialog):
         layout.addWidget(title)
         
         # Code input
-        layout.addWidget(QLabel("Doctor Code (2-4 characters):"))
+        layout.addWidget(QLabel("Doctor Code (A–Z / 0–9, 2–4 chars):"))
         self.code_input = QLineEdit()
         self.code_input.setPlaceholderText("e.g., EMA, JDN")
         self.code_input.setMaxLength(4)
+
+        # Hanya izinkan A-Z / a-z / 0-9 saat mengetik (0–4 saat input)
+        alnum_validator = QRegularExpressionValidator(QRegularExpression(r"^[A-Za-z0-9]{0,4}$"))
+        self.code_input.setValidator(alnum_validator)
+
+        # Auto-uppercase sambil ngetik (tidak mengubah posisi kursor)
+        def _to_upper(text: str):
+            pos = self.code_input.cursorPosition()
+            self.code_input.blockSignals(True)
+            self.code_input.setText(text.upper())
+            self.code_input.setCursorPosition(min(pos, len(self.code_input.text())))
+            self.code_input.blockSignals(False)
+
+        self.code_input.textChanged.connect(_to_upper)
+
         layout.addWidget(self.code_input)
         
         # Name input
@@ -505,12 +614,34 @@ class EditDoctorDialog(QDialog):
     
     def _validate_and_accept(self):
         """Validate input and accept dialog"""
-        self.new_name = self.name_input.text().strip()
-        
-        if not self.new_name:
-            QMessageBox.warning(self, "Invalid Input", "Doctor name cannot be empty")
+        code = (self.code_input.text() or "").strip().upper()
+        name = (self.name_input.text() or "").strip()
+        color = getattr(self, "color", None)
+
+        # Hanya A–Z atau 0–9, panjang 2–4
+        if not re.fullmatch(r"^[A-Z0-9]{2,4}$", code):
+            QMessageBox.warning(
+                self, "Invalid Code",
+                "Doctor Code harus 2–4 karakter dan hanya huruf (A–Z) atau angka (0–9), tanpa spasi/simbol."
+            )
             return
-        
+
+        if not name:
+            QMessageBox.warning(self, "Invalid Name", "Doctor Name tidak boleh kosong.")
+            return
+
+        if not color:
+            QMessageBox.warning(self, "Invalid Color", "Pilih warna untuk tag dokter.")
+            return
+
+        # OPTIONAL: blokir kode khusus
+        # if code == "ALL":
+        #     QMessageBox.warning(self, "Reserved Code", "'ALL' adalah kode terproteksi.")
+        #     return
+
+        # set nilai final lalu accept
+        self.code = code
+        self.name = name
         self.accept()
 
 class DoctorSelectionDialog(QDialog):
@@ -547,6 +678,14 @@ class DoctorSelectionDialog(QDialog):
         
         self._setup_ui()
         self._load_last_session()
+    
+    
+    def _has_individual_tags(self) -> bool:
+        """Check if there is at least one non-shared (individual) doctor tag."""
+        try:
+            return any(not t.get('shared', False) for t in self.tag_manager.get_tags())
+        except Exception:
+            return False
     
     def _setup_ui(self):
         """Setup the main dialog UI"""
@@ -668,9 +807,21 @@ class DoctorSelectionDialog(QDialog):
             tag_widget = DoctorTagWidget(tag_data, self)
             tag_widget.tag_selected.connect(self._on_tag_selected)
             self.tag_widgets.append(tag_widget)
-            
+
+            # jika ALL/shared dan belum ada tag individual:
+            if tag_data.get('shared', False) and not self._has_individual_tags():
+                tag_widget.setEnabled(False)
+                tag_widget.setToolTip(
+                    "Shared access (ALL) membutuhkan minimal satu doctor tag individual yang terdaftar."
+                )
+                # NEW: tampilkan abu untuk ALL yang disabled
+                tag_widget.apply_shared_disabled_state(True)
+            else:
+                # NEW: pastikan warna kembali normal kalau nanti sudah ada individual
+                tag_widget.apply_shared_disabled_state(False)
+
             self.tags_layout.addWidget(tag_widget, row, col)
-            
+                        
         # Add row and column stretch to push all widgets to the top-left corner.
         num_rows = (len(sorted_tags) + cols - 1) // cols
         self.tags_layout.setRowStretch(num_rows, 1)
@@ -679,14 +830,29 @@ class DoctorSelectionDialog(QDialog):
 
     def _on_tag_selected(self, tag_data: dict):
         """Handle tag selection"""
-        # Deselect all other tags
+        # NEW: Cegah pilih ALL jika tidak ada tag individual
+        if tag_data.get('shared', False) and not self._has_individual_tags():
+            QMessageBox.warning(
+                self, "Shared Access Disabled",
+                "Tidak dapat memilih 'ALL' karena belum ada doctor tag individual yang terdaftar.\n"
+                "Tambahkan minimal satu tag individual terlebih dahulu."
+            )
+            # Pastikan kartu yang terklik tidak terset sebagai selected
+            for widget in self.tag_widgets:
+                if widget.tag_data['code'] == tag_data['code']:
+                    widget.set_selected(False)
+            self.selected_doctor_id = None
+            self.selected_tag_data = None
+            self.start_btn.setEnabled(False)
+            return
+
+        # Deselect others
         for widget in self.tag_widgets:
             if widget.tag_data['code'] != tag_data['code']:
                 widget.set_selected(False)
-        
+
         self.selected_doctor_id = tag_data['code']
         self.selected_tag_data = tag_data
-        
         self.start_btn.setEnabled(True)
     
     def _add_new_doctor(self):
@@ -727,9 +893,16 @@ class DoctorSelectionDialog(QDialog):
         if not self.selected_doctor_id:
             QMessageBox.warning(self, "No Selection", "Please select a doctor code")
             return
-        
+
+        # NEW: Guard terakhir — ALL butuh minimal satu tag individual
+        if (self.selected_tag_data or {}).get('shared', False) and not self._has_individual_tags():
+            QMessageBox.warning(
+                self, "Shared Access Disabled",
+                "Tidak dapat memulai sesi dengan 'ALL' karena belum ada doctor tag individual yang terdaftar."
+            )
+            return
+
         try:
-            # Create session using session manager
             session = self.session_manager.create_session(
                 self.selected_doctor_id,
                 self.selected_modality,
@@ -737,7 +910,6 @@ class DoctorSelectionDialog(QDialog):
             )
             logging.info(f"[SESSION] Created: {session['session_id']}")
             super().accept()
-            
         except Exception as e:
             logging.info(f"[ERROR] Failed to create session: {e}")
             QMessageBox.critical(self, "Session Error", f"Failed to create session: {e}")

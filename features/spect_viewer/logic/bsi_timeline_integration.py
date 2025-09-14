@@ -33,17 +33,7 @@ class BSITimelineIntegration:
         self.current_patient_data = None
         
     def get_patient_bsi_data(self, scan_data: Dict, session_code: str = None) -> Optional[Dict[str, Any]]:
-        """
-        Get BSI data for a patient from timeline scan data
-          UPDATED: Supports single view data loading
-        
-        Args:
-            scan_data: Timeline scan data dictionary
-            session_code: Session code (NSY, ATL, etc.)
-            
-        Returns:
-            Dictionary with BSI data or None if not available
-        """
+
         try:
             # Extract patient info from scan data
             dicom_path = Path(scan_data["path"])
