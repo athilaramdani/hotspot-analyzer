@@ -216,11 +216,20 @@ def _process_one_with_assignments(
     session_code: str,
     view_assignments: Optional[Dict[int, str]] = None,
     background_assignments: Optional[Dict[int, Dict[str, str]]] = None,
-    cloud_upload_enabled: bool = True
+    cloud_upload_enabled: bool = True,
+    log_cb: Callable[[str], None] | None = None,
+    combined_progress_cb: Callable[[str, float], None] | None = None
 ) -> Path:
-    """
-      FIXED: Process single DICOM with NEW path structure and naming
-    """
+    # Definisikan total langkah di sini
+    TOTAL_STEPS_PER_FILE = 7 
+    current_step = 0
+    
+    def report_step(message: str):
+        nonlocal current_step
+        current_step += 1
+        if combined_progress_cb:
+            # Mengirim pesan dan progres internal (0.14, 0.28, dst.)
+            combined_progress_cb(message, current_step / TOTAL_STEPS_PER_FILE)
     logging.info(f"\n=== Processing {truncate_text(src.name, 40)} ===")
     
     # Read patient info and study date from ORIGINAL DICOM
@@ -252,12 +261,14 @@ def _process_one_with_assignments(
     
     # Copy ORIGINAL file to destination WITHOUT MODIFICATION
     if src.resolve() != dest_path.resolve():
-        logging.info(f"  >> Copying ORIGINAL DICOM without modification...")
+        report_step("Copying original file...")
+        logging.info(f" >> Copying ORIGINAL DICOM without modification...")
         copy2(src, dest_path)
     logging.info(f"  Copied ORIGINAL → {truncate_text(str(dest_path), 60)}")
 
     # Load ORIGINAL DICOM for processing WITHOUT MODIFICATION
-    logging.info("  >> Loading ORIGINAL DICOM frames with view assignments...")
+    report_step("Loading frames and metadata...")
+    logging.info(" >> Loading ORIGINAL DICOM frames with view assignments...")
     
     frames, _ = load_frames_and_metadata_with_assignments(dest_path, view_assignments)
     logging.info(f"  Frames detected: {list(frames.keys())}")
@@ -334,6 +345,7 @@ def _process_one_with_assignments(
             logging.info(f"  [WARN] Skipping non-standard view: {view_name}")
 
     # STEP 3: SEGMENTATION PROCESSING - Use paths.py naming with FIXED error handling
+    report_step("Generating segmentation masks...")
     logging.info("  >> Generating segmentation masks and colored overlays...")
     for view_idx, (view, img) in enumerate(frames.items(), 1):
         if view not in ["Anterior", "Posterior"]:
@@ -388,6 +400,7 @@ def _process_one_with_assignments(
                 continue
 
     # STEP 4: YOLO DETECTION
+    report_step("Running YOLO detection...")
     logging.info("  >> Running YOLO hotspot detection...")
     try:
         from features.spect_viewer.logic.processing_wrapper import run_yolo_detection_wrapper
@@ -400,6 +413,7 @@ def _process_one_with_assignments(
         logging.info(f"     [WARN] YOLO detection failed: {e}")
 
     # STEP 5: OTSU HOTSPOT PROCESSING
+    report_step("Running Otsu hotspot processing...")
     logging.info("  >> Running Otsu hotspot processing...")
     try:
         from features.spect_viewer.logic.processing_wrapper import run_hotspot_processing_in_process
@@ -412,6 +426,7 @@ def _process_one_with_assignments(
         logging.info(f"     [WARN] Otsu hotspot processing failed: {e}")
 
     # STEP 6: CLASSIFICATION
+    report_step("Running hotspot classification inference...")
     logging.info("  >> Running hotspot classification inference...")
     try:
         classification_result = run_classification_with_new_paths(dest_path, pid, study_date)
@@ -423,6 +438,7 @@ def _process_one_with_assignments(
         logging.info(f"     [WARN] Classification failed: {e}")
 
     # STEP 7: QUANTIFICATION
+    report_step("Running BSI quantification with classification masks...")
     logging.info("  >> Running BSI quantification with classification masks...")
     try:
         from features.spect_viewer.logic.processing_wrapper import run_quantification_for_patient
@@ -470,10 +486,10 @@ def process_files_with_assignments(
     background_assignments: Dict[Path, Dict[int, Dict[str, str]]] = None,
     *,
     data_root: str | Path | None = None,
-    progress_cb: Callable[[int, int, str], None] | None = None,
+    combined_progress_cb: Callable[[int, int, str, str, float], None] | None = None,
     log_cb: Callable[[str], None] | None = None,
     session_code: str | None = None,
-    cloud_upload_enabled: bool = True  #   ADD cloud parameter
+    cloud_upload_enabled: bool = True,
 ) -> List[Path]:
     """
     Process multiple DICOM files WITH user-assigned views and background selections
@@ -533,6 +549,11 @@ def process_files_with_assignments(
     logging.info(f"## Processing workflow: Copy Original → PNG outputs → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG")
 
     for i, file_path in enumerate(paths, 1):
+        def combined_per_file_cb(step_message: str, step_progress: float):
+            if combined_progress_cb:
+                # In this nested function, we use the combined_progress_cb from the outer scope
+                combined_progress_cb(i, total, str(file_path), step_message, step_progress)
+
         try:
             logging.info(f"\n## Processing file {i}/{total}: {truncate_text(file_path.name, 30)}")
             view_assignments = file_view_assignments[file_path]
@@ -542,7 +563,9 @@ def process_files_with_assignments(
                 session_code, 
                 view_assignments, 
                 file_background,
-                cloud_upload_enabled  #   ADD cloud parameter
+                cloud_upload_enabled,
+                log_cb=log_cb,
+                combined_progress_cb=combined_per_file_cb
             )
             out.append(result)
             logging.info(f"## File {i}/{total} completed successfully - ORIGINAL DICOM PRESERVED")
@@ -551,8 +574,9 @@ def process_files_with_assignments(
             logging.info(f"[ERROR] {error_msg}")
             logging.info(f"[FULL ERROR] {file_path} failed: {e}\n{traceback.format_exc()}")
         finally:
-            if progress_cb:
-                progress_cb(i, total, str(file_path))
+            if combined_progress_cb:
+                # This is the final update for the file, setting step_progress to 1.0 (100%)
+                combined_progress_cb(i, total, str(file_path), "File processing complete.", 1.0)
 
     logging.info("## Batch import process completed")
     logging.info("##   DICOM PROTECTION: All original DICOM files preserved without modification")
