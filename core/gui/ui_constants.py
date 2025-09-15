@@ -13,6 +13,7 @@ Import the constants you need, e.g.::
 This keeps styling centralised so multiple widgets share the same look.
 """
 
+
 # ---------- Base helpers ----------
 _BUTTON_BASE = (
     """
