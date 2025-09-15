@@ -426,6 +426,7 @@ class BSISidePanel(QWidget):
             ]
             for c, it in enumerate(right_items):
                 it.setData(Qt.UserRole + 1, region_name)
+                # Kondisi untuk mewarnai sel Malignant (merah muda)
                 if c in (0, 1):
                     if c == 0 and ant_malig > 0 and processing_mode != 'single_view_posterior':
                         it.setBackground(QColor(255, 200, 200))
@@ -433,6 +434,18 @@ class BSISidePanel(QWidget):
                         it.setBackground(QColor(255, 200, 200))
                     elif it.text() == "N/A":
                         it.setBackground(QColor(240, 240, 240))
+                
+                # --- START: KODE BARU YANG DITAMBAHKAN ---
+                # Kondisi untuk mewarnai sel Benign (kuning)
+                elif c in (2, 3):
+                    if c == 2 and ant_benign > 0 and processing_mode != 'single_view_posterior':
+                        it.setBackground(QColor(255, 255, 204)) # Warna kuning muda
+                    elif c == 3 and pos_benign > 0 and processing_mode != 'single_view_anterior':
+                        it.setBackground(QColor(255, 255, 204)) # Warna kuning muda
+                    elif it.text() == "N/A":
+                        it.setBackground(QColor(240, 240, 240))
+                # --- END: KODE BARU YANG DITAMBAHKAN ---
+
                 self.results_table_right.setItem(row, c, it)
 
         # TOTAL ROW
@@ -572,6 +585,16 @@ class BSISidePanel(QWidget):
                                 data_cell.fill = PatternFill(start_color="FFE6E6", end_color="FFE6E6", fill_type="solid")
                         except:
                             pass
+                    # --- START: MODIFIED CODE ---
+                    # Highlight benign cells (yellow background)
+                    elif c in (2, 3) and "N/A" not in str(data_cell.value):
+                        try:
+                            pixel_count = int(data_cell.value.split()[0])
+                            if pixel_count > 0:
+                                data_cell.fill = PatternFill(start_color="FFFFCC", end_color="FFFFCC", fill_type="solid")
+                        except:
+                            pass
+                    # --- END: MODIFIED CODE ---
             
             if hasattr(self, 'quant_manager') and self.quant_manager.current_results:
                 summary = self.quant_manager.current_results.get('summary_statistics', {})
