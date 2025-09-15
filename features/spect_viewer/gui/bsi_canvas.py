@@ -109,6 +109,7 @@ class BSICanvas(FigureCanvas):
         self.draw()
     
     # START: Perubahan pada _plot_bsi_trend_chart_v2
+    # Ganti fungsi _plot_bsi_trend_chart_v2 yang lama dengan yang ini
     def _plot_bsi_trend_chart_v2(self, override_visibility: bool = False):
         """ FIXED: Plot 3-line chart for BSI with single view support and better date handling"""
         if not self.patient_folder or not self.patient_id:
@@ -118,15 +119,13 @@ class BSICanvas(FigureCanvas):
         self.figure.clear()
         ax = self.figure.add_subplot(111)
         
-        # NEW: Tentukan visibilitas berdasarkan UI atau override untuk export
         anterior_visible = self.anterior_visible or override_visibility
         posterior_visible = self.posterior_visible or override_visibility
         
-        # NEW: Jika kedua opsi tidak dicentang dan bukan untuk export, tampilkan pesan
         if not anterior_visible and not posterior_visible and not override_visibility:
             ax.text(0.5, 0.5, 'BSI Analytics Hidden\nCheck "Anterior" and/or "Posterior" to display the data.', 
-                    ha='center', va='center', fontsize=12, color=Colors.DARK_GRAY,
-                    transform=ax.transAxes)
+                      ha='center', va='center', fontsize=12, color=Colors.DARK_GRAY,
+                      transform=ax.transAxes)
             ax.set_xticks([])
             ax.set_yticks([])
             for spine in ax.spines.values():
@@ -142,7 +141,7 @@ class BSICanvas(FigureCanvas):
             
             if not all_scores:
                 ax.text(0.5, 0.5, 'No BSI scores found for this patient', ha='center', va='center',
-                         transform=ax.transAxes, fontsize=12, color='gray')
+                          transform=ax.transAxes, fontsize=12, color='gray')
                 self.figure.suptitle(f'BSI Trend for {self.patient_id}', fontsize=14, fontweight='bold')
                 self.figure.tight_layout()
                 self.draw()
@@ -153,8 +152,7 @@ class BSICanvas(FigureCanvas):
             dates = []
             anterior_scores = []
             posterior_scores = []
-            combined_scores = []
-            date_labels = []
+            date_labels = [] # List ini sekarang akan berisi label lengkap (tanggal + nilai)
             
             for entry in all_scores:
                 try:
@@ -166,16 +164,13 @@ class BSICanvas(FigureCanvas):
                     try:
                         if len(date_str) == 8 and date_str.isdigit():
                             date_obj = datetime.strptime(date_str, "%Y%m%d")
-                            formatted_date = date_obj.strftime("%d %b %Y")
                         else:
-                            logging.info(f"[WARN] Invalid date format in BSI data: {date_str}, using current date")
-                            date_obj = datetime.now()
-                            formatted_date = f"{date_str} (Invalid)"
+                            logging.info(f"[WARN] Invalid date format in BSI data: {date_str}, skipping")
+                            continue # Lewati data point ini jika tanggal tidak valid
                             
                     except ValueError as ve:
-                        logging.info(f"[WARN] Date parsing failed for {date_str}: {ve}, using current date")
-                        date_obj = datetime.now()
-                        formatted_date = f"{date_str} (Invalid)"
+                        logging.info(f"[WARN] Date parsing failed for {date_str}: {ve}, skipping")
+                        continue # Lewati data point ini jika tanggal tidak valid
                         
                     dates.append(date_obj)
                     
@@ -185,8 +180,17 @@ class BSICanvas(FigureCanvas):
                     
                     anterior_scores.append(ant_bsi)
                     posterior_scores.append(post_bsi)
-                    combined_scores.append(combined_bsi)
-                    date_labels.append(formatted_date)
+                    
+                    # --- PERUBAHAN DI SINI ---
+                    # Membuat label custom sesuai format yang diminta
+                    display_date = date_obj.strftime("%d-%m-%Y")
+                    # Format nilai BSI dengan 3 desimal dan ganti titik dengan koma
+                    bsi_value_str = f"{combined_bsi:.3f}".replace('.', ',')
+                    
+                    # Gabungkan menjadi satu label dengan baris baru
+                    full_label = f"{display_date}\nBSI: {bsi_value_str}"
+                    date_labels.append(full_label)
+                    # --- AKHIR PERUBAHAN ---
                     
                     logging.info(f"[DEBUG BSI CANVAS] Added: Ant={ant_bsi} Post={post_bsi}")
                     
@@ -196,7 +200,7 @@ class BSICanvas(FigureCanvas):
 
             if not dates:
                 ax.text(0.5, 0.5, 'No valid dates found in BSI data', ha='center', va='center',
-                         transform=ax.transAxes, fontsize=12, color='red')
+                          transform=ax.transAxes, fontsize=12, color='red')
                 self.figure.suptitle(f'BSI Trend for {self.patient_id}', fontsize=14, fontweight='bold')
                 self.figure.tight_layout()
                 self.draw()
@@ -208,23 +212,23 @@ class BSICanvas(FigureCanvas):
                 ant_values = [v for v in anterior_scores if v is not None]
                 if ant_dates and ant_values:
                     ax.plot(ant_dates, ant_values, marker='o', linestyle='-', color='#ff6b6b', 
-                            linewidth=2, markersize=6, label='Anterior BSI')
+                              linewidth=2, markersize=6, label='Anterior BSI')
             
             if posterior_visible:
                 post_dates = [d for i, d in enumerate(dates) if posterior_scores[i] is not None]
                 post_values = [v for v in posterior_scores if v is not None]
                 if post_dates and post_values:
                     ax.plot(post_dates, post_values, marker='^', linestyle='-', color='#4ecdc4', 
-                            linewidth=2, markersize=6, label='Posterior BSI')
+                              linewidth=2, markersize=6, label='Posterior BSI')
             
             # Only show legend if at least one line is visible
             if anterior_visible or posterior_visible:
                 legend = ax.legend(loc='upper left', fontsize=9)
             
             ax.set_xticks(dates)
-            ax.set_xticklabels(date_labels, rotation=45, ha='right')
+            ax.set_xticklabels(date_labels, rotation=0, ha='center', fontsize=9) # Ubah rotasi agar lebih mudah dibaca
             ax.set_title("BSI Score Trend", fontsize=12, fontweight='bold')
-            ax.set_xlabel("Study Date", fontsize=10)
+            ax.set_xlabel("Study Date & BSI Score", fontsize=10, labelpad=15) # Beri sedikit padding
             ax.set_ylabel("BSI Score", fontsize=10)
             ax.grid(True, linestyle='--', alpha=0.6)
             self.figure.suptitle(f'BSI Analysis for Patient: {self.patient_id}', fontsize=14, fontweight='bold')
