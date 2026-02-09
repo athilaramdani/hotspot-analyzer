@@ -68,6 +68,7 @@ class HotspotCanvas(BaseCanvas):
         # Create mask display
         self._mask_img = self._mask_to_qimage(show_all=True, label=1)
         self._item_mask = QGraphicsPixmapItem(QPixmap.fromImage(self._mask_img))
+        self._item_mask.setZValue(2)  # Ensure hotspots are above segmentation (Z=1)
         self._scene.addItem(self._item_mask)
 
     def _init_history(self):
@@ -154,6 +155,7 @@ class HotspotCanvas(BaseCanvas):
                 self._segmentation_img = self._segmentation_to_qimage()
                 self._item_segmentation = QGraphicsPixmapItem(QPixmap.fromImage(self._segmentation_img))
                 self._item_segmentation.setOpacity(0.3)
+                self._item_segmentation.setZValue(1)  # Ensure segmentation is below hotspots (Z=2)
                 
                 #   FIX: Check if _scene exists before adding item
                 if hasattr(self, '_scene') and self._scene:
@@ -270,8 +272,12 @@ class HotspotCanvas(BaseCanvas):
         layer = self._layers[self._cur_label]
         
         for px, py in targets:
-            # Validation: Only allow editing on non-background segments
-            if self._segmentation_arr is not None:
+            # Check if erasing
+            is_erasing = hasattr(self, '_eraser') and self._eraser
+            
+            # Validation: Only restrict PAINTING to non-background segments
+            # ERASING is allowed everywhere/outside segmentation
+            if not is_erasing and self._segmentation_arr is not None:
                 if 0 <= py < self._segmentation_arr.shape[0] and 0 <= px < self._segmentation_arr.shape[1]:
                     segment_label = self._segmentation_arr[py, px]
                     if segment_label == 0:  # Background segment
