@@ -17,3 +17,4 @@ installer_output/
 
 models/*.pt
 models/*.pth
+models/segmentation_2/nnUNet_results/Dataset001_BoneRegion/nnUNetTrainer_50epochs__nnUNetPlans__2d/fold_0/checkpoint_best.pth
