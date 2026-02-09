@@ -1,0 +1,1905 @@
+2025-09-10 11:26:09 - [INFO] - Logger berhasil dikonfigurasi. Memulai aplikasi...
+2025-09-10 11:26:09 - [INFO] - [DEBUG] Running in development mode
+2025-09-10 11:26:09 - [INFO] - [DEBUG] Starting TELPLASTINA...
+2025-09-10 11:26:09 - [INFO] - [UI] Application icon loaded: assets\icon.ico
+2025-09-10 11:26:09 - [INFO] - [UI] Poppins font applied
+2025-09-10 11:26:09 - [INFO] - [DEBUG] TELPLASTINA application created and configured
+2025-09-10 11:26:09 - [INFO] - [DEBUG] Starting session with 100ms delay...
+2025-09-10 11:26:09 - [INFO] - [DEBUG] === Starting new session ===
+2025-09-10 11:26:09 - [INFO] - [DEBUG] Development mode - creating dialog immediately
+2025-09-10 11:26:09 - [INFO] - [DEBUG] Creating doctor selection dialog (attempt 1/3)...
+2025-09-10 11:26:10 - [INFO] - [PATHS] Found YOLO model at: F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\models\model_detection_hs_yolov8.pt
+2025-09-10 11:26:10 - [INFO] - [DEBUG] Dialog class imported successfully
+2025-09-10 11:26:11 - [INFO] - [DEBUG] Dialog instance created successfully
+2025-09-10 11:26:11 - [INFO] - [DEBUG] Dialog window properties set
+2025-09-10 11:26:11 - [INFO] - [DEBUG] Showing dialog to user...
+2025-09-10 11:26:11 - [INFO] - [DEBUG] Dialog shown successfully
+2025-09-10 11:26:11 - [INFO] - [DEBUG] Waiting for user input...
+2025-09-10 11:26:19 - [INFO] - [SESSION] Created session: NBL_Planar_20250910_112619
+2025-09-10 11:26:19 - [INFO] - [SESSION] Created: NBL_Planar_20250910_112619
+2025-09-10 11:26:19 - [INFO] - [DEBUG] Dialog execution completed with result: 1
+2025-09-10 11:26:19 - [INFO] - [DEBUG] Quick close detected: False
+2025-09-10 11:26:19 - [INFO] - [DEBUG] Session selected - Code: NBL, Modality: Planar
+2025-09-10 11:26:19 - [INFO] - [DEBUG] Data directory confirmed: data
+2025-09-10 11:26:19 - [INFO] - [DEBUG] Starting PLANAR session with code: NBL
+2025-09-10 11:26:19 - [INFO] - [DEBUG] Creating main window for session: NBL
+2025-09-10 11:26:23 - [INFO] - [YOLO] Module loaded - model will be loaded on-demand
+2025-09-10 11:26:23 - [INFO] - [DEBUG] session_code in MainWindow = NBL
+2025-09-10 11:26:23 - [INFO] - [DEBUG] Timeline keyboard shortcuts enabled: Ctrl+/- for zoom, Ctrl+0 for reset
+2025-09-10 11:26:23 - [INFO] - [DEBUG] Connecting invert checkbox...
+2025-09-10 11:26:23 - [INFO] - [DEBUG] Testing checkbox connection...
+2025-09-10 11:26:23 - [INFO] - [DEBUG] Timeline widget exists: True
+2025-09-10 11:26:23 - [INFO] - [DEBUG] Timeline widget type: <class 'features.spect_viewer.gui.scan_timeline.ScanTimelineWidget'>
+2025-09-10 11:26:23 - [INFO] - [DEBUG] Invert checkbox created and connected
+2025-09-10 11:26:23 - [INFO] - [MainWindow]   Global keyboard shortcuts setup complete
+2025-09-10 11:26:23 - [INFO] - [MainWindow] Syncing view 'Anterior' across all components
+2025-09-10 11:26:23 - [INFO] - [DEBUG] set_active_view called with 'Anterior', but is now ignored.
+2025-09-10 11:26:23 - [INFO] - [MainWindow]   View sync completed
+2025-09-10 11:26:23 - [INFO] - [MainWindow]   Complete integration initialization finished
+2025-09-10 11:26:23 - [INFO] - [DEBUG] Starting folder scan for session: NBL
+2025-09-10 11:26:23 - [INFO] - Ditemukan 18 file DICOM di 'F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR'
+2025-09-10 11:26:24 - [INFO] - Ditemukan 4 session, 10 pasien (total 18 file DICOM).
+2025-09-10 11:26:24 - [INFO] - ALL: 1 pasien, 1 file
+2025-09-10 11:26:24 - [INFO] - ATL: 4 pasien, 4 file
+2025-09-10 11:26:24 - [INFO] - NBL: 1 pasien, 5 file
+2025-09-10 11:26:24 - [INFO] - NSY: 4 pasien, 8 file
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Found 4 total sessions: ['ALL', 'ATL', 'NBL', 'NSY']
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Filtered to session NBL: 1 patients
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Added 1 patients to combo box for session NBL
+2025-09-10 11:26:24 - [INFO] - [DEBUG] display_timeline called with 0 scan(s), focusing on index = -1
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:24 - [INFO] - [BSI SIDE PANEL] Clearing all patient data...
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Folder scan completed
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Main window created successfully for session: NBL
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Main window created successfully
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Logout signal connected
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Main window displayed
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Active windows count: 1
+2025-09-10 11:26:24 - [INFO] - [TEST] Testing invert connection...
+2025-09-10 11:26:24 - [INFO] - [TEST] Timeline widget exists: True
+2025-09-10 11:26:24 - [INFO] - [TEST] Checkbox exists: True
+2025-09-10 11:26:24 - [INFO] - [TEST] Current checkbox state: False
+2025-09-10 11:26:24 - [INFO] - [DEBUG] === INVERT CHECKBOX CHANGED ===
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Checkbox state: 2, isChecked(): True
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Invert flag changed: False -> True
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Calling timeline_widget.set_invert_original(True)
+2025-09-10 11:26:24 - [INFO] - [DEBUG] set_invert_original called: True (current: False)
+2025-09-10 11:26:24 - [INFO] - [CACHE CLEAR] Cleared 0 layer cache entries
+2025-09-10 11:26:24 - [INFO] - [CACHE CLEAR] Cleared zoom cache (0 labels)
+2025-09-10 11:26:24 - [INFO] - [DEBUG] Cleared layer cache due to invert change
+2025-09-10 11:26:24 - [INFO] - [DEBUG] No scans loaded, rebuild skipped
+2025-09-10 11:26:24 - [INFO] - [DEBUG]   Timeline invert method called successfully
+2025-09-10 11:26:24 - [INFO] - [TEST] Toggled checkbox to: True
+2025-09-10 11:26:34 - [INFO] - [DEBUG] item activated → ID: 5001 (NBL) @ index 0
+2025-09-10 11:26:34 - [INFO] - [DEBUG] item activated → ID: 5001 (NBL)
+2025-09-10 11:26:34 - [INFO] - 
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT GANTENG] ===================
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT] Patient selected: ID: 5001 (NBL)
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT] Parsed - Patient: 5001, Session: NBL
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT] Patient path from paths.py: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT] Patient path exists: True
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT] Patient path contents:
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - 
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS GANTENG] ===================
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS] Patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS] Patient ID: 5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS] Folder exists: True
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS] Folder structure:
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]   DIR:  20250115/
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]     Study date folder contents:
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: 5001_1.dcm (1049756 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_classification.json (55824 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_classification.png (1184 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_classification.xml (1374 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored.png (1257 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored_blend.png (124272 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_grayscale.png (646 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_yolo.xml (1304 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_mask.png (3485 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_original.png (83485 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_segm.png (6440 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: bsi_quantification_ant.json (3707 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: bsi_quantification_post.json (3703 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_classification.json (206470 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_classification.png (1374 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_classification.xml (2321 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_colored.png (1468 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_colored_blend.png (125024 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_grayscale.png (854 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_yolo.xml (1936 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_mask.png (3456 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_original.png (84361 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_segm.png (6196 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]   DIR:  20250214/
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]     Study date folder contents:
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: 5001_2.dcm (1049756 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_classification.json (313056 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_classification.png (2102 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_classification.xml (7019 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored.png (2166 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored_blend.png (98294 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_grayscale.png (1396 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_yolo.xml (5120 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_mask.png (3501 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_original.png (64390 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_segm.png (6583 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: bsi_quantification_ant.json (3812 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: bsi_quantification_post.json (3792 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_classification.json (353805 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_classification.png (2481 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_classification.xml (8439 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_colored.png (2610 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_colored_blend.png (105101 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_grayscale.png (1766 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_yolo.xml (6395 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_mask.png (3457 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_original.png (66472 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_segm.png (6155 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]   DIR:  20250316/
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]     Study date folder contents:
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: 5001_3.dcm (1049756 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_classification.json (436855 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_classification.png (2340 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_classification.xml (8437 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored.png (2335 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored_blend.png (101769 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_grayscale.png (1572 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_yolo.xml (5751 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_mask.png (3454 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_original.png (64961 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_segm.png (6534 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: bsi_quantification_ant.json (3814 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: bsi_quantification_post.json (3807 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_classification.json (809964 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_classification.png (2739 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_classification.xml (9401 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_colored.png (2852 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_colored_blend.png (92027 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_grayscale.png (2024 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_yolo.xml (6720 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_mask.png (3533 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_original.png (61581 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_segm.png (6392 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]   DIR:  20250415/
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]     Study date folder contents:
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: 5001_4.dcm (1049756 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_classification.json (34463 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_classification.png (1146 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_classification.xml (1836 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored.png (1403 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored_blend.png (105051 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_grayscale.png (773 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_yolo.xml (1936 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_mask.png (3417 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_original.png (70707 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_segm.png (6525 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: bsi_quantification_ant.json (3722 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: bsi_quantification_post.json (3681 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_classification.json (50110 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_classification.png (1079 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_classification.xml (905 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_colored.png (1184 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_colored_blend.png (115794 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_grayscale.png (616 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_yolo.xml (984 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_mask.png (3323 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_original.png (74888 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_segm.png (5922 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]   DIR:  20250515/
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]     Study date folder contents:
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: 5001_5.dcm (1049756 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored.png (1233 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored_blend.png (107184 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_otsu_grayscale.png (655 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_hotspot_yolo.xml (1937 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_mask.png (3495 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_original.png (70372 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: ant_segm.png (6666 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_colored.png (1256 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_colored_blend.png (106448 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_otsu_grayscale.png (643 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_hotspot_yolo.xml (1943 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_mask.png (3476 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_original.png (71532 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       FILE: post_segm.png (6263 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]       DIR:  temp_classification/
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Using latest study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_ant.json (exists: False)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_post.json (exists: False)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS] New quantification paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_ant.json (exists: False, size: 0 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_post.json (exists: False, size: 0 bytes)
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS] Old pattern search:
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]   Old anterior: []
+2025-09-10 11:26:34 - [INFO] - [DEBUG PATHS]   Old posterior: []
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT] Found DICOM files: 5
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   DICOM: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\5001_1.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   DICOM folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   BSI files near DICOM:
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]     Anterior: True
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]     Posterior: True
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   DICOM: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214\5001_2.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   DICOM folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   BSI files near DICOM:
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]     Anterior: True
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]     Posterior: True
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   DICOM: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316\5001_3.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   DICOM folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   BSI files near DICOM:
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]     Anterior: True
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]     Posterior: True
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   DICOM: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415\5001_4.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   DICOM folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   BSI files near DICOM:
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]     Anterior: True
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]     Posterior: True
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   DICOM: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\5001_5.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   DICOM folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_ant.json (exists: False)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_post.json (exists: False)
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]   BSI files near DICOM:
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]     Anterior: False
+2025-09-10 11:26:34 - [INFO] - [DEBUG SELECT]     Posterior: False
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loading patient: 5001 from session: NBL
+2025-09-10 11:26:34 - [INFO] - [CACHE DEBUG] Cache key: 5001_NBL
+2025-09-10 11:26:34 - [INFO] - [CACHE DEBUG] Existing cache keys: []
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loading scans for 5001_NBL from disk...
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Found 5 DICOM files for patient 5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Enriched scan data for: 5001_1.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Enriched scan data for: 5001_2.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Enriched scan data for: 5001_3.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Enriched scan data for: 5001_4.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Enriched scan data for: 5001_5.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Scan files for 5001_20250115:
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Available files: None
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Available PNG files for 5001_20250115: None
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Scan files for 5001_20250214:
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Available files: None
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Available PNG files for 5001_20250214: None
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Scan files for 5001_20250316:
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Available files: None
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Available PNG files for 5001_20250316: None
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Scan files for 5001_20250415:
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Available files: None
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Available PNG files for 5001_20250415: None
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Scan files for 5001_20250515:
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Available files: None
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Available PNG files for 5001_20250515: None
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Saving 5 scans to cache for 5001_NBL
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Layers changed to: []
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-10 11:26:34 - [INFO] - [EDIT BUTTONS] Has scan: False, Has seg data: False, Can edit hotspot: False
+2025-09-10 11:26:34 - [INFO] - [EDIT BUTTONS] Seg button enabled: False, Hotspot button enabled: False
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Set Image opacity to 1.00
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Set Segmentation opacity to 0.35
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Set Hotspot opacity to 0.50
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Set HotspotBBox opacity to 1.00
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Setting default layers: 'Image' checkbox should now be ON.
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Active layers: ['Image']
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Layers changed to: ['Image']
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Layers added: ['Image']
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Timeline active layers set to: ['Image']
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-10 11:26:34 - [INFO] - [EDIT BUTTONS] Has scan: False, Has seg data: False, Can edit hotspot: False
+2025-09-10 11:26:34 - [INFO] - [EDIT BUTTONS] Seg button enabled: False, Hotspot button enabled: False
+2025-09-10 11:26:34 - [INFO] - [DEBUG] All data loaded. Total scans: 5
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Layers changed to: []
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Layers removed: ['Image']
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-10 11:26:34 - [INFO] - [EDIT BUTTONS] Has scan: False, Has seg data: False, Can edit hotspot: False
+2025-09-10 11:26:34 - [INFO] - [EDIT BUTTONS] Seg button enabled: False, Hotspot button enabled: False
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Set Image opacity to 1.00
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Set Segmentation opacity to 0.35
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Set Hotspot opacity to 0.50
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Set HotspotBBox opacity to 1.00
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Setting default layers: 'Image' checkbox should now be ON.
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Active layers: ['Image']
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Layers changed to: ['Image']
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Layers added: ['Image']
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Timeline active layers set to: ['Image']
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-10 11:26:34 - [INFO] - [EDIT BUTTONS] Has scan: False, Has seg data: False, Can edit hotspot: False
+2025-09-10 11:26:34 - [INFO] - [EDIT BUTTONS] Seg button enabled: False, Hotspot button enabled: False
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Timeline active layers set to: ['Image']
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Set Image opacity to 1.00
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Set Segmentation opacity to 0.40
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Set Hotspot opacity to 0.50
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Set HotspotBBox opacity to 1.00
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-10 11:26:34 - [INFO] - [MainWindow] Updating timeline with 5 scans
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Session code: NBL
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\5001_1.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\5001_1.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250115
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 5001
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 5001, Study: 20250115
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 5001, Study: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_1.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_2.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_3.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_4.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_5.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - temp_classification (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20250115', 'anterior_bsi': 0.16661840327526528, 'posterior_bsi': 0.40623840499683184, 'combined_bsi': 0.28642840413604853, 'bsi_score': 0.28642840413604853, 'file_source': 'bsi_quantification_ant.json + bsi_quantification_post.json', 'processing_mode': 'dual_view', 'is_v2': True, 'source_location': 'Study date folder'}
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 0.16661840327526528
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 0.40623840499683184
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Processing mode: dual_view
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Session code: NBL
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214\5001_2.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214\5001_2.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250214
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 5001
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 5001, Study: 20250214
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 5001, Study: 20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_1.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_2.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_3.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_4.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_5.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - temp_classification (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20250214', 'anterior_bsi': 1.04047024442087, 'posterior_bsi': 1.0918650364531683, 'combined_bsi': 1.066167640437019, 'bsi_score': 1.066167640437019, 'file_source': 'bsi_quantification_ant.json + bsi_quantification_post.json', 'processing_mode': 'dual_view', 'is_v2': True, 'source_location': 'Study date folder'}
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 1.04047024442087
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 1.0918650364531683
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Processing mode: dual_view
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Session code: NBL
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316\5001_3.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316\5001_3.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250316
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 5001
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 5001, Study: 20250316
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 5001, Study: 20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_1.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_2.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_3.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_4.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_5.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - temp_classification (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20250316', 'anterior_bsi': 1.5921247263429408, 'posterior_bsi': 2.212410433687333, 'combined_bsi': 1.902267580015137, 'bsi_score': 1.902267580015137, 'file_source': 'bsi_quantification_ant.json + bsi_quantification_post.json', 'processing_mode': 'dual_view', 'is_v2': True, 'source_location': 'Study date folder'}
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 1.5921247263429408
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 2.212410433687333
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Processing mode: dual_view
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Session code: NBL
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415\5001_4.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415\5001_4.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250415
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 5001
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 5001, Study: 20250415
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 5001, Study: 20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_1.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_2.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_3.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_4.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_5.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - temp_classification (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20250415', 'anterior_bsi': 0.21053710230980946, 'posterior_bsi': 0.27624338564022954, 'combined_bsi': 0.24339024397501952, 'bsi_score': 0.24339024397501952, 'file_source': 'bsi_quantification_ant.json + bsi_quantification_post.json', 'processing_mode': 'dual_view', 'is_v2': True, 'source_location': 'Study date folder'}
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 0.21053710230980946
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 0.27624338564022954
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Processing mode: dual_view
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Session code: NBL
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\5001_5.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\5001_5.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250515
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 5001
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 5001, Study: 20250515
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 5001, Study: 20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_ant.json (exists: False)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_post.json (exists: False)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] No BSI files in study_date folder, trying patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Using latest study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_ant.json (exists: False)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_post.json (exists: False)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Could not determine patient folder with BSI files
+2025-09-10 11:26:34 - [INFO] - [MainWindow]   BSI integration completed for 5 scans
+2025-09-10 11:26:34 - [INFO] - [MainWindow DEBUG] First scan meta keys: ['patient_id', 'patient_name', 'patient_birth_date', 'patient_sex', 'patient_weight', 'patient_size', 'patient_age', 'study_date', 'series_date', 'study_time', 'modality', 'series_description', 'study_instance_uid', 'series_instance_uid', 'has_bsi', 'bsi_anterior', 'bsi_posterior', 'bsi_combined', 'bsi_processing_mode', 'bsi_file_source']
+2025-09-10 11:26:34 - [INFO] - [MainWindow DEBUG] has_bsi: True
+2025-09-10 11:26:34 - [INFO] - [MainWindow DEBUG] bsi_anterior: 0.16661840327526528
+2025-09-10 11:26:34 - [INFO] - [MainWindow DEBUG] bsi_posterior: 0.40623840499683184
+2025-09-10 11:26:34 - [INFO] - [DEBUG] display_timeline called with 5 scan(s), focusing on index = 0
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Session code: NBL
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\5001_1.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\5001_1.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250115
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 5001
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 5001, Study: 20250115
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 5001, Study: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_1.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_2.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_3.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_4.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_5.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - temp_classification (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20250115', 'anterior_bsi': 0.16661840327526528, 'posterior_bsi': 0.40623840499683184, 'combined_bsi': 0.28642840413604853, 'bsi_score': 0.28642840413604853, 'file_source': 'bsi_quantification_ant.json + bsi_quantification_post.json', 'processing_mode': 'dual_view', 'is_v2': True, 'source_location': 'Study date folder'}
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 0.16661840327526528
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 0.40623840499683184
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Processing mode: dual_view
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Session code: NBL
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214\5001_2.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214\5001_2.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250214
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 5001
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 5001, Study: 20250214
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 5001, Study: 20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_1.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_2.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_3.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_4.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_5.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - temp_classification (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20250214', 'anterior_bsi': 1.04047024442087, 'posterior_bsi': 1.0918650364531683, 'combined_bsi': 1.066167640437019, 'bsi_score': 1.066167640437019, 'file_source': 'bsi_quantification_ant.json + bsi_quantification_post.json', 'processing_mode': 'dual_view', 'is_v2': True, 'source_location': 'Study date folder'}
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 1.04047024442087
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 1.0918650364531683
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Processing mode: dual_view
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Session code: NBL
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316\5001_3.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316\5001_3.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250316
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 5001
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 5001, Study: 20250316
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 5001, Study: 20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_1.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_2.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_3.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_4.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_5.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - temp_classification (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20250316', 'anterior_bsi': 1.5921247263429408, 'posterior_bsi': 2.212410433687333, 'combined_bsi': 1.902267580015137, 'bsi_score': 1.902267580015137, 'file_source': 'bsi_quantification_ant.json + bsi_quantification_post.json', 'processing_mode': 'dual_view', 'is_v2': True, 'source_location': 'Study date folder'}
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 1.5921247263429408
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 2.212410433687333
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Processing mode: dual_view
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Session code: NBL
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415\5001_4.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415\5001_4.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250415
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 5001
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 5001, Study: 20250415
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 5001, Study: 20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_1.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_2.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_3.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_4.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_5.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - temp_classification (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20250415', 'anterior_bsi': 0.21053710230980946, 'posterior_bsi': 0.27624338564022954, 'combined_bsi': 0.24339024397501952, 'bsi_score': 0.24339024397501952, 'file_source': 'bsi_quantification_ant.json + bsi_quantification_post.json', 'processing_mode': 'dual_view', 'is_v2': True, 'source_location': 'Study date folder'}
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 0.21053710230980946
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 0.27624338564022954
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION]   Processing mode: dual_view
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Session code: NBL
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\5001_5.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\5001_5.dcm
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250515
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 5001
+2025-09-10 11:26:34 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 5001, Study: 20250515
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 5001, Study: 20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_ant.json (exists: False)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_post.json (exists: False)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] No BSI files in study_date folder, trying patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Using latest study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_ant.json (exists: False)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250515\bsi_quantification_post.json (exists: False)
+2025-09-10 11:26:34 - [INFO] - [BSI META INTEGRATION] Could not determine patient folder with BSI files
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: 0
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Anterior
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-10 11:26:34 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\5001_1.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Current view: Anterior
+2025-09-10 11:26:34 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-10 11:26:34 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-10 11:26:34 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-10 11:26:34 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-10 11:26:34 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Path extraction: session=NBL, patient=5001, study_date=20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Extracted patient info - ID: 5001, Session: NBL
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\5001_1.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Study date: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Patient ID: 5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Session code: NBL
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loading original image for Anterior
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\ant_original.png
+2025-09-10 11:26:34 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 11:26:34 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-10 11:26:34 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-10 11:26:34 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-10 11:26:34 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loading segmentation layer for Anterior
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\ant_segm.png
+2025-09-10 11:26:34 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 11:26:34 - [DEBUG] - STREAM b'IDAT' 41 6383
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\ant_segm.png
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loading hotspot layer for Anterior
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\ant_hotspot_classification.png
+2025-09-10 11:26:34 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 11:26:34 - [DEBUG] - STREAM b'IDAT' 41 1127
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Loaded hotspot layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\ant_hotspot_classification.png
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Hotspot type: ORIGINAL
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loading bbox layer for Anterior
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\ant_hotspot_classification.xml
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loading CLASSIFICATION XML for bbox: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\ant_hotspot_classification.xml
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (156,480) -> (188,511)
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (192,149) -> (214,171)
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Created CLASSIFICATION bbox visualization with 2 boxes
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Loaded bbox layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\ant_hotspot_classification.xml
+2025-09-10 11:26:34 - [INFO] - [DEBUG] BBox XML type: ORIGINAL
+2025-09-10 11:26:34 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Loaded 4 layers for Anterior: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Posterior
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-10 11:26:34 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\5001_1.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Current view: Posterior
+2025-09-10 11:26:34 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-10 11:26:34 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-10 11:26:34 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-10 11:26:34 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-10 11:26:34 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Path extraction: session=NBL, patient=5001, study_date=20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Extracted patient info - ID: 5001, Session: NBL
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\5001_1.dcm
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Study date: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Patient ID: 5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Session code: NBL
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loading original image for Posterior
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\post_original.png
+2025-09-10 11:26:34 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 11:26:34 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-10 11:26:34 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-10 11:26:34 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-10 11:26:34 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loading segmentation layer for Posterior
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\post_segm.png
+2025-09-10 11:26:34 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 11:26:34 - [DEBUG] - STREAM b'IDAT' 41 6139
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\post_segm.png
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loading hotspot layer for Posterior
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\post_hotspot_classification.png
+2025-09-10 11:26:34 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 11:26:34 - [DEBUG] - STREAM b'IDAT' 41 1317
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Loaded hotspot layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\post_hotspot_classification.png
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Hotspot type: ORIGINAL
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loading bbox layer for Posterior
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\post_hotspot_classification.xml
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Loading CLASSIFICATION XML for bbox: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\post_hotspot_classification.xml
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (44,482) -> (95,537)
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (111,344) -> (132,365)
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (96,51) -> (117,75)
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (54,483) -> (91,527)
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Created CLASSIFICATION bbox visualization with 4 boxes
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Loaded bbox layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\post_hotspot_classification.xml
+2025-09-10 11:26:34 - [INFO] - [DEBUG] BBox XML type: ORIGINAL
+2025-09-10 11:26:34 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Loaded 4 layers for Posterior: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-10 11:26:34 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-10 11:26:34 - [INFO] - [SMART UPDATE] State updated - Type: full
+2025-09-10 11:26:34 - [INFO] - [MainWindow]   Timeline updated with BSI integration
+2025-09-10 11:26:34 - [INFO] - 
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN GANTENG] ===================
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] Loading BSI data for selected scan
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] Session code: NBL
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] Scan data keys: ['meta', 'frames', 'path', 'workflow_files']
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\5001_1.dcm
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] DICOM exists: True
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] Initial patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] Initial patient folder exists: True
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] Initial patient folder name: 20250115
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] Study date from DICOM: 20250115
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] Detected study_date folder structure
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] Corrected patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] Corrected patient ID: 5001
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] Corrected study date: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] BSI files in study_date folder:
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN]   Anterior: True
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN]   Posterior: True
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] Found BSI files in study_date folder, using it
+2025-09-10 11:26:34 - [INFO] - [BSI CANVAS] Using patient folder for trend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Using patient folder directly: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250214
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250316
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250415
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI] Found study_date folder: 20250515
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250115 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250214 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250316 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250415 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 20250515 (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_1.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_2.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_3.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_4.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - 5001_5.dcm (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_original.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI]     - temp_classification (DIR)
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI CANVAS] Processing date: 20250115, mode: dual_view
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI CANVAS] Added: Ant=0.16661840327526528 Post=0.40623840499683184
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI CANVAS] Processing date: 20250214, mode: dual_view
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI CANVAS] Added: Ant=1.04047024442087 Post=1.0918650364531683
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI CANVAS] Processing date: 20250316, mode: dual_view
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI CANVAS] Added: Ant=1.5921247263429408 Post=2.212410433687333
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI CANVAS] Processing date: 20250415, mode: dual_view
+2025-09-10 11:26:34 - [INFO] - [DEBUG BSI CANVAS] Added: Ant=0.21053710230980946 Post=0.27624338564022954
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES] Generated paths:
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\bsi_quantification_ant.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\bsi_quantification_post.json (exists: True)
+2025-09-10 11:26:34 - [INFO] - 📖 [DEBUG RESULTS] Combined BSI: 0.29
+2025-09-10 11:26:34 - [INFO] - 📖 [DEBUG RESULTS]   Successfully loaded V1.2 results
+2025-09-10 11:26:34 - [INFO] - 🏠 [DEBUG MAIN] BSI panel load result: True
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Path extraction: session=NBL, patient=5001, study_date=20250115
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Extracted patient info - ID: 5001, Session: NBL
+2025-09-10 11:26:34 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\NBL\5001\20250115\5001_1.dcm
+2025-09-10 11:26:34 - [INFO] - [EDIT BUTTONS] Has scan: True, Has seg data: True, Can edit hotspot: True
+2025-09-10 11:26:34 - [INFO] - [EDIT BUTTONS] Seg button enabled: True, Hotspot button enabled: True
+2025-09-10 11:31:01 - [INFO] - [DEBUG] Membersihkan sumber daya di MainWindow (SPECT)...
+2025-09-10 11:31:01 - [INFO] - [DEBUG] Menutup process pool...
+2025-09-10 11:31:01 - [ERROR] - Traceback (most recent call last):
+2025-09-10 11:31:01 - [ERROR] - File "F:\projek dosen\prototype riset\hotspot-analyzer\features\spect_viewer\gui\main_window_spect.py", line 1308, in closeEvent
+2025-09-10 11:31:01 - [ERROR] - if self._pool is not None:
+2025-09-10 11:31:01 - [ERROR] - ^
+2025-09-10 11:31:01 - [ERROR] - ^
+2025-09-10 11:31:01 - [ERROR] - ^
+2025-09-10 11:31:01 - [ERROR] - ^
+2025-09-10 11:31:01 - [ERROR] - ^
+2025-09-10 11:31:01 - [ERROR] - ^
+2025-09-10 11:31:01 - [ERROR] - ^
+2025-09-10 11:31:01 - [ERROR] - ^
+2025-09-10 11:31:01 - [ERROR] - ^
+2025-09-10 11:31:01 - [ERROR] - ^
+2025-09-10 11:31:01 - [ERROR] - AttributeError
+2025-09-10 11:31:01 - [ERROR] - :
+2025-09-10 11:31:01 - [ERROR] - 'MainWindowSpect' object has no attribute '_pool'
+2025-09-10 11:31:01 - [ERROR] - . Did you mean: '
+2025-09-10 11:31:01 - [ERROR] - pool
+2025-09-10 11:31:01 - [ERROR] - '?
+2025-09-10 11:31:01 - [INFO] - [DEBUG] Application exited with code: 0
+2025-09-10 11:31:01 - [INFO] - [DEBUG] Application terminated normally

@@ -1,0 +1,161 @@
+2025-09-14 18:09:43 - [INFO] - Logger berhasil dikonfigurasi. Memulai aplikasi...
+2025-09-14 18:09:43 - [INFO] - Running in development mode
+2025-09-14 18:09:43 - [INFO] - [DEBUG] Starting TELPLASTINA...
+2025-09-14 18:09:43 - [INFO] - [UI] Application icon loaded: assets\icon.ico
+2025-09-14 18:09:43 - [INFO] - [UI] Poppins font applied
+2025-09-14 18:09:43 - [INFO] - [DEBUG] TELPLASTINA application created and configured
+2025-09-14 18:09:43 - [INFO] - [DEBUG] Starting session with 100ms delay...
+2025-09-14 18:09:43 - [INFO] - [DEBUG] === Starting new session ===
+2025-09-14 18:09:43 - [INFO] - [DEBUG] Development mode - creating dialog immediately
+2025-09-14 18:09:43 - [INFO] - [DEBUG] Creating doctor selection dialog (attempt 1/3)...
+2025-09-14 18:09:44 - [INFO] - [PATHS] Found YOLO model at: F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\models\model_detection_hs_yolov8.pt
+2025-09-14 18:09:44 - [INFO] - [DEBUG] Dialog class imported successfully
+2025-09-14 18:09:45 - [INFO] - [DEBUG] Dialog instance created successfully
+2025-09-14 18:09:45 - [INFO] - [DEBUG] Dialog window properties set
+2025-09-14 18:09:45 - [INFO] - [DEBUG] Showing dialog to user...
+2025-09-14 18:09:45 - [INFO] - [DEBUG] Dialog shown successfully
+2025-09-14 18:09:45 - [INFO] - [DEBUG] Waiting for user input...
+2025-09-14 18:09:48 - [INFO] - [SESSION] Created session: HAHH_Planar_20250914_180948
+2025-09-14 18:09:48 - [INFO] - [SESSION] Created: HAHH_Planar_20250914_180948
+2025-09-14 18:09:48 - [INFO] - [DEBUG] Dialog execution completed with result: 1
+2025-09-14 18:09:48 - [INFO] - [DEBUG] Quick close detected: False
+2025-09-14 18:09:48 - [INFO] - [DEBUG] Session selected - Code: HAHH, Modality: Planar
+2025-09-14 18:09:48 - [INFO] - [DEBUG] Data directory confirmed: data
+2025-09-14 18:09:48 - [INFO] - [DEBUG] Starting PLANAR session with code: HAHH
+2025-09-14 18:09:48 - [INFO] - [DEBUG] Creating main window for session: HAHH
+2025-09-14 18:09:52 - [INFO] - [YOLO] Module loaded - model will be loaded on-demand
+2025-09-14 18:09:52 - [INFO] - [DEBUG] Timeline keyboard shortcuts enabled: Ctrl+/- for zoom, Ctrl+0 for reset
+2025-09-14 18:09:53 - [INFO] - [DEBUG] set_active_view called with 'Anterior', but is now ignored.
+2025-09-14 18:09:53 - [INFO] - Ditemukan 45 file DICOM di 'F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR'
+2025-09-14 18:09:53 - [INFO] - Ditemukan 9 session, 33 pasien (total 45 file DICOM).
+2025-09-14 18:09:53 - [INFO] -     ALL: 1 pasien, 1 file
+2025-09-14 18:09:53 - [INFO] -     ATL: 4 pasien, 4 file
+2025-09-14 18:09:53 - [INFO] -     HAH: 14 pasien, 14 file
+2025-09-14 18:09:53 - [INFO] -     HAHH: 1 pasien, 1 file
+2025-09-14 18:09:53 - [INFO] -     HEHE: 2 pasien, 2 file
+2025-09-14 18:09:53 - [INFO] -     NBL: 1 pasien, 5 file
+2025-09-14 18:09:53 - [INFO] -     NSY: 4 pasien, 8 file
+2025-09-14 18:09:53 - [INFO] -     PVSA: 2 pasien, 2 file
+2025-09-14 18:09:53 - [INFO] -     WKW: 4 pasien, 8 file
+2025-09-14 18:09:53 - [INFO] - [DEBUG] display_timeline called with 0 scan(s), focusing on index = -1
+2025-09-14 18:09:53 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 18:09:53 - [INFO] - [BSI SIDE PANEL] Clearing data...
+2025-09-14 18:09:53 - [INFO] - [DEBUG] Main window created successfully for session: HAHH
+2025-09-14 18:09:53 - [INFO] - [DEBUG] Main window created successfully
+2025-09-14 18:09:53 - [INFO] - [DEBUG] Logout signal connected
+2025-09-14 18:09:53 - [INFO] - [DEBUG] Main window displayed
+2025-09-14 18:09:53 - [INFO] - [DEBUG] Active windows count: 1
+2025-09-14 18:09:54 - [INFO] - [DEBUG] set_invert_original called: True (current: False)
+2025-09-14 18:09:54 - [INFO] - [CACHE CLEAR] Cleared 0 layer cache entries
+2025-09-14 18:09:54 - [INFO] - [CACHE CLEAR] Cleared zoom cache (0 labels)
+2025-09-14 18:09:54 - [INFO] - [DEBUG] Cleared layer cache due to invert change
+2025-09-14 18:09:54 - [INFO] - [DEBUG] No scans loaded, rebuild skipped
+2025-09-14 18:10:02 - [INFO] - [ADD_FILES] Mulai analisis 2 file
+2025-09-14 18:10:02 - [INFO] - [ADD_FILES] fungsi duplicate-check OK
+2025-09-14 18:10:02 - [INFO] - [ADD_FILES] 1/2 ANT001_DS.dcm → PID=0001158915 SD=20241204
+2025-09-14 18:10:02 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=0001158915, study_date=20241204
+2025-09-14 18:10:02 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\0001158915\20241204
+2025-09-14 18:10:02 - [INFO] -   [CHECK_DICOM_EXISTS] Found 1 DICOM files
+2025-09-14 18:10:02 - [INFO] -   [CHECK_DICOM_EXISTS] Found 7 processed files
+2025-09-14 18:10:02 - [INFO] -   [CHECK_DICOM_EXISTS] Final result: True
+2025-09-14 18:10:02 - [INFO] - [ADD_FILES]   -> ALREADY ANALYZED (card abu), tidak ikut proses
+2025-09-14 18:10:02 - [INFO] - [ADD_FILES] 2/2 ANT002_DS.dcm → PID=0001158915 SD=20241204
+2025-09-14 18:10:02 - [INFO] - [ADD_FILES]   -> redundant in current list, tidak dimasukkan
+2025-09-14 18:10:02 - [INFO] - [ADD_FILES] • Marked as already analyzed: ANT001_DS.dcm (PID=0001158915, SD=20241204)
+2025-09-14 18:10:02 - [INFO] - [ADD_FILES] • Skipped redundant selection: ANT002_DS.dcm (PID=0001158915, SD=20241204)
+2025-09-14 18:10:02 - [INFO] - [ADD_FILES] NEW added: 0, already analyzed: 1, redundant skipped: 1, errors: 0
+2025-09-14 18:10:13 - [INFO] - [ADD_FOLDERS] Found 2 DICOM files from 1 folders
+2025-09-14 18:10:13 - [INFO] - [ADD_FOLDERS] fungsi duplicate-check OK
+2025-09-14 18:10:13 - [INFO] - [ADD_FOLDERS] 1/2 ANT001_DS.dcm → PID=0001158915 SD=20241204
+2025-09-14 18:10:13 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:13 - [INFO] - [ADD_FOLDERS] 2/2 ANT002_DS.dcm → PID=0001158915 SD=20241204
+2025-09-14 18:10:13 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:13 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ANT001_DS.dcm (PID=0001158915, SD=20241204)
+2025-09-14 18:10:13 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ANT002_DS.dcm (PID=0001158915, SD=20241204)
+2025-09-14 18:10:13 - [INFO] - [ADD_FOLDERS] NEW added: 0, already analyzed: 0, redundant skipped: 2, errors: 0
+2025-09-14 18:10:15 - [INFO] - [REMOVE] Removed ANT001_DS.dcm dari import list
+2025-09-14 18:10:18 - [INFO] - [ADD_FOLDERS] Found 2 DICOM files from 1 folders
+2025-09-14 18:10:18 - [INFO] - [ADD_FOLDERS] fungsi duplicate-check OK
+2025-09-14 18:10:18 - [INFO] - [ADD_FOLDERS] 1/2 ANT001_DS.dcm → PID=0001158915 SD=20241204
+2025-09-14 18:10:18 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=0001158915, study_date=20241204
+2025-09-14 18:10:18 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\0001158915\20241204
+2025-09-14 18:10:18 - [INFO] -   [CHECK_DICOM_EXISTS] Found 1 DICOM files
+2025-09-14 18:10:18 - [INFO] -   [CHECK_DICOM_EXISTS] Found 7 processed files
+2025-09-14 18:10:18 - [INFO] -   [CHECK_DICOM_EXISTS] Final result: True
+2025-09-14 18:10:18 - [INFO] - [ADD_FOLDERS]   -> ALREADY ANALYZED (card abu), tidak ikut proses
+2025-09-14 18:10:18 - [INFO] - [ADD_FOLDERS] 2/2 ANT002_DS.dcm → PID=0001158915 SD=20241204
+2025-09-14 18:10:18 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:18 - [INFO] - [ADD_FOLDERS] • Marked as already analyzed (folder): ANT001_DS.dcm (PID=0001158915, SD=20241204)
+2025-09-14 18:10:18 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ANT002_DS.dcm (PID=0001158915, SD=20241204)
+2025-09-14 18:10:18 - [INFO] - [ADD_FOLDERS] NEW added: 0, already analyzed: 1, redundant skipped: 1, errors: 0
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] Found 13 DICOM files from 1 folders
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] fungsi duplicate-check OK
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] 1/13 ANT001_DS.dcm → PID=0001344970 SD=20230105
+2025-09-14 18:10:29 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=0001344970, study_date=20230105
+2025-09-14 18:10:29 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\0001344970\20230105
+2025-09-14 18:10:29 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS]   -> NEW, dimasukkan
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] 2/13 ANT002_DS.dcm → PID=0001344970 SD=20230105
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] 3/13 ANT_P20001_DS.dcm → PID=0001344970 SD=20230105
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] 4/13 ANT_P50001_DS.dcm → PID=0001344970 SD=20230105
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] 5/13 ANT_P60001_DS.dcm → PID=0001344970 SD=20230105
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] 6/13 ANT_P80001_DS.dcm → PID=0001344970 SD=20230105
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] 7/13 ANT_P80002_DS.dcm → PID=0001344970 SD=20230105
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] 8/13 ANT_P90001_DS.dcm → PID=0001344970 SD=20230105
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] 9/13 ATTMAP001_DS.dcm → PID=0001344970 SD=20230105
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] 10/13 ATTMAP002_DS.dcm → PID=0001344970 SD=20230105
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] 11/13 ATTMAP003_DS.dcm → PID=0001344970 SD=20230105
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] 12/13 BoneCompareWB_1001_SC.dcm → PID=0001344970 SD=20230105
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] 13/13 BoneCompareWB_2001_SC.dcm → PID=0001344970 SD=20230105
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ANT002_DS.dcm (PID=0001344970, SD=20230105)
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ANT_P20001_DS.dcm (PID=0001344970, SD=20230105)
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ANT_P50001_DS.dcm (PID=0001344970, SD=20230105)
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ANT_P60001_DS.dcm (PID=0001344970, SD=20230105)
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ANT_P80001_DS.dcm (PID=0001344970, SD=20230105)
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ANT_P80002_DS.dcm (PID=0001344970, SD=20230105)
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ANT_P90001_DS.dcm (PID=0001344970, SD=20230105)
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ATTMAP001_DS.dcm (PID=0001344970, SD=20230105)
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ATTMAP002_DS.dcm (PID=0001344970, SD=20230105)
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ATTMAP003_DS.dcm (PID=0001344970, SD=20230105)
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): BoneCompareWB_1001_SC.dcm (PID=0001344970, SD=20230105)
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): BoneCompareWB_2001_SC.dcm (PID=0001344970, SD=20230105)
+2025-09-14 18:10:29 - [INFO] - [ADD_FOLDERS] NEW added: 1, already analyzed: 0, redundant skipped: 12, errors: 0
+2025-09-14 18:10:29 - [INFO] -   DEBUG: Starting quick detection for 1 files...
+2025-09-14 18:10:29 - [INFO] -   DEBUG: Processing detection result for ANT001_DS.dcm
+2025-09-14 18:10:29 - [INFO] - 📊 Detection Analysis Complete:
+2025-09-14 18:10:29 - [INFO] -      1 files fully auto-tagged
+2025-09-14 18:10:29 - [INFO] - 🎉 All files auto-tagged! You can proceed directly to import.
+2025-09-14 18:10:29 - [INFO] - Next step: Configure Views (or proceed if all auto-tagged)
+2025-09-14 18:10:29 - [INFO] -   ANT001_DS.dcm: Fully auto-tagged (2 frames)
+2025-09-14 18:10:38 - [INFO] - [ADD_FOLDERS] Found 2 DICOM files from 1 folders
+2025-09-14 18:10:38 - [INFO] - [ADD_FOLDERS] fungsi duplicate-check OK
+2025-09-14 18:10:38 - [INFO] - [ADD_FOLDERS] 1/2 ANT001_DS.dcm → PID=0001472962 SD=20250205
+2025-09-14 18:10:38 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=0001472962, study_date=20250205
+2025-09-14 18:10:38 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\0001472962\20250205
+2025-09-14 18:10:38 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-14 18:10:38 - [INFO] - [ADD_FOLDERS]   -> NEW, dimasukkan
+2025-09-14 18:10:38 - [INFO] - [ADD_FOLDERS] 2/2 ANT002_DS.dcm → PID=0001472962 SD=20250205
+2025-09-14 18:10:38 - [INFO] - [ADD_FOLDERS]   -> redundant in current list, skip
+2025-09-14 18:10:38 - [INFO] - [ADD_FOLDERS] • Skipped redundant (folder): ANT002_DS.dcm (PID=0001472962, SD=20250205)
+2025-09-14 18:10:38 - [INFO] - [ADD_FOLDERS] NEW added: 1, already analyzed: 0, redundant skipped: 1, errors: 0
+2025-09-14 18:10:38 - [INFO] -   DEBUG: Starting quick detection for 1 files...
+2025-09-14 18:10:38 - [INFO] -   DEBUG: Processing detection result for ANT001_DS.dcm
+2025-09-14 18:10:38 - [INFO] - 📊 Detection Analysis Complete:
+2025-09-14 18:10:38 - [INFO] -      2 files fully auto-tagged
+2025-09-14 18:10:38 - [INFO] - 🎉 All files auto-tagged! You can proceed directly to import.
+2025-09-14 18:10:38 - [INFO] - Next step: Configure Views (or proceed if all auto-tagged)
+2025-09-14 18:10:38 - [INFO] -   ANT001_DS.dcm: Fully auto-tagged (2 frames)
+2025-09-14 18:12:11 - [INFO] - [DEBUG] Application exited with code: 0
+2025-09-14 18:12:11 - [INFO] - Aplikasi terminated normally

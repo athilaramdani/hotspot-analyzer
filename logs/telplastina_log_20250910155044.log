@@ -1,0 +1,122 @@
+2025-09-10 15:50:44 - [INFO] - Logger berhasil dikonfigurasi. Memulai aplikasi...
+2025-09-10 15:50:44 - [INFO] - Running in development mode
+2025-09-10 15:51:26 - [INFO] -   [DUPLICATE DEBUG] Starting duplicate check for 1 selected files
+2025-09-10 15:51:26 - [INFO] -   [DUPLICATE DEBUG] Session code: PVSA
+2025-09-10 15:51:26 - [INFO] -    1. ANT001_DS.dcm
+2025-09-10 15:51:26 - [INFO] -   [DUPLICATE DEBUG]   Successfully imported duplicate checking functions
+2025-09-10 15:51:26 - [INFO] -   [MANUAL TEST] Testing duplicate check function...
+2025-09-10 15:51:26 - [INFO] -   [MANUAL TEST] check_dicom_exists('ATL', '0001158915', '20241204') = True
+2025-09-10 15:51:26 - [INFO] -   [MANUAL TEST] Existing info: {'exists': True, 'study_date_path': WindowsPath('F:/projek dosen/prototype riset/hotspot-analyzer/data/PLANAR/ATL/0001158915/20241204'), 'dicom_count': 1, 'dicom_files': ['ANT001_DS.dcm'], 'has_processed_files': True, 'last_modified': 1755090376.0898347}
+2025-09-10 15:51:26 - [INFO] -   [DUPLICATE DEBUG] Starting individual file analysis...
+2025-09-10 15:51:26 - [INFO] -   [DUPLICATE DEBUG] Analyzing file 1/1: ANT001_DS.dcm
+2025-09-10 15:51:26 - [INFO] -    📄 Reading DICOM metadata...
+2025-09-10 15:51:26 - [INFO] -    📋 Patient ID: 0001158915
+2025-09-10 15:51:26 - [INFO] -    📅 Study Date: 20241204
+2025-09-10 15:51:26 - [INFO] -    🔑 Combination Key: ('0001158915', '20241204')
+2025-09-10 15:51:26 - [INFO] -      Checking against existing data in session PVSA...
+2025-09-10 15:51:26 - [INFO] -      check_dicom_exists result: False
+2025-09-10 15:51:26 - [INFO] -      No duplicate found in system
+2025-09-10 15:51:26 - [INFO] -    ➕ Adding as NEW file
+2025-09-10 15:51:26 - [INFO] -   [DUPLICATE DEBUG] Analysis complete:
+2025-09-10 15:51:26 - [INFO] -      New files: 1
+2025-09-10 15:51:26 - [INFO] -    🔄 System duplicates: 0
+2025-09-10 15:51:26 - [INFO] -    🔄 Internal duplicates: 0
+2025-09-10 15:51:26 - [INFO] -     Errors: 0
+2025-09-10 15:51:26 - [INFO] -   Selected 1 file(s) for import:
+2025-09-10 15:51:26 - [INFO] -      1 new file(s) will be imported
+2025-09-10 15:51:26 - [INFO] -   DEBUG: About to add 1 new files to selected_files list
+2025-09-10 15:51:26 - [INFO] -    ➕ Added to processing queue: ANT001_DS.dcm
+2025-09-10 15:51:26 - [INFO] -   DEBUG: About to add 0 duplicate files to UI (display only)
+2025-09-10 15:51:26 - [INFO] -   DEBUG: Final counts - New files: 1, Duplicate files shown: 0
+2025-09-10 15:51:26 - [INFO] -   DEBUG: selected_files now contains 1 files
+2025-09-10 15:51:26 - [INFO] - ➕ Successfully added 1 new file(s) to import queue
+2025-09-10 15:51:26 - [INFO] -   Starting instant view detection analysis for new files...
+2025-09-10 15:51:26 - [INFO] - 📊 Detection Analysis Complete:
+2025-09-10 15:51:26 - [INFO] -      1 files fully auto-tagged
+2025-09-10 15:51:26 - [INFO] - 🎉 All files auto-tagged! You can proceed directly to import.
+2025-09-10 15:51:26 - [INFO] - Next step: Configure Views (or proceed if all auto-tagged)
+2025-09-10 15:51:26 - [INFO] -   ANT001_DS.dcm: Fully auto-tagged (2 frames)
+2025-09-10 15:51:27 - [INFO] -   Opening enhanced view configuration dialog...
+2025-09-10 15:51:27 - [INFO] -   DEBUG: Opening view configuration with 1 files:
+2025-09-10 15:51:27 - [INFO] -    1. ANT001_DS.dcm
+2025-09-10 15:51:27 - [INFO] -      No duplicates found in selected_files
+2025-09-10 15:51:28 - [INFO] -   View assignments and background selections configured
+2025-09-10 15:51:28 - [INFO] - Files with assignments: 1
+2025-09-10 15:51:28 - [INFO] - Files with background selections: 1
+2025-09-10 15:51:29 - [INFO] -   DEBUG: Starting duplicate filter check...
+2025-09-10 15:51:29 - [INFO] -   DEBUG: view_assignments contains 1 files
+2025-09-10 15:51:29 - [INFO] -   DEBUG: file_list contains 1 items
+2025-09-10 15:51:29 - [INFO] -   DEBUG: Checking file: ANT001_DS.dcm
+2025-09-10 15:51:29 - [INFO] -    📍 Found in UI list at position 0
+2025-09-10 15:51:29 - [INFO] -    🏷️ Duplicate flag: None
+2025-09-10 15:51:29 - [INFO] -      NOT marked as duplicate - will process
+2025-09-10 15:51:29 - [INFO] -    ➕ Added to processing queue
+2025-09-10 15:51:29 - [INFO] -   DEBUG: Filter results:
+2025-09-10 15:51:29 - [INFO] -    Original files in view_assignments: 1
+2025-09-10 15:51:29 - [INFO] -    Files to actually process: 1
+2025-09-10 15:51:29 - [INFO] -    Skipped duplicates: 0
+2025-09-10 15:51:29 - [INFO] -   No duplicates found in processing queue
+2025-09-10 15:51:29 - [INFO] - Starting enhanced import process...
+2025-09-10 15:51:29 - [INFO] - Processing 1 files with view assignments
+2025-09-10 15:51:29 - [INFO] - Session: PVSA
+2025-09-10 15:51:29 - [INFO] - Target: data/PLANAR/PVSA/[patient_id]/
+2025-09-10 15:51:29 - [INFO] - Configuration: All 1 files auto-tagged
+2025-09-10 15:51:29 - [INFO] - Enforced naming: Anterior/Posterior views only
+2025-09-10 15:51:34 - [DEBUG] - Loaded backend agg version v2.2.
+2025-09-10 15:51:42 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 15:51:42 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-10 15:51:43 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 15:51:43 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-10 15:51:43 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 15:51:43 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-10 15:51:43 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 15:51:43 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-10 15:51:43 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 15:51:43 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-10 15:51:43 - [INFO] - No valid config parameter, using defaults: {'minimumROIDimensions': 2, 'minimumROISize': None, 'normalize': False, 'normalizeScale': 1, 'removeOutliers': None, 'resampledPixelSpacing': None, 'interpolator': 'sitkBSpline', 'preCrop': False, 'padDistance': 5, 'distances': [1], 'force2D': False, 'force2Ddimension': 0, 'resegmentRange': None, 'label': 1, 'additionalInfo': True}
+2025-09-10 15:51:43 - [INFO] - Enabled image types: {'Original': {}}
+2025-09-10 15:51:43 - [INFO] - Enabled features: {'firstorder': [], 'glcm': [], 'gldm': [], 'glrlm': [], 'glszm': [], 'ngtdm': [], 'shape': []}
+2025-09-10 15:51:43 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 15:51:43 - [DEBUG] - STREAM b'IDAT' 41 5010
+2025-09-10 15:51:44 - [INFO] - Calculating features with label: 1
+2025-09-10 15:51:44 - [INFO] - Loading image and mask
+2025-09-10 15:51:44 - [WARNING] - Shape features are only available 3D input (for 2D input, use shape2D). Found 2D input
+2025-09-10 15:51:44 - [INFO] - Computing shape2D
+2025-09-10 15:51:44 - [INFO] - Adding image type "Original" with custom settings: {}
+2025-09-10 15:51:44 - [INFO] - Calculating features for original image
+2025-09-10 15:51:44 - [INFO] - Computing firstorder
+2025-09-10 15:51:44 - [INFO] - Computing glcm
+2025-09-10 15:51:44 - [WARNING] - GLCM is symmetrical, therefore Sum Average = 2 * Joint Average, only 1 needs to be calculated
+2025-09-10 15:51:44 - [INFO] - Computing gldm
+2025-09-10 15:51:44 - [INFO] - Computing glrlm
+2025-09-10 15:51:44 - [INFO] - Computing glszm
+2025-09-10 15:51:44 - [INFO] - Computing ngtdm
+2025-09-10 15:51:44 - [INFO] - Calculating features with label: 1
+2025-09-10 15:51:44 - [INFO] - Loading image and mask
+2025-09-10 15:51:44 - [WARNING] - Shape features are only available 3D input (for 2D input, use shape2D). Found 2D input
+2025-09-10 15:51:44 - [INFO] - Computing shape2D
+2025-09-10 15:51:44 - [INFO] - Adding image type "Original" with custom settings: {}
+2025-09-10 15:51:44 - [INFO] - Calculating features for original image
+2025-09-10 15:51:44 - [INFO] - Computing firstorder
+2025-09-10 15:51:44 - [INFO] - Computing glcm
+2025-09-10 15:51:44 - [WARNING] - GLCM is symmetrical, therefore Sum Average = 2 * Joint Average, only 1 needs to be calculated
+2025-09-10 15:51:44 - [INFO] - Computing gldm
+2025-09-10 15:51:44 - [INFO] - Computing glrlm
+2025-09-10 15:51:44 - [INFO] - Computing glszm
+2025-09-10 15:51:44 - [INFO] - Computing ngtdm
+2025-09-10 15:51:44 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 15:51:44 - [DEBUG] - STREAM b'IDAT' 41 4764
+2025-09-10 15:51:45 - [INFO] - 🎉 Enhanced import workflow completed!
+2025-09-10 15:51:45 - [INFO] - All files processed with proper Anterior/Posterior naming
+2025-09-10 15:51:45 - [INFO] -   Successfully processed: All 1 auto-tagged files
+2025-09-10 15:51:45 - [INFO] - Rescanning folder...
+2025-09-10 15:51:51 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 15:51:51 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-10 15:51:51 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 15:51:51 - [DEBUG] - STREAM b'IDAT' 41 5010
+2025-09-10 15:51:51 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 15:51:51 - [DEBUG] - STREAM b'IDAT' 41 955
+2025-09-10 15:51:51 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 15:51:51 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-10 15:51:51 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-10 15:51:51 - [DEBUG] - STREAM b'IDAT' 41 4764

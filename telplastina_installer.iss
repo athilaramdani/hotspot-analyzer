@@ -6,7 +6,7 @@
 ; ==== APP METADATA ====
 #define MyAppName       "Telplastina"
 #define MyAppExeName    "telplastina.exe"
-#define MyAppVersion    "1.7.5"
+#define MyAppVersion    "1.7.7"
 #define MyAppPublisher  "Telplastina Team"
 #define MyAppURL        "https://example.com"   ; optional
 

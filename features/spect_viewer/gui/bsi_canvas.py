@@ -211,7 +211,7 @@ class BSICanvas(FigureCanvas):
 
             ax.set_xticks(dates)
             ax.set_xticklabels(date_labels_for_xaxis, rotation=0, ha='center', fontsize=8)
-            ax.set_title("BSI Score Trend", fontsize=12, fontweight='bold')
+            # ax.set_title("BSI Score Trend", fontsize=12, fontweight='bold')
             ax.set_xlabel("")
             ax.set_ylabel("BSI Score (%)", fontsize=10)
             ax.grid(True, linestyle='--', alpha=0.6)

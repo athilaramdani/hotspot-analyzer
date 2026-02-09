@@ -1,0 +1,465 @@
+2025-09-14 19:28:06 - [INFO] - Logger berhasil dikonfigurasi. Memulai aplikasi...
+2025-09-14 19:28:06 - [INFO] - Running in development mode
+2025-09-14 19:28:06 - [INFO] - [DEBUG] Starting TELPLASTINA...
+2025-09-14 19:28:06 - [INFO] - [UI] Application icon loaded: assets\icon.ico
+2025-09-14 19:28:06 - [INFO] - [UI] Poppins font applied
+2025-09-14 19:28:06 - [INFO] - [DEBUG] TELPLASTINA application created and configured
+2025-09-14 19:28:06 - [INFO] - [DEBUG] Starting session with 100ms delay...
+2025-09-14 19:28:06 - [INFO] - [DEBUG] === Starting new session ===
+2025-09-14 19:28:06 - [INFO] - [DEBUG] Development mode - creating dialog immediately
+2025-09-14 19:28:06 - [INFO] - [DEBUG] Creating doctor selection dialog (attempt 1/3)...
+2025-09-14 19:28:07 - [INFO] - [PATHS] Found YOLO model at: F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\models\model_detection_hs_yolov8.pt
+2025-09-14 19:28:07 - [INFO] - [DEBUG] Dialog class imported successfully
+2025-09-14 19:28:08 - [INFO] - [DEBUG] Dialog instance created successfully
+2025-09-14 19:28:08 - [INFO] - [DEBUG] Dialog window properties set
+2025-09-14 19:28:08 - [INFO] - [DEBUG] Showing dialog to user...
+2025-09-14 19:28:08 - [INFO] - [DEBUG] Dialog shown successfully
+2025-09-14 19:28:08 - [INFO] - [DEBUG] Waiting for user input...
+2025-09-14 19:28:18 - [INFO] - [SESSION] Created session: A8SD_Planar_20250914_192818
+2025-09-14 19:28:18 - [INFO] - [SESSION] Created: A8SD_Planar_20250914_192818
+2025-09-14 19:28:18 - [INFO] - [DEBUG] Dialog execution completed with result: 1
+2025-09-14 19:28:18 - [INFO] - [DEBUG] Quick close detected: False
+2025-09-14 19:28:18 - [INFO] - [DEBUG] Session selected - Code: A8SD, Modality: Planar
+2025-09-14 19:28:18 - [INFO] - [DEBUG] Data directory confirmed: data
+2025-09-14 19:28:18 - [INFO] - [DEBUG] Starting PLANAR session with code: A8SD
+2025-09-14 19:28:18 - [INFO] - [DEBUG] Creating main window for session: A8SD
+2025-09-14 19:28:21 - [INFO] - [YOLO] Module loaded - model will be loaded on-demand
+2025-09-14 19:28:21 - [INFO] - [DEBUG] Timeline keyboard shortcuts enabled: Ctrl+/- for zoom, Ctrl+0 for reset
+2025-09-14 19:28:21 - [INFO] - [DEBUG] set_active_view called with 'Anterior', but is now ignored.
+2025-09-14 19:28:21 - [INFO] - Ditemukan 82 file DICOM di 'F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR'
+2025-09-14 19:28:21 - [INFO] - Ditemukan 9 session, 70 pasien (total 82 file DICOM).
+2025-09-14 19:28:21 - [INFO] -     ALL: 1 pasien, 1 file
+2025-09-14 19:28:21 - [INFO] -     ATL: 4 pasien, 4 file
+2025-09-14 19:28:21 - [INFO] -     HAH: 14 pasien, 14 file
+2025-09-14 19:28:21 - [INFO] -     HAHH: 38 pasien, 38 file
+2025-09-14 19:28:21 - [INFO] -     HEHE: 2 pasien, 2 file
+2025-09-14 19:28:21 - [INFO] -     NBL: 1 pasien, 5 file
+2025-09-14 19:28:21 - [INFO] -     NSY: 4 pasien, 8 file
+2025-09-14 19:28:21 - [INFO] -     PVSA: 2 pasien, 2 file
+2025-09-14 19:28:21 - [INFO] -     WKW: 4 pasien, 8 file
+2025-09-14 19:28:21 - [INFO] - [DEBUG] display_timeline called with 0 scan(s), focusing on index = -1
+2025-09-14 19:28:21 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:28:21 - [INFO] - [BSI SIDE PANEL] Clearing data...
+2025-09-14 19:28:21 - [INFO] - [DEBUG] Main window created successfully for session: A8SD
+2025-09-14 19:28:21 - [INFO] - [DEBUG] Main window created successfully
+2025-09-14 19:28:21 - [INFO] - [DEBUG] Logout signal connected
+2025-09-14 19:28:22 - [INFO] - [DEBUG] Main window displayed
+2025-09-14 19:28:22 - [INFO] - [DEBUG] Active windows count: 1
+2025-09-14 19:28:22 - [INFO] - [DEBUG] set_invert_original called: True (current: False)
+2025-09-14 19:28:22 - [INFO] - [CACHE CLEAR] Cleared 0 layer cache entries
+2025-09-14 19:28:22 - [INFO] - [CACHE CLEAR] Cleared zoom cache (0 labels)
+2025-09-14 19:28:22 - [INFO] - [DEBUG] Cleared layer cache due to invert change
+2025-09-14 19:28:22 - [INFO] - [DEBUG] No scans loaded, rebuild skipped
+2025-09-14 19:28:27 - [INFO] - [ADD_FILES] Mulai analisis 1 file
+2025-09-14 19:28:27 - [INFO] - [ADD_FILES] fungsi duplicate-check OK
+2025-09-14 19:28:27 - [INFO] - [ADD_FILES] 1/1 ANT001_DS.dcm → PID=0001158915 SD=20241204
+2025-09-14 19:28:27 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=A8SD, patient=0001158915, study_date=20241204
+2025-09-14 19:28:27 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\A8SD\0001158915\20241204
+2025-09-14 19:28:27 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-14 19:28:27 - [INFO] - [ADD_FILES]   -> NEW, dimasukkan
+2025-09-14 19:28:27 - [INFO] - [ADD_FILES] NEW added: 1, already analyzed: 0, redundant skipped: 0, errors: 0
+2025-09-14 19:28:27 - [INFO] -   DEBUG: Starting quick detection for 1 files...
+2025-09-14 19:28:27 - [INFO] -   DEBUG: Processing detection result for ANT001_DS.dcm
+2025-09-14 19:28:27 - [INFO] - 📊 Detection Analysis Complete:
+2025-09-14 19:28:27 - [INFO] -      1 files fully auto-tagged
+2025-09-14 19:28:27 - [INFO] - 🎉 All files auto-tagged! You can proceed directly to import.
+2025-09-14 19:28:27 - [INFO] - Next step: Configure Views (or proceed if all auto-tagged)
+2025-09-14 19:28:27 - [INFO] -   ANT001_DS.dcm: Fully auto-tagged (2 frames)
+2025-09-14 19:28:28 - [INFO] -   Opening enhanced view configuration dialog...
+2025-09-14 19:28:28 - [INFO] -   DEBUG: Opening view selector with 1 files
+2025-09-14 19:28:28 - [INFO] -   DEBUG: Opening view configuration with 1 files:
+2025-09-14 19:28:28 - [INFO] -    1. ANT001_DS.dcm
+2025-09-14 19:28:28 - [INFO] -      No duplicates found in selected_files
+2025-09-14 19:28:28 - [INFO] -   DEBUG: Connecting signals...
+2025-09-14 19:28:28 - [INFO] -   DEBUG: Executing dialog...
+2025-09-14 19:28:28 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:28:28 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:28:28 - [INFO] - Frame dtype: uint16
+2025-09-14 19:28:28 - [INFO] - Frame range: 0 to 189
+2025-09-14 19:28:28 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:28:28 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:28:28 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:28:28 - [INFO] - 🏠 Corner means: [0.0025, 0.0175, 0.0, 0.0]
+2025-09-14 19:28:28 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:28:28 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:28:28 - [INFO] -    Edge mean: 0.0
+2025-09-14 19:28:28 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:28:28 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:28:28 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:28:28 - [INFO] -    Image mean: 9.8
+2025-09-14 19:28:28 - [INFO] -    Dark pixels (<50): 249,963 (95.4%)
+2025-09-14 19:28:28 - [INFO] -    Bright pixels (>200): 157 (0.1%)
+2025-09-14 19:28:28 - [INFO] -    Mid-range pixels: 12,024 (4.6%)
+2025-09-14 19:28:28 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:28:28 - [INFO] -    Found 0 peaks: []
+2025-09-14 19:28:28 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:28:28 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:28:28 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:28:28 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:28:28 - [INFO] -      Dark image (9.8 < 80) supports BLACK (+10)
+2025-09-14 19:28:28 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:28:28 - [INFO] -    Background Type: BLACK
+2025-09-14 19:28:28 - [INFO] -    Confidence: 80%
+2025-09-14 19:28:28 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:28:28 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 249963, 'object_pixels': 12181, 'background_percentage': 95.35331726074219, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.005, 'edge_mean': 0.0, 'image_mean': 9.770809173583984, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (9.8 < 80) supports BLACK (+10)']}}
+2025-09-14 19:28:28 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:28:28 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:28:28 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:28:28 - [INFO] - Frame dtype: uint16
+2025-09-14 19:28:28 - [INFO] - Frame range: 0 to 149
+2025-09-14 19:28:28 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:28:28 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:28:28 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:28:28 - [INFO] - 🏠 Corner means: [0.045, 0.0175, 0.0, 0.0]
+2025-09-14 19:28:28 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:28:28 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:28:28 - [INFO] -    Edge mean: 0.0
+2025-09-14 19:28:28 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:28:28 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:28:28 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:28:28 - [INFO] -    Image mean: 11.7
+2025-09-14 19:28:28 - [INFO] -    Dark pixels (<50): 245,885 (93.8%)
+2025-09-14 19:28:28 - [INFO] -    Bright pixels (>200): 100 (0.0%)
+2025-09-14 19:28:28 - [INFO] -    Mid-range pixels: 16,159 (6.2%)
+2025-09-14 19:28:28 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:28:28 - [INFO] -    Found 0 peaks: []
+2025-09-14 19:28:28 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:28:28 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:28:28 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:28:28 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:28:28 - [INFO] -      Dark image (11.7 < 80) supports BLACK (+10)
+2025-09-14 19:28:28 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:28:28 - [INFO] -    Background Type: BLACK
+2025-09-14 19:28:28 - [INFO] -    Confidence: 80%
+2025-09-14 19:28:28 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:28:28 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 245885, 'object_pixels': 16259, 'background_percentage': 93.79768371582031, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.015625, 'edge_mean': 0.0, 'image_mean': 11.672203063964844, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (11.7 < 80) supports BLACK (+10)']}}
+2025-09-14 19:28:28 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:28:44 - [INFO] -   DEBUG: Signal received! Processing 2 assignments
+2025-09-14 19:28:44 - [INFO] -   DEBUG: _on_views_configured called with payload keys: ['background_assignments', 'view_assignments']
+2025-09-14 19:28:44 - [INFO] -   DEBUG: view_assignments contains 1 files
+2025-09-14 19:28:44 - [INFO] -    📄 F:\projek dosen\prototype riset\DicomP10\Export\1.2.840.113619.2.280.2.1.4122024120836905.1339871010\ANT001_DS.dcm
+2025-09-14 19:28:44 - [INFO] - 🎨 Background assignments received: 1 files
+2025-09-14 19:28:44 - [INFO] -   View assignments and background selections configured
+2025-09-14 19:28:44 - [INFO] - Files with assignments: 1
+2025-09-14 19:28:44 - [INFO] - Files with background selections: 1
+2025-09-14 19:28:44 - [INFO] -   DEBUG: Dialog finished, cleaning up...
+2025-09-14 19:28:44 - [INFO] -   DEBUG: View dialog result: 1
+2025-09-14 19:28:44 - [INFO] -   Dialog accepted
+2025-09-14 19:28:47 - [INFO] -   Opening enhanced view configuration dialog...
+2025-09-14 19:28:47 - [INFO] -   DEBUG: Opening view selector with 1 files
+2025-09-14 19:28:47 - [INFO] -   DEBUG: Opening view configuration with 1 files:
+2025-09-14 19:28:47 - [INFO] -    1. ANT001_DS.dcm
+2025-09-14 19:28:47 - [INFO] -      No duplicates found in selected_files
+2025-09-14 19:28:47 - [INFO] -   DEBUG: Connecting signals...
+2025-09-14 19:28:47 - [INFO] -   DEBUG: Executing dialog...
+2025-09-14 19:28:47 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:28:47 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:28:47 - [INFO] - Frame dtype: uint16
+2025-09-14 19:28:47 - [INFO] - Frame range: 0 to 189
+2025-09-14 19:28:47 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:28:47 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:28:47 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:28:47 - [INFO] - 🏠 Corner means: [0.0025, 0.0175, 0.0, 0.0]
+2025-09-14 19:28:47 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:28:47 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:28:47 - [INFO] -    Edge mean: 0.0
+2025-09-14 19:28:47 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:28:47 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:28:47 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:28:47 - [INFO] -    Image mean: 9.8
+2025-09-14 19:28:47 - [INFO] -    Dark pixels (<50): 249,963 (95.4%)
+2025-09-14 19:28:47 - [INFO] -    Bright pixels (>200): 157 (0.1%)
+2025-09-14 19:28:47 - [INFO] -    Mid-range pixels: 12,024 (4.6%)
+2025-09-14 19:28:47 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:28:47 - [INFO] -    Found 0 peaks: []
+2025-09-14 19:28:47 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:28:47 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:28:47 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:28:47 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:28:47 - [INFO] -      Dark image (9.8 < 80) supports BLACK (+10)
+2025-09-14 19:28:47 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:28:47 - [INFO] -    Background Type: BLACK
+2025-09-14 19:28:47 - [INFO] -    Confidence: 80%
+2025-09-14 19:28:47 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:28:47 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 249963, 'object_pixels': 12181, 'background_percentage': 95.35331726074219, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.005, 'edge_mean': 0.0, 'image_mean': 9.770809173583984, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (9.8 < 80) supports BLACK (+10)']}}
+2025-09-14 19:28:47 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:28:47 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:28:47 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:28:47 - [INFO] - Frame dtype: uint16
+2025-09-14 19:28:47 - [INFO] - Frame range: 0 to 149
+2025-09-14 19:28:47 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:28:47 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:28:47 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:28:47 - [INFO] - 🏠 Corner means: [0.045, 0.0175, 0.0, 0.0]
+2025-09-14 19:28:47 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:28:47 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:28:47 - [INFO] -    Edge mean: 0.0
+2025-09-14 19:28:47 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:28:47 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:28:47 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:28:47 - [INFO] -    Image mean: 11.7
+2025-09-14 19:28:47 - [INFO] -    Dark pixels (<50): 245,885 (93.8%)
+2025-09-14 19:28:47 - [INFO] -    Bright pixels (>200): 100 (0.0%)
+2025-09-14 19:28:47 - [INFO] -    Mid-range pixels: 16,159 (6.2%)
+2025-09-14 19:28:47 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:28:47 - [INFO] -    Found 0 peaks: []
+2025-09-14 19:28:47 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:28:47 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:28:47 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:28:47 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:28:47 - [INFO] -      Dark image (11.7 < 80) supports BLACK (+10)
+2025-09-14 19:28:47 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:28:47 - [INFO] -    Background Type: BLACK
+2025-09-14 19:28:47 - [INFO] -    Confidence: 80%
+2025-09-14 19:28:47 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:28:47 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 245885, 'object_pixels': 16259, 'background_percentage': 93.79768371582031, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.015625, 'edge_mean': 0.0, 'image_mean': 11.672203063964844, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (11.7 < 80) supports BLACK (+10)']}}
+2025-09-14 19:28:47 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:28:50 - [INFO] -   DEBUG: Signal received! Processing 2 assignments
+2025-09-14 19:28:50 - [INFO] -   DEBUG: _on_views_configured called with payload keys: ['background_assignments', 'view_assignments']
+2025-09-14 19:28:50 - [INFO] -   DEBUG: view_assignments contains 1 files
+2025-09-14 19:28:50 - [INFO] -    📄 F:\projek dosen\prototype riset\DicomP10\Export\1.2.840.113619.2.280.2.1.4122024120836905.1339871010\ANT001_DS.dcm
+2025-09-14 19:28:50 - [INFO] - 🎨 Background assignments received: 1 files
+2025-09-14 19:28:50 - [INFO] -   View assignments and background selections configured
+2025-09-14 19:28:50 - [INFO] - Files with assignments: 1
+2025-09-14 19:28:50 - [INFO] - Files with background selections: 1
+2025-09-14 19:28:50 - [INFO] -   DEBUG: Dialog finished, cleaning up...
+2025-09-14 19:28:50 - [INFO] -   DEBUG: View dialog result: 1
+2025-09-14 19:28:50 - [INFO] -   Dialog accepted
+2025-09-14 19:29:02 - [INFO] - [ADD_FILES] Mulai analisis 1 file
+2025-09-14 19:29:02 - [INFO] - [ADD_FILES] fungsi duplicate-check OK
+2025-09-14 19:29:02 - [INFO] - [ADD_FILES] View assignments cleared karena list berubah
+2025-09-14 19:29:02 - [INFO] - [ADD_FILES] 1/1 gajelas.dcm → PID=123456 SD=20250914
+2025-09-14 19:29:02 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=A8SD, patient=123456, study_date=20250914
+2025-09-14 19:29:02 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\A8SD\123456\20250914
+2025-09-14 19:29:02 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-14 19:29:02 - [INFO] - [ADD_FILES]   -> NEW, dimasukkan
+2025-09-14 19:29:02 - [INFO] - [ADD_FILES] NEW added: 1, already analyzed: 0, redundant skipped: 0, errors: 0
+2025-09-14 19:29:02 - [INFO] -   DEBUG: Starting quick detection for 1 files...
+2025-09-14 19:29:02 - [INFO] -    ⚠️  Generic fallback: ['Frame 1', 'Frame 2', 'Frame 3']
+2025-09-14 19:29:02 - [INFO] -    ⚠️  Non-standard view name: Frame 1
+2025-09-14 19:29:02 - [INFO] -    ⚠️  Non-standard view name: Frame 2
+2025-09-14 19:29:02 - [INFO] -    ⚠️  Non-standard view name: Frame 3
+2025-09-14 19:29:02 - [INFO] -   DEBUG: Processing detection result for gajelas.dcm
+2025-09-14 19:29:02 - [INFO] - 📊 Detection Analysis Complete:
+2025-09-14 19:29:02 - [INFO] -      1 files fully auto-tagged
+2025-09-14 19:29:02 - [INFO] -     1 files need manual configuration
+2025-09-14 19:29:02 - [INFO] - ⚙️ Manual configuration required for some files.
+2025-09-14 19:29:02 - [INFO] - Next step: Configure Views (or proceed if all auto-tagged)
+2025-09-14 19:29:02 - [INFO] -  gajelas.dcm: Manual configuration required (3 frames)
+2025-09-14 19:29:03 - [INFO] -   Opening enhanced view configuration dialog...
+2025-09-14 19:29:03 - [INFO] -   DEBUG: Opening view selector with 2 files
+2025-09-14 19:29:03 - [INFO] -   DEBUG: Opening view configuration with 2 files:
+2025-09-14 19:29:03 - [INFO] -    1. ANT001_DS.dcm
+2025-09-14 19:29:03 - [INFO] -    2. gajelas.dcm
+2025-09-14 19:29:03 - [INFO] -      No duplicates found in selected_files
+2025-09-14 19:29:03 - [INFO] -   DEBUG: Connecting signals...
+2025-09-14 19:29:03 - [INFO] -   DEBUG: Executing dialog...
+2025-09-14 19:29:03 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:29:03 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:29:03 - [INFO] - Frame dtype: uint16
+2025-09-14 19:29:03 - [INFO] - Frame range: 0 to 189
+2025-09-14 19:29:03 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:29:03 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:29:03 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:29:03 - [INFO] - 🏠 Corner means: [0.0025, 0.0175, 0.0, 0.0]
+2025-09-14 19:29:03 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:29:03 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:29:03 - [INFO] -    Edge mean: 0.0
+2025-09-14 19:29:03 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:29:03 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:29:03 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:29:03 - [INFO] -    Image mean: 9.8
+2025-09-14 19:29:03 - [INFO] -    Dark pixels (<50): 249,963 (95.4%)
+2025-09-14 19:29:03 - [INFO] -    Bright pixels (>200): 157 (0.1%)
+2025-09-14 19:29:03 - [INFO] -    Mid-range pixels: 12,024 (4.6%)
+2025-09-14 19:29:03 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:29:03 - [INFO] -    Found 0 peaks: []
+2025-09-14 19:29:03 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:29:03 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:29:03 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:29:03 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:29:03 - [INFO] -      Dark image (9.8 < 80) supports BLACK (+10)
+2025-09-14 19:29:03 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:29:03 - [INFO] -    Background Type: BLACK
+2025-09-14 19:29:03 - [INFO] -    Confidence: 80%
+2025-09-14 19:29:03 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:29:03 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 249963, 'object_pixels': 12181, 'background_percentage': 95.35331726074219, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.005, 'edge_mean': 0.0, 'image_mean': 9.770809173583984, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (9.8 < 80) supports BLACK (+10)']}}
+2025-09-14 19:29:03 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:29:03 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:29:03 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:29:03 - [INFO] - Frame dtype: uint16
+2025-09-14 19:29:03 - [INFO] - Frame range: 0 to 149
+2025-09-14 19:29:03 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:29:03 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:29:03 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:29:03 - [INFO] - 🏠 Corner means: [0.045, 0.0175, 0.0, 0.0]
+2025-09-14 19:29:03 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:29:03 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:29:03 - [INFO] -    Edge mean: 0.0
+2025-09-14 19:29:03 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:29:03 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:29:03 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:29:03 - [INFO] -    Image mean: 11.7
+2025-09-14 19:29:03 - [INFO] -    Dark pixels (<50): 245,885 (93.8%)
+2025-09-14 19:29:03 - [INFO] -    Bright pixels (>200): 100 (0.0%)
+2025-09-14 19:29:03 - [INFO] -    Mid-range pixels: 16,159 (6.2%)
+2025-09-14 19:29:03 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:29:03 - [INFO] -    Found 0 peaks: []
+2025-09-14 19:29:03 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:29:03 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:29:03 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:29:03 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:29:03 - [INFO] -      Dark image (11.7 < 80) supports BLACK (+10)
+2025-09-14 19:29:03 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:29:03 - [INFO] -    Background Type: BLACK
+2025-09-14 19:29:03 - [INFO] -    Confidence: 80%
+2025-09-14 19:29:03 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:29:03 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 245885, 'object_pixels': 16259, 'background_percentage': 93.79768371582031, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.015625, 'edge_mean': 0.0, 'image_mean': 11.672203063964844, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (11.7 < 80) supports BLACK (+10)']}}
+2025-09-14 19:29:03 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:29:03 - [INFO] -    ⚠️  Generic fallback: ['Frame 1', 'Frame 2', 'Frame 3']
+2025-09-14 19:29:03 - [INFO] -    ⚠️  Non-standard view name: Frame 1
+2025-09-14 19:29:03 - [INFO] -    ⚠️  Non-standard view name: Frame 2
+2025-09-14 19:29:03 - [INFO] -    ⚠️  Non-standard view name: Frame 3
+2025-09-14 19:29:03 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:29:03 - [INFO] - Frame shape: (547, 783)
+2025-09-14 19:29:03 - [INFO] - Frame dtype: uint8
+2025-09-14 19:29:03 - [INFO] - Frame range: 7 to 255
+2025-09-14 19:29:03 - [INFO] -   Already uint8: 7 to 255
+2025-09-14 19:29:03 - [INFO] - 📐 Image dimensions: 783x547 (428,301 pixels)
+2025-09-14 19:29:03 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:29:03 - [INFO] - 🏠 Corner means: [96.1525, 73.42, 84.015, 83.7475]
+2025-09-14 19:29:03 - [INFO] - 🏠 Overall corner mean: 84.3
+2025-09-14 19:29:03 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:29:03 - [INFO] -    Edge mean: 87.8
+2025-09-14 19:29:03 - [INFO] -    Dark edges (<50): 258/2660 (9.7%)
+2025-09-14 19:29:03 - [INFO] -    Bright edges (>200): 0/2660 (0.0%)
+2025-09-14 19:29:03 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:29:03 - [INFO] -    Image mean: 91.2
+2025-09-14 19:29:03 - [INFO] -    Dark pixels (<50): 49,947 (11.7%)
+2025-09-14 19:29:03 - [INFO] -    Bright pixels (>200): 15,408 (3.6%)
+2025-09-14 19:29:03 - [INFO] -    Mid-range pixels: 362,946 (84.7%)
+2025-09-14 19:29:03 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:29:03 - [INFO] -    Found 4 peaks: [(30, 20679), (51, 7271), (61, 11034), (81, 118876)]
+2025-09-14 19:29:03 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:29:03 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:29:03 - [INFO] -    ⚠️ Neutral corners (84.3) → No strong signal
+2025-09-14 19:29:03 - [INFO] -    ⚠️ Mixed edges (dark: 9.7%, bright: 0.0%)
+2025-09-14 19:29:03 - [INFO] -    ⚠️ Mid-brightness image (91.2)
+2025-09-14 19:29:03 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:29:03 - [INFO] -    Background Type: BLACK
+2025-09-14 19:29:03 - [INFO] -    Confidence: 0%
+2025-09-14 19:29:03 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:29:03 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 0, 'background_pixels': 49947, 'object_pixels': 378354, 'background_percentage': 11.661658506517613, 'total_pixels': 428301, 'debug_info': {'corner_mean': 84.33375, 'edge_mean': 87.83947368421053, 'image_mean': 91.17237176658472, 'dark_edge_ratio': 0.09699248120300752, 'bright_edge_ratio': 0.0, 'decision_factors': ['⚠️ Neutral corners (84.3) → No strong signal', '⚠️ Mixed edges (dark: 9.7%, bright: 0.0%)', '⚠️ Mid-brightness image (91.2)']}}
+2025-09-14 19:29:03 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:29:03 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:29:03 - [INFO] - Frame shape: (547, 783)
+2025-09-14 19:29:03 - [INFO] - Frame dtype: uint8
+2025-09-14 19:29:03 - [INFO] - Frame range: 28 to 232
+2025-09-14 19:29:03 - [INFO] -   Already uint8: 28 to 232
+2025-09-14 19:29:03 - [INFO] - 📐 Image dimensions: 783x547 (428,301 pixels)
+2025-09-14 19:29:03 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:29:03 - [INFO] - 🏠 Corner means: [85.9575, 83.475, 34.675, 61.0275]
+2025-09-14 19:29:03 - [INFO] - 🏠 Overall corner mean: 66.3
+2025-09-14 19:29:03 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:29:03 - [INFO] -    Edge mean: 69.9
+2025-09-14 19:29:03 - [INFO] -    Dark edges (<50): 931/2660 (35.0%)
+2025-09-14 19:29:03 - [INFO] -    Bright edges (>200): 0/2660 (0.0%)
+2025-09-14 19:29:03 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:29:03 - [INFO] -    Image mean: 103.6
+2025-09-14 19:29:03 - [INFO] -    Dark pixels (<50): 103,373 (24.1%)
+2025-09-14 19:29:03 - [INFO] -    Bright pixels (>200): 46,650 (10.9%)
+2025-09-14 19:29:03 - [INFO] -    Mid-range pixels: 278,278 (65.0%)
+2025-09-14 19:29:03 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:29:03 - [INFO] -    Found 12 peaks: [(30, 71702), (51, 6694), (61, 5429), (86, 64225), (102, 10772), (117, 13969), (132, 6219), (153, 5590), (168, 4449), (193, 6864), (204, 8228), (219, 9112)]
+2025-09-14 19:29:03 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:29:03 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:29:03 - [INFO] -    ⚠️ Neutral corners (66.3) → No strong signal
+2025-09-14 19:29:03 - [INFO] -    ⚠️ Mixed edges (dark: 35.0%, bright: 0.0%)
+2025-09-14 19:29:03 - [INFO] -    ⚠️ Mid-brightness image (103.6)
+2025-09-14 19:29:03 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:29:03 - [INFO] -    Background Type: BLACK
+2025-09-14 19:29:03 - [INFO] -    Confidence: 0%
+2025-09-14 19:29:03 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:29:03 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 0, 'background_pixels': 103373, 'object_pixels': 324928, 'background_percentage': 24.135596227886463, 'total_pixels': 428301, 'debug_info': {'corner_mean': 66.28375, 'edge_mean': 69.92932330827068, 'image_mean': 103.59506515277808, 'dark_edge_ratio': 0.35, 'bright_edge_ratio': 0.0, 'decision_factors': ['⚠️ Neutral corners (66.3) → No strong signal', '⚠️ Mixed edges (dark: 35.0%, bright: 0.0%)', '⚠️ Mid-brightness image (103.6)']}}
+2025-09-14 19:29:03 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:29:03 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:29:03 - [INFO] - Frame shape: (547, 783)
+2025-09-14 19:29:03 - [INFO] - Frame dtype: uint8
+2025-09-14 19:29:03 - [INFO] - Frame range: 9 to 255
+2025-09-14 19:29:03 - [INFO] -   Already uint8: 9 to 255
+2025-09-14 19:29:03 - [INFO] - 📐 Image dimensions: 783x547 (428,301 pixels)
+2025-09-14 19:29:03 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:29:03 - [INFO] - 🏠 Corner means: [213.585, 65.635, 113.7325, 91.3025]
+2025-09-14 19:29:03 - [INFO] - 🏠 Overall corner mean: 121.1
+2025-09-14 19:29:03 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:29:03 - [INFO] -    Edge mean: 129.5
+2025-09-14 19:29:03 - [INFO] -    Dark edges (<50): 61/2660 (2.3%)
+2025-09-14 19:29:03 - [INFO] -    Bright edges (>200): 552/2660 (20.8%)
+2025-09-14 19:29:03 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:29:03 - [INFO] -    Image mean: 111.5
+2025-09-14 19:29:03 - [INFO] -    Dark pixels (<50): 45,961 (10.7%)
+2025-09-14 19:29:03 - [INFO] -    Bright pixels (>200): 50,390 (11.8%)
+2025-09-14 19:29:03 - [INFO] -    Mid-range pixels: 331,950 (77.5%)
+2025-09-14 19:29:03 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:29:03 - [INFO] -    Found 10 peaks: [(10, 6893), (20, 6857), (45, 12141), (61, 39389), (96, 38655), (112, 32188), (147, 10337), (173, 6802), (193, 3390), (209, 24476)]
+2025-09-14 19:29:03 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:29:03 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:29:03 - [INFO] -    ⚠️ Neutral corners (121.1) → No strong signal
+2025-09-14 19:29:03 - [INFO] -    ⚠️ Mixed edges (dark: 2.3%, bright: 20.8%)
+2025-09-14 19:29:03 - [INFO] -    ⚠️ Mid-brightness image (111.5)
+2025-09-14 19:29:03 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:29:03 - [INFO] -    Background Type: BLACK
+2025-09-14 19:29:03 - [INFO] -    Confidence: 0%
+2025-09-14 19:29:03 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:29:03 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 0, 'background_pixels': 45961, 'object_pixels': 382340, 'background_percentage': 10.731004597234188, 'total_pixels': 428301, 'debug_info': {'corner_mean': 121.06375, 'edge_mean': 129.46654135338346, 'image_mean': 111.54739540650151, 'dark_edge_ratio': 0.02293233082706767, 'bright_edge_ratio': 0.2075187969924812, 'decision_factors': ['⚠️ Neutral corners (121.1) → No strong signal', '⚠️ Mixed edges (dark: 2.3%, bright: 20.8%)', '⚠️ Mid-brightness image (111.5)']}}
+2025-09-14 19:29:03 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:29:24 - [INFO] -   DEBUG: Dialog finished, cleaning up...
+2025-09-14 19:29:24 - [INFO] -   DEBUG: View dialog result: 0
+2025-09-14 19:29:24 - [INFO] -  View configuration cancelled
+2025-09-14 19:29:25 - [INFO] - [DEBUG] Application exited with code: 0
+2025-09-14 19:29:25 - [INFO] - Aplikasi terminated normally

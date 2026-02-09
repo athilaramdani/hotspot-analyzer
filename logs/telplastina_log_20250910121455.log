@@ -1,0 +1,145 @@
+2025-09-10 12:14:55 - [INFO] - Logger berhasil dikonfigurasi. Memulai aplikasi...
+2025-09-10 12:14:55 - [INFO] - [DEBUG] Running in development mode
+2025-09-10 12:14:55 - [INFO] - [DEBUG] Starting TELPLASTINA...
+2025-09-10 12:14:55 - [INFO] - [UI] Application icon loaded: assets\icon.ico
+2025-09-10 12:14:55 - [INFO] - [UI] Poppins font applied
+2025-09-10 12:14:55 - [INFO] - [DEBUG] TELPLASTINA application created and configured
+2025-09-10 12:14:55 - [INFO] - [DEBUG] Starting session with 100ms delay...
+2025-09-10 12:14:55 - [INFO] - [DEBUG] === Starting new session ===
+2025-09-10 12:14:55 - [INFO] - [DEBUG] Development mode - creating dialog immediately
+2025-09-10 12:14:55 - [INFO] - [DEBUG] Creating doctor selection dialog (attempt 1/3)...
+2025-09-10 12:14:56 - [INFO] - [PATHS] Found YOLO model at: F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\models\model_detection_hs_yolov8.pt
+2025-09-10 12:14:56 - [INFO] - [DEBUG] Dialog class imported successfully
+2025-09-10 12:14:57 - [INFO] - [DEBUG] Dialog instance created successfully
+2025-09-10 12:14:57 - [INFO] - [DEBUG] Dialog window properties set
+2025-09-10 12:14:57 - [INFO] - [DEBUG] Showing dialog to user...
+2025-09-10 12:14:58 - [INFO] - [DEBUG] Dialog shown successfully
+2025-09-10 12:14:58 - [INFO] - [DEBUG] Waiting for user input...
+2025-09-10 12:15:00 - [INFO] - [SESSION] Created session: WKW_Planar_20250910_121500
+2025-09-10 12:15:00 - [INFO] - [SESSION] Created: WKW_Planar_20250910_121500
+2025-09-10 12:15:00 - [INFO] - [DEBUG] Dialog execution completed with result: 1
+2025-09-10 12:15:00 - [INFO] - [DEBUG] Quick close detected: False
+2025-09-10 12:15:00 - [INFO] - [DEBUG] Session selected - Code: WKW, Modality: Planar
+2025-09-10 12:15:00 - [INFO] - [DEBUG] Data directory confirmed: data
+2025-09-10 12:15:00 - [INFO] - [DEBUG] Starting PLANAR session with code: WKW
+2025-09-10 12:15:00 - [INFO] - [DEBUG] Creating main window for session: WKW
+2025-09-10 12:15:05 - [INFO] - [YOLO] Module loaded - model will be loaded on-demand
+2025-09-10 12:15:05 - [INFO] - [DEBUG] session_code in MainWindow = WKW
+2025-09-10 12:15:05 - [INFO] - [DEBUG] Timeline keyboard shortcuts enabled: Ctrl+/- for zoom, Ctrl+0 for reset
+2025-09-10 12:15:05 - [INFO] - [DEBUG] Connecting invert checkbox...
+2025-09-10 12:15:05 - [INFO] - [DEBUG] Testing checkbox connection...
+2025-09-10 12:15:05 - [INFO] - [DEBUG] Timeline widget exists: True
+2025-09-10 12:15:05 - [INFO] - [DEBUG] Timeline widget type: <class 'features.spect_viewer.gui.scan_timeline.ScanTimelineWidget'>
+2025-09-10 12:15:05 - [INFO] - [DEBUG] Invert checkbox created and connected
+2025-09-10 12:15:06 - [INFO] - [MainWindow]   Global keyboard shortcuts setup complete
+2025-09-10 12:15:06 - [INFO] - [MainWindow] Syncing view 'Anterior' across all components
+2025-09-10 12:15:06 - [INFO] - [DEBUG] set_active_view called with 'Anterior', but is now ignored.
+2025-09-10 12:15:06 - [INFO] - [MainWindow]   View sync completed
+2025-09-10 12:15:06 - [INFO] - [MainWindow]   Complete integration initialization finished
+2025-09-10 12:15:06 - [INFO] - [DEBUG] Starting folder scan for session: WKW
+2025-09-10 12:15:06 - [INFO] - Ditemukan 23 file DICOM di 'F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR'
+2025-09-10 12:15:06 - [INFO] - Ditemukan 5 session, 11 pasien (total 23 file DICOM).
+2025-09-10 12:15:06 - [INFO] - ALL: 1 pasien, 1 file
+2025-09-10 12:15:06 - [INFO] - ATL: 4 pasien, 4 file
+2025-09-10 12:15:06 - [INFO] - NBL: 1 pasien, 5 file
+2025-09-10 12:15:06 - [INFO] - NSY: 4 pasien, 8 file
+2025-09-10 12:15:06 - [INFO] - WKW: 1 pasien, 5 file
+2025-09-10 12:15:06 - [INFO] - [DEBUG] Found 5 total sessions: ['ALL', 'ATL', 'NBL', 'NSY', 'WKW']
+2025-09-10 12:15:06 - [INFO] - [DEBUG] Filtered to session WKW: 1 patients
+2025-09-10 12:15:06 - [INFO] - [DEBUG] Added 1 patients to combo box for session WKW
+2025-09-10 12:15:06 - [INFO] - [DEBUG] display_timeline called with 0 scan(s), focusing on index = -1
+2025-09-10 12:15:06 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 12:15:06 - [INFO] - [BSI SIDE PANEL] Clearing data...
+2025-09-10 12:15:06 - [INFO] - [DEBUG] Folder scan completed
+2025-09-10 12:15:06 - [INFO] - [DEBUG] Main window created successfully for session: WKW
+2025-09-10 12:15:06 - [INFO] - [DEBUG] Main window created successfully
+2025-09-10 12:15:06 - [INFO] - [DEBUG] Logout signal connected
+2025-09-10 12:15:06 - [INFO] - [DEBUG] Main window displayed
+2025-09-10 12:15:06 - [INFO] - [DEBUG] Active windows count: 1
+2025-09-10 12:15:07 - [INFO] - [TEST] Testing invert connection...
+2025-09-10 12:15:07 - [INFO] - [TEST] Timeline widget exists: True
+2025-09-10 12:15:07 - [INFO] - [TEST] Checkbox exists: True
+2025-09-10 12:15:07 - [INFO] - [TEST] Current checkbox state: False
+2025-09-10 12:15:07 - [INFO] - [DEBUG] === INVERT CHECKBOX CHANGED ===
+2025-09-10 12:15:07 - [INFO] - [DEBUG] Checkbox state: 2, isChecked(): True
+2025-09-10 12:15:07 - [INFO] - [DEBUG] Invert flag changed: False -> True
+2025-09-10 12:15:07 - [INFO] - [DEBUG] Calling timeline_widget.set_invert_original(True)
+2025-09-10 12:15:07 - [INFO] - [DEBUG] set_invert_original called: True (current: False)
+2025-09-10 12:15:07 - [INFO] - [CACHE CLEAR] Cleared 0 layer cache entries
+2025-09-10 12:15:07 - [INFO] - [CACHE CLEAR] Cleared zoom cache (0 labels)
+2025-09-10 12:15:07 - [INFO] - [DEBUG] Cleared layer cache due to invert change
+2025-09-10 12:15:07 - [INFO] - [DEBUG] No scans loaded, rebuild skipped
+2025-09-10 12:15:07 - [INFO] - [DEBUG]   Timeline invert method called successfully
+2025-09-10 12:15:07 - [INFO] - [TEST] Toggled checkbox to: True
+2025-09-10 12:15:09 - [INFO] - [DEBUG] Opening DICOM import dialog...
+2025-09-10 12:15:26 - [INFO] -   [DUPLICATE DEBUG] Starting duplicate check for 1 selected files
+2025-09-10 12:15:26 - [INFO] -   [DUPLICATE DEBUG] Session code: WKW
+2025-09-10 12:15:26 - [INFO] -    1. ANT001_DS.dcm
+2025-09-10 12:15:26 - [INFO] -   [DUPLICATE DEBUG]   Successfully imported duplicate checking functions
+2025-09-10 12:15:26 - [INFO] -   [MANUAL TEST] Testing duplicate check function...
+2025-09-10 12:15:26 - [INFO] - [CHECK_DICOM_EXISTS] Checking: session=ATL, patient=0001158915, study_date=20241204
+2025-09-10 12:15:26 - [INFO] - [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0001158915\20241204
+2025-09-10 12:15:26 - [INFO] - [CHECK_DICOM_EXISTS] Found 1 DICOM files
+2025-09-10 12:15:26 - [INFO] - [CHECK_DICOM_EXISTS] Found 7 processed files
+2025-09-10 12:15:26 - [INFO] - [CHECK_DICOM_EXISTS] Final result: True
+2025-09-10 12:15:26 - [INFO] -   [MANUAL TEST] check_dicom_exists('ATL', '0001158915', '20241204') = True
+2025-09-10 12:15:26 - [INFO] -   [MANUAL TEST] Existing info: {'exists': True, 'study_date_path': WindowsPath('F:/projek dosen/prototype riset/hotspot-analyzer/data/PLANAR/ATL/0001158915/20241204'), 'dicom_count': 1, 'dicom_files': ['ANT001_DS.dcm'], 'has_processed_files': True, 'last_modified': 1755090376.0898347}
+2025-09-10 12:15:26 - [INFO] -   [DUPLICATE DEBUG] Starting individual file analysis...
+2025-09-10 12:15:26 - [INFO] -   [DUPLICATE DEBUG] Analyzing file 1/1: ANT001_DS.dcm
+2025-09-10 12:15:26 - [INFO] -    📄 Reading DICOM metadata...
+2025-09-10 12:15:26 - [INFO] -    📋 Patient ID: 0001158915
+2025-09-10 12:15:26 - [INFO] -    📅 Study Date: 20241204
+2025-09-10 12:15:26 - [INFO] -    🔑 Combination Key: ('0001158915', '20241204')
+2025-09-10 12:15:26 - [INFO] -      Checking against existing data in session WKW...
+2025-09-10 12:15:26 - [INFO] - [CHECK_DICOM_EXISTS] Checking: session=WKW, patient=0001158915, study_date=20241204
+2025-09-10 12:15:26 - [INFO] - [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\WKW\0001158915\20241204
+2025-09-10 12:15:26 - [INFO] - [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-10 12:15:26 - [INFO] -      check_dicom_exists result: False
+2025-09-10 12:15:26 - [INFO] -      No duplicate found in system
+2025-09-10 12:15:26 - [INFO] -    ➕ Adding as NEW file
+2025-09-10 12:15:26 - [INFO] -   [DUPLICATE DEBUG] Analysis complete:
+2025-09-10 12:15:26 - [INFO] -      New files: 1
+2025-09-10 12:15:26 - [INFO] -    🔄 System duplicates: 0
+2025-09-10 12:15:26 - [INFO] -    🔄 Internal duplicates: 0
+2025-09-10 12:15:26 - [INFO] -     Errors: 0
+2025-09-10 12:15:26 - [INFO] -   Selected 1 file(s) for import:
+2025-09-10 12:15:26 - [INFO] -      1 new file(s) will be imported
+2025-09-10 12:15:26 - [INFO] -   DEBUG: About to add 1 new files to selected_files list
+2025-09-10 12:15:26 - [INFO] -    ➕ Added to processing queue: ANT001_DS.dcm
+2025-09-10 12:15:26 - [INFO] -   DEBUG: About to add 0 duplicate files to UI (display only)
+2025-09-10 12:15:26 - [INFO] -   DEBUG: Final counts - New files: 1, Duplicate files shown: 0
+2025-09-10 12:15:26 - [INFO] -   DEBUG: selected_files now contains 1 files
+2025-09-10 12:15:26 - [INFO] - DEBUG: Added 1 new files
+2025-09-10 12:15:26 - [INFO] - ➕ Successfully added 1 new file(s) to import queue
+2025-09-10 12:15:26 - [INFO] -   Starting instant view detection analysis for new files...
+2025-09-10 12:15:26 - [INFO] - DEBUG: Starting quick detection for 1 files...
+2025-09-10 12:15:27 - [INFO] - DEBUG: Processing detection result for ANT001_DS.dcm
+2025-09-10 12:15:27 - [INFO] - 📊 Detection Analysis Complete:
+2025-09-10 12:15:27 - [INFO] -      1 files fully auto-configured
+2025-09-10 12:15:27 - [INFO] - 🎉 All files auto-configured! You can proceed directly to import.
+2025-09-10 12:15:27 - [INFO] - Next step: Configure Views (or proceed if all auto-configured)
+2025-09-10 12:15:27 - [INFO] -   ANT001_DS.dcm: Fully auto-configured (2 frames)
+2025-09-10 12:17:08 - [INFO] - [DEBUG] Import dialog cancelled
+2025-09-10 12:17:08 - [INFO] - [DEBUG] Membersihkan sumber daya di MainWindow (SPECT)...
+2025-09-10 12:17:08 - [INFO] - [DEBUG] Menutup process pool...
+2025-09-10 12:17:08 - [ERROR] - Traceback (most recent call last):
+2025-09-10 12:17:08 - [ERROR] - File "F:\projek dosen\prototype riset\hotspot-analyzer\features\spect_viewer\gui\main_window_spect.py", line 1308, in closeEvent
+2025-09-10 12:17:08 - [ERROR] - if self._pool is not None:
+2025-09-10 12:17:08 - [ERROR] - ^
+2025-09-10 12:17:08 - [ERROR] - ^
+2025-09-10 12:17:08 - [ERROR] - ^
+2025-09-10 12:17:08 - [ERROR] - ^
+2025-09-10 12:17:08 - [ERROR] - ^
+2025-09-10 12:17:08 - [ERROR] - ^
+2025-09-10 12:17:08 - [ERROR] - ^
+2025-09-10 12:17:08 - [ERROR] - ^
+2025-09-10 12:17:08 - [ERROR] - ^
+2025-09-10 12:17:08 - [ERROR] - ^
+2025-09-10 12:17:08 - [ERROR] - AttributeError
+2025-09-10 12:17:08 - [ERROR] - :
+2025-09-10 12:17:08 - [ERROR] - 'MainWindowSpect' object has no attribute '_pool'
+2025-09-10 12:17:08 - [ERROR] - . Did you mean: '
+2025-09-10 12:17:08 - [ERROR] - pool
+2025-09-10 12:17:08 - [ERROR] - '?
+2025-09-10 12:17:08 - [INFO] - [DEBUG] Application exited with code: 0
+2025-09-10 12:17:08 - [INFO] - [DEBUG] Application terminated normally

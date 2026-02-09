@@ -1,0 +1,1916 @@
+2025-09-11 00:07:54 - [INFO] - Logger berhasil dikonfigurasi. Memulai aplikasi...
+2025-09-11 00:07:54 - [INFO] - Running in development mode
+2025-09-11 00:07:54 - [INFO] - [DEBUG] Starting TELPLASTINA...
+2025-09-11 00:07:55 - [INFO] - [UI] Application icon loaded: assets\icon.ico
+2025-09-11 00:07:55 - [INFO] - [UI] Poppins font applied
+2025-09-11 00:07:55 - [INFO] - [DEBUG] TELPLASTINA application created and configured
+2025-09-11 00:07:55 - [INFO] - [DEBUG] Starting session with 100ms delay...
+2025-09-11 00:07:55 - [INFO] - [DEBUG] === Starting new session ===
+2025-09-11 00:07:55 - [INFO] - [DEBUG] Development mode - creating dialog immediately
+2025-09-11 00:07:55 - [INFO] - [DEBUG] Creating doctor selection dialog (attempt 1/3)...
+2025-09-11 00:07:57 - [INFO] - [PATHS] Found YOLO model at: F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\models\model_detection_hs_yolov8.pt
+2025-09-11 00:07:57 - [INFO] - [DEBUG] Dialog class imported successfully
+2025-09-11 00:07:58 - [INFO] - [DEBUG] Dialog instance created successfully
+2025-09-11 00:07:58 - [INFO] - [DEBUG] Dialog window properties set
+2025-09-11 00:07:58 - [INFO] - [DEBUG] Showing dialog to user...
+2025-09-11 00:07:58 - [INFO] - [DEBUG] Dialog shown successfully
+2025-09-11 00:07:58 - [INFO] - [DEBUG] Waiting for user input...
+2025-09-11 00:08:01 - [INFO] - [SESSION] Created session: PVSA_Planar_20250911_000801
+2025-09-11 00:08:01 - [INFO] - [SESSION] Created: PVSA_Planar_20250911_000801
+2025-09-11 00:08:01 - [INFO] - [DEBUG] Dialog execution completed with result: 1
+2025-09-11 00:08:01 - [INFO] - [DEBUG] Quick close detected: False
+2025-09-11 00:08:01 - [INFO] - [DEBUG] Session selected - Code: PVSA, Modality: Planar
+2025-09-11 00:08:01 - [INFO] - [DEBUG] Data directory confirmed: data
+2025-09-11 00:08:01 - [INFO] - [DEBUG] Starting PLANAR session with code: PVSA
+2025-09-11 00:08:01 - [INFO] - [DEBUG] Creating main window for session: PVSA
+2025-09-11 00:08:14 - [INFO] - [YOLO] Module loaded - model will be loaded on-demand
+2025-09-11 00:08:14 - [INFO] - [DEBUG] session_code in MainWindow = PVSA
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Timeline keyboard shortcuts enabled: Ctrl+/- for zoom, Ctrl+0 for reset
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Connecting invert checkbox...
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Testing checkbox connection...
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Timeline widget exists: True
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Timeline widget type: <class 'features.spect_viewer.gui.scan_timeline.ScanTimelineWidget'>
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Invert checkbox created and connected
+2025-09-11 00:08:14 - [INFO] - [MainWindow]   Global keyboard shortcuts setup complete
+2025-09-11 00:08:14 - [INFO] - [MainWindow] Syncing view 'Anterior' across all components
+2025-09-11 00:08:14 - [INFO] - [DEBUG] set_active_view called with 'Anterior', but is now ignored.
+2025-09-11 00:08:14 - [INFO] - [MainWindow]   View sync completed
+2025-09-11 00:08:14 - [INFO] - [MainWindow]   Complete integration initialization finished
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Starting folder scan for session: PVSA
+2025-09-11 00:08:14 - [INFO] - Ditemukan 29 file DICOM di 'F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR'
+2025-09-11 00:08:14 - [INFO] - Ditemukan 7 session, 17 pasien (total 29 file DICOM).
+2025-09-11 00:08:14 - [INFO] -     ALL: 1 pasien, 1 file
+2025-09-11 00:08:14 - [INFO] -     ATL: 4 pasien, 4 file
+2025-09-11 00:08:14 - [INFO] -     HEHE: 2 pasien, 2 file
+2025-09-11 00:08:14 - [INFO] -     NBL: 1 pasien, 5 file
+2025-09-11 00:08:14 - [INFO] -     NSY: 4 pasien, 8 file
+2025-09-11 00:08:14 - [INFO] -     PVSA: 1 pasien, 1 file
+2025-09-11 00:08:14 - [INFO] -     WKW: 4 pasien, 8 file
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Found 7 total sessions: ['ALL', 'ATL', 'HEHE', 'NBL', 'NSY', 'PVSA', 'WKW']
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Filtered to session PVSA: 1 patients
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Added 1 patients to combo box for session PVSA
+2025-09-11 00:08:14 - [INFO] - [DEBUG] display_timeline called with 0 scan(s), focusing on index = -1
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:08:14 - [INFO] - [BSI SIDE PANEL] Clearing data...
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Folder scan completed
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Main window created successfully for session: PVSA
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Main window created successfully
+2025-09-11 00:08:14 - [INFO] - [DEBUG] Logout signal connected
+2025-09-11 00:08:15 - [INFO] - [DEBUG] Main window displayed
+2025-09-11 00:08:15 - [INFO] - [DEBUG] Active windows count: 1
+2025-09-11 00:08:15 - [INFO] - [TEST] Testing invert connection...
+2025-09-11 00:08:15 - [INFO] - [TEST] Timeline widget exists: True
+2025-09-11 00:08:15 - [INFO] - [TEST] Checkbox exists: True
+2025-09-11 00:08:15 - [INFO] - [TEST] Current checkbox state: False
+2025-09-11 00:08:15 - [INFO] - [DEBUG] === INVERT CHECKBOX CHANGED ===
+2025-09-11 00:08:15 - [INFO] - [DEBUG] Checkbox state: 2, isChecked(): True
+2025-09-11 00:08:15 - [INFO] - [DEBUG] Invert flag changed: False -> True
+2025-09-11 00:08:15 - [INFO] - [DEBUG] Calling timeline_widget.set_invert_original(True)
+2025-09-11 00:08:15 - [INFO] - [DEBUG] set_invert_original called: True (current: False)
+2025-09-11 00:08:15 - [INFO] - [CACHE CLEAR] Cleared 0 layer cache entries
+2025-09-11 00:08:15 - [INFO] - [CACHE CLEAR] Cleared zoom cache (0 labels)
+2025-09-11 00:08:15 - [INFO] - [DEBUG] Cleared layer cache due to invert change
+2025-09-11 00:08:15 - [INFO] - [DEBUG] No scans loaded, rebuild skipped
+2025-09-11 00:08:15 - [INFO] - [DEBUG]   Timeline invert method called successfully
+2025-09-11 00:08:15 - [INFO] - [TEST] Toggled checkbox to: True
+2025-09-11 00:08:16 - [INFO] - [DEBUG] Opening DICOM import dialog...
+2025-09-11 00:08:24 - [INFO] -   [DUPLICATE DEBUG] Starting duplicate check for 1 selected files
+2025-09-11 00:08:24 - [INFO] -   [DUPLICATE DEBUG] Session code: PVSA
+2025-09-11 00:08:24 - [INFO] -    1. ANT002_DS.dcm
+2025-09-11 00:08:24 - [INFO] -   [DUPLICATE DEBUG]   Successfully imported duplicate checking functions
+2025-09-11 00:08:24 - [INFO] -   [MANUAL TEST] Testing duplicate check function...
+2025-09-11 00:08:24 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=ATL, patient=0001158915, study_date=20241204
+2025-09-11 00:08:24 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0001158915\20241204
+2025-09-11 00:08:24 - [INFO] -   [CHECK_DICOM_EXISTS] Found 1 DICOM files
+2025-09-11 00:08:24 - [INFO] -   [CHECK_DICOM_EXISTS] Found 7 processed files
+2025-09-11 00:08:24 - [INFO] -   [CHECK_DICOM_EXISTS] Final result: True
+2025-09-11 00:08:24 - [INFO] -   [MANUAL TEST] check_dicom_exists('ATL', '0001158915', '20241204') = True
+2025-09-11 00:08:24 - [INFO] -   [MANUAL TEST] Existing info: {'exists': True, 'study_date_path': WindowsPath('F:/projek dosen/prototype riset/hotspot-analyzer/data/PLANAR/ATL/0001158915/20241204'), 'dicom_count': 1, 'dicom_files': ['ANT001_DS.dcm'], 'has_processed_files': True, 'last_modified': 1755090376.0898347}
+2025-09-11 00:08:24 - [INFO] -   [DUPLICATE DEBUG] Starting individual file analysis...
+2025-09-11 00:08:24 - [INFO] -   [DUPLICATE DEBUG] Analyzing file 1/1: ANT002_DS.dcm
+2025-09-11 00:08:24 - [INFO] -    📄 Reading DICOM metadata...
+2025-09-11 00:08:24 - [INFO] -    📋 Patient ID: 0000496372
+2025-09-11 00:08:24 - [INFO] -    📅 Study Date: 20250716
+2025-09-11 00:08:24 - [INFO] -    🔑 Combination Key: ('0000496372', '20250716')
+2025-09-11 00:08:24 - [INFO] -      Checking against existing data in session PVSA...
+2025-09-11 00:08:24 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=PVSA, patient=0000496372, study_date=20250716
+2025-09-11 00:08:24 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716
+2025-09-11 00:08:24 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-11 00:08:24 - [INFO] -      check_dicom_exists result: False
+2025-09-11 00:08:24 - [INFO] -      No duplicate found in system
+2025-09-11 00:08:24 - [INFO] -    ➕ Adding as NEW file
+2025-09-11 00:08:24 - [INFO] -   [DUPLICATE DEBUG] Analysis complete:
+2025-09-11 00:08:24 - [INFO] -      New files: 1
+2025-09-11 00:08:24 - [INFO] -    🔄 System duplicates: 0
+2025-09-11 00:08:24 - [INFO] -    🔄 Internal duplicates: 0
+2025-09-11 00:08:24 - [INFO] -     Errors: 0
+2025-09-11 00:08:24 - [INFO] -   Selected 1 file(s) for import:
+2025-09-11 00:08:24 - [INFO] -      1 new file(s) will be imported
+2025-09-11 00:08:24 - [INFO] -   DEBUG: About to add 1 new files to selected_files list
+2025-09-11 00:08:24 - [INFO] -    ➕ Added to processing queue: ANT002_DS.dcm
+2025-09-11 00:08:24 - [INFO] -   DEBUG: About to add 0 duplicate files to UI (display only)
+2025-09-11 00:08:24 - [INFO] -   DEBUG: Final counts - New files: 1, Duplicate files shown: 0
+2025-09-11 00:08:24 - [INFO] -   DEBUG: selected_files now contains 1 files
+2025-09-11 00:08:24 - [INFO] -   DEBUG: Added 1 new files
+2025-09-11 00:08:24 - [INFO] - ➕ Successfully added 1 new file(s) to import queue
+2025-09-11 00:08:24 - [INFO] -   Starting instant view detection analysis for new files...
+2025-09-11 00:08:24 - [INFO] -   DEBUG: Starting quick detection for 1 files...
+2025-09-11 00:08:24 - [INFO] -   DEBUG: Processing detection result for ANT002_DS.dcm
+2025-09-11 00:08:24 - [INFO] - 📊 Detection Analysis Complete:
+2025-09-11 00:08:24 - [INFO] -      1 files fully auto-tagged
+2025-09-11 00:08:24 - [INFO] - 🎉 All files auto-tagged! You can proceed directly to import.
+2025-09-11 00:08:24 - [INFO] - Next step: Configure Views (or proceed if all auto-tagged)
+2025-09-11 00:08:24 - [INFO] -   ANT002_DS.dcm: Fully auto-tagged (2 frames)
+2025-09-11 00:08:25 - [INFO] -   Opening enhanced view configuration dialog...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Opening view selector with 1 files
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Opening view configuration with 1 files:
+2025-09-11 00:08:25 - [INFO] -    1. ANT002_DS.dcm
+2025-09-11 00:08:25 - [INFO] -      No duplicates found in selected_files
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Connecting signals...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Executing dialog...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Processing 2 frames from ANT002_DS.dcm
+2025-09-11 00:08:25 - [INFO] -   Frame 0: 'anterior'
+2025-09-11 00:08:25 - [INFO] -     Detected: Anterior (confidence: high)
+2025-09-11 00:08:25 - [INFO] -       auto-tagged: Anterior (high confidence)
+2025-09-11 00:08:25 - [INFO] - 
+  STARTING BACKGROUND ANALYSIS FOR FRAME 0...
+2025-09-11 00:08:25 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-11 00:08:25 - [INFO] - Frame shape: (1024, 256)
+2025-09-11 00:08:25 - [INFO] - Frame dtype: uint16
+2025-09-11 00:08:25 - [INFO] - Frame range: 0 to 9998
+2025-09-11 00:08:25 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-11 00:08:25 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-11 00:08:25 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-11 00:08:25 - [INFO] - 🏠 Corner means: [0.0, 0.0, 0.0, 0.0]
+2025-09-11 00:08:25 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-11 00:08:25 - [INFO] - 🔲 Edge analysis:
+2025-09-11 00:08:25 - [INFO] -    Edge mean: 0.0
+2025-09-11 00:08:25 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-11 00:08:25 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-11 00:08:25 - [INFO] - 📊 Overall statistics:
+2025-09-11 00:08:25 - [INFO] -    Image mean: 0.1
+2025-09-11 00:08:25 - [INFO] -    Dark pixels (<50): 262,071 (100.0%)
+2025-09-11 00:08:25 - [INFO] -    Bright pixels (>200): 11 (0.0%)
+2025-09-11 00:08:25 - [INFO] -    Mid-range pixels: 62 (0.0%)
+2025-09-11 00:08:25 - [INFO] - 📈 Histogram analysis:
+2025-09-11 00:08:25 - [INFO] -    Found 0 peaks: []
+2025-09-11 00:08:25 - [INFO] - 
+  DECISION PROCESS:
+2025-09-11 00:08:25 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-11 00:08:25 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-11 00:08:25 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-11 00:08:25 - [INFO] -      Dark image (0.1 < 80) supports BLACK (+10)
+2025-09-11 00:08:25 - [INFO] - 
+  FINAL DECISION:
+2025-09-11 00:08:25 - [INFO] -    Background Type: BLACK
+2025-09-11 00:08:25 - [INFO] -    Confidence: 80%
+2025-09-11 00:08:25 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-11 00:08:25 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 262071, 'object_pixels': 73, 'background_percentage': 99.97215270996094, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.0, 'edge_mean': 0.0, 'image_mean': 0.14176177978515625, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (0.1 < 80) supports BLACK (+10)']}}
+2025-09-11 00:08:25 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-11 00:08:25 - [INFO] -   BACKGROUND ANALYSIS RESULT:
+2025-09-11 00:08:25 - [INFO] -    Type: black
+2025-09-11 00:08:25 - [INFO] -    Confidence: 80%
+2025-09-11 00:08:25 - [INFO] -    Background area: 100.0%
+2025-09-11 00:08:25 - [INFO] -    Will auto-select: black radio button
+2025-09-11 00:08:25 - [INFO] -    Factors: 3
+2025-09-11 00:08:25 - [INFO] -     ⚠️ manual tagged REQUIRED: 80 confidence
+2025-09-11 00:08:25 - [INFO] -   Frame 1: 'posterior'
+2025-09-11 00:08:25 - [INFO] -     Detected: Posterior (confidence: high)
+2025-09-11 00:08:25 - [INFO] -       auto-tagged: Posterior (high confidence)
+2025-09-11 00:08:25 - [INFO] - 
+  STARTING BACKGROUND ANALYSIS FOR FRAME 1...
+2025-09-11 00:08:25 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-11 00:08:25 - [INFO] - Frame shape: (1024, 256)
+2025-09-11 00:08:25 - [INFO] - Frame dtype: uint16
+2025-09-11 00:08:25 - [INFO] - Frame range: 0 to 4674
+2025-09-11 00:08:25 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-11 00:08:25 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-11 00:08:25 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-11 00:08:25 - [INFO] - 🏠 Corner means: [0.0, 0.0, 0.0, 0.0]
+2025-09-11 00:08:25 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-11 00:08:25 - [INFO] - 🔲 Edge analysis:
+2025-09-11 00:08:25 - [INFO] -    Edge mean: 0.0
+2025-09-11 00:08:25 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-11 00:08:25 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-11 00:08:25 - [INFO] - 📊 Overall statistics:
+2025-09-11 00:08:25 - [INFO] -    Image mean: 0.4
+2025-09-11 00:08:25 - [INFO] -    Dark pixels (<50): 262,079 (100.0%)
+2025-09-11 00:08:25 - [INFO] -    Bright pixels (>200): 9 (0.0%)
+2025-09-11 00:08:25 - [INFO] -    Mid-range pixels: 56 (0.0%)
+2025-09-11 00:08:25 - [INFO] - 📈 Histogram analysis:
+2025-09-11 00:08:25 - [INFO] -    Found 0 peaks: []
+2025-09-11 00:08:25 - [INFO] - 
+  DECISION PROCESS:
+2025-09-11 00:08:25 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-11 00:08:25 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-11 00:08:25 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-11 00:08:25 - [INFO] -      Dark image (0.4 < 80) supports BLACK (+10)
+2025-09-11 00:08:25 - [INFO] - 
+  FINAL DECISION:
+2025-09-11 00:08:25 - [INFO] -    Background Type: BLACK
+2025-09-11 00:08:25 - [INFO] -    Confidence: 80%
+2025-09-11 00:08:25 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-11 00:08:25 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 262079, 'object_pixels': 65, 'background_percentage': 99.97520446777344, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.0, 'edge_mean': 0.0, 'image_mean': 0.36507415771484375, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (0.4 < 80) supports BLACK (+10)']}}
+2025-09-11 00:08:25 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-11 00:08:25 - [INFO] -   BACKGROUND ANALYSIS RESULT:
+2025-09-11 00:08:25 - [INFO] -    Type: black
+2025-09-11 00:08:25 - [INFO] -    Confidence: 80%
+2025-09-11 00:08:25 - [INFO] -    Background area: 100.0%
+2025-09-11 00:08:25 - [INFO] -    Will auto-select: black radio button
+2025-09-11 00:08:25 - [INFO] -    Factors: 3
+2025-09-11 00:08:25 - [INFO] -     ⚠️ manual tagged REQUIRED: 80 confidence
+2025-09-11 00:08:25 - [INFO] - Summary: ANT002_DS.dcm
+2025-09-11 00:08:25 - [INFO] -     Reliable detections: 2/2
+2025-09-11 00:08:25 - [INFO] -     Has reliable detection: True
+2025-09-11 00:08:25 - [INFO] -     Needs manual tagged: False
+2025-09-11 00:08:25 - [INFO] -   Loaded DICOM info for: ANT002_DS.dcm
+2025-09-11 00:08:25 - [INFO] -     Reliable detection: True
+2025-09-11 00:08:25 - [INFO] -     Needs manual tagged: False
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Loading finished. Loaded 1 DICOM info objects
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Starting widget setup...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Processing 1 files in optimized order...
+2025-09-11 00:08:25 - [INFO] -   ANT002_DS.dcm: auto
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Creating widget 1/1 for ANT002_DS.dcm...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Creating DicomFileWidget with 2 frames...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Initializing DicomFileWidget for ANT002_DS.dcm with 2 frames
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Setting up UI for ANT002_DS.dcm...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Initializing FrameWidget for frame 0 from ANT002_DS.dcm
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Setting up UI for frame 0...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: ZoomableImageLabel init - shape: (1024, 256), dtype: uint16
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Medical image detected: True
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Creating pixmap...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Starting pixmap creation - shape: (1024, 256)
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Frame data copied - dtype: uint16
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Converting from uint16 to uint8...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Data range: 0 to 9998
+2025-09-11 00:08:25 - [INFO] -   Normalization completed
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Final frame dimensions: 256x1024
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Enhancing medical image display...
+2025-09-11 00:08:25 - [INFO] -   Image already uint8, no enhancement needed
+2025-09-11 00:08:25 - [INFO] -   Medical image enhancement applied
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Creating PIL Image...
+2025-09-11 00:08:25 - [INFO] -   PIL Image created
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Detected potential medical scan
+2025-09-11 00:08:25 - [INFO] -   DEBUG: High aspect ratio (4.0), checking for rotation...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Rotation did not improve, keeping original orientation
+2025-09-11 00:08:25 - [INFO] -   PIL Image finalized - size: (256, 1024)
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Original dimensions: 256x1024
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Tall image - resize to 70x280
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Final resize dimensions: 70x280
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Using NEAREST resampling for medical image
+2025-09-11 00:08:25 - [INFO] -   Image resized
+2025-09-11 00:08:25 - [INFO] -   QPixmap created successfully
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Updating display...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Using Smooth transformation for medical image
+2025-09-11 00:08:25 - [INFO] -   ZoomableImageLabel initialized successfully
+2025-09-11 00:08:25 - [INFO] - 
+  FRAME 0 AUTO-SELECTION DEBUG:
+2025-09-11 00:08:25 - [INFO] -    detected_bg: 'black'
+2025-09-11 00:08:25 - [INFO] -    pixel_analysis exists: True
+2025-09-11 00:08:25 - [INFO] -    analysis.background_type: 'black'
+2025-09-11 00:08:25 - [INFO] -    analysis.confidence: 80%
+2025-09-11 00:08:25 - [INFO] -    corner_mean: 0.0
+2025-09-11 00:08:25 - [INFO] -    edge_mean: 0.0
+2025-09-11 00:08:25 - [INFO] -    image_mean: 0.14176177978515625
+2025-09-11 00:08:25 - [INFO] -   AUTO-SELECTED: BLACK background radio button
+2025-09-11 00:08:25 - [INFO] -    Final state - Black checked: True
+2025-09-11 00:08:25 - [INFO] -    Final state - White checked: False
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Connecting signals for frame 0...
+2025-09-11 00:08:25 - [INFO] -   FrameWidget setup completed for frame 0
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Initializing FrameWidget for frame 1 from ANT002_DS.dcm
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Setting up UI for frame 1...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: ZoomableImageLabel init - shape: (1024, 256), dtype: uint16
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Medical image detected: True
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Creating pixmap...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Starting pixmap creation - shape: (1024, 256)
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Frame data copied - dtype: uint16
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Converting from uint16 to uint8...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Data range: 0 to 4674
+2025-09-11 00:08:25 - [INFO] -   Normalization completed
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Final frame dimensions: 256x1024
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Enhancing medical image display...
+2025-09-11 00:08:25 - [INFO] -   Image already uint8, no enhancement needed
+2025-09-11 00:08:25 - [INFO] -   Medical image enhancement applied
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Creating PIL Image...
+2025-09-11 00:08:25 - [INFO] -   PIL Image created
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Detected potential medical scan
+2025-09-11 00:08:25 - [INFO] -   DEBUG: High aspect ratio (4.0), checking for rotation...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Rotation did not improve, keeping original orientation
+2025-09-11 00:08:25 - [INFO] -   PIL Image finalized - size: (256, 1024)
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Original dimensions: 256x1024
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Tall image - resize to 70x280
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Final resize dimensions: 70x280
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Using NEAREST resampling for medical image
+2025-09-11 00:08:25 - [INFO] -   Image resized
+2025-09-11 00:08:25 - [INFO] -   QPixmap created successfully
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Updating display...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Using Smooth transformation for medical image
+2025-09-11 00:08:25 - [INFO] -   ZoomableImageLabel initialized successfully
+2025-09-11 00:08:25 - [INFO] - 
+  FRAME 1 AUTO-SELECTION DEBUG:
+2025-09-11 00:08:25 - [INFO] -    detected_bg: 'black'
+2025-09-11 00:08:25 - [INFO] -    pixel_analysis exists: True
+2025-09-11 00:08:25 - [INFO] -    analysis.background_type: 'black'
+2025-09-11 00:08:25 - [INFO] -    analysis.confidence: 80%
+2025-09-11 00:08:25 - [INFO] -    corner_mean: 0.0
+2025-09-11 00:08:25 - [INFO] -    edge_mean: 0.0
+2025-09-11 00:08:25 - [INFO] -    image_mean: 0.36507415771484375
+2025-09-11 00:08:25 - [INFO] -   AUTO-SELECTED: BLACK background radio button
+2025-09-11 00:08:25 - [INFO] -    Final state - Black checked: True
+2025-09-11 00:08:25 - [INFO] -    Final state - White checked: False
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Connecting signals for frame 1...
+2025-09-11 00:08:25 - [INFO] -   FrameWidget setup completed for frame 1
+2025-09-11 00:08:25 - [INFO] -   UI setup completed for ANT002_DS.dcm
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Widget created successfully, connecting signals...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Signals connected, adding to layout...
+2025-09-11 00:08:25 - [INFO] -   Successfully created widget for ANT002_DS.dcm
+2025-09-11 00:08:25 - [INFO] - 📊 Widget creation summary:
+2025-09-11 00:08:25 - [INFO] -   Success: 1
+2025-09-11 00:08:25 - [INFO] -   Errors: 0
+2025-09-11 00:08:25 - [INFO] -   auto-tagged: 1
+2025-09-11 00:08:25 - [INFO] -   Manual required: 0
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Widget setup completed, updating validation...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Validating 1 widgets...
+2025-09-11 00:08:25 - [INFO] -   DEBUG: Validating widget 1/1...
+2025-09-11 00:08:25 - [INFO] -   DICOM widgets setup completed successfully
+2025-09-11 00:08:26 - [INFO] -   DEBUG: Confirming selections...
+2025-09-11 00:08:26 - [INFO] - 📄 ANT002_DS.dcm: {0: 'Anterior', 1: 'Posterior'}
+2025-09-11 00:08:26 - [INFO] - 🎨 Background selections: {0: {'view': 'Anterior', 'background': 'black'}, 1: {'view': 'Posterior', 'background': 'black'}}
+2025-09-11 00:08:26 - [INFO] -   Validation passed - emitting signal
+2025-09-11 00:08:26 - [INFO] -   DEBUG: About to emit views_confirmed signal with 1 files
+2025-09-11 00:08:26 - [INFO] -   DEBUG: Emitting views_confirmed signal (string paths)...
+2025-09-11 00:08:26 - [INFO] -   DEBUG: Emitting views_confirmed signal with background data...
+2025-09-11 00:08:26 - [INFO] -   DEBUG: Signal received! Processing 2 assignments
+2025-09-11 00:08:26 - [INFO] -   DEBUG: _on_views_configured called with payload keys: ['background_assignments', 'view_assignments']
+2025-09-11 00:08:26 - [INFO] -   DEBUG: view_assignments contains 1 files
+2025-09-11 00:08:26 - [INFO] -    📄 F:\projek dosen\prototype riset\DicomP10\Export\1.2.840.113619.2.280.2.1.16072025100632798.205689132\ANT002_DS.dcm
+2025-09-11 00:08:26 - [INFO] - 🎨 Background assignments received: 1 files
+2025-09-11 00:08:26 - [INFO] -   View assignments and background selections configured
+2025-09-11 00:08:26 - [INFO] - Files with assignments: 1
+2025-09-11 00:08:26 - [INFO] - Files with background selections: 1
+2025-09-11 00:08:26 - [INFO] -   DEBUG: Signal emitted, closing dialog...
+2025-09-11 00:08:26 - [INFO] -   DEBUG: Dialog finished, cleaning up...
+2025-09-11 00:08:26 - [INFO] -   DEBUG: Dialog accepted and closed
+2025-09-11 00:08:26 - [INFO] -   DEBUG: View dialog result: 1
+2025-09-11 00:08:26 - [INFO] -   Dialog accepted
+2025-09-11 00:08:27 - [INFO] -   DEBUG: Starting duplicate filter check...
+2025-09-11 00:08:27 - [INFO] -   DEBUG: view_assignments contains 1 files
+2025-09-11 00:08:27 - [INFO] -   DEBUG: file_list contains 1 items
+2025-09-11 00:08:27 - [INFO] -   DEBUG: Checking file: ANT002_DS.dcm
+2025-09-11 00:08:27 - [INFO] -    📍 Found in UI list at position 0
+2025-09-11 00:08:27 - [INFO] -    🏷️ Duplicate flag: None
+2025-09-11 00:08:27 - [INFO] -      NOT marked as duplicate - will process
+2025-09-11 00:08:27 - [INFO] -    ➕ Added to processing queue
+2025-09-11 00:08:27 - [INFO] -   DEBUG: Filter results:
+2025-09-11 00:08:27 - [INFO] -    Original files in view_assignments: 1
+2025-09-11 00:08:27 - [INFO] -    Files to actually process: 1
+2025-09-11 00:08:27 - [INFO] -    Skipped duplicates: 0
+2025-09-11 00:08:27 - [INFO] -   No duplicates found in processing queue
+2025-09-11 00:08:27 - [INFO] - Starting enhanced import process...
+2025-09-11 00:08:27 - [INFO] - Processing 1 files with view assignments
+2025-09-11 00:08:27 - [INFO] - Session: PVSA
+2025-09-11 00:08:27 - [INFO] - Target: data/PLANAR/PVSA/[patient_id]/
+2025-09-11 00:08:27 - [INFO] - Configuration: All 1 files auto-tagged
+2025-09-11 00:08:27 - [INFO] - Enforced naming: Anterior/Posterior views only
+2025-09-11 00:08:27 - [INFO] - ## Background assignments provided for 1 files
+2025-09-11 00:08:27 - [INFO] - ## Starting batch import with view assignments: 1 file(s)
+2025-09-11 00:08:27 - [INFO] - ## Session code: PVSA
+2025-09-11 00:08:27 - [INFO] - ## Target directory: data/PLANAR/PVSA/[patient_id]/
+2025-09-11 00:08:27 - [INFO] - ##   DICOM PROTECTION: Original DICOM files will NOT be modified
+2025-09-11 00:08:27 - [INFO] - ##   OUTPUT ONLY: PNG/XML files for analysis results
+2025-09-11 00:08:27 - [INFO] - ## 🎨 BACKGROUND PROCESSING: 1 files have background selections
+2025-09-11 00:08:27 - [INFO] - ## Background conversion: White → Black (for model compatibility)
+2025-09-11 00:08:27 - [INFO] - ## Processing workflow: Copy Original → PNG outputs → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG
+2025-09-11 00:08:27 - [INFO] - 
+## Processing file 1/1: ANT002_DS.dcm
+2025-09-11 00:08:27 - [INFO] - 
+=== Processing ANT002_DS.dcm ===
+2025-09-11 00:08:27 - [INFO] -   Patient ID: 0000496372
+2025-09-11 00:08:27 - [INFO] -   Study Date: 20250716
+2025-09-11 00:08:27 - [INFO] -     Path structure validated: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716
+2025-09-11 00:08:27 - [INFO] -   >> Copying ORIGINAL DICOM without modification...
+2025-09-11 00:08:27 - [INFO] -   Copied ORIGINAL → F:\projek dosen\prototype riset\hotspot-analyzer\data\PLA...
+2025-09-11 00:08:27 - [INFO] -   >> Loading ORIGINAL DICOM frames with view assignments...
+2025-09-11 00:08:27 - [INFO] -   Frames detected: ['anterior', 'posterior']
+2025-09-11 00:08:27 - [INFO] -   >> Processing background selections...
+2025-09-11 00:08:27 - [INFO] -      Processing anterior with black background
+2025-09-11 00:08:27 - [INFO] -   Keeping black background
+2025-09-11 00:08:27 - [INFO] -        anterior background processed
+2025-09-11 00:08:27 - [INFO] -      Processing posterior with black background
+2025-09-11 00:08:27 - [INFO] -   Keeping black background
+2025-09-11 00:08:27 - [INFO] -        posterior background processed
+2025-09-11 00:08:27 - [INFO] -     Background processing completed
+2025-09-11 00:08:27 - [INFO] -   >> Normalized 'anterior' → 'Anterior'
+2025-09-11 00:08:27 - [INFO] -   >> Normalized 'posterior' → 'Posterior'
+2025-09-11 00:08:27 - [INFO] -     Final views: ['Anterior', 'Posterior']
+2025-09-11 00:08:27 - [INFO] -     Normalized views: ['Anterior', 'Posterior']
+2025-09-11 00:08:27 - [INFO] -   >> Saving original frames for classification...
+2025-09-11 00:08:27 - [INFO] -      Original frame saved: ant_original.png
+2025-09-11 00:08:27 - [INFO] -      Original frame saved: post_original.png
+2025-09-11 00:08:27 - [INFO] -   >> Generating segmentation masks and colored overlays...
+2025-09-11 00:08:27 - [INFO] -   >> [1/2] Processing Anterior
+2025-09-11 00:08:27 - [INFO] -      Segmenting bone mask...
+2025-09-11 00:08:27 - [INFO] - [INFO]  Starting bone mask segmentation...
+2025-09-11 00:08:27 - [INFO] - [INFO]  Input image shape: (1024, 256), dtype: uint16
+2025-09-11 00:08:27 - [INFO] - [INFO]  Preprocessing: resizing to (256, 1024)...
+2025-09-11 00:08:27 - [INFO] - [INFO]  Preprocessing completed
+2025-09-11 00:08:27 - [INFO] - [INFO]  Loading segmentation model...
+2025-09-11 00:08:42 - [INFO] - [INFO]  Loading bone segmentation model...
+2025-09-11 00:08:42 - [INFO] - [INFO]  Model path: F:\projek dosen\prototype riset\hotspot-analyzer\models\s...
+2025-09-11 00:08:42 - [INFO] - [INFO]  CUDA available: False – using cpu
+2025-09-11 00:08:42 - [INFO] - [INFO]  Primary predictor created successfully (Device: cpu)
+2025-09-11 00:08:42 - [INFO] - [INFO]  Switching to CPU-only fallback configuration.
+2025-09-11 00:08:42 - [INFO] - [INFO]  Initializing model from trained weights on device: cpu...
+2025-09-11 00:08:45 - [DEBUG] - Loaded backend agg version v2.2.
+2025-09-11 00:09:00 - [INFO] - [INFO]  Bone segmentation model loaded successfully
+2025-09-11 00:09:00 - [INFO] - [INFO]  Performing bone segmentation inference...
+2025-09-11 00:09:00 - [INFO] - [INFO]  Running sliding window inference...
+2025-09-11 00:09:00 - [INFO] - [INFO]  Input image shape: (1024, 256)
+2025-09-11 00:09:01 - [INFO] - [INFO]  Prediction completed, output shape: (1024, 256)
+2025-09-11 00:09:01 - [INFO] - [INFO]  Segmentation completed in 33.82s
+2025-09-11 00:09:01 - [INFO] - [INFO]  Output mask shape: (1024, 256)
+2025-09-11 00:09:01 - [INFO] - [INFO]  Unique labels found: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+2025-09-11 00:09:01 - [INFO] - [INFO]  Returning raw segmentation mask
+2025-09-11 00:09:01 - [INFO] -      Generating colored overlay...
+2025-09-11 00:09:01 - [INFO] - [INFO]  Starting bone mask segmentation...
+2025-09-11 00:09:01 - [INFO] - [INFO]  Input image shape: (1024, 256), dtype: uint16
+2025-09-11 00:09:01 - [INFO] - [INFO]  Preprocessing: resizing to (256, 1024)...
+2025-09-11 00:09:01 - [INFO] - [INFO]  Preprocessing completed
+2025-09-11 00:09:01 - [INFO] - [INFO]  Loading segmentation model...
+2025-09-11 00:09:01 - [INFO] - [INFO]  Performing bone segmentation inference...
+2025-09-11 00:09:01 - [INFO] - [INFO]  Running sliding window inference...
+2025-09-11 00:09:01 - [INFO] - [INFO]  Input image shape: (1024, 256)
+2025-09-11 00:09:01 - [INFO] - [INFO]  Prediction completed, output shape: (1024, 256)
+2025-09-11 00:09:01 - [INFO] - [INFO]  Segmentation completed in 0.64s
+2025-09-11 00:09:01 - [INFO] - [INFO]  Output mask shape: (1024, 256)
+2025-09-11 00:09:01 - [INFO] - [INFO]  Unique labels found: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+2025-09-11 00:09:01 - [INFO] - [INFO]  Converting mask to colored RGB image...
+2025-09-11 00:09:01 - [INFO] - [INFO]  RGB conversion completed, shape: (1024, 256, 3)
+2025-09-11 00:09:01 - [INFO] -      Segmentation completed for Anterior
+2025-09-11 00:09:01 - [INFO] -        Saved: ant_mask.png, ant_segm.png
+2025-09-11 00:09:01 - [INFO] -   >> [2/2] Processing Posterior
+2025-09-11 00:09:01 - [INFO] -      Segmenting bone mask...
+2025-09-11 00:09:01 - [INFO] - [INFO]  Starting bone mask segmentation...
+2025-09-11 00:09:01 - [INFO] - [INFO]  Input image shape: (1024, 256), dtype: uint16
+2025-09-11 00:09:01 - [INFO] - [INFO]  Preprocessing: resizing to (256, 1024)...
+2025-09-11 00:09:01 - [INFO] - [INFO]  Preprocessing completed
+2025-09-11 00:09:01 - [INFO] - [INFO]  Loading segmentation model...
+2025-09-11 00:09:01 - [INFO] - [INFO]  Performing bone segmentation inference...
+2025-09-11 00:09:01 - [INFO] - [INFO]  Running sliding window inference...
+2025-09-11 00:09:01 - [INFO] - [INFO]  Input image shape: (1024, 256)
+2025-09-11 00:09:02 - [INFO] - [INFO]  Prediction completed, output shape: (1024, 256)
+2025-09-11 00:09:02 - [INFO] - [INFO]  Segmentation completed in 0.72s
+2025-09-11 00:09:02 - [INFO] - [INFO]  Output mask shape: (1024, 256)
+2025-09-11 00:09:02 - [INFO] - [INFO]  Unique labels found: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+2025-09-11 00:09:02 - [INFO] - [INFO]  Returning raw segmentation mask
+2025-09-11 00:09:02 - [INFO] -      Generating colored overlay...
+2025-09-11 00:09:02 - [INFO] - [INFO]  Starting bone mask segmentation...
+2025-09-11 00:09:02 - [INFO] - [INFO]  Input image shape: (1024, 256), dtype: uint16
+2025-09-11 00:09:02 - [INFO] - [INFO]  Preprocessing: resizing to (256, 1024)...
+2025-09-11 00:09:02 - [INFO] - [INFO]  Preprocessing completed
+2025-09-11 00:09:02 - [INFO] - [INFO]  Loading segmentation model...
+2025-09-11 00:09:02 - [INFO] - [INFO]  Performing bone segmentation inference...
+2025-09-11 00:09:02 - [INFO] - [INFO]  Running sliding window inference...
+2025-09-11 00:09:02 - [INFO] - [INFO]  Input image shape: (1024, 256)
+2025-09-11 00:09:03 - [INFO] - [INFO]  Prediction completed, output shape: (1024, 256)
+2025-09-11 00:09:03 - [INFO] - [INFO]  Segmentation completed in 0.72s
+2025-09-11 00:09:03 - [INFO] - [INFO]  Output mask shape: (1024, 256)
+2025-09-11 00:09:03 - [INFO] - [INFO]  Unique labels found: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+2025-09-11 00:09:03 - [INFO] - [INFO]  Converting mask to colored RGB image...
+2025-09-11 00:09:03 - [INFO] - [INFO]  RGB conversion completed, shape: (1024, 256, 3)
+2025-09-11 00:09:03 - [INFO] -      Segmentation completed for Posterior
+2025-09-11 00:09:03 - [INFO] -        Saved: post_mask.png, post_segm.png
+2025-09-11 00:09:03 - [INFO] -   >> Running YOLO hotspot detection...
+2025-09-11 00:09:03 - [INFO] - [YOLO WRAPPER] Starting YOLO detection for 0000496372
+2025-09-11 00:09:03 - [INFO] - [YOLO WRAPPER] Model path: F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\models\model_detection_hs_yolov8.pt
+2025-09-11 00:09:03 - [INFO] - [YOLO WRAPPER] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ANT002_DS.dcm
+2025-09-11 00:09:03 - [INFO] - [YOLO WRAPPER] Starting detection for patient 0000496372
+2025-09-11 00:09:03 - [INFO] - [YOLO WRAPPER] DICOM file: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ANT002_DS.dcm
+2025-09-11 00:09:03 - [INFO] - [YOLO] FORCING model load - application requires YOLO functionality
+2025-09-11 00:09:03 - [INFO] - [YOLO WRAPPER] Extracted session from path: PVSA
+2025-09-11 00:09:03 - [INFO] - [DETECTION] Processing DICOM: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ANT002_DS.dcm
+2025-09-11 00:09:03 - [INFO] - [DETECTION] FORCED YOLO execution - application requires this functionality
+2025-09-11 00:09:03 - [INFO] - [DETECTION] Patient: 0000496372, Session: PVSA, Study Date: 20250716
+2025-09-11 00:09:03 - [INFO] - [DETECTION] Loaded 2 frames: ['anterior', 'posterior']
+2025-09-11 00:09:03 - [INFO] - [DETECTION] Processing view: anterior -> anterior
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES] Final selection for ant:
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_yolo.xml (exists: False, type: original)
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_colored.png (exists: False, type: original)
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_colored_blend.png (exists: False, type: original)
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_grayscale.png (exists: False, type: original)
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_classification.xml (exists: False, type: original)
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_classification.png (exists: False, type: original)
+2025-09-11 00:09:03 - [INFO] - [DETECTION] Running YOLO on anterior view...
+2025-09-11 00:09:03 - [INFO] - [YOLO] FORCING model load - application critical functionality
+2025-09-11 00:09:03 - [INFO] - [YOLO] Loading model on-demand (FORCED, thread-safe)...
+2025-09-11 00:09:03 - [INFO] - [YOLO] FORCING model initialization - critical for application
+2025-09-11 00:09:03 - [INFO] - [YOLO] Attempting to load model from: F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\models\model_detection_hs_yolov8.pt
+2025-09-11 00:09:03 - [INFO] - [YOLO] Model loaded successfully (FORCED CPU mode)
+2025-09-11 00:09:03 - [INFO] - [DETECTION] Found 1 hotspots in anterior
+2025-09-11 00:09:03 - [INFO] - [XML] Saved detection XML to: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_yolo.xml
+2025-09-11 00:09:03 - [INFO] - [DETECTION] Processing view: posterior -> posterior
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES] Final selection for post:
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_yolo.xml (exists: False, type: original)
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_otsu_colored.png (exists: False, type: original)
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_otsu_colored_blend.png (exists: False, type: original)
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_otsu_grayscale.png (exists: False, type: original)
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_classification.xml (exists: False, type: original)
+2025-09-11 00:09:03 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_classification.png (exists: False, type: original)
+2025-09-11 00:09:03 - [INFO] - [DETECTION] Running YOLO on posterior view...
+2025-09-11 00:09:04 - [INFO] - [DETECTION] No detections found, creating empty XML for pipeline continuity
+2025-09-11 00:09:04 - [INFO] - [DETECTION] No hotspots detected in posterior
+2025-09-11 00:09:04 - [INFO] - [XML] Saved detection XML to: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_yolo.xml
+2025-09-11 00:09:04 - [INFO] - [YOLO WRAPPER] Detection completed:
+2025-09-11 00:09:04 - [INFO] -   Anterior: ✓
+2025-09-11 00:09:04 - [INFO] -   Posterior: ✓
+2025-09-11 00:09:04 - [INFO] - [YOLO WRAPPER] Detection completed with results: {'anterior': True, 'posterior': True}
+2025-09-11 00:09:04 - [INFO] -      YOLO detection completed - XML files created
+2025-09-11 00:09:04 - [INFO] -   >> Running Otsu hotspot processing...
+2025-09-11 00:09:04 - [INFO] - --- MENJALANKAN FUNGSI HOTSPOT DENGAN LOGIKA PENYIMPANAN FILE ---
+2025-09-11 00:09:04 - [INFO] - [SESSION] Found session code from config: PVSA
+2025-09-11 00:09:04 - [INFO] - [DEBUG] Using session: PVSA, patient: 0000496372, study_date: 20250716
+2025-09-11 00:09:04 - [INFO] - [DEBUG] Expected patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716
+2025-09-11 00:09:04 - [INFO] - 
+  [DEBUG PRIORITY GANTENG] ===================
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY] Looking for: ant_hotspot_classification.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY] In path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY] Session code: None
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY] Original file: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_classification.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY] Original exists: False
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY] File is editable, checking for timestamp version...
+2025-09-11 00:09:04 - [INFO] - 
+  [DEBUG TIMESTAMP GANTENG] ===================
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] Looking for: ant_hotspot_classification.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] In folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] Session code: None
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] Is editable: True
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] Folder contents:
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ANT002_DS.dcm
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_hotspot_yolo.xml
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_mask.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_original.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_segm.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_hotspot_yolo.xml
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_mask.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_original.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_segm.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] Running get_latest_timestamp_file...
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] Result: None
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY]  No edited version found
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY]  No file found at all
+2025-09-11 00:09:04 - [INFO] - [PRIORITY] Using original PNG: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_classification.png
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES] Final selection for ant:
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_yolo.xml (exists: True, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_colored.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_colored_blend.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_grayscale.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_classification.xml (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_classification.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - 
+  [DEBUG PRIORITY GANTENG] ===================
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY] Looking for: post_hotspot_classification.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY] In path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY] Session code: None
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY] Original file: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_classification.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY] Original exists: False
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY] File is editable, checking for timestamp version...
+2025-09-11 00:09:04 - [INFO] - 
+  [DEBUG TIMESTAMP GANTENG] ===================
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] Looking for: post_hotspot_classification.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] In folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] Session code: None
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] Is editable: True
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] Folder contents:
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ANT002_DS.dcm
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_hotspot_yolo.xml
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_mask.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_original.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_segm.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_hotspot_yolo.xml
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_mask.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_original.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_segm.png
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] Running get_latest_timestamp_file...
+2025-09-11 00:09:04 - [INFO] -   [DEBUG TIMESTAMP] Result: None
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY]  No edited version found
+2025-09-11 00:09:04 - [INFO] -   [DEBUG PRIORITY]  No file found at all
+2025-09-11 00:09:04 - [INFO] - [PRIORITY] Using original PNG: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_classification.png
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES] Final selection for post:
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_yolo.xml (exists: True, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_otsu_colored.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_otsu_colored_blend.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_otsu_grayscale.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_classification.xml (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_classification.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [DEBUG] Processing anterior with XML: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_yolo.xml
+2025-09-11 00:09:04 - [INFO] - [DEBUG] Processing frame with study_date: 20250716
+2025-09-11 00:09:04 - [INFO] - [SESSION] Found session code from config: PVSA
+2025-09-11 00:09:04 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:04 - [DEBUG] - STREAM b'IDAT' 41 7092
+2025-09-11 00:09:04 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:04 - [DEBUG] - STREAM b'IDAT' 41 7092
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES] Final selection for ant:
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_yolo.xml (exists: True, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_colored.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_colored_blend.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_grayscale.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_classification.xml (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_classification.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - Blended hotspot image saved: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_colored_blend.png
+2025-09-11 00:09:04 - [INFO] - Pure hotspot image saved: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_colored.png
+2025-09-11 00:09:04 - [INFO] - Hotspot mask saved: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_grayscale.png
+2025-09-11 00:09:04 - [INFO] - [PROCESS] Anterior hotspot processing completed
+2025-09-11 00:09:04 - [INFO] - [DEBUG] Processing posterior with XML: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_yolo.xml
+2025-09-11 00:09:04 - [INFO] - [PROCESS] Posterior processing failed, using original frame
+2025-09-11 00:09:04 - [INFO] - [PROCESS] Hotspot processing completed for ANT002_DS.dcm
+2025-09-11 00:09:04 - [INFO] -      Otsu processing completed - hotspot PNG files created
+2025-09-11 00:09:04 - [INFO] -   >> Running hotspot classification inference...
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES] Final selection for ant:
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_yolo.xml (exists: True, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_colored.png (exists: True, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_colored_blend.png (exists: True, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_otsu_grayscale.png (exists: True, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_classification.xml (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_classification.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES] Final selection for post:
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_yolo.xml (exists: True, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_otsu_colored.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_otsu_colored_blend.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_otsu_grayscale.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_classification.xml (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_classification.png (exists: False, type: original)
+2025-09-11 00:09:04 - [INFO] -      Mapped: ant_original.png -> 0000496372_20250716_anterior_original.png
+2025-09-11 00:09:04 - [INFO] -      Mapped: post_original.png -> 0000496372_20250716_posterior_original.png
+2025-09-11 00:09:04 - [INFO] -      Mapped: ant_segm.png -> 0000496372_20250716_anterior_colored.png
+2025-09-11 00:09:04 - [INFO] -      Mapped: post_segm.png -> 0000496372_20250716_posterior_colored.png
+2025-09-11 00:09:04 - [INFO] -      Mapped: ant_hotspot_otsu_grayscale.png -> 0000496372_20250716_ant_hotspot_mask.png
+2025-09-11 00:09:04 - [INFO] -      Missing: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_otsu_grayscale.png -> 0000496372_20250716_post_hotspot_mask.png
+2025-09-11 00:09:04 - [INFO] -      Mapped: ant_hotspot_yolo.xml -> 0000496372_20250716_ant.xml
+2025-09-11 00:09:04 - [INFO] -      Mapped: post_hotspot_yolo.xml -> 0000496372_20250716_post.xml
+2025-09-11 00:09:04 - [INFO] -      Successfully mapped 7 files for classification
+2025-09-11 00:09:04 - [INFO] -      Running classification in temp directory: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\temp_classification
+2025-09-11 00:09:04 - [INFO] - [CLASSIFICATION] Starting classification for patient 0000496372
+2025-09-11 00:09:04 - [INFO] - [SESSION] Found session code from config: PVSA
+2025-09-11 00:09:04 - [INFO] - [CLASSIFICATION] Using session: PVSA
+2025-09-11 00:09:04 - [INFO] - >>>>>> [BUKTI] MEMUAT classification_wrapper.py VERSI TERBARU <<<<<<
+2025-09-11 00:09:04 - [INFO] -      Starting classification for patient 0000496372
+2025-09-11 00:09:04 - [INFO] -      Study date: 20250716
+2025-09-11 00:09:04 - [INFO] -      Session: 0000496372
+2025-09-11 00:09:04 - [INFO] -      Grayscale conversion: Enabled
+2025-09-11 00:09:04 - [INFO] -      Processing anterior view with grayscale conversion...
+2025-09-11 00:09:04 - [INFO] -        Found raw_original: 0000496372_20250716_anterior_original.png
+2025-09-11 00:09:04 - [INFO] -        Found region_mask: 0000496372_20250716_anterior_colored.png
+2025-09-11 00:09:04 - [INFO] -        Found hotspot_mask: 0000496372_20250716_ant_hotspot_mask.png
+2025-09-11 00:09:04 - [INFO] -        Found xml_file: 0000496372_20250716_ant.xml
+2025-09-11 00:09:04 - [INFO] - [DEBUG] Starting classification inference with automatic conversion
+2025-09-11 00:09:04 - [INFO] - [DEBUG] Raw PNG path: 0000496372_20250716_anterior_original.png
+2025-09-11 00:09:04 - [INFO] - [DEBUG] Segment path: 0000496372_20250716_anterior_colored.png
+2025-09-11 00:09:04 - [INFO] - [DEBUG] Hotspot path: 0000496372_20250716_ant_hotspot_mask.png
+2025-09-11 00:09:04 - [INFO] - [DEBUG] XML path: 0000496372_20250716_ant.xml
+2025-09-11 00:09:04 - [INFO] - [DEBUG] Raw PNG file exists: 7149 bytes
+2025-09-11 00:09:04 - [INFO] - [DEBUG] Segment file exists: 13165 bytes
+2025-09-11 00:09:04 - [INFO] - [DEBUG] Hotspot file exists: 388 bytes
+2025-09-11 00:09:04 - [INFO] - [DEBUG] XML file exists: 669 bytes
+2025-09-11 00:09:04 - [INFO] - [DEBUG] Python path setup completed
+2025-09-11 00:09:05 - [INFO] - No valid config parameter, using defaults: {'minimumROIDimensions': 2, 'minimumROISize': None, 'normalize': False, 'normalizeScale': 1, 'removeOutliers': None, 'resampledPixelSpacing': None, 'interpolator': 'sitkBSpline', 'preCrop': False, 'padDistance': 5, 'distances': [1], 'force2D': False, 'force2Ddimension': 0, 'resegmentRange': None, 'label': 1, 'additionalInfo': True}
+2025-09-11 00:09:05 - [INFO] - Enabled image types: {'Original': {}}
+2025-09-11 00:09:05 - [INFO] - Enabled features: {'firstorder': [], 'glcm': [], 'gldm': [], 'glrlm': [], 'glszm': [], 'ngtdm': [], 'shape': []}
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Module imported successfully
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Model paths updated
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Models loaded successfully
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Loaded 1 bounding boxes from XML
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Bbox 0: {'label': 'Normal', 'bbox': [7, 254, 22, 268], 'xmin': 7, 'ymin': 254, 'xmax': 22, 'ymax': 268}
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Image loading test:
+2025-09-11 00:09:05 - [INFO] -   Raw: (1024, 256, 1)
+2025-09-11 00:09:05 - [INFO] -   Segment: (1024, 256, 3) (colored: True)
+2025-09-11 00:09:05 - [INFO] -   Hotspot: (1024, 256, 1)
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Starting inference_classification with automatic colored-to-grayscale conversion...
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Conversion will create: 0000496372_20250716_anterior_colored_grayscaledSegmentation.png if needed
+2025-09-11 00:09:05 - [INFO] - [INFERENCE DEBUG] Starting inference with automatic conversion
+2025-09-11 00:09:05 - [INFO] - [INFERENCE DEBUG] Input paths:
+2025-09-11 00:09:05 - [INFO] -   Raw: 0000496372_20250716_anterior_original.png
+2025-09-11 00:09:05 - [INFO] -   Segment: 0000496372_20250716_anterior_colored.png
+2025-09-11 00:09:05 - [INFO] -   Hotspot: 0000496372_20250716_ant_hotspot_mask.png
+2025-09-11 00:09:05 - [INFO] -   XML: 1
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Checking segmentation: 0000496372_20250716_anterior_colored.png
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Detected colored segmentation, converting to grayscale...
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Converting colored to grayscale and saving...
+2025-09-11 00:09:05 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:05 - [DEBUG] - STREAM b'IDAT' 41 13108
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Saved grayscale segmentation: 0000496372_20250716_anterior_colored_grayscaledSegmentation.png
+2025-09-11 00:09:05 - [INFO] - [INFERENCE DEBUG] Using segmentation: 0000496372_20250716_anterior_colored_grayscaledSegmentation.png
+2025-09-11 00:09:05 - [INFO] - [INFERENCE DEBUG] Images loaded:
+2025-09-11 00:09:05 - [INFO] -   Raw: (1024, 256)
+2025-09-11 00:09:05 - [INFO] -   Segment: (1024, 256)
+2025-09-11 00:09:05 - [INFO] -   Hotspot: (1024, 256)
+2025-09-11 00:09:05 - [INFO] - [INFERENCE DEBUG] Loaded 1 bounding boxes
+2025-09-11 00:09:05 - [INFO] - [INFERENCE DEBUG] Processing bbox 0: {'label': 'Normal', 'bbox': [7, 254, 22, 268], 'xmin': 7, 'ymin': 254, 'xmax': 22, 'ymax': 268}
+2025-09-11 00:09:05 - [INFO] - [SEGMENT MAPPING] ID 0 → background
+2025-09-11 00:09:05 - [INFO] - [INFERENCE DEBUG] Feature extraction failed for bbox 0
+2025-09-11 00:09:05 - [INFO] - [INFERENCE DEBUG] No valid features extracted
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Classification completed
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Result list length: 0
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Result mask shape: None
+2025-09-11 00:09:05 - [INFO] -      Anterior classification failed
+2025-09-11 00:09:05 - [INFO] -      Processing posterior view with grayscale conversion...
+2025-09-11 00:09:05 - [INFO] -        Found raw_original: 0000496372_20250716_posterior_original.png
+2025-09-11 00:09:05 - [INFO] -        Found region_mask: 0000496372_20250716_posterior_colored.png
+2025-09-11 00:09:05 - [INFO] -        Found xml_file: 0000496372_20250716_post.xml
+2025-09-11 00:09:05 - [INFO] -      Missing files for posterior: hotspot_mask (0000496372_20250716_post_hotspot_mask.png)
+2025-09-11 00:09:05 - [INFO] -      Classification failed for all views
+2025-09-11 00:09:05 - [INFO] - [CLASSIFICATION] Classification failed
+2025-09-11 00:09:05 - [INFO] -        Cleaned up temp directory
+2025-09-11 00:09:05 - [INFO] -      Classification completed - no classifications generated
+2025-09-11 00:09:05 - [INFO] -   >> Running BSI quantification with classification masks...
+2025-09-11 00:09:05 - [INFO] - [SESSION] Found session code from config: PVSA
+2025-09-11 00:09:05 - [INFO] - [PROCESSING] Running V1.2 quantification for patient 0000496372 in session PVSA
+2025-09-11 00:09:05 - [INFO] -      Starting V1.2 BSI quantification for patient 0000496372
+2025-09-11 00:09:05 - [INFO] -      New workflow: Color-based segmentation + Single/Dual view processing
+2025-09-11 00:09:05 - [INFO] - 
+🔧 [DEBUG WRAPPER GANTENG] ===================
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER] Getting quantification input paths:
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER]   Patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER]   Filename stem: 0000496372_20250716
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER]   Folder exists: True
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER] Classification files:
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER]   Anterior mask: False
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER]   Posterior mask: False
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER] Segmentation files:
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER]   Anterior seg: True
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER]   Posterior seg: True
+2025-09-11 00:09:05 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716
+2025-09-11 00:09:05 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716
+2025-09-11 00:09:05 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-11 00:09:05 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\bsi_quantification_ant.json (exists: False)
+2025-09-11 00:09:05 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\bsi_quantification_post.json (exists: False)
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER] Final paths:
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER]   segmentation_anterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_segm.png (exists: True)
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER]   segmentation_posterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_segm.png (exists: True)
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER]   hotspot_anterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\ant_hotspot_classification.png (exists: False)
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER]   hotspot_posterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\post_hotspot_classification.png (exists: False)
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER]   output_anterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\bsi_quantification_ant.json (exists: False)
+2025-09-11 00:09:05 - [INFO] - 🔧 [DEBUG WRAPPER]   output_posterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0000496372\20250716\bsi_quantification_post.json (exists: False)
+2025-09-11 00:09:05 - [INFO] -      Cannot proceed with V1.2 quantification. Missing files: hotspot_anterior (ant_hotspot_classification.png), hotspot_posterior (post_hotspot_classification.png)
+2025-09-11 00:09:05 - [INFO] -      Need at least ONE complete pair (anterior OR posterior segmentation + classification)
+2025-09-11 00:09:05 - [INFO] - [PROCESSING]  V1.2 quantification failed for 0000496372
+2025-09-11 00:09:05 - [INFO] -      BSI quantification failed - missing required files
+2025-09-11 00:09:05 - [INFO] -   >> Cloud storage disabled - skipping upload
+2025-09-11 00:09:05 - [INFO] -     DICOM processing completed - ORIGINAL DICOM UNTOUCHED
+2025-09-11 00:09:05 - [INFO] -   Files saved locally: 6 PNG output files
+2025-09-11 00:09:05 - [INFO] -   Views processed: ['Anterior', 'Posterior']
+2025-09-11 00:09:05 - [INFO] -   ORIGINAL DICOM: ANT002_DS.dcm (NO MODIFICATION)
+2025-09-11 00:09:05 - [INFO] - ## File 1/1 completed successfully - ORIGINAL DICOM PRESERVED
+2025-09-11 00:09:05 - [INFO] - ## Batch import process completed
+2025-09-11 00:09:05 - [INFO] - ##   DICOM PROTECTION: All original DICOM files preserved without modification
+2025-09-11 00:09:05 - [INFO] - ##   OUTPUT GENERATION: PNG/XML analysis files created successfully
+2025-09-11 00:09:05 - [INFO] - ##   CLOUD UPLOAD: Original PNG files uploaded to cloud storage
+2025-09-11 00:09:05 - [INFO] - ## All files use study date naming convention with proper view names.
+2025-09-11 00:09:05 - [INFO] - 🎉 Enhanced import workflow completed!
+2025-09-11 00:09:05 - [INFO] - All files processed with proper Anterior/Posterior naming
+2025-09-11 00:09:05 - [INFO] -   Successfully processed: All 1 auto-tagged files
+2025-09-11 00:09:05 - [INFO] - Rescanning folder...
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Files imported signal received, rescanning folder...
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Starting folder scan for session: PVSA
+2025-09-11 00:09:05 - [INFO] - Ditemukan 30 file DICOM di 'F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR'
+2025-09-11 00:09:05 - [INFO] - Ditemukan 7 session, 18 pasien (total 30 file DICOM).
+2025-09-11 00:09:05 - [INFO] -     ALL: 1 pasien, 1 file
+2025-09-11 00:09:05 - [INFO] -     ATL: 4 pasien, 4 file
+2025-09-11 00:09:05 - [INFO] -     HEHE: 2 pasien, 2 file
+2025-09-11 00:09:05 - [INFO] -     NBL: 1 pasien, 5 file
+2025-09-11 00:09:05 - [INFO] -     NSY: 4 pasien, 8 file
+2025-09-11 00:09:05 - [INFO] -     PVSA: 2 pasien, 2 file
+2025-09-11 00:09:05 - [INFO] -     WKW: 4 pasien, 8 file
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Found 7 total sessions: ['ALL', 'ATL', 'HEHE', 'NBL', 'NSY', 'PVSA', 'WKW']
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Filtered to session PVSA: 2 patients
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Added 2 patients to combo box for session PVSA
+2025-09-11 00:09:05 - [INFO] - [DEBUG] display_timeline called with 0 scan(s), focusing on index = -1
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:05 - [INFO] - [BSI SIDE PANEL] Clearing data...
+2025-09-11 00:09:05 - [INFO] - [DEBUG] Folder scan completed
+2025-09-11 00:09:22 - [INFO] - [DEBUG] Import dialog accepted
+2025-09-11 00:09:24 - [INFO] - [DEBUG] item activated → ID: 0001158915 (PVSA) @ index 1
+2025-09-11 00:09:24 - [INFO] - [DEBUG] item activated → ID: 0001158915 (PVSA)
+2025-09-11 00:09:24 - [INFO] - 
+  [DEBUG SELECT GANTENG] ===================
+2025-09-11 00:09:24 - [INFO] -   [DEBUG SELECT] Patient selected: ID: 0001158915 (PVSA)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG SELECT] Parsed - Patient: 0001158915, Session: PVSA
+2025-09-11 00:09:24 - [INFO] -   [DEBUG SELECT] Patient path from paths.py: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915
+2025-09-11 00:09:24 - [INFO] -   [DEBUG SELECT] Patient path exists: True
+2025-09-11 00:09:24 - [INFO] -   [DEBUG SELECT] Patient path contents:
+2025-09-11 00:09:24 - [INFO] -   [DEBUG SELECT]   - 20241204 (DIR)
+2025-09-11 00:09:24 - [INFO] - 
+  [DEBUG PATHS GANTENG] ===================
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS] Patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS] Patient ID: 0001158915
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS] Folder exists: True
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS] Folder structure:
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]   DIR:  20241204/
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]     Study date folder contents:
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: ANT001_DS.dcm (1054352 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_classification.json (36469 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_classification.png (1012 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_classification.xml (919 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored.png (1138 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored_blend.png (99622 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_otsu_grayscale.png (566 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_yolo.xml (991 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: ant_mask.png (2660 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: ant_original.png (74077 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: ant_segm.png (5067 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: bsi_quantification_ant.json (3770 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: post_hotspot_otsu_colored.png (1011 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: post_hotspot_otsu_colored_blend.png (102487 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: post_hotspot_otsu_grayscale.png (452 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: post_hotspot_yolo.xml (673 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: post_mask.png (2663 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: post_original.png (75692 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]       FILE: post_segm.png (4821 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Using latest study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_ant.json (exists: True)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_post.json (exists: False)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS] New quantification paths:
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_ant.json (exists: True, size: 3770 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]     Content preview: {
+  "patient_info": {
+    "patient_id": "0001158915",
+    "study_date": "20241204",
+    "filename_st...
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_post.json (exists: False, size: 0 bytes)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS] Old pattern search:
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]   Old anterior: []
+2025-09-11 00:09:24 - [INFO] -   [DEBUG PATHS]   Old posterior: []
+2025-09-11 00:09:24 - [INFO] -   [DEBUG SELECT] Found DICOM files: 1
+2025-09-11 00:09:24 - [INFO] -   [DEBUG SELECT]   DICOM: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:24 - [INFO] -   [DEBUG SELECT]   DICOM folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_ant.json (exists: True)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_post.json (exists: False)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG SELECT]   BSI files near DICOM:
+2025-09-11 00:09:24 - [INFO] -   [DEBUG SELECT]     Anterior: True
+2025-09-11 00:09:24 - [INFO] -   [DEBUG SELECT]     Posterior: False
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Loading patient: 0001158915 from session: PVSA
+2025-09-11 00:09:24 - [INFO] - [CACHE DEBUG] Cache key: 0001158915_PVSA
+2025-09-11 00:09:24 - [INFO] - [CACHE DEBUG] Existing cache keys: []
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Loading scans for 0001158915_PVSA from disk...
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Found 1 DICOM files for patient 0001158915
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Enriched scan data for: ANT001_DS.dcm
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Scan files for 0001158915_20241204:
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Available files: None
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Available PNG files for 0001158915_20241204: None
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Saving 1 scans to cache for 0001158915_PVSA
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Layers changed to: []
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-11 00:09:24 - [INFO] - [EDIT BUTTONS] Has scan: False, Has seg data: False, Can edit hotspot: False
+2025-09-11 00:09:24 - [INFO] - [EDIT BUTTONS] Seg button enabled: False, Hotspot button enabled: False
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Set Image opacity to 1.00
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Set Segmentation opacity to 0.35
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Set Hotspot opacity to 0.50
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Set HotspotBBox opacity to 1.00
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Setting default layers: 'Image' checkbox should now be ON.
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Active layers: ['Image']
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Layers changed to: ['Image']
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Layers added: ['Image']
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Timeline active layers set to: ['Image']
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-11 00:09:24 - [INFO] - [EDIT BUTTONS] Has scan: False, Has seg data: False, Can edit hotspot: False
+2025-09-11 00:09:24 - [INFO] - [EDIT BUTTONS] Seg button enabled: False, Hotspot button enabled: False
+2025-09-11 00:09:24 - [INFO] - [DEBUG] All data loaded. Total scans: 1
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Layers changed to: []
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Layers removed: ['Image']
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-11 00:09:24 - [INFO] - [EDIT BUTTONS] Has scan: False, Has seg data: False, Can edit hotspot: False
+2025-09-11 00:09:24 - [INFO] - [EDIT BUTTONS] Seg button enabled: False, Hotspot button enabled: False
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Set Image opacity to 1.00
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Set Segmentation opacity to 0.35
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Set Hotspot opacity to 0.50
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Set HotspotBBox opacity to 1.00
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Setting default layers: 'Image' checkbox should now be ON.
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Active layers: ['Image']
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Layers changed to: ['Image']
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Layers added: ['Image']
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Timeline active layers set to: ['Image']
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-11 00:09:24 - [INFO] - [EDIT BUTTONS] Has scan: False, Has seg data: False, Can edit hotspot: False
+2025-09-11 00:09:24 - [INFO] - [EDIT BUTTONS] Seg button enabled: False, Hotspot button enabled: False
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Timeline active layers set to: ['Image']
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Set Image opacity to 1.00
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Set Segmentation opacity to 0.40
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Set Hotspot opacity to 0.50
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Set HotspotBBox opacity to 1.00
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:24 - [INFO] - [MainWindow] Updating timeline with 1 scans
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Session code: PVSA
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:24 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:24 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20241204
+2025-09-11 00:09:24 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 0001158915
+2025-09-11 00:09:24 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 0001158915, Study: 20241204
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 0001158915, Study: 20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_ant.json (exists: True)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_post.json (exists: False)
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI] Found study_date folder: 20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - 20241204 (DIR)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ANT001_DS.dcm (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_original.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - 20241204 (DIR)
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20241204', 'anterior_bsi': 0.359935898125391, 'posterior_bsi': 0.0, 'combined_bsi': 0.359935898125391, 'bsi_score': 0.359935898125391, 'file_source': 'bsi_quantification_ant.json', 'processing_mode': 'single_view_anterior', 'is_v2': True, 'note': 'Only anterior view available', 'source_location': 'Study date folder'}
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 0.359935898125391
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 0.0
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION]   Processing mode: single_view_anterior
+2025-09-11 00:09:24 - [INFO] - [MainWindow]   BSI integration completed for 1 scans
+2025-09-11 00:09:24 - [INFO] - [MainWindow DEBUG] First scan meta keys: ['patient_id', 'patient_name', 'patient_birth_date', 'patient_sex', 'patient_weight', 'patient_size', 'patient_age', 'study_date', 'series_date', 'study_time', 'modality', 'series_description', 'study_instance_uid', 'series_instance_uid', 'has_bsi', 'bsi_anterior', 'bsi_posterior', 'bsi_combined', 'bsi_processing_mode', 'bsi_file_source']
+2025-09-11 00:09:24 - [INFO] - [MainWindow DEBUG] has_bsi: True
+2025-09-11 00:09:24 - [INFO] - [MainWindow DEBUG] bsi_anterior: 0.359935898125391
+2025-09-11 00:09:24 - [INFO] - [MainWindow DEBUG] bsi_posterior: 0.0
+2025-09-11 00:09:24 - [INFO] - [DEBUG] display_timeline called with 1 scan(s), focusing on index = 0
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Session code: PVSA
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:24 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:24 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20241204
+2025-09-11 00:09:24 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 0001158915
+2025-09-11 00:09:24 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 0001158915, Study: 20241204
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 0001158915, Study: 20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_ant.json (exists: True)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_post.json (exists: False)
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI] Found study_date folder: 20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - 20241204 (DIR)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ANT001_DS.dcm (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_original.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - 20241204 (DIR)
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20241204', 'anterior_bsi': 0.359935898125391, 'posterior_bsi': 0.0, 'combined_bsi': 0.359935898125391, 'bsi_score': 0.359935898125391, 'file_source': 'bsi_quantification_ant.json', 'processing_mode': 'single_view_anterior', 'is_v2': True, 'note': 'Only anterior view available', 'source_location': 'Study date folder'}
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 0.359935898125391
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 0.0
+2025-09-11 00:09:24 - [INFO] - [BSI META INTEGRATION]   Processing mode: single_view_anterior
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: 0
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Anterior
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-11 00:09:24 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Current view: Anterior
+2025-09-11 00:09:24 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-11 00:09:24 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-11 00:09:24 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-11 00:09:24 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-11 00:09:24 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Study date: 20241204
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Patient ID: 0001158915
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Session code: PVSA
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Loading original image for Anterior
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_original.png
+2025-09-11 00:09:24 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:24 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-11 00:09:24 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-11 00:09:24 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-11 00:09:24 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-11 00:09:24 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Loading segmentation layer for Anterior
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_segm.png
+2025-09-11 00:09:24 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:24 - [DEBUG] - STREAM b'IDAT' 41 5010
+2025-09-11 00:09:24 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_segm.png
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Loading hotspot layer for Anterior
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.png
+2025-09-11 00:09:24 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:24 - [DEBUG] - STREAM b'IDAT' 41 955
+2025-09-11 00:09:24 - [INFO] - [DEBUG]   Loaded hotspot layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.png
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Hotspot type: ORIGINAL
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Loading bbox layer for Anterior
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Loading CLASSIFICATION XML for bbox: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (180,129) -> (213,158)
+2025-09-11 00:09:24 - [INFO] - [DEBUG]   Created CLASSIFICATION bbox visualization with 1 boxes
+2025-09-11 00:09:24 - [INFO] - [DEBUG]   Loaded bbox layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:24 - [INFO] - [DEBUG] BBox XML type: ORIGINAL
+2025-09-11 00:09:24 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-11 00:09:24 - [INFO] - [DEBUG]   Loaded 4 layers for Anterior: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-11 00:09:24 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-11 00:09:24 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Posterior
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-11 00:09:24 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Current view: Posterior
+2025-09-11 00:09:24 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-11 00:09:24 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-11 00:09:24 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-11 00:09:24 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-11 00:09:24 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Study date: 20241204
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Patient ID: 0001158915
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Session code: PVSA
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Loading original image for Posterior
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_original.png
+2025-09-11 00:09:24 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:24 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-11 00:09:24 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-11 00:09:24 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-11 00:09:24 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-11 00:09:24 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Loading segmentation layer for Posterior
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_segm.png
+2025-09-11 00:09:24 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:24 - [DEBUG] - STREAM b'IDAT' 41 4764
+2025-09-11 00:09:24 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_segm.png
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Loading hotspot layer for Posterior
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.png
+2025-09-11 00:09:24 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.png
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Loading bbox layer for Posterior
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.xml
+2025-09-11 00:09:24 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.xml
+2025-09-11 00:09:24 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-11 00:09:24 - [INFO] - [DEBUG]   Loaded 2 layers for Posterior: ['Image', 'Segmentation']
+2025-09-11 00:09:24 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-11 00:09:24 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-11 00:09:24 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-11 00:09:24 - [INFO] - [SMART UPDATE] State updated - Type: full
+2025-09-11 00:09:24 - [INFO] - [MainWindow]   Timeline updated with BSI integration
+2025-09-11 00:09:24 - [INFO] - 
+🏠 [DEBUG MAIN GANTENG] ===================
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] Loading BSI data for selected scan
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] Session code: PVSA
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] Scan data keys: ['meta', 'frames', 'path', 'workflow_files']
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] DICOM exists: True
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] Initial patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] Initial patient folder exists: True
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] Initial patient folder name: 20241204
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] Study date from DICOM: 20241204
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] Detected study_date folder structure
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] Corrected patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] Corrected patient ID: 0001158915
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] Corrected study date: 20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_ant.json (exists: True)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_post.json (exists: False)
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] BSI files in study_date folder:
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN]   Anterior: True
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN]   Posterior: False
+2025-09-11 00:09:24 - [INFO] - 🏠 [DEBUG MAIN] Found BSI files in study_date folder, using it
+2025-09-11 00:09:24 - [INFO] - [BSI CANVAS] Using patient folder for trend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI] Using patient folder directly: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI] Found study_date folder: 20241204
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - 20241204 (DIR)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ANT001_DS.dcm (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_original.png (FILE)
+2025-09-11 00:09:24 - [INFO] -   [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-11 00:09:24 - [INFO] - [DEBUG BSI CANVAS] Processing date: 20241204, mode: single_view_anterior
+2025-09-11 00:09:24 - [INFO] - [DEBUG BSI CANVAS] Added: Ant=0.359935898125391 Post=None
+2025-09-11 00:09:25 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:25 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:25 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-11 00:09:25 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_ant.json (exists: True)
+2025-09-11 00:09:25 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_post.json (exists: False)
+2025-09-11 00:09:25 - [INFO] - 📖 [DEBUG RESULTS] Processing anterior-only data
+2025-09-11 00:09:25 - [INFO] - 📖 [DEBUG RESULTS]   Successfully loaded V1.2 results
+2025-09-11 00:09:25 - [INFO] - 🏠 [DEBUG MAIN] BSI panel load result: True
+2025-09-11 00:09:25 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:25 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:25 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:25 - [INFO] - [EDIT BUTTONS] Has scan: True, Has seg data: True, Can edit hotspot: True
+2025-09-11 00:09:25 - [INFO] - [EDIT BUTTONS] Seg button enabled: True, Hotspot button enabled: True
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Scan button 1 clicked
+2025-09-11 00:09:27 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Timeline active layers set to: ['Image']
+2025-09-11 00:09:27 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Set Image opacity to 1.00
+2025-09-11 00:09:27 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:27 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: 0
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Current view: Anterior
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-11 00:09:27 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Study date: 20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Patient ID: 0001158915
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Session code: PVSA
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading original image for Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_original.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading segmentation layer for Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_segm.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 5010
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_segm.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading hotspot layer for Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 955
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded hotspot layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Hotspot type: ORIGINAL
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading bbox layer for Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading CLASSIFICATION XML for bbox: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (180,129) -> (213,158)
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Created CLASSIFICATION bbox visualization with 1 boxes
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded bbox layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [DEBUG] BBox XML type: ORIGINAL
+2025-09-11 00:09:27 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded 4 layers for Anterior: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Current view: Posterior
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-11 00:09:27 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Study date: 20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Patient ID: 0001158915
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Session code: PVSA
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading original image for Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_original.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading segmentation layer for Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_segm.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 4764
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_segm.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading hotspot layer for Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading bbox layer for Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded 2 layers for Posterior: ['Image', 'Segmentation']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-11 00:09:27 - [INFO] - [SMART UPDATE] State updated - Type: full
+2025-09-11 00:09:27 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Set Segmentation opacity to 0.40
+2025-09-11 00:09:27 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:27 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: 0
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Current view: Anterior
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-11 00:09:27 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Study date: 20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Patient ID: 0001158915
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Session code: PVSA
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading original image for Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_original.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading segmentation layer for Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_segm.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 5010
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_segm.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading hotspot layer for Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 955
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded hotspot layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Hotspot type: ORIGINAL
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading bbox layer for Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading CLASSIFICATION XML for bbox: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (180,129) -> (213,158)
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Created CLASSIFICATION bbox visualization with 1 boxes
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded bbox layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [DEBUG] BBox XML type: ORIGINAL
+2025-09-11 00:09:27 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded 4 layers for Anterior: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Current view: Posterior
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-11 00:09:27 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Study date: 20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Patient ID: 0001158915
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Session code: PVSA
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading original image for Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_original.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading segmentation layer for Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_segm.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 4764
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_segm.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading hotspot layer for Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading bbox layer for Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded 2 layers for Posterior: ['Image', 'Segmentation']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-11 00:09:27 - [INFO] - [SMART UPDATE] State updated - Type: full
+2025-09-11 00:09:27 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Set Hotspot opacity to 0.50
+2025-09-11 00:09:27 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:27 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: 0
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Current view: Anterior
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-11 00:09:27 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Study date: 20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Patient ID: 0001158915
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Session code: PVSA
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading original image for Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_original.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading segmentation layer for Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_segm.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 5010
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_segm.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading hotspot layer for Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 955
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded hotspot layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Hotspot type: ORIGINAL
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading bbox layer for Anterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading CLASSIFICATION XML for bbox: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (180,129) -> (213,158)
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Created CLASSIFICATION bbox visualization with 1 boxes
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded bbox layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [DEBUG] BBox XML type: ORIGINAL
+2025-09-11 00:09:27 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded 4 layers for Anterior: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Current view: Posterior
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-11 00:09:27 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-11 00:09:27 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Study date: 20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Patient ID: 0001158915
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Session code: PVSA
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading original image for Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_original.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-11 00:09:27 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading segmentation layer for Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_segm.png
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:27 - [DEBUG] - STREAM b'IDAT' 41 4764
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_segm.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading hotspot layer for Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.png
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Loading bbox layer for Posterior
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.xml
+2025-09-11 00:09:27 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Loaded 2 layers for Posterior: ['Image', 'Segmentation']
+2025-09-11 00:09:27 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-11 00:09:27 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-11 00:09:28 - [INFO] - [SMART UPDATE] State updated - Type: full
+2025-09-11 00:09:28 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Set HotspotBBox opacity to 1.00
+2025-09-11 00:09:28 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-11 00:09:28 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: 0
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Anterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-11 00:09:28 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Current view: Anterior
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-11 00:09:28 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Study date: 20241204
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Patient ID: 0001158915
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Session code: PVSA
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading original image for Anterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_original.png
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-11 00:09:28 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-11 00:09:28 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-11 00:09:28 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading segmentation layer for Anterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_segm.png
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IDAT' 41 5010
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_segm.png
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading hotspot layer for Anterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.png
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IDAT' 41 955
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Loaded hotspot layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.png
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Hotspot type: ORIGINAL
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading bbox layer for Anterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading CLASSIFICATION XML for bbox: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (180,129) -> (213,158)
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Created CLASSIFICATION bbox visualization with 1 boxes
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Loaded bbox layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:28 - [INFO] - [DEBUG] BBox XML type: ORIGINAL
+2025-09-11 00:09:28 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Loaded 4 layers for Anterior: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Posterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-11 00:09:28 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Current view: Posterior
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-11 00:09:28 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Study date: 20241204
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Patient ID: 0001158915
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Session code: PVSA
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading original image for Posterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_original.png
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-11 00:09:28 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-11 00:09:28 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-11 00:09:28 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading segmentation layer for Posterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_segm.png
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IDAT' 41 4764
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_segm.png
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading hotspot layer for Posterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.png
+2025-09-11 00:09:28 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.png
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading bbox layer for Posterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.xml
+2025-09-11 00:09:28 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.xml
+2025-09-11 00:09:28 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Loaded 2 layers for Posterior: ['Image', 'Segmentation']
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-11 00:09:28 - [INFO] - [SMART UPDATE] State updated - Type: full
+2025-09-11 00:09:28 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-11 00:09:28 - [INFO] - [MainWindow] Updating timeline with 1 scans
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Session code: PVSA
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20241204
+2025-09-11 00:09:28 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 0001158915
+2025-09-11 00:09:28 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 0001158915, Study: 20241204
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 0001158915, Study: 20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_ant.json (exists: True)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_post.json (exists: False)
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI] Found study_date folder: 20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - 20241204 (DIR)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ANT001_DS.dcm (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_original.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - 20241204 (DIR)
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20241204', 'anterior_bsi': 0.359935898125391, 'posterior_bsi': 0.0, 'combined_bsi': 0.359935898125391, 'bsi_score': 0.359935898125391, 'file_source': 'bsi_quantification_ant.json', 'processing_mode': 'single_view_anterior', 'is_v2': True, 'note': 'Only anterior view available', 'source_location': 'Study date folder'}
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 0.359935898125391
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 0.0
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION]   Processing mode: single_view_anterior
+2025-09-11 00:09:28 - [INFO] - [MainWindow]   BSI integration completed for 1 scans
+2025-09-11 00:09:28 - [INFO] - [MainWindow DEBUG] First scan meta keys: ['patient_id', 'patient_name', 'patient_birth_date', 'patient_sex', 'patient_weight', 'patient_size', 'patient_age', 'study_date', 'series_date', 'study_time', 'modality', 'series_description', 'study_instance_uid', 'series_instance_uid', 'has_bsi', 'bsi_anterior', 'bsi_posterior', 'bsi_combined', 'bsi_processing_mode', 'bsi_file_source']
+2025-09-11 00:09:28 - [INFO] - [MainWindow DEBUG] has_bsi: True
+2025-09-11 00:09:28 - [INFO] - [MainWindow DEBUG] bsi_anterior: 0.359935898125391
+2025-09-11 00:09:28 - [INFO] - [MainWindow DEBUG] bsi_posterior: 0.0
+2025-09-11 00:09:28 - [INFO] - [DEBUG] display_timeline called with 1 scan(s), focusing on index = 0
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Session code: PVSA
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20241204
+2025-09-11 00:09:28 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 0001158915
+2025-09-11 00:09:28 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 0001158915, Study: 20241204
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 0001158915, Study: 20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_ant.json (exists: True)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_post.json (exists: False)
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI] Found study_date folder: 20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - 20241204 (DIR)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ANT001_DS.dcm (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_original.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - 20241204 (DIR)
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20241204', 'anterior_bsi': 0.359935898125391, 'posterior_bsi': 0.0, 'combined_bsi': 0.359935898125391, 'bsi_score': 0.359935898125391, 'file_source': 'bsi_quantification_ant.json', 'processing_mode': 'single_view_anterior', 'is_v2': True, 'note': 'Only anterior view available', 'source_location': 'Study date folder'}
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 0.359935898125391
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 0.0
+2025-09-11 00:09:28 - [INFO] - [BSI META INTEGRATION]   Processing mode: single_view_anterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: 0
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Anterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-11 00:09:28 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Current view: Anterior
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-11 00:09:28 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Study date: 20241204
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Patient ID: 0001158915
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Session code: PVSA
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading original image for Anterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_original.png
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-11 00:09:28 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-11 00:09:28 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-11 00:09:28 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading segmentation layer for Anterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_segm.png
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IDAT' 41 5010
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_segm.png
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading hotspot layer for Anterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.png
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IDAT' 41 955
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Loaded hotspot layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.png
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Hotspot type: ORIGINAL
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading bbox layer for Anterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading CLASSIFICATION XML for bbox: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (180,129) -> (213,158)
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Created CLASSIFICATION bbox visualization with 1 boxes
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Loaded bbox layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ant_hotspot_classification.xml
+2025-09-11 00:09:28 - [INFO] - [DEBUG] BBox XML type: ORIGINAL
+2025-09-11 00:09:28 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Loaded 4 layers for Anterior: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Posterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-11 00:09:28 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Current view: Posterior
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-11 00:09:28 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-11 00:09:28 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Study date: 20241204
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Patient ID: 0001158915
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Session code: PVSA
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading original image for Posterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_original.png
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-11 00:09:28 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-11 00:09:28 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-11 00:09:28 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading segmentation layer for Posterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_segm.png
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-11 00:09:28 - [DEBUG] - STREAM b'IDAT' 41 4764
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_segm.png
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading hotspot layer for Posterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.png
+2025-09-11 00:09:28 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.png
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Loading bbox layer for Posterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.xml
+2025-09-11 00:09:28 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\post_hotspot_classification.xml
+2025-09-11 00:09:28 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Loaded 2 layers for Posterior: ['Image', 'Segmentation']
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-11 00:09:28 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-11 00:09:28 - [INFO] - [SMART UPDATE] State updated - Type: full
+2025-09-11 00:09:28 - [INFO] - [MainWindow]   Timeline updated with BSI integration
+2025-09-11 00:09:28 - [INFO] - 
+🏠 [DEBUG MAIN GANTENG] ===================
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] Loading BSI data for selected scan
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] Session code: PVSA
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] Scan data keys: ['meta', 'frames', 'path', 'workflow_files']
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] DICOM exists: True
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] Initial patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] Initial patient folder exists: True
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] Initial patient folder name: 20241204
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] Study date from DICOM: 20241204
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] Detected study_date folder structure
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] Corrected patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] Corrected patient ID: 0001158915
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] Corrected study date: 20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_ant.json (exists: True)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_post.json (exists: False)
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] BSI files in study_date folder:
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN]   Anterior: True
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN]   Posterior: False
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] Found BSI files in study_date folder, using it
+2025-09-11 00:09:28 - [INFO] - [BSI CANVAS] Using patient folder for trend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI] Using patient folder directly: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI] Found study_date folder: 20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - 20241204 (DIR)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ANT001_DS.dcm (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_original.png (FILE)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-11 00:09:28 - [INFO] - [DEBUG BSI CANVAS] Processing date: 20241204, mode: single_view_anterior
+2025-09-11 00:09:28 - [INFO] - [DEBUG BSI CANVAS] Added: Ant=0.359935898125391 Post=None
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_ant.json (exists: True)
+2025-09-11 00:09:28 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\bsi_quantification_post.json (exists: False)
+2025-09-11 00:09:28 - [INFO] - 📖 [DEBUG RESULTS] Processing anterior-only data
+2025-09-11 00:09:28 - [INFO] - 📖 [DEBUG RESULTS]   Successfully loaded V1.2 results
+2025-09-11 00:09:28 - [INFO] - 🏠 [DEBUG MAIN] BSI panel load result: True
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Displaying 1 scans in timeline with layers: ['Image']
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Path extraction: session=PVSA, patient=0001158915, study_date=20241204
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Extracted patient info - ID: 0001158915, Session: PVSA
+2025-09-11 00:09:28 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\PVSA\0001158915\20241204\ANT001_DS.dcm
+2025-09-11 00:09:28 - [INFO] - [EDIT BUTTONS] Has scan: True, Has seg data: True, Can edit hotspot: True
+2025-09-11 00:09:28 - [INFO] - [EDIT BUTTONS] Seg button enabled: True, Hotspot button enabled: True
