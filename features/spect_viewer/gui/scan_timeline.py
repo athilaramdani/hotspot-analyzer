@@ -44,7 +44,7 @@ from core.utils.image_converter import (
 from features.dicom_import.logic.dicom_loader import extract_patient_info_from_path
 #   FIXED: Import updated image inverter functions
 from ..logic.image_inverter import invert_image_colors, simple_invert_pil_image
-from ..logic.adjust_contrast import apply_brightness_contrast
+from ..logic.adjust_contrast import apply_gamma_mid
 
 from .segmentation_editor_dialog import SegmentationEditorDialog
 from .hotspot_editor_dialog import HotspotEditorDialog
@@ -142,8 +142,8 @@ class ScanTimelineWidget(QWidget):
         self.card_width = 350
         self.invert_original = False
         self._adjustments = {
-            "Anterior": {"brightness": 0.0, "contrast": 1.0},
-            "Posterior": {"brightness": 0.0, "contrast": 1.0}
+            "Anterior": {"gamma": 1.0, "mid": 0.0},
+            "Posterior": {"gamma": 1.0, "mid": 0.0}
         }
         self._anterior_image_label: QLabel | None = None
         self._posterior_image_label: QLabel | None = None
@@ -384,15 +384,15 @@ class ScanTimelineWidget(QWidget):
         main_layout.addWidget(self.scroll_area)
 
     def get_brightness_contrast(self, view_name: str) -> dict:
-        """Returns the brightness and contrast values for a specific view."""
-        return self._adjustments.get(view_name, {"brightness": 0.0, "contrast": 1.0})
+        """Returns the brightness and contrast (gamma/mid) values for a specific view."""
+        return self._adjustments.get(view_name, {"gamma": 1.0, "mid": 0.0})
     
-    def set_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
-        """  Sets the B/C values for a specific view and rebuilds the timeline."""
+    def set_brightness_contrast(self, view_name: str, gamma: float, mid: float):
+        """  Sets the Gamma/Mid values for a specific view and rebuilds the timeline."""
         if view_name in self._adjustments:
-            logging.info(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
-            self._adjustments[view_name]["brightness"] = brightness
-            self._adjustments[view_name]["contrast"] = contrast
+            logging.info(f"[DEBUG] Setting {view_name} contrast: Gamma={gamma:.2f}, Mid={mid:.2f}")
+            self._adjustments[view_name]["gamma"] = gamma
+            self._adjustments[view_name]["mid"] = mid
             
             #   PENTING: Clear cache karena B/C mempengaruhi gambar
             self._clear_layer_cache()
@@ -404,8 +404,8 @@ class ScanTimelineWidget(QWidget):
         else:
             logging.info(f"[WARN] View '{view_name}' not found in adjustments dictionary. Cannot set contrast.")
 
-    def preview_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
-        """  FIXED: Applies a temporary B/C adjustment using the new override logic."""
+    def preview_brightness_contrast(self, view_name: str, gamma: float, mid: float):
+        """  FIXED: Applies a temporary Gamma/Mid adjustment using the new override logic."""
         if not self._scans_cache or self.active_scan_index < 0:
             return
 
@@ -421,7 +421,12 @@ class ScanTimelineWidget(QWidget):
         self.current_view = view_name
         
         # Get all layers, passing the override values for the preview
-        all_layers = self._get_layer_images(active_scan, override_b=brightness, override_c=contrast)
+        try:
+            all_layers = self._get_layer_images(active_scan, override_gamma=gamma, override_mid=mid)
+        except TypeError:
+            # Fallback if _get_layer_images signature hasn't updated yet (should happen but purely defensive)
+            logging.info("[ERROR] Signature mismatch in preview_brightness_contrast")
+            return
 
         # Re-composite the image with the adjusted layer
         active_layers_for_composite = {k: v for k, v in all_layers.items() if k in self._active_layers}
@@ -439,17 +444,8 @@ class ScanTimelineWidget(QWidget):
         self.current_view = original_view_state
 
 
-    def set_brightness_contrast(self, view_name: str, brightness: float, contrast: float):
-        """
-          Sets the B/C values for a specific view and rebuilds the timeline.
-        """
-        if view_name in self._adjustments:
-            logging.info(f"[DEBUG] Setting {view_name} contrast: B={brightness:.2f}, C={contrast:.2f}")
-            self._adjustments[view_name]["brightness"] = brightness
-            self._adjustments[view_name]["contrast"] = contrast
-            self._rebuild()
-        else:
-            logging.info(f"[WARN] View '{view_name}' not found in adjustments. Cannot set contrast.")
+
+
 
     
     def _load_segmentation_layer(self, layers: dict, dicom_path: Path, filename_with_date: str, view_normalized: str, study_date_folder: Path = None, session_code: str = None):
@@ -1352,7 +1348,7 @@ class ScanTimelineWidget(QWidget):
             logging.info(f"[ERROR] Failed to create classification bbox visualization: {e}")
             return None
     
-    def _get_layer_images(self, scan: Dict, override_b: float = None, override_c: float = None) -> Dict[str, Image.Image]:
+    def _get_layer_images(self, scan: Dict, override_gamma: float = None, override_mid: float = None) -> Dict[str, Image.Image]:
         """
           COMPLETE: Get all layer images for a scan with caching, invert, and B/C support
         """
@@ -1366,18 +1362,18 @@ class ScanTimelineWidget(QWidget):
         
         #   IMPROVED: Check if we should use cache
         current_adjustments = self._adjustments[self.current_view]
-        has_adjustments = (current_adjustments["brightness"] != 0.0 or current_adjustments["contrast"] != 1.0)
-        has_overrides = (override_b is not None and override_c is not None)
+        has_adjustments = (current_adjustments["gamma"] != 1.0 or current_adjustments["mid"] != 0.0)
+        has_overrides = (override_gamma is not None and override_mid is not None)
         
         # Don't use cache if:
-        # - Has brightness/contrast adjustments
+        # - Has gamma/mid adjustments
         # - Has override parameters (preview mode)
         # - Invert is enabled
         use_cache = not (has_adjustments or has_overrides or self.invert_original)
         
         logging.info(f"[CACHE DEBUG] use_cache={use_cache}")
-        logging.info(f"[CACHE DEBUG] has_adjustments={has_adjustments} (B={current_adjustments['brightness']:.2f}, C={current_adjustments['contrast']:.2f})")
-        logging.info(f"[CACHE DEBUG] has_overrides={has_overrides} (override_b={override_b}, override_c={override_c})")
+        logging.info(f"[CACHE DEBUG] has_adjustments={has_adjustments} (Gamma={current_adjustments['gamma']:.2f}, Mid={current_adjustments['mid']:.2f})")
+        logging.info(f"[CACHE DEBUG] has_overrides={has_overrides} (override_gamma={override_gamma}, override_mid={override_mid})")
         logging.info(f"[CACHE DEBUG] invert_original={self.invert_original}")
 
         #   CACHE CHECK: Try to get cached layers if conditions allow
@@ -1443,25 +1439,25 @@ class ScanTimelineWidget(QWidget):
                 logging.info(f"[DEBUG] Applying invert to original image")
                 original_image = simple_invert_pil_image(original_image)
             
-            #   BRIGHTNESS/CONTRAST: Determine which B/C values to use
-            if override_b is not None and override_c is not None:
+            #   BRIGHTNESS/CONTRAST: Determine which Gamma/Mid values to use
+            if override_gamma is not None and override_mid is not None:
                 # Preview mode - use override values
-                brightness, contrast = override_b, override_c
-                logging.info(f"[DEBUG] Using OVERRIDE B/C values: B={brightness:.2f}, C={contrast:.2f}")
+                gamma, mid = override_gamma, override_mid
+                logging.info(f"[DEBUG] Using OVERRIDE Gamma/Mid values: G={gamma:.2f}, M={mid:.2f}")
             else:
                 # Normal mode - use stored adjustments
                 adjustments = self._adjustments[self.current_view]
-                brightness = adjustments["brightness"]
-                contrast = adjustments["contrast"]
-                logging.info(f"[DEBUG] Using STORED B/C values: B={brightness:.2f}, C={contrast:.2f}")
+                gamma = adjustments["gamma"]
+                mid = adjustments["mid"]
+                logging.info(f"[DEBUG] Using STORED Gamma/Mid values: G={gamma:.2f}, M={mid:.2f}")
 
             #   BRIGHTNESS/CONTRAST: Apply adjustment if needed
-            if brightness != 0.0 or contrast != 1.0:
-                logging.info(f"[DEBUG] Applying B/C adjustment to {self.current_view}")
-                original_image = apply_brightness_contrast(
-                    original_image, brightness, contrast
+            if gamma != 1.0 or mid != 0.0:
+                logging.info(f"[DEBUG] Applying Gamma/Mid adjustment to {self.current_view}")
+                original_image = apply_gamma_mid(
+                    original_image, gamma, mid
                 )
-                logging.info(f"[DEBUG] B/C adjustment applied successfully")
+                logging.info(f"[DEBUG] Gamma/Mid adjustment applied successfully")
 
             layers["Image"] = original_image
             logging.info(f"[DEBUG]   Image layer loaded and processed")
