@@ -5,10 +5,11 @@ from __future__ import annotations
 import sys
 import warnings
 import os
-
+import logging
+from .model_cleanup import safe_inference, memory_monitor
 if hasattr(sys, '_MEIPASS'):
     #   ENHANCED: Complete module system reset for problematic modules
-    print("[SEGMENTER]   PyInstaller mode - applying enhanced torchvision fixes")
+    logging.info("[SEGMENTER]   PyInstaller mode - applying enhanced torchvision fixes")
     
     # 1. Set ALL environment variables
     os.environ.update({
@@ -41,9 +42,9 @@ if hasattr(sys, '_MEIPASS'):
     for key in modules_to_remove:
         if key in sys.modules:
             del sys.modules[key]
-            print(f"[SEGMENTER] Removed {key}")
+            logging.info(f"[SEGMENTER] Removed {key}")
     
-    print(f"[SEGMENTER]   Removed {len(modules_to_remove)} problematic modules")
+    logging.info(f"[SEGMENTER]   Removed {len(modules_to_remove)} problematic modules")
     
     # 3. Set nnUNet environment
     from pathlib import Path
@@ -55,7 +56,7 @@ if hasattr(sys, '_MEIPASS'):
                 os.environ["nnUNet_raw"] = str(seg_models / "_nn_raw")
                 os.environ["nnUNet_preprocessed"] = str(seg_models / "_nn_pre")
                 os.environ["nnUNet_results"] = str(seg_models / "nnUNet_results")
-                print(f"[SEGMENTER]   Set nnUNet_results: {os.environ['nnUNet_results']}")
+                logging.info(f"[SEGMENTER]   Set nnUNet_results: {os.environ['nnUNet_results']}")
                 break
 
 import inspect
@@ -108,7 +109,7 @@ if hasattr(sys, '_MEIPASS'):
     sys.modules['torch.library'] = torch_library
     sys.modules['torch._library'] = torch_library
     
-    print("[SEGMENTER]   torch.library bypassed completely")
+    logging.info("[SEGMENTER]   torch.library bypassed completely")
 
 import torch
 
@@ -116,9 +117,9 @@ import torch
 if hasattr(sys, '_MEIPASS'):
     try:
         torch.jit._state.disable()
-        print("[SEGMENTER]   PyTorch JIT disabled")
+        logging.info("[SEGMENTER]   PyTorch JIT disabled")
     except:
-        print("[SEGMENTER] ⚠️ PyTorch JIT disable failed")
+        logging.info("[SEGMENTER] ⚠️ PyTorch JIT disable failed")
 
 #   CRITICAL: Handle torchvision extension properly in PyInstaller
 if hasattr(sys, '_MEIPASS'):
@@ -130,21 +131,21 @@ if hasattr(sys, '_MEIPASS'):
         missing_attrs = [attr for attr in required_attrs if not hasattr(torchvision, attr)]
         
         if missing_attrs:
-            print(f"[SEGMENTER] ⚠️ torchvision missing attributes: {missing_attrs}")
+            logging.info(f"[SEGMENTER] ⚠️ torchvision missing attributes: {missing_attrs}")
             raise ImportError("Incomplete torchvision")
         
         # Test if ops.nms is available (critical for YOLO)
         if hasattr(torchvision.ops, 'nms'):
-            print("[SEGMENTER]   torchvision.ops.nms verified")
+            logging.info("[SEGMENTER]   torchvision.ops.nms verified")
         else:
-            print("[SEGMENTER] ⚠️ torchvision.ops.nms missing")
+            logging.info("[SEGMENTER] ⚠️ torchvision.ops.nms missing")
             raise ImportError("torchvision.ops.nms missing")
             
-        print("[SEGMENTER]   torchvision fully loaded and verified")
+        logging.info("[SEGMENTER]   torchvision fully loaded and verified")
         
     except Exception as e:
-        print(f"[SEGMENTER] ⚠️ torchvision verification failed: {e}")
-        print("[SEGMENTER] Creating comprehensive torchvision stub...")
+        logging.info(f"[SEGMENTER] ⚠️ torchvision verification failed: {e}")
+        logging.info("[SEGMENTER] Creating comprehensive torchvision stub...")
         
         # Create comprehensive torchvision stub with all required modules
         import types
@@ -246,10 +247,9 @@ if hasattr(sys, '_MEIPASS'):
         sys.modules['torchvision.io'] = io_stub
         sys.modules['torchvision.datasets'] = datasets_stub
         
-        print("[SEGMENTER]   Created comprehensive torchvision stub with all submodules")
-        print("[SEGMENTER]   torchvision.ops.nms fallback created")
+        logging.info("[SEGMENTER]   Created comprehensive torchvision stub with all submodules")
+        logging.info("[SEGMENTER]   torchvision.ops.nms fallback created")
 
-from core.logger import _log
 from core.gui.ui_constants import truncate_text
 
 # ===== Import path configuration from core =====
@@ -284,7 +284,7 @@ def create_predictor():
     
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:0" if use_cuda else "cpu")
-    _log(f"[INFO]  CUDA available: {use_cuda} – using {device}")
+    logging.info(f"[INFO]  CUDA available: {use_cuda} – using {device}")
 
     settings = dict(
         tile_step_size=0.5,
@@ -318,7 +318,7 @@ def load_bone_model():
     if "bone" not in cache:
         #   ENHANCED: Complete environment and module reset with torchvision validation
         if hasattr(sys, '_MEIPASS'):
-            print("[SEGMENTER] ENHANCED: Complete module reset before model loading...")
+            logging.info("[SEGMENTER] ENHANCED: Complete module reset before model loading...")
             
             # Remove ALL potentially problematic modules (but preserve torchvision)
             modules_to_nuke = []
@@ -336,7 +336,7 @@ def load_bone_model():
                 if key in sys.modules:
                     del sys.modules[key]
             
-            print(f"[SEGMENTER] ENHANCED: Nuked {len(modules_to_nuke)} modules")
+            logging.info(f"[SEGMENTER] ENHANCED: Nuked {len(modules_to_nuke)} modules")
             
             #   CRITICAL: Verify torchvision extension is available
             try:
@@ -344,23 +344,23 @@ def load_bone_model():
                 
                 # Verify extension is accessible
                 if hasattr(torchvision, 'extension'):
-                    print("[SEGMENTER]   torchvision.extension verified and accessible")
+                    logging.info("[SEGMENTER]   torchvision.extension verified and accessible")
                 else:
-                    print("[SEGMENTER] ⚠️ torchvision.extension not found, using stub")
+                    logging.info("[SEGMENTER] ⚠️ torchvision.extension not found, using stub")
                 
                 # Try importing key torchvision components
                 import torchvision.transforms
-                print("[SEGMENTER]   torchvision.transforms imported successfully")
+                logging.info("[SEGMENTER]   torchvision.transforms imported successfully")
                 
             except Exception as e:
-                print(f"[SEGMENTER] ⚠️ torchvision verification failed: {e}")
+                logging.info(f"[SEGMENTER] ⚠️ torchvision verification failed: {e}")
                 # Continue anyway, let nnUNet handle the missing components
         
         dataset = "Dataset001_BoneRegion"
         model_path = SEG_DIR / dataset / "nnUNetTrainer_50epochs__nnUNetPlans__2d"
         
-        _log(f"[INFO]  Loading bone segmentation model...")
-        _log(f"[INFO]  Model path: {truncate_text(str(model_path), 60)}")
+        logging.info(f"[INFO]  Loading bone segmentation model...")
+        logging.info(f"[INFO]  Model path: {truncate_text(str(model_path), 60)}")
 
         if not model_path.exists():
             raise FileNotFoundError(f"Model directory not found: {model_path}")
@@ -372,14 +372,14 @@ def load_bone_model():
         # 2. Coba buat prediktor utama. Jika gagal, tandai untuk pakai fallback
         try:
             predictor = create_predictor() # create_predictor akan mencoba pakai CUDA jika tersedia
-            _log(f"[INFO]  Primary predictor created successfully (Device: {predictor.device})")
+            logging.info(f"[INFO]  Primary predictor created successfully (Device: {predictor.device})")
         except Exception as e:
-            _log(f"[WARN]  Failed to create primary predictor: {e}. Forcing CPU fallback.")
+            logging.info(f"[WARN]  Failed to create primary predictor: {e}. Forcing CPU fallback.")
             primary_config_works = False
 
         # 3. Jika konfigurasi utama gagal, siapkan konfigurasi fallback (CPU)
         if not primary_config_works:
-            _log("[INFO]  Switching to CPU-only fallback configuration.")
+            logging.info("[INFO]  Switching to CPU-only fallback configuration.")
             # Buat ulang predictor dengan paksa menggunakan CPU
             cpu_device = torch.device("cpu")
             predictor = nnUNetPredictor(
@@ -394,24 +394,24 @@ def load_bone_model():
         # 4. SEKARANG, jalankan proses pemuatan model HANYA SATU KALI
         # dengan konfigurasi yang sudah terpilih (CUDA atau CPU).
         try:
-            _log(f"[INFO]  Initializing model from trained weights on device: {predictor.device}...")
+            logging.info(f"[INFO]  Initializing model from trained weights on device: {predictor.device}...")
             predictor.initialize_from_trained_model_folder(
                 str(model_path), use_folds=(0,), checkpoint_name="checkpoint_best.pth"
             )
         except Exception as e:
-            _log(f"[ERROR]  FATAL: Failed to load model even with selected configuration.")
+            logging.info(f"[ERROR]  FATAL: Failed to load model even with selected configuration.")
             # Jika ini GAGAL, maka seluruh proses gagal. Lemparkan error ke atas.
             raise RuntimeError(f"Could not initialize model from {model_path}") from e
         
         cache["bone"] = predictor
-        _log(f"[INFO]  Bone segmentation model loaded successfully")
+        logging.info(f"[INFO]  Bone segmentation model loaded successfully")
     return cache["bone"]
 
 
 def run_prediction(image: np.ndarray, model) -> np.ndarray:
     """Runs sliding window inference on a pre-processed image."""
-    _log(f"[INFO]  Running sliding window inference...")
-    _log(f"[INFO]  Input image shape: {image.shape}")
+    logging.info(f"[INFO]  Running sliding window inference...")
+    logging.info(f"[INFO]  Input image shape: {image.shape}")
     
     tensor = torch.from_numpy(image.astype(np.float32)[None, None]).to(model.device)
     
@@ -422,15 +422,15 @@ def run_prediction(image: np.ndarray, model) -> np.ndarray:
         logits = logits[:, 0]
         
     prediction = torch.argmax(logits, dim=0).cpu().numpy().astype(np.uint8)
-    _log(f"[INFO]  Prediction completed, output shape: {prediction.shape}")
+    logging.info(f"[INFO]  Prediction completed, output shape: {prediction.shape}")
     
     return prediction
 
 
 # ------------------------------------------------------------------ PUBLIC API
-def predict_bone_mask(
-    image: np.ndarray, *, to_rgb: bool = False
-) -> np.ndarray:
+@safe_inference(cleanup_after=True)
+@memory_monitor
+def predict_bone_mask(image: np.ndarray, *, to_rgb: bool = False) -> np.ndarray:
     """
     Performs bone segmentation on an input image using simple resize preprocessing.
     
@@ -448,8 +448,8 @@ def predict_bone_mask(
         try:
             return _predict_bone_mask_real(image, to_rgb=to_rgb)
         except Exception as e:
-            print(f"[SEGMENTER]  Real segmentation failed: {e}")
-            print("[SEGMENTER] ⚠️ Falling back to dummy segmentation")
+            logging.info(f"[SEGMENTER]  Real segmentation failed: {e}")
+            logging.info("[SEGMENTER] ⚠️ Falling back to dummy segmentation")
             
             # Return dummy segmentation that looks reasonable
             if to_rgb:
@@ -471,42 +471,42 @@ def predict_bone_mask(
 
 def _predict_bone_mask_real(image: np.ndarray, *, to_rgb: bool = False) -> np.ndarray:
     """Real segmentation implementation"""
-    _log(f"[INFO]  Starting bone mask segmentation...")
-    _log(f"[INFO]  Input image shape: {image.shape}, dtype: {image.dtype}")
+    logging.info(f"[INFO]  Starting bone mask segmentation...")
+    logging.info(f"[INFO]  Input image shape: {image.shape}, dtype: {image.dtype}")
     t_start = time.time()
 
     # --- Ensure 2-D input ---
     if image.ndim == 3:
-        _log(f"[INFO]  Converting 3D to 2D (using first channel)")
+        logging.info(f"[INFO]  Converting 3D to 2D (using first channel)")
         image = image[..., 0] # Use first channel if RGB
     if image.ndim != 2:
         raise ValueError("image must be 2-D or 3-D")
 
     # --- Preprocessing: Simple resize to model's input size ---
-    _log(f"[INFO]  Preprocessing: resizing to (256, 1024)...")
+    logging.info(f"[INFO]  Preprocessing: resizing to (256, 1024)...")
     resized = cv2.resize(image, (256, 1024), interpolation=cv2.INTER_AREA)
-    _log(f"[INFO]  Preprocessing completed")
+    logging.info(f"[INFO]  Preprocessing completed")
 
     # --- Inference ---
-    _log(f"[INFO]  Loading segmentation model...")
+    logging.info(f"[INFO]  Loading segmentation model...")
     model = load_bone_model()
     
-    _log(f"[INFO]  Performing bone segmentation inference...")
+    logging.info(f"[INFO]  Performing bone segmentation inference...")
     mask = run_prediction(resized, model) # Output shape is (1024, 256)
 
     # --- Post-processing ---
     elapsed = time.time() - t_start
     unique_labels = np.unique(mask)
-    _log(f"[INFO]  Segmentation completed in {elapsed:.2f}s")
-    _log(f"[INFO]  Output mask shape: {mask.shape}")
-    _log(f"[INFO]  Unique labels found: {list(unique_labels)}")
+    logging.info(f"[INFO]  Segmentation completed in {elapsed:.2f}s")
+    logging.info(f"[INFO]  Output mask shape: {mask.shape}")
+    logging.info(f"[INFO]  Unique labels found: {list(unique_labels)}")
 
     #   Return logic
     if to_rgb:
-        _log(f"[INFO]  Converting mask to colored RGB image...")
+        logging.info(f"[INFO]  Converting mask to colored RGB image...")
         rgb_result = label_mask_to_rgb(mask)
-        _log(f"[INFO]  RGB conversion completed, shape: {rgb_result.shape}")
+        logging.info(f"[INFO]  RGB conversion completed, shape: {rgb_result.shape}")
         return rgb_result
     else:
-        _log(f"[INFO]  Returning raw segmentation mask")
+        logging.info(f"[INFO]  Returning raw segmentation mask")
         return mask

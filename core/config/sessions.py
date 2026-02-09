@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 from pathlib import Path
 from datetime import datetime
 import json
-
+import logging
 # Dynamic session codes - will be loaded from doctor_tags.json
 def get_dynamic_session_codes() -> List[str]:
     """Get session codes from doctor tags configuration"""
@@ -20,7 +20,7 @@ def get_dynamic_session_codes() -> List[str]:
         pass
     
     # Fallback to default codes
-    return ["NSY", "ATL", "NBL", "ALL"]
+    return []
 
 # Available patient session codes
 AVAILABLE_SESSION_CODES = get_dynamic_session_codes()
@@ -32,9 +32,6 @@ AVAILABLE_MODALITIES = [
 
 # Session code descriptions (optional)
 SESSION_CODE_DESCRIPTIONS = {
-    "NSY": "Nasywa Kamila",
-    "ATL": "Athila Ramdani Saputra", 
-    "NBL": "Nabila Putri Azhari",
     "ALL": "Shared Access (All Users)"
 }
 
@@ -66,7 +63,7 @@ class SessionManager:
                 self.config = DEFAULT_SESSION_CONFIG.copy()
                 self._save_config()
         except Exception as e:
-            print(f"[WARNING] Failed to load session config: {e}")
+            logging.info(f"[WARNING] Failed to load session config: {e}")
             self.config = DEFAULT_SESSION_CONFIG.copy()
     
     def _save_config(self):
@@ -76,7 +73,7 @@ class SessionManager:
             with open(self.config_file, 'w') as f:
                 json.dump(self.config, f, indent=2)
         except Exception as e:
-            print(f"[WARNING] Failed to save session config: {e}")
+            logging.info(f"[WARNING] Failed to save session config: {e}")
     
     def refresh_session_codes(self):
         """Refresh session codes from doctor_tags.json"""
@@ -134,7 +131,7 @@ class SessionManager:
             }
             self._save_config()
         
-        print(f"[SESSION] Created session: {session['session_id']}")
+        logging.info(f"[SESSION] Created session: {session['session_id']}")
         return session
     
     def get_current_session(self) -> Optional[Dict]:
@@ -150,7 +147,7 @@ class SessionManager:
         if self.current_session:
             self.current_session["end_time"] = datetime.now().isoformat()
             self.current_session["is_active"] = False
-            print(f"[SESSION] Ended session: {self.current_session['session_id']}")
+            logging.info(f"[SESSION] Ended session: {self.current_session['session_id']}")
             self.current_session = None
     
     def get_session_config(self, key: str, default=None):

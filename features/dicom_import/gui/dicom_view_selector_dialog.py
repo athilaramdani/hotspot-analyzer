@@ -31,7 +31,8 @@ from core.gui.ui_constants import (
     DIALOG_TITLE_STYLE, DIALOG_SUBTITLE_STYLE, DIALOG_FRAME_STYLE,
     PRIMARY_BUTTON_STYLE, GRAY_BUTTON_STYLE, SUCCESS_BUTTON_STYLE,
     DIALOG_CANCEL_BUTTON_STYLE, GROUP_BOX_STYLE, Colors,
-    truncate_text
+    truncate_text,
+    CONFIRM_PROCESS_BUTTON_STYLE,   # ⬅️ tambahkan ini
 )
 from core.gui.loading_dialog import LoadingDialog
 
@@ -1575,14 +1576,11 @@ class DicomViewSelectorDialog(QDialog):
         button_layout.addWidget(self.cancel_btn)
         
         # Enhanced OK button
-        self.ok_btn = QPushButton("  Confirm & Process")
+        self.ok_btn = QPushButton("Confirm")
         self.ok_btn.setEnabled(False)
-        self.ok_btn.setStyleSheet(f"""
-            {SUCCESS_BUTTON_STYLE}
-            font-size: 13px;
-            font-weight: bold;
-            padding: 10px 25px;
-        """)
+        # gunakan style yang sudah punya :disabled di ui_constants
+        self.ok_btn.setStyleSheet(CONFIRM_PROCESS_BUTTON_STYLE)
+
         button_layout.addWidget(self.ok_btn)
         
         main_layout.addWidget(button_frame)
@@ -2038,13 +2036,7 @@ class DicomViewSelectorDialog(QDialog):
                 }}
             """)
             self.ok_btn.setEnabled(True)
-            self.ok_btn.setStyleSheet(f"""
-                {SUCCESS_BUTTON_STYLE}
-                font-size: 13px;
-                font-weight: bold;
-                padding: 10px 25px;
-                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            """)
+            self.ok_btn.setStyleSheet(CONFIRM_PROCESS_BUTTON_STYLE)
         else:
             #   FIXED: More specific error messages
             files_missing_count = total_files - files_with_both_views
@@ -2071,6 +2063,7 @@ class DicomViewSelectorDialog(QDialog):
                 }}
             """)
             self.ok_btn.setEnabled(False)
+            self.ok_btn.setStyleSheet(CONFIRM_PROCESS_BUTTON_STYLE)  # :disabled akan aktif otomatis
     
     def _confirm_selections(self):
         """Confirm selections and emit signal"""
@@ -2117,36 +2110,76 @@ class DicomViewSelectorDialog(QDialog):
         print("  DEBUG: Dialog accepted and closed")
     
     def _validate_assignments(self, assignments: dict) -> bool:
-        """Enhanced final validation - only need 1 Anterior + 1 Posterior frame minimum"""
+        """Final check:
+        - Tiap file minimal punya 1 Anterior + 1 Posterior
+        - Semua frame TERPILIH wajib berukuran 1024×256 atau 256×1024
+        """
         for file_path, frame_assignments in assignments.items():
             if not frame_assignments:
                 QMessageBox.warning(
-                    self, 
+                    self,
                     "Incomplete Selection",
-                    f"No frames selected for:\n{file_path.name}\n\nPlease select at least 1 Anterior and 1 Posterior frame."
+                    f"No frames selected for:\n{file_path.name}\n\n"
+                    f"Please select at least 1 Anterior and 1 Posterior frame."
                 )
                 return False
-            
-            # Check for both anterior and posterior
+
+            # 1) Cek minimal view
             views = set(frame_assignments.values())
             missing_views = []
-            
             if "Anterior" not in views:
                 missing_views.append("Anterior")
             if "Posterior" not in views:
                 missing_views.append("Posterior")
-            
+
             if missing_views:
                 missing_text = " and ".join(missing_views)
                 QMessageBox.warning(
                     self,
-                    "Missing Required Views", 
+                    "Missing Required Views",
                     f"Missing {missing_text} view(s) for:\n{file_path.name}\n\n"
                     f"Each DICOM file must have at least one frame assigned to both "
                     f"Anterior and Posterior views for proper processing."
                 )
                 return False
-        
+
+            # 2) Cek ukuran setiap frame yang DIPILIH
+            #    Ambil DicomInfo untuk file ini → akses shape frame terpilih
+            dicom_info = self.dicom_infos.get(file_path)
+            if not dicom_info:
+                QMessageBox.warning(
+                    self,
+                    "Internal Error",
+                    f"Cannot find DICOM info for:\n{file_path.name}"
+                )
+                return False
+
+            invalid_sizes = []
+            for idx in frame_assignments.keys():
+                try:
+                    frame = dicom_info.frames[idx]
+                    h, w = frame.frame_data.shape[:2]
+                    ok = (w == 1024 and h == 256) or (w == 256 and h == 1024)
+                    if not ok:
+                        invalid_sizes.append((idx + 1, w, h))
+                except Exception:
+                    invalid_sizes.append((idx + 1, -1, -1))  # tanda error baca frame
+
+            if invalid_sizes:
+                # susun pesan ringkas
+                detail_lines = "\n".join(
+                    [f"• Frame {fi}: {w}×{h}" for (fi, w, h) in invalid_sizes]
+                )
+                QMessageBox.warning(
+                    self,
+                    "Invalid Frame Size",
+                    f"Size must be 1024×256 (or 256×1024)\n\n"
+                    f"File: {file_path.name}\n"
+                    f"{detail_lines}"
+                )
+                return False
+
+        # Lolos semua checks
         return True
     
     def _safe_update_validation_status(self):

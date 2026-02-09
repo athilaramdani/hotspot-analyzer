@@ -6,7 +6,7 @@ Ensures timeline gets properly updated when view changes
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QComboBox
 
-
+import logging
 class FrameSelector(QWidget):
     """
     FIXED: Dropdown selector for Anterior | Posterior views
@@ -37,19 +37,19 @@ class FrameSelector(QWidget):
         layout.addWidget(self.combo)
         layout.addStretch()
         
-        print("[FrameSelector] Initialized with views:", self.view_names)
+        logging.info("[FrameSelector] Initialized with views:", self.view_names)
     
     def _on_view_changed(self, index: int):
         """  FIXED: Enhanced view change handler with proper signaling"""
         if 0 <= index < len(self.view_names):
             view_name = self.view_names[index]
-            print(f"[FrameSelector] View changed to: {view_name} (index: {index})")
+            logging.info(f"[FrameSelector] View changed to: {view_name} (index: {index})")
             
             # Emit both signals for compatibility
             self.frame_changed.emit(index)    # Original signal
             self.view_changed.emit(view_name) # NEW: View name signal
         else:
-            print(f"[FrameSelector] Invalid view index: {index}")
+            logging.info(f"[FrameSelector] Invalid view index: {index}")
     
     def current_index(self) -> int:
         """Get current view index"""
@@ -67,14 +67,14 @@ class FrameSelector(QWidget):
         try:
             index = self.view_names.index(view)
             self.combo.setCurrentIndex(index)
-            print(f"[FrameSelector] Set view to: {view} (index: {index})")
+            logging.info(f"[FrameSelector] Set view to: {view} (index: {index})")
         except ValueError:
-            print(f"[FrameSelector] Invalid view name: {view}")
+            logging.info(f"[FrameSelector] Invalid view name: {view}")
     
     def set_view_index(self, index: int):
         """Set view by index"""
         if 0 <= index < len(self.view_names):
             self.combo.setCurrentIndex(index)
-            print(f"[FrameSelector] Set view index to: {index}")
+            logging.info(f"[FrameSelector] Set view index to: {index}")
         else:
-            print(f"[FrameSelector] Invalid view index: {index}")
+            logging.info(f"[FrameSelector] Invalid view index: {index}")

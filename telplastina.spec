@@ -4,16 +4,16 @@
 import sys
 import os
 from pathlib import Path
-
+import logging
 # Get the current directory
 current_dir = Path.cwd()
 
 icon_path = current_dir / "assets" / "icon.ico"
 if icon_path.exists():
-    print(f"[SPEC] Icon found: {icon_path}")
+    logging.info(f"[SPEC] Icon found: {icon_path}")
     ICON_FILE = str(icon_path)
 else:
-    print(f"[SPEC] WARNING: Icon not found at {icon_path}")
+    logging.info(f"[SPEC] WARNING: Icon not found at {icon_path}")
     ICON_FILE = None
 
 # Define paths
@@ -181,7 +181,6 @@ hiddenimports = [
     'torch.utils.data',
     'torch.autograd',
     'torch.autograd.function',
-    'torch.cuda',
     'torch.jit',
     'torch.serialization',
     'torch.storage',
@@ -214,7 +213,6 @@ hiddenimports = [
     'torch.testing._internal.common_dtype',
     'torch.testing._internal.common_device_type',
     'torch.testing._internal.common_methods',
-    'torch.testing._internal.common_cuda',
     'torch.testing._internal.autograd_function_db',
     'torch.utils.checkpoint',
 

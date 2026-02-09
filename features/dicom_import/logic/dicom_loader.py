@@ -11,6 +11,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 from typing import Dict, Tuple, Optional, List
+import logging
 
 import numpy as np
 import pydicom
@@ -85,11 +86,11 @@ def _extract_labels_enhanced(ds) -> list[str]:
     if all_none and n == 2:
         # Standard bone scan assumption: frame 0 = anterior, frame 1 = posterior
         labels = ["Anterior", "Posterior"]
-        print(f"     Using bone scan assumption: [Anterior, Posterior]")
+        logging.info(f"     Using bone scan assumption: [Anterior, Posterior]")
     elif all_none:
         # Generic fallback with frame numbers
         labels = [f"Frame {i+1}" for i in range(n)]
-        print(f"   ⚠️  Generic fallback: {labels}")
+        logging.info(f"   ⚠️  Generic fallback: {labels}")
     
     #   DEDUPLICATION: Handle duplicate names
     seen: Dict[str, int] = {}
@@ -154,7 +155,7 @@ def load_frames_and_metadata_with_assignments(
         else:
             # Keep original but warn
             normalized_labels.append(label)
-            print(f"   ⚠️  Non-standard view name: {label}")
+            logging.info(f"   ⚠️  Non-standard view name: {label}")
     
     frames = {lbl.lower(): arr[i] for i, lbl in enumerate(normalized_labels)}
     # Enhanced metadata extraction with study date
@@ -314,10 +315,10 @@ def cleanup_temp_png_files(uid: str = None, study_date: str = None):
                     try:
                         png_file.unlink()
                     except Exception as e:
-                        print(f"Warning: Could not delete {png_file}: {e}")
+                        logging.info(f"Warning: Could not delete {png_file}: {e}")
                         
     except Exception as e:
-        print(f"Warning: PNG cleanup failed: {e}")
+        logging.info(f"Warning: PNG cleanup failed: {e}")
 
 
 def extract_patient_info_from_path(dicom_path: Path) -> tuple[str, str]:
@@ -341,7 +342,7 @@ def extract_patient_info_from_path(dicom_path: Path) -> tuple[str, str]:
             patient_id = parts[planar_index + 2]      # 5001    INI YANG BENAR
             study_date = parts[planar_index + 3]      # 20250115
             
-            print(f"[DEBUG] Path extraction: session={session_code}, patient={patient_id}, study_date={study_date}")
+            logging.info(f"[DEBUG] Path extraction: session={session_code}, patient={patient_id}, study_date={study_date}")
             return patient_id, session_code
         
         # Fallback untuk struktur lama
@@ -354,11 +355,11 @@ def extract_patient_info_from_path(dicom_path: Path) -> tuple[str, str]:
                     session_code = "_".join(parts_old[1:])
                     return patient_id, session_code
         
-        print(f"[WARN] Could not extract patient info from path: {dicom_path}")
+        logging.info(f"[WARN] Could not extract patient info from path: {dicom_path}")
         return "UNKNOWN", "UNKNOWN"
         
     except Exception as e:
-        print(f"[ERROR] Error extracting patient info: {e}")
+        logging.info(f"[ERROR] Error extracting patient info: {e}")
         return "UNKNOWN", "UNKNOWN"
 
 def extract_study_date_from_dicom(dicom_path: Path) -> str:
@@ -393,7 +394,7 @@ def extract_study_date_from_dicom(dicom_path: Path) -> str:
         return datetime.now().strftime("%Y%m%d")
         
     except Exception as e:
-        print(f"Warning: Could not extract study date from {dicom_path}: {e}")
+        logging.info(f"Warning: Could not extract study date from {dicom_path}: {e}")
         from datetime import datetime
         return datetime.now().strftime("%Y%m%d")
 
@@ -474,7 +475,7 @@ def extract_all_dicom_metadata(dicom_path: Path) -> dict:
         return metadata
         
     except Exception as e:
-        print(f"Error extracting metadata from {dicom_path}: {e}")
+        logging.info(f"Error extracting metadata from {dicom_path}: {e}")
         from datetime import datetime
         return {
             "patient_id": "UNKNOWN",

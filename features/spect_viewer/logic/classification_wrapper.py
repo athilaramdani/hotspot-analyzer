@@ -6,10 +6,10 @@ import json
 import cv2
 import numpy as np
 import xml.etree.ElementTree as ET
-from core.logger import _log
 from core.config.paths import CLASSIFICATION_MODEL_PATH
 from core.config.paths import get_classification_files # Pastikan ini di-import
-print(">>>>>> [BUKTI] MEMUAT classification_wrapper.py VERSI TERBARU <<<<<<") # <-- TAMBAHKAN INI
+import logging
+logging.info(">>>>>> [BUKTI] MEMUAT classification_wrapper.py VERSI TERBARU <<<<<<") # <-- TAMBAHKAN INI
 
 def setup_classification_path():
     """Add classification model path to Python path"""
@@ -45,7 +45,7 @@ def load_xml_bounding_boxes(xml_path: Path) -> list:
         return bboxes
         
     except Exception as e:
-        _log(f"Failed to load XML bounding boxes: {e}")
+        logging.info(f"Failed to load XML bounding boxes: {e}")
         return []
 
 def create_classification_xml(classification_json_path: Path, output_xml_path: Path, 
@@ -71,7 +71,7 @@ def create_classification_xml(classification_json_path: Path, output_xml_path: P
         hotspots = classification_data.get("hotspots", [])
         
         if not hotspots:
-            _log(f"[XML CREATE] No hotspots found in classification JSON")
+            logging.info(f"[XML CREATE] No hotspots found in classification JSON")
             return False
         
         # Create XML structure (PASCAL VOC format)
@@ -164,13 +164,13 @@ def create_classification_xml(classification_json_path: Path, output_xml_path: P
         # Write XML file
         tree.write(output_xml_path, encoding="utf-8", xml_declaration=True)
         
-        _log(f"[XML CREATE]   Created classification XML: {output_xml_path.name}")
-        _log(f"[XML CREATE] Converted {len(hotspots)} classified hotspots")
+        logging.info(f"[XML CREATE]   Created classification XML: {output_xml_path.name}")
+        logging.info(f"[XML CREATE] Converted {len(hotspots)} classified hotspots")
         
         return True
         
     except Exception as e:
-        _log(f"[XML CREATE]  Failed to create classification XML: {e}")
+        logging.info(f"[XML CREATE]  Failed to create classification XML: {e}")
         return False
 
 def get_image_dimensions_from_files(patient_folder: Path, filename_stem: str, view: str) -> tuple[int, int]:
@@ -198,7 +198,7 @@ def get_image_dimensions_from_files(patient_folder: Path, filename_stem: str, vi
         return (512, 512)
         
     except Exception as e:
-        _log(f"[XML CREATE] Could not determine image dimensions, using default: {e}")
+        logging.info(f"[XML CREATE] Could not determine image dimensions, using default: {e}")
         return (512, 512)
 
 def compare_xml_files(original_xml: Path, classification_xml: Path) -> dict:
@@ -247,7 +247,7 @@ def compare_xml_files(original_xml: Path, classification_xml: Path) -> dict:
         return comparison
         
     except Exception as e:
-        _log(f"[XML COMPARE] Error comparing XML files: {e}")
+        logging.info(f"[XML COMPARE] Error comparing XML files: {e}")
         return {}
 
 def run_classification_inference(raw_path: str, segment_path: str, hotspot_path: str, xml_path: str):
@@ -264,57 +264,57 @@ def run_classification_inference(raw_path: str, segment_path: str, hotspot_path:
         tuple: (classification_results_list, classification_mask)
     """
     try:
-        _log(f"[DEBUG] Starting classification inference with automatic conversion")
-        _log(f"[DEBUG] Raw PNG path: {raw_path}")
-        _log(f"[DEBUG] Segment path: {segment_path}")
-        _log(f"[DEBUG] Hotspot path: {hotspot_path}")
-        _log(f"[DEBUG] XML path: {xml_path}")
+        logging.info(f"[DEBUG] Starting classification inference with automatic conversion")
+        logging.info(f"[DEBUG] Raw PNG path: {raw_path}")
+        logging.info(f"[DEBUG] Segment path: {segment_path}")
+        logging.info(f"[DEBUG] Hotspot path: {hotspot_path}")
+        logging.info(f"[DEBUG] XML path: {xml_path}")
         
         # Check if files exist
         for name, path in [("Raw PNG", raw_path), ("Segment", segment_path), ("Hotspot", hotspot_path), ("XML", xml_path)]:
             if not Path(path).exists():
-                _log(f"[ERROR] {name} file does not exist: {path}")
+                logging.info(f"[ERROR] {name} file does not exist: {path}")
                 return [], None
             else:
-                _log(f"[DEBUG] {name} file exists: {Path(path).stat().st_size} bytes")
+                logging.info(f"[DEBUG] {name} file exists: {Path(path).stat().st_size} bytes")
         
         # Setup paths
         setup_classification_path()
-        _log(f"[DEBUG] Python path setup completed")
+        logging.info(f"[DEBUG] Python path setup completed")
         
         # Import classification module
         import inference_classification_hs as clf_module
-        _log(f"[DEBUG] Module imported successfully")
+        logging.info(f"[DEBUG] Module imported successfully")
         
         # Update model paths
         from core.config.paths import CLASSIFICATION_XGBOOST_MODEL, CLASSIFICATION_SCALER_MODEL
         clf_module.MODEL_PATH = str(CLASSIFICATION_XGBOOST_MODEL)
         clf_module.SCALER_PATH = str(CLASSIFICATION_SCALER_MODEL)
-        _log(f"[DEBUG] Model paths updated")
+        logging.info(f"[DEBUG] Model paths updated")
         
         # Check model files
         if not Path(clf_module.MODEL_PATH).exists():
-            _log(f"[ERROR] Model file not found: {clf_module.MODEL_PATH}")
+            logging.info(f"[ERROR] Model file not found: {clf_module.MODEL_PATH}")
             return [], None
         if not Path(clf_module.SCALER_PATH).exists():
-            _log(f"[ERROR] Scaler file not found: {clf_module.SCALER_PATH}")
+            logging.info(f"[ERROR] Scaler file not found: {clf_module.SCALER_PATH}")
             return [], None
         
         # Reload models
         import joblib
         clf_module.model = joblib.load(clf_module.MODEL_PATH)
         clf_module.scaler = joblib.load(clf_module.SCALER_PATH)
-        _log(f"[DEBUG] Models loaded successfully")
+        logging.info(f"[DEBUG] Models loaded successfully")
         
         # Load XML bounding boxes
         xml_bboxes = load_xml_bounding_boxes(Path(xml_path))
         if not xml_bboxes:
-            _log(f"[ERROR] No bounding boxes found in XML: {xml_path}")
+            logging.info(f"[ERROR] No bounding boxes found in XML: {xml_path}")
             return [], None
         
-        _log(f"[DEBUG] Loaded {len(xml_bboxes)} bounding boxes from XML")
+        logging.info(f"[DEBUG] Loaded {len(xml_bboxes)} bounding boxes from XML")
         for i, bbox in enumerate(xml_bboxes):
-            _log(f"[DEBUG] Bbox {i}: {bbox}")
+            logging.info(f"[DEBUG] Bbox {i}: {bbox}")
         
         # Test image loading
         try:
@@ -324,22 +324,22 @@ def run_classification_inference(raw_path: str, segment_path: str, hotspot_path:
             
             # Check if segment is colored
             is_colored = 'colored' in Path(segment_path).name
-            _log(f"[DEBUG] Image loading test:")
-            _log(f"  Raw: {test_raw.shape if test_raw is not None else 'Failed'}")
-            _log(f"  Segment: {test_segment.shape if test_segment is not None else 'Failed'} (colored: {is_colored})")
-            _log(f"  Hotspot: {test_hotspot.shape if test_hotspot is not None else 'Failed'}")
+            logging.info(f"[DEBUG] Image loading test:")
+            logging.info(f"  Raw: {test_raw.shape if test_raw is not None else 'Failed'}")
+            logging.info(f"  Segment: {test_segment.shape if test_segment is not None else 'Failed'} (colored: {is_colored})")
+            logging.info(f"  Hotspot: {test_hotspot.shape if test_hotspot is not None else 'Failed'}")
             
             if test_raw is None or test_segment is None or test_hotspot is None:
-                _log(f"[ERROR] Failed to load one or more images")
+                logging.info(f"[ERROR] Failed to load one or more images")
                 return [], None
                 
         except Exception as e:
-            _log(f"[ERROR] Image loading test failed: {e}")
+            logging.info(f"[ERROR] Image loading test failed: {e}")
             return [], None
         
         #   Use inference_classification with automatic conversion
-        _log(f"[DEBUG] Starting inference_classification with automatic colored-to-grayscale conversion...")
-        _log(f"[DEBUG] Conversion will create: {Path(segment_path).stem}_grayscaledSegmentation.png if needed")
+        logging.info(f"[DEBUG] Starting inference_classification with automatic colored-to-grayscale conversion...")
+        logging.info(f"[DEBUG] Conversion will create: {Path(segment_path).stem}_grayscaledSegmentation.png if needed")
         result_list, result_mask = clf_module.inference_classification(
             path_raw=raw_path,          # Original PNG file
             path_segment=segment_path,   # Colored PNG (will be auto-converted to grayscale)
@@ -347,21 +347,21 @@ def run_classification_inference(raw_path: str, segment_path: str, hotspot_path:
             path_xml=xml_bboxes         # List of bboxes
         )
         
-        _log(f"[DEBUG] Classification completed")
-        _log(f"[DEBUG] Result list length: {len(result_list) if result_list else 0}")
-        _log(f"[DEBUG] Result mask shape: {result_mask.shape if result_mask is not None else 'None'}")
+        logging.info(f"[DEBUG] Classification completed")
+        logging.info(f"[DEBUG] Result list length: {len(result_list) if result_list else 0}")
+        logging.info(f"[DEBUG] Result mask shape: {result_mask.shape if result_mask is not None else 'None'}")
         
         if result_list:
             for i, result in enumerate(result_list):
-                _log(f"[DEBUG] Result {i}: prediction={result.get('prediction', 'Unknown')}, "
+                logging.info(f"[DEBUG] Result {i}: prediction={result.get('prediction', 'Unknown')}, "
                      f"prob_abnormal={result.get('probability_abnormal', 0):.3f}")
         
         return result_list, result_mask
         
     except Exception as e:
-        _log(f"[ERROR] Classification inference failed: {e}")
+        logging.info(f"[ERROR] Classification inference failed: {e}")
         import traceback
-        _log(f"[ERROR] Full traceback: {traceback.format_exc()}")
+        logging.info(f"[ERROR] Full traceback: {traceback.format_exc()}")
         return [], None
 
 def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date: str, source_is_editor: bool = False) -> bool:
@@ -373,10 +373,10 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
         patient_folder = dicom_path.parent
         filename_stem = f"{patient_id}_{study_date}"
         
-        _log(f"     Starting classification for patient {patient_id}")
-        _log(f"     Study date: {study_date}")
-        _log(f"     Session: {session_code}")
-        _log(f"     Grayscale conversion: Enabled")
+        logging.info(f"     Starting classification for patient {patient_id}")
+        logging.info(f"     Study date: {study_date}")
+        logging.info(f"     Session: {session_code}")
+        logging.info(f"     Grayscale conversion: Enabled")
         
         results = []
         
@@ -384,7 +384,7 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
         for view in ['anterior', 'posterior']:
             view_short = 'ant' if view == 'anterior' else 'post'
             
-            _log(f"     Processing {view} view with grayscale conversion...")
+            logging.info(f"     Processing {view} view with grayscale conversion...")
             
             #   FIXED: Get file paths for current working directory (temp folder)
             paths = get_classification_input_paths(patient_folder, filename_stem, view, view_short)
@@ -396,10 +396,10 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
                     missing_files.append(f"{file_type} ({file_path.name})")
                 else:
                     #   DEBUG: Log found files
-                    _log(f"       Found {file_type}: {file_path.name}")
+                    logging.info(f"       Found {file_type}: {file_path.name}")
             
             if missing_files:
-                _log(f"     Missing files for {view}: {', '.join(missing_files)}")
+                logging.info(f"     Missing files for {view}: {', '.join(missing_files)}")
                 results.append(False)
                 continue
             
@@ -416,22 +416,22 @@ def run_classification_for_patient(dicom_path: Path, patient_id: str, study_date
                 save_classification_results(
                     Path.cwd(), filename_stem, view, classification_result, classification_mask, source_is_editor
                 )
-                _log(f"     {view.title()} classification completed: {len(classification_result)} hotspots classified")
+                logging.info(f"     {view.title()} classification completed: {len(classification_result)} hotspots classified")
                 results.append(True)
             else:
-                _log(f"     {view.title()} classification failed")
+                logging.info(f"     {view.title()} classification failed")
                 results.append(False)
         
         success = any(results)
         if success:
-            _log(f"     Classification completed for patient {patient_id}")
+            logging.info(f"     Classification completed for patient {patient_id}")
         else:
-            _log(f"     Classification failed for all views")
+            logging.info(f"     Classification failed for all views")
             
         return success
         
     except Exception as e:
-        _log(f"Classification error for patient {patient_id}: {e}")
+        logging.info(f"Classification error for patient {patient_id}: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -465,10 +465,10 @@ def save_classification_results(patient_folder: Path, filename_stem: str, view: 
         xml_path = Path(f"{filename_stem}_{view_short}_classification.xml")
         mask_path = Path(f"{filename_stem}_{view}_classification_mask.png")
         
-        _log(f"     Saving classification results to temp directory:")
-        _log(f"       JSON: {json_path.name}")
-        _log(f"       XML: {xml_path.name}")
-        _log(f"       Mask: {mask_path.name}")
+        logging.info(f"     Saving classification results to temp directory:")
+        logging.info(f"       JSON: {json_path.name}")
+        logging.info(f"       XML: {xml_path.name}")
+        logging.info(f"       Mask: {mask_path.name}")
         
         # Convert results to JSON-serializable format
         json_data = {
@@ -518,16 +518,16 @@ def save_classification_results(patient_folder: Path, filename_stem: str, view: 
                 mask_pil = Image.fromarray(mask, mode='RGB')
                 # Save with PIL - preserves RGB order
                 mask_pil.save(mask_path)
-                _log(f"         Saved mask with PIL RGB mode")
+                logging.info(f"         Saved mask with PIL RGB mode")
             else:
                 # Fallback for non-RGB masks
                 import cv2
                 cv2.imwrite(str(mask_path), mask)
-                _log(f"       ⚠️ Saved mask without RGB conversion")
+                logging.info(f"       ⚠️ Saved mask without RGB conversion")
         
-        _log(f"         Classification results saved successfully")
+        logging.info(f"         Classification results saved successfully")
         
     except Exception as e:
-        _log(f"Failed to save classification results: {e}")
+        logging.info(f"Failed to save classification results: {e}")
         import traceback
         traceback.print_exc()

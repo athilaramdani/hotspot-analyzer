@@ -4,17 +4,17 @@ Runtime hook for comprehensive torchvision stub creation
 
 import sys
 import types
-
+import logging
 def create_comprehensive_torchvision_stub():
     """Create complete torchvision stub with all required modules"""
     if hasattr(sys, '_MEIPASS'):
-        print("[RUNTIME-TORCHVISION] Creating comprehensive torchvision stub...")
+        logging.info("[RUNTIME-TORCHVISION] Creating comprehensive torchvision stub...")
         
         try:
             # Test if torchvision is working
             import torchvision
             if hasattr(torchvision, 'ops') and hasattr(torchvision.ops, 'nms'):
-                print("[RUNTIME-TORCHVISION]   torchvision already working")
+                logging.info("[RUNTIME-TORCHVISION]   torchvision already working")
                 return
         except:
             pass
@@ -66,7 +66,7 @@ def create_comprehensive_torchvision_stub():
         sys.modules['torchvision.io'] = io
         sys.modules['torchvision.datasets'] = datasets
         
-        print("[RUNTIME-TORCHVISION]   Comprehensive stub created")
+        logging.info("[RUNTIME-TORCHVISION]   Comprehensive stub created")
 
 # Run the stub creation
 create_comprehensive_torchvision_stub()

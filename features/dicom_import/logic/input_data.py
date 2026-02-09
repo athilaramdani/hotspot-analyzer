@@ -14,10 +14,9 @@ from pydicom.uid import (
     SecondaryCaptureImageStorage,
     generate_uid,
 )
-
+import logging
 from .dicom_loader import load_frames_and_metadata_with_assignments
 from features.spect_viewer.logic.segmenter import predict_bone_mask
-from core.logger import _log
 from core.gui.ui_constants import truncate_text
 
 # Use new directory structure from paths.py with study date support
@@ -69,15 +68,15 @@ def validate_patient_folder_structure(dest_path: Path, session_code: str, patien
         actual_folder = dest_path.parent
         
         if actual_folder == expected_structure:
-            _log(f"    Path structure validated: {actual_folder}")
+            logging.info(f"    Path structure validated: {actual_folder}")
             return True
         else:
-            _log(f"  ⚠️ Path structure different but acceptable:")
-            _log(f"      Expected: {expected_structure}")
-            _log(f"      Actual:   {actual_folder}")
+            logging.info(f"  ⚠️ Path structure different but acceptable:")
+            logging.info(f"      Expected: {expected_structure}")
+            logging.info(f"      Actual:   {actual_folder}")
             return False  # But don't fail the process
     except Exception as e:
-        _log(f"  [WARN] Path validation error: {e}")
+        logging.info(f"  [WARN] Path validation error: {e}")
         return False
 
 
@@ -168,7 +167,7 @@ def check_duplicate_files(file_paths: List[Path], session_code: str) -> Dict[Pat
                 })
             
         except Exception as e:
-            print(f"[ERROR] Error checking duplicate for {file_path}: {e}")
+            logging.info(f"[ERROR] Error checking duplicate for {file_path}: {e}")
             duplicate_info[file_path] = {
                 "is_duplicate": False,
                 "patient_id": "Unknown",
@@ -201,10 +200,10 @@ def _save_original_frame_png(frame: np.ndarray, output_path: Path) -> None:
         
         # Save as grayscale PNG
         Image.fromarray(frame_uint8, mode="L").save(output_path)
-        _log(f"     Original frame saved: {output_path.name}")
+        logging.info(f"     Original frame saved: {output_path.name}")
         
     except Exception as e:
-        _log(f"     [WARN] Failed to save original frame PNG: {e}")
+        logging.info(f"     [WARN] Failed to save original frame PNG: {e}")
 
 def _upload_original_png_to_cloud(png_path: Path, session_code: str, patient_id: str) -> bool:
     """
@@ -217,20 +216,29 @@ def _process_one_with_assignments(
     session_code: str,
     view_assignments: Optional[Dict[int, str]] = None,
     background_assignments: Optional[Dict[int, Dict[str, str]]] = None,
-    cloud_upload_enabled: bool = True
+    cloud_upload_enabled: bool = True,
+    log_cb: Callable[[str], None] | None = None,
+    combined_progress_cb: Callable[[str, float], None] | None = None
 ) -> Path:
-    """
-      FIXED: Process single DICOM with NEW path structure and naming
-    """
-    _log(f"\n=== Processing {truncate_text(src.name, 40)} ===")
+    # Definisikan total langkah di sini
+    TOTAL_STEPS_PER_FILE = 7 
+    current_step = 0
+    
+    def report_step(message: str):
+        nonlocal current_step
+        current_step += 1
+        if combined_progress_cb:
+            # Mengirim pesan dan progres internal (0.14, 0.28, dst.)
+            combined_progress_cb(message, current_step / TOTAL_STEPS_PER_FILE)
+    logging.info(f"\n=== Processing {truncate_text(src.name, 40)} ===")
     
     # Read patient info and study date from ORIGINAL DICOM
     ds_temp = pydicom.dcmread(src, stop_before_pixels=True)
     pid = str(ds_temp.PatientID)
     study_date = extract_study_date_from_dicom(src)
     
-    _log(f"  Patient ID: {pid}")
-    _log(f"  Study Date: {study_date}")
+    logging.info(f"  Patient ID: {pid}")
+    logging.info(f"  Study Date: {study_date}")
     
     #   FIX: Generate filename_stem for saved files list
     filename_stem = generate_filename_stem(pid, study_date)
@@ -247,46 +255,48 @@ def _process_one_with_assignments(
     try:
         path_valid = validate_patient_folder_structure(dest_path, session_code, pid, study_date)
         if not path_valid:
-            _log(f"  [WARN] Path structure validation failed, but continuing...")
+            logging.info(f"  [WARN] Path structure validation failed, but continuing...")
     except Exception as e:
-        _log(f"  [WARN] Path validation error: {e}")
+        logging.info(f"  [WARN] Path validation error: {e}")
     
     # Copy ORIGINAL file to destination WITHOUT MODIFICATION
     if src.resolve() != dest_path.resolve():
-        _log(f"  >> Copying ORIGINAL DICOM without modification...")
+        report_step("Copying original file...")
+        logging.info(f" >> Copying ORIGINAL DICOM without modification...")
         copy2(src, dest_path)
-    _log(f"  Copied ORIGINAL → {truncate_text(str(dest_path), 60)}")
+    logging.info(f"  Copied ORIGINAL → {truncate_text(str(dest_path), 60)}")
 
     # Load ORIGINAL DICOM for processing WITHOUT MODIFICATION
-    _log("  >> Loading ORIGINAL DICOM frames with view assignments...")
+    report_step("Loading frames and metadata...")
+    logging.info(" >> Loading ORIGINAL DICOM frames with view assignments...")
     
     frames, _ = load_frames_and_metadata_with_assignments(dest_path, view_assignments)
-    _log(f"  Frames detected: {list(frames.keys())}")
+    logging.info(f"  Frames detected: {list(frames.keys())}")
     
     # Background processing if available (BEFORE normalization)
     original_frames = frames.copy()  # Keep original for background processing
     processed_frames = {}
 
     if background_assignments and PIXEL_ANALYZER_AVAILABLE:
-        _log("  >> Processing background selections...")
+        logging.info("  >> Processing background selections...")
         for idx, (view_name, frame) in enumerate(original_frames.items()):
             if idx in background_assignments:
                 bg_selection = background_assignments[idx].get("background", "black")
-                _log(f"     Processing {view_name} with {bg_selection} background")
+                logging.info(f"     Processing {view_name} with {bg_selection} background")
                 processed_frame = _safe_background_processing(frame, bg_selection, view_name)
                 processed_frames[view_name] = processed_frame
-                _log(f"       {view_name} background processed")
+                logging.info(f"       {view_name} background processed")
             else:
                 processed_frames[view_name] = frame
-                _log(f"     Using original {view_name} (no background assignment)")
+                logging.info(f"     Using original {view_name} (no background assignment)")
         
         frames = processed_frames
-        _log("    Background processing completed")
+        logging.info("    Background processing completed")
     else:
         if background_assignments:
-            _log("  ⚠️  Background assignments provided but pixel analyzer not available")
+            logging.info("  ⚠️  Background assignments provided but pixel analyzer not available")
         else:
-            _log("  Using original frames (no background assignments)")
+            logging.info("  Using original frames (no background assignments)")
 
     # NOW normalize view names after background processing
     normalized_frames = {}
@@ -294,32 +304,32 @@ def _process_one_with_assignments(
         if view_name.lower() in ['anterior', 'ant']:
             normalized_frames['Anterior'] = frame_data
             if view_name != 'Anterior':
-                _log(f"  >> Normalized '{view_name}' → 'Anterior'")
+                logging.info(f"  >> Normalized '{view_name}' → 'Anterior'")
         elif view_name.lower() in ['posterior', 'post']:
             normalized_frames['Posterior'] = frame_data
             if view_name != 'Posterior':
-                _log(f"  >> Normalized '{view_name}' → 'Posterior'")
+                logging.info(f"  >> Normalized '{view_name}' → 'Posterior'")
         else:
-            _log(f"  [WARN] Unknown view name: {view_name}")
+            logging.info(f"  [WARN] Unknown view name: {view_name}")
             normalized_frames[view_name] = frame_data
 
     frames = normalized_frames
-    _log(f"    Final views: {list(frames.keys())}")
+    logging.info(f"    Final views: {list(frames.keys())}")
 
     # Validate that we have required views (after normalization)
     frame_views = set(frames.keys())
     if "Anterior" not in frame_views or "Posterior" not in frame_views:
         error_msg = f"Missing required views. Got: {list(frame_views)}, Need: ['Anterior', 'Posterior']"
-        _log(f"  [ERROR] {error_msg}")
+        logging.info(f"  [ERROR] {error_msg}")
         raise ValueError(error_msg)
 
-    _log(f"    Normalized views: {list(frames.keys())}")
+    logging.info(f"    Normalized views: {list(frames.keys())}")
 
     saved: List[str] = []
     png_files_to_upload: List[Path] = []
 
     # STEP 2: SAVE ORIGINAL FRAMES AS PNG - Use paths.py naming
-    _log("  >> Saving original frames for classification...")
+    logging.info("  >> Saving original frames for classification...")
     for view_name, frame in frames.items():
         if view_name in ["Anterior", "Posterior"]:
             view_tag = "ant" if view_name == "Anterior" else "post"
@@ -332,27 +342,28 @@ def _process_one_with_assignments(
             saved.append(original_png_path.name)
             png_files_to_upload.append(original_png_path)
         else:
-            _log(f"  [WARN] Skipping non-standard view: {view_name}")
+            logging.info(f"  [WARN] Skipping non-standard view: {view_name}")
 
     # STEP 3: SEGMENTATION PROCESSING - Use paths.py naming with FIXED error handling
-    _log("  >> Generating segmentation masks and colored overlays...")
+    report_step("Generating segmentation masks...")
+    logging.info("  >> Generating segmentation masks and colored overlays...")
     for view_idx, (view, img) in enumerate(frames.items(), 1):
         if view not in ["Anterior", "Posterior"]:
-            _log(f"  [WARN] Skipping segmentation for non-standard view: {view}")
+            logging.info(f"  [WARN] Skipping segmentation for non-standard view: {view}")
             continue
             
         view_name = truncate_text(view, 20)
-        _log(f"  >> [{view_idx}/{len(frames)}] Processing {view_name}")
+        logging.info(f"  >> [{view_idx}/{len(frames)}] Processing {view_name}")
         
         try:
             # Segmentation
-            _log(f"     Segmenting bone mask...")
+            logging.info(f"     Segmenting bone mask...")
             mask = predict_bone_mask(img, to_rgb=False)
             
-            _log(f"     Generating colored overlay...")
+            logging.info(f"     Generating colored overlay...")
             rgb = predict_bone_mask(img, to_rgb=True)
             
-            _log(f"     Segmentation completed for {view_name}")
+            logging.info(f"     Segmentation completed for {view_name}")
 
             #   MOVE file saving INSIDE try block
             segmentation_files = get_planar_segmentation_files(dest_dir, view, with_priority=False)
@@ -363,11 +374,11 @@ def _process_one_with_assignments(
             Image.fromarray(rgb.astype(np.uint8), mode="RGB").save(colored_png_path)
             
             saved += [mask_png_path.name, colored_png_path.name]
-            _log(f"       Saved: {mask_png_path.name}, {colored_png_path.name}")
+            logging.info(f"       Saved: {mask_png_path.name}, {colored_png_path.name}")
 
         except Exception as e:
-            _log(f"    [ERROR] Segmentation failed for {view_name}: {e}")
-            _log(f"    [FALLBACK] Creating placeholder segmentation files...")
+            logging.info(f"    [ERROR] Segmentation failed for {view_name}: {e}")
+            logging.info(f"    [FALLBACK] Creating placeholder segmentation files...")
             
             try:
                 segmentation_files = get_planar_segmentation_files(dest_dir, view, with_priority=False)
@@ -382,67 +393,71 @@ def _process_one_with_assignments(
                 Image.fromarray(placeholder_rgb, mode="RGB").save(colored_png_path)
                 
                 saved += [mask_png_path.name, colored_png_path.name]
-                _log(f"     ⚠️ Created placeholder files: {mask_png_path.name}, {colored_png_path.name}")
+                logging.info(f"     ⚠️ Created placeholder files: {mask_png_path.name}, {colored_png_path.name}")
                 
             except Exception as fallback_error:
-                _log(f"    [ERROR] Fallback creation failed: {fallback_error}")
+                logging.info(f"    [ERROR] Fallback creation failed: {fallback_error}")
                 continue
 
     # STEP 4: YOLO DETECTION
-    _log("  >> Running YOLO hotspot detection...")
+    report_step("Running YOLO detection...")
+    logging.info("  >> Running YOLO hotspot detection...")
     try:
         from features.spect_viewer.logic.processing_wrapper import run_yolo_detection_wrapper
         yolo_result = run_yolo_detection_wrapper(dest_path, pid)
         if yolo_result:
-            _log(f"     YOLO detection completed - XML files created")
+            logging.info(f"     YOLO detection completed - XML files created")
         else:
-            _log(f"     YOLO detection completed - no detections found")
+            logging.info(f"     YOLO detection completed - no detections found")
     except Exception as e:
-        _log(f"     [WARN] YOLO detection failed: {e}")
+        logging.info(f"     [WARN] YOLO detection failed: {e}")
 
     # STEP 5: OTSU HOTSPOT PROCESSING
-    _log("  >> Running Otsu hotspot processing...")
+    report_step("Running Otsu hotspot processing...")
+    logging.info("  >> Running Otsu hotspot processing...")
     try:
         from features.spect_viewer.logic.processing_wrapper import run_hotspot_processing_in_process
         hotspot_result = run_hotspot_processing_in_process(dest_path, pid)
         if hotspot_result:
-            _log(f"     Otsu processing completed - hotspot PNG files created")
+            logging.info(f"     Otsu processing completed - hotspot PNG files created")
         else:
-            _log(f"     Otsu processing completed - no hotspots generated")
+            logging.info(f"     Otsu processing completed - no hotspots generated")
     except Exception as e:
-        _log(f"     [WARN] Otsu hotspot processing failed: {e}")
+        logging.info(f"     [WARN] Otsu hotspot processing failed: {e}")
 
     # STEP 6: CLASSIFICATION
-    _log("  >> Running hotspot classification inference...")
+    report_step("Running hotspot classification inference...")
+    logging.info("  >> Running hotspot classification inference...")
     try:
         classification_result = run_classification_with_new_paths(dest_path, pid, study_date)
         if classification_result:
-            _log(f"     Classification completed - Normal/Abnormal results saved")
+            logging.info(f"     Classification completed - Normal/Abnormal results saved")
         else:
-            _log(f"     Classification completed - no classifications generated")
+            logging.info(f"     Classification completed - no classifications generated")
     except Exception as e:
-        _log(f"     [WARN] Classification failed: {e}")
+        logging.info(f"     [WARN] Classification failed: {e}")
 
     # STEP 7: QUANTIFICATION
-    _log("  >> Running BSI quantification with classification masks...")
+    report_step("Running BSI quantification with classification masks...")
+    logging.info("  >> Running BSI quantification with classification masks...")
     try:
         from features.spect_viewer.logic.processing_wrapper import run_quantification_for_patient
         quantification_result = run_quantification_for_patient(dest_path, pid, study_date)
         if quantification_result:
-            _log(f"     BSI quantification completed - results saved")
+            logging.info(f"     BSI quantification completed - results saved")
         else:
-            _log(f"     BSI quantification failed - missing required files")
+            logging.info(f"     BSI quantification failed - missing required files")
     except Exception as e:
-        _log(f"     [WARN] BSI quantification failed: {e}")
+        logging.info(f"     [WARN] BSI quantification failed: {e}")
 
     # STEP 8: UPLOAD ORIGINAL PNG FILES TO CLOUD (if enabled)
-    _log("  >> Cloud storage disabled - skipping upload")
+    logging.info("  >> Cloud storage disabled - skipping upload")
     uploaded_count = 0
     
-    _log(f"    DICOM processing completed - ORIGINAL DICOM UNTOUCHED")
-    _log(f"  Files saved locally: {len(saved)} PNG output files")
-    _log(f"  Views processed: {list(frames.keys())}")
-    _log(f"  ORIGINAL DICOM: {dest_path.name} (NO MODIFICATION)")
+    logging.info(f"    DICOM processing completed - ORIGINAL DICOM UNTOUCHED")
+    logging.info(f"  Files saved locally: {len(saved)} PNG output files")
+    logging.info(f"  Views processed: {list(frames.keys())}")
+    logging.info(f"  ORIGINAL DICOM: {dest_path.name} (NO MODIFICATION)")
     
     return dest_path
 
@@ -452,10 +467,10 @@ def _safe_background_processing(frame_data, background_selection, view_name):
         if PIXEL_ANALYZER_AVAILABLE:
             return convert_to_black_background(frame_data, background_selection)
         else:
-            _log(f"     ⚠️  Pixel analyzer not available for {view_name}")
+            logging.info(f"     ⚠️  Pixel analyzer not available for {view_name}")
             return frame_data
     except Exception as e:
-        _log(f"      Background processing failed for {view_name}: {e}")
+        logging.info(f"      Background processing failed for {view_name}: {e}")
         return frame_data
 
 def _process_one(src: Path, session_code: str, cloud_upload_enabled: bool = True) -> Path:
@@ -471,10 +486,10 @@ def process_files_with_assignments(
     background_assignments: Dict[Path, Dict[int, Dict[str, str]]] = None,
     *,
     data_root: str | Path | None = None,
-    progress_cb: Callable[[int, int, str], None] | None = None,
+    combined_progress_cb: Callable[[int, int, str, str, float], None] | None = None,
     log_cb: Callable[[str], None] | None = None,
     session_code: str | None = None,
-    cloud_upload_enabled: bool = True  #   ADD cloud parameter
+    cloud_upload_enabled: bool = True,
 ) -> List[Path]:
     """
     Process multiple DICOM files WITH user-assigned views and background selections
@@ -495,9 +510,9 @@ def process_files_with_assignments(
         raise ValueError("session_code is required for new directory structure")
     if background_assignments is None:
         background_assignments = {}
-        _log("## No background assignments provided - using defaults")
+        logging.info("## No background assignments provided - using defaults")
     else:
-        _log(f"## Background assignments provided for {len(background_assignments)} files")
+        logging.info(f"## Background assignments provided for {len(background_assignments)} files")
     # Validate all assignments
     for file_path, view_assignments in file_view_assignments.items():
         from .dicom_loader import validate_view_assignments
@@ -514,34 +529,33 @@ def process_files_with_assignments(
     session_root.mkdir(parents=True, exist_ok=True)
     
     # Proxy _log for frontend
-    orig_log = _log
-    def _proxy(msg: str) -> None:
-        orig_log(msg)
-        if log_cb:
-            display_msg = truncate_text(msg, 100) if len(msg) > 100 else msg
-            log_cb(display_msg)
-    globals()["_log"] = _proxy
+
 
     paths = list(file_view_assignments.keys())
     out: List[Path] = []
     total = len(paths)
     
-    _log(f"## Starting batch import with view assignments: {total} file(s)")
-    _log(f"## Session code: {session_code}")
-    _log(f"## Target directory: data/PLANAR/{session_code}/[patient_id]/")
-    _log(f"##   DICOM PROTECTION: Original DICOM files will NOT be modified")
-    _log(f"##   OUTPUT ONLY: PNG/XML files for analysis results")
+    logging.info(f"## Starting batch import with view assignments: {total} file(s)")
+    logging.info(f"## Session code: {session_code}")
+    logging.info(f"## Target directory: data/PLANAR/{session_code}/[patient_id]/")
+    logging.info(f"##   DICOM PROTECTION: Original DICOM files will NOT be modified")
+    logging.info(f"##   OUTPUT ONLY: PNG/XML files for analysis results")
     if background_assignments:
         bg_file_count = len(background_assignments)
-        _log(f"## 🎨 BACKGROUND PROCESSING: {bg_file_count} files have background selections")
-        _log(f"## Background conversion: White → Black (for model compatibility)")
+        logging.info(f"## 🎨 BACKGROUND PROCESSING: {bg_file_count} files have background selections")
+        logging.info(f"## Background conversion: White → Black (for model compatibility)")
     else:
-        _log(f"## 🎨 BACKGROUND PROCESSING: Using original backgrounds (no selections)")
-    _log(f"## Processing workflow: Copy Original → PNG outputs → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG")
+        logging.info(f"## 🎨 BACKGROUND PROCESSING: Using original backgrounds (no selections)")
+    logging.info(f"## Processing workflow: Copy Original → PNG outputs → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG")
 
     for i, file_path in enumerate(paths, 1):
+        def combined_per_file_cb(step_message: str, step_progress: float):
+            if combined_progress_cb:
+                # In this nested function, we use the combined_progress_cb from the outer scope
+                combined_progress_cb(i, total, str(file_path), step_message, step_progress)
+
         try:
-            _log(f"\n## Processing file {i}/{total}: {truncate_text(file_path.name, 30)}")
+            logging.info(f"\n## Processing file {i}/{total}: {truncate_text(file_path.name, 30)}")
             view_assignments = file_view_assignments[file_path]
             file_background = background_assignments.get(file_path, {})
             result = _process_one_with_assignments(
@@ -549,25 +563,27 @@ def process_files_with_assignments(
                 session_code, 
                 view_assignments, 
                 file_background,
-                cloud_upload_enabled  #   ADD cloud parameter
+                cloud_upload_enabled,
+                log_cb=log_cb,
+                combined_progress_cb=combined_per_file_cb
             )
             out.append(result)
-            _log(f"## File {i}/{total} completed successfully - ORIGINAL DICOM PRESERVED")
+            logging.info(f"## File {i}/{total} completed successfully - ORIGINAL DICOM PRESERVED")
         except Exception as e:
             error_msg = f"File {i}/{total} failed: {str(e)[:100]}..."
-            _log(f"[ERROR] {error_msg}")
-            print(f"[FULL ERROR] {file_path} failed: {e}\n{traceback.format_exc()}")
+            logging.info(f"[ERROR] {error_msg}")
+            logging.info(f"[FULL ERROR] {file_path} failed: {e}\n{traceback.format_exc()}")
         finally:
-            if progress_cb:
-                progress_cb(i, total, str(file_path))
+            if combined_progress_cb:
+                # This is the final update for the file, setting step_progress to 1.0 (100%)
+                combined_progress_cb(i, total, str(file_path), "File processing complete.", 1.0)
 
-    _log("## Batch import process completed")
-    _log("##   DICOM PROTECTION: All original DICOM files preserved without modification")
-    _log("##   OUTPUT GENERATION: PNG/XML analysis files created successfully")
-    _log("##   CLOUD UPLOAD: Original PNG files uploaded to cloud storage")
-    _log("## All files use study date naming convention with proper view names.")
+    logging.info("## Batch import process completed")
+    logging.info("##   DICOM PROTECTION: All original DICOM files preserved without modification")
+    logging.info("##   OUTPUT GENERATION: PNG/XML analysis files created successfully")
+    logging.info("##   CLOUD UPLOAD: Original PNG files uploaded to cloud storage")
+    logging.info("## All files use study date naming convention with proper view names.")
     
-    globals()["_log"] = orig_log
     return out
 
 
@@ -609,46 +625,39 @@ def process_files(
     session_root.mkdir(parents=True, exist_ok=True)
     
     # Proxy _log for frontend
-    orig_log = _log
-    def _proxy(msg: str) -> None:
-        orig_log(msg)
-        if log_cb:
-            display_msg = truncate_text(msg, 100) if len(msg) > 100 else msg
-            log_cb(display_msg)
-    globals()["_log"] = _proxy
+
 
     out: List[Path] = []
     total = len(paths)
     
-    _log(f"## Starting batch import with AUTO-DETECTION: {total} file(s)")
-    _log(f"## Session code: {session_code}")
-    _log(f"## Target directory: data/SPECT/{session_code}/[patient_id]/")
-    _log(f"##   DICOM PROTECTION: Original DICOM files will NOT be modified")
-    _log(f"##   AUTO-DETECTION: System will detect Anterior/Posterior views")
-    _log(f"## Processing workflow: Copy Original → PNG outputs → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG")
+    logging.info(f"## Starting batch import with AUTO-DETECTION: {total} file(s)")
+    logging.info(f"## Session code: {session_code}")
+    logging.info(f"## Target directory: data/SPECT/{session_code}/[patient_id]/")
+    logging.info(f"##   DICOM PROTECTION: Original DICOM files will NOT be modified")
+    logging.info(f"##   AUTO-DETECTION: System will detect Anterior/Posterior views")
+    logging.info(f"## Processing workflow: Copy Original → PNG outputs → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG")
 
     for i, p in enumerate(paths, 1):
         try:
-            _log(f"\n## Processing file {i}/{total}: {truncate_text(p.name, 30)}")
+            logging.info(f"\n## Processing file {i}/{total}: {truncate_text(p.name, 30)}")
             result = _process_one_with_assignments(Path(p), session_code, None, None, cloud_upload_enabled)  #   ADD cloud parameter
             out.append(result)
-            _log(f"## File {i}/{total} completed successfully - ORIGINAL DICOM PRESERVED")
+            logging.info(f"## File {i}/{total} completed successfully - ORIGINAL DICOM PRESERVED")
         except Exception as e:
             error_msg = f"File {i}/{total} failed: {str(e)[:100]}..."
-            _log(f"[ERROR] {error_msg}")
-            print(f"[FULL ERROR] {p} failed: {e}\n{traceback.format_exc()}")
+            logging.info(f"[ERROR] {error_msg}")
+            logging.info(f"[FULL ERROR] {p} failed: {e}\n{traceback.format_exc()}")
         finally:
             if progress_cb:
                 progress_cb(i, total, str(p))
 
-    _log("## Batch import process completed")
-    _log("##   DICOM PROTECTION: All original DICOM files preserved without modification")
-    _log("##   AUTO-DETECTION completed. Check logs for any view assignment issues.")
-    _log("##   OUTPUT GENERATION: PNG/XML analysis files created successfully")
-    _log("##   CLOUD UPLOAD: Original PNG files uploaded to cloud storage")
-    _log("## All files use study date naming convention.")
+    logging.info("## Batch import process completed")
+    logging.info("##   DICOM PROTECTION: All original DICOM files preserved without modification")
+    logging.info("##   AUTO-DETECTION completed. Check logs for any view assignment issues.")
+    logging.info("##   OUTPUT GENERATION: PNG/XML analysis files created successfully")
+    logging.info("##   CLOUD UPLOAD: Original PNG files uploaded to cloud storage")
+    logging.info("## All files use study date naming convention.")
     
-    globals()["_log"] = orig_log
     return out
 
 
@@ -676,10 +685,10 @@ def validate_planar_structure(session_code: str) -> bool:
     try:
         session_path = PLANAR_DATA_PATH / session_code
         session_path.mkdir(parents=True, exist_ok=True)
-        _log(f"[VALIDATION] PLANAR structure validated: {session_path}")
+        logging.info(f"[VALIDATION] PLANAR structure validated: {session_path}")
         return True
     except Exception as e:
-        _log(f"[VALIDATION ERROR] Failed to create PLANAR structure: {e}")
+        logging.info(f"[VALIDATION ERROR] Failed to create PLANAR structure: {e}")
         return False
     
 def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str) -> bool:
@@ -732,11 +741,11 @@ def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str
                 shutil.copy2(source_file, target_file)
                 file_mappings.append(target_file)
                 success_count += 1
-                _log(f"     Mapped: {source_file.name} -> {old_name}")
+                logging.info(f"     Mapped: {source_file.name} -> {old_name}")
             else:
-                _log(f"     Missing: {source_file} -> {old_name}")
+                logging.info(f"     Missing: {source_file} -> {old_name}")
         
-        _log(f"     Successfully mapped {success_count} files for classification")
+        logging.info(f"     Successfully mapped {success_count} files for classification")
         
         if success_count >= 4:  # Need at least basic files
             #   CHANGE: Temporarily change working directory for classification
@@ -745,14 +754,14 @@ def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str
             
             try:
                 os.chdir(temp_dir)
-                _log(f"     Running classification in temp directory: {temp_dir}")
+                logging.info(f"     Running classification in temp directory: {temp_dir}")
                 
                 from features.spect_viewer.logic.processing_wrapper import run_classification_for_patient
                 result = run_classification_for_patient(dest_path, pid, study_date)
                 
                 #   COPY: Results back using NEW NAMING ONLY (paths.py)
                 if result:
-                    _log(f"     Copying classification results back to main folder with NEW naming...")
+                    logging.info(f"     Copying classification results back to main folder with NEW naming...")
                     
                     #   USE paths.py for result file mapping - NEW NAMING ONLY
                     for view_tag in ["ant", "post"]:
@@ -773,18 +782,18 @@ def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str
                         # Copy XML files to NEW naming
                         if old_xml.exists():
                             shutil.copy2(old_xml, new_xml)
-                            _log(f"       Copied XML: {old_xml.name} -> {new_xml.name}")
+                            logging.info(f"       Copied XML: {old_xml.name} -> {new_xml.name}")
                         
                         # Copy mask files to NEW naming (PNG)
                         if old_mask.exists():
                             shutil.copy2(old_mask, new_png)
-                            _log(f"       Copied PNG: {old_mask.name} -> {new_png.name}")
+                            logging.info(f"       Copied PNG: {old_mask.name} -> {new_png.name}")
                         
                         #   OPTIONAL: Copy JSON for reference with NEW naming
                         if old_json.exists():
                             json_backup = patient_folder / f"{view_tag}_hotspot_classification.json"
                             shutil.copy2(old_json, json_backup)
-                            _log(f"       Copied JSON: {old_json.name} -> {json_backup.name}")
+                            logging.info(f"       Copied JSON: {old_json.name} -> {json_backup.name}")
                 
                 return result
                 
@@ -794,16 +803,16 @@ def run_classification_with_new_paths(dest_path: Path, pid: str, study_date: str
                 #   CLEANUP: Remove temp directory
                 try:
                     shutil.rmtree(temp_dir)
-                    _log(f"       Cleaned up temp directory")
+                    logging.info(f"       Cleaned up temp directory")
                 except Exception as cleanup_error:
-                    _log(f"     [WARN] Cleanup failed: {cleanup_error}")
+                    logging.info(f"     [WARN] Cleanup failed: {cleanup_error}")
         else:
-            _log(f"      Insufficient files for classification ({success_count} < 4)")
-            _log(f"     Required: original, segmentation, hotspot mask, and XML files")
+            logging.info(f"      Insufficient files for classification ({success_count} < 4)")
+            logging.info(f"     Required: original, segmentation, hotspot mask, and XML files")
             return False
             
     except Exception as e:
-        _log(f"     [ERROR] Classification wrapper failed: {e}")
+        logging.info(f"     [ERROR] Classification wrapper failed: {e}")
         import traceback
         traceback.print_exc()
         return False

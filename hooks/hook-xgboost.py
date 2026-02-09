@@ -3,7 +3,7 @@ PyInstaller hook for XGBoost to include native libraries and VERSION file
 """
 from PyInstaller.utils.hooks import collect_dynamic_libs, collect_data_files
 import os
-
+import logging
 # Collect XGBoost dynamic libraries
 binaries = collect_dynamic_libs('xgboost')
 
@@ -19,10 +19,10 @@ try:
     version_file = os.path.join(xgb_path, 'VERSION')
     if os.path.exists(version_file):
         datas.append((version_file, 'xgboost'))
-        print(f"[HOOK-XGBOOST] Found VERSION file: {version_file}")
+        logging.info(f"[HOOK-XGBOOST] Found VERSION file: {version_file}")
     else:
         # Create dummy VERSION file if not found
-        print("[HOOK-XGBOOST] VERSION file not found, will create dummy")
+        logging.info("[HOOK-XGBOOST] VERSION file not found, will create dummy")
     
     # Look for xgboost.dll in common locations
     potential_dll_paths = [
@@ -35,12 +35,12 @@ try:
         if os.path.exists(dll_path):
             binaries.append((dll_path, 'lib'))
             binaries.append((dll_path, 'xgboost/lib'))
-            print(f"[HOOK-XGBOOST] Found XGBoost DLL: {dll_path}")
+            logging.info(f"[HOOK-XGBOOST] Found XGBoost DLL: {dll_path}")
             break
     else:
-        print("[HOOK-XGBOOST] XGBoost DLL not found in common locations")
+        logging.info("[HOOK-XGBOOST] XGBoost DLL not found in common locations")
         
 except Exception as e:
-    print(f"[HOOK-XGBOOST] Error collecting XGBoost files: {e}")
+    logging.info(f"[HOOK-XGBOOST] Error collecting XGBoost files: {e}")
 
-print(f"[HOOK-XGBOOST] Collected {len(binaries)} binaries and {len(datas)} data files")
+logging.info(f"[HOOK-XGBOOST] Collected {len(binaries)} binaries and {len(datas)} data files")

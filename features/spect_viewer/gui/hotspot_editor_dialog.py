@@ -9,7 +9,7 @@ from typing import Dict
 import numpy as np
 import json
 from PIL import Image
-
+import logging
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QCheckBox, QSlider, QWidget, QGraphicsView, QScrollArea 
@@ -129,24 +129,24 @@ class HotspotEditorDialog(BaseEditorDialog):
         """Load existing mask with proper priority using NEWEST paths."""
         
         # Debug output to show which files we're using
-        print(f"  [HOTSPOT LOAD] Loading mask for {self.view_short}")
-        print(f"  [HOTSPOT LOAD] Classification PNG: {self.classification_mask_original}")
-        print(f"  [HOTSPOT LOAD] XML file: {self.xml_original}")
-        print(f"  [HOTSPOT LOAD] PNG exists: {self.classification_mask_original.exists() if self.classification_mask_original else False}")
-        print(f"  [HOTSPOT LOAD] XML exists: {self.xml_original.exists() if self.xml_original else False}")
+        logging.info(f"  [HOTSPOT LOAD] Loading mask for {self.view_short}")
+        logging.info(f"  [HOTSPOT LOAD] Classification PNG: {self.classification_mask_original}")
+        logging.info(f"  [HOTSPOT LOAD] XML file: {self.xml_original}")
+        logging.info(f"  [HOTSPOT LOAD] PNG exists: {self.classification_mask_original.exists() if self.classification_mask_original else False}")
+        logging.info(f"  [HOTSPOT LOAD] XML exists: {self.xml_original.exists() if self.xml_original else False}")
         
         # The path self.classification_mask_original now points to the NEWEST file
         if self.classification_mask_original and self.classification_mask_original.exists():
-            print(f"✓ Loading NEWEST classification mask from: {self.classification_mask_original.name}")
+            logging.info(f"✓ Loading NEWEST classification mask from: {self.classification_mask_original.name}")
             return self._load_mask_from_classification_png(self.classification_mask_original)
         
         # The path self.xml_original now points to the NEWEST XML file
         elif self.xml_original and self.xml_original.exists():
-            print(f"✓ Found NEWEST XML annotations: {self.xml_original.name}")
+            logging.info(f"✓ Found NEWEST XML annotations: {self.xml_original.name}")
             return self._load_from_xml(self.xml_original)
         
         else:
-            print(f"✗ No classification data found. Creating empty mask.")
+            logging.info(f"✗ No classification data found. Creating empty mask.")
             return np.zeros_like(self.original_image_data, np.uint8)
 
     def _load_mask_from_classification_png(self, classification_path: Path) -> np.ndarray:
@@ -162,10 +162,10 @@ class HotspotEditorDialog(BaseEditorDialog):
             cream_mask = np.all(rgb == [255, 241, 188], axis=-1)  # Normal
             mask[cream_mask] = 2
             
-            print(f"✓ Loaded classification mask from: {classification_path}")
+            logging.info(f"✓ Loaded classification mask from: {classification_path}")
             return mask
         except Exception as e:
-            print(f"✗ Failed to load classification mask: {e}")
+            logging.info(f"✗ Failed to load classification mask: {e}")
             #   FIX: Use self.original_image_data
             return np.zeros_like(self.original_image_data, np.uint8)
 
@@ -196,7 +196,7 @@ class HotspotEditorDialog(BaseEditorDialog):
             else:
                 return np.zeros_like(self.original_image_data, np.uint8)
         except Exception as e:
-            print(f"✗ Error processing XML {xml_path}: {e}")
+            logging.info(f"✗ Error processing XML {xml_path}: {e}")
             return np.zeros_like(self.original_image_data, np.uint8)
 
     # Replace the opacity panel creation section in _create_toolbar() method
@@ -493,7 +493,7 @@ class HotspotEditorDialog(BaseEditorDialog):
         if self.segmentation_path.exists():
             success = self.canvas.set_segmentation_layer(self.segmentation_path)
             if not success:
-                print(f"✗ Segmentation load failed: {self.segmentation_path.name}")
+                logging.info(f"✗ Segmentation load failed: {self.segmentation_path.name}")
 
         editor_layout.addWidget(self.canvas)
         
@@ -584,7 +584,7 @@ class HotspotEditorDialog(BaseEditorDialog):
             from core.config.paths import CONFIG_ROOT
             config_path = CONFIG_ROOT / "doctor_tags.json"
             if not config_path.exists():
-                print(f"Config file not found: {config_path}")
+                logging.info(f"Config file not found: {config_path}")
                 return "NSY"  # Fallback to default
             
             with open(config_path, 'r') as f:
@@ -594,7 +594,7 @@ class HotspotEditorDialog(BaseEditorDialog):
             available_tags = [tag for tag in config_data.get("doctor_tags", []) if tag.get("code") != "ALL"]
             
             if not available_tags:
-                print("No available doctor tags found")
+                logging.info("No available doctor tags found")
                 return "NSY"  # Fallback to default
             
             # Create dialog
@@ -663,7 +663,7 @@ class HotspotEditorDialog(BaseEditorDialog):
             return None  # User cancelled
             
         except Exception as e:
-            print(f"Error showing session selection dialog: {e}")
+            logging.info(f"Error showing session selection dialog: {e}")
             return "NSY"  # Fallback to default
         
     def _change_label(self, idx: int):
@@ -723,7 +723,7 @@ class HotspotEditorDialog(BaseEditorDialog):
             
             self._update_canvas_images(inverted_data)
         except Exception as e:
-            print(f"✗ Error during image inversion: {e}")
+            logging.info(f"✗ Error during image inversion: {e}")
             self.invert_checkbox.setChecked(not self.invert_checkbox.isChecked())
 
     def _update_canvas_images(self, new_image_data: np.ndarray):
@@ -753,7 +753,7 @@ class HotspotEditorDialog(BaseEditorDialog):
             self.canvas.viewport().update()
             
         except Exception as e:
-            print(f"✗ Error updating canvas images: {e}")
+            logging.info(f"✗ Error updating canvas images: {e}")
 
     def _get_session_base_path(self) -> Path:
         """Get the base session path for saving files."""
@@ -848,7 +848,7 @@ class HotspotEditorDialog(BaseEditorDialog):
             self.save_loading_dialog.close()
             self.save_loading_dialog.deleteLater()  #   TAMBAHAN: hapus dari memory
             self.save_loading_dialog = None
-            print("[DEBUG] Loading dialog closed and deleted")
+            logging.info("[DEBUG] Loading dialog closed and deleted")
         
         #   FIX 2: PROSES EDITING TIME
         elapsed_seconds, formatted_time = self._get_editing_duration()
@@ -880,7 +880,7 @@ class HotspotEditorDialog(BaseEditorDialog):
         
         #   FIX 6: EMIT SIGNAL DAN CLOSE
         if hasattr(self, 'editor_completed'):
-            print("[DEBUG] Emitting editor_completed signal")
+            logging.info("[DEBUG] Emitting editor_completed signal")
             self.editor_completed.emit()
         
         # Close dialog
@@ -903,7 +903,7 @@ class HotspotEditorDialog(BaseEditorDialog):
             self.save_loading_dialog.close()
             self.save_loading_dialog.deleteLater()  #   TAMBAHAN: hapus dari memory
             self.save_loading_dialog = None
-            print("[DEBUG] Loading dialog closed due to error")
+            logging.info("[DEBUG] Loading dialog closed due to error")
         
         # Show error message
         QMessageBox.critical(self, "Save Error", error_message)
@@ -916,11 +916,11 @@ class HotspotEditorDialog(BaseEditorDialog):
         if hasattr(self, 'update_timer') and hasattr(self, 'update_timer'):
             if not self.update_timer.isActive():
                 self.update_timer.start(1000)
-                print("[DEBUG] Timer resumed after error")
+                logging.info("[DEBUG] Timer resumed after error")
         
     def _update_progress(self, value: int, message: str):
         """Update progress bar and message."""
-        print(f"[PROGRESS] {value}% - {message}")
+        logging.info(f"[PROGRESS] {value}% - {message}")
         
         # Update loading dialog if exists
         if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
@@ -932,15 +932,15 @@ class HotspotEditorDialog(BaseEditorDialog):
             else:
                 #   FIX: Untuk progress 100%, set message yang menunjukkan akan segera tutup
                 self.save_loading_dialog.set_message(f"Save completed! Preparing results...")
-                print("[DEBUG] Progress 100% reached, dialog will close soon")
+                logging.info("[DEBUG] Progress 100% reached, dialog will close soon")
 
     def _on_save_finished(self):
         """Handle save completion."""
         from PySide6.QtWidgets import QMessageBox
         
-        print("    [DEBUG HOTSPOT] ===================")
-        print("    [DEBUG HOTSPOT] Save finished!")
-        print("    [DEBUG HOTSPOT] About to emit signal...")
+        logging.info("    [DEBUG HOTSPOT] ===================")
+        logging.info("    [DEBUG HOTSPOT] Save finished!")
+        logging.info("    [DEBUG HOTSPOT] About to emit signal...")
         
         # Close loading dialog
         if hasattr(self, 'save_loading_dialog') and self.save_loading_dialog:
@@ -966,13 +966,13 @@ class HotspotEditorDialog(BaseEditorDialog):
         self.btn_save.setEnabled(True)
         
         #   TEST SIGNAL EMIT
-        print("    [DEBUG HOTSPOT] Checking if signal exists...")
+        logging.info("    [DEBUG HOTSPOT] Checking if signal exists...")
         if hasattr(self, 'editor_completed'):
-            print("    [DEBUG HOTSPOT] Signal exists, emitting...")
+            logging.info("    [DEBUG HOTSPOT] Signal exists, emitting...")
             self.editor_completed.emit()
-            print("    [DEBUG HOTSPOT] Signal emitted!")
+            logging.info("    [DEBUG HOTSPOT] Signal emitted!")
         else:
-            print("    [DEBUG HOTSPOT]  Signal does not exist!")
+            logging.info("    [DEBUG HOTSPOT]  Signal does not exist!")
         
         # Close dialog
         self.accept()
@@ -1110,11 +1110,11 @@ class HotspotEditorDialog(BaseEditorDialog):
                     writer.writeheader()
                 writer.writerow(log_entry)
             
-            print(f"   Editing time logged to '{log_file.name}': {formatted_time} for patient {self.patient_id}")
+            logging.info(f"   Editing time logged to '{log_file.name}': {formatted_time} for patient {self.patient_id}")
 
         except Exception as e:
             from PySide6.QtWidgets import QMessageBox
-            print(f" Failed to save editing time log: {e}")
+            logging.info(f" Failed to save editing time log: {e}")
             # Sekarang blok ini aman karena 'log_file' pasti punya nilai
             QMessageBox.critical(
                 self, "Error Menyimpan Log",
@@ -1127,7 +1127,7 @@ class HotspotEditorDialog(BaseEditorDialog):
         except Exception as e:
             # SANGAT DISARANKAN: Tampilkan error sebagai pop-up
             from PySide6.QtWidgets import QMessageBox
-            print(f" Failed to save editing time log: {e}")
+            logging.info(f" Failed to save editing time log: {e}")
             QMessageBox.critical(
                 self, "Error Menyimpan Log",
                 f"Gagal menyimpan log waktu editing.\n\nFile: {log_file}\nError: {str(e)}"

@@ -6,15 +6,15 @@ FIXED VERSION - handles missing extensions gracefully
 from PyInstaller.utils.hooks import collect_all, collect_submodules, collect_data_files
 import os
 import sys
-
-print("[HOOK] torchvision: Starting comprehensive collection...")
+import logging
+logging.info("[HOOK] torchvision: Starting comprehensive collection...")
 
 # Collect ALL torchvision modules including extensions
 try:
     datas, binaries, hiddenimports = collect_all('torchvision')
-    print(f"[HOOK] torchvision: base collection successful")
+    logging.info(f"[HOOK] torchvision: base collection successful")
 except Exception as e:
-    print(f"[HOOK] torchvision: base collection failed: {e}")
+    logging.info(f"[HOOK] torchvision: base collection failed: {e}")
     datas, binaries, hiddenimports = [], [], []
 
 # Core torchvision modules that should always be included
@@ -52,11 +52,11 @@ for module in extension_modules:
         if module not in hiddenimports:
             hiddenimports.append(module)
         extensions_found.append(module)
-        print(f"[HOOK] torchvision:   Found extension: {module}")
+        logging.info(f"[HOOK] torchvision:   Found extension: {module}")
     except ImportError:
-        print(f"[HOOK] torchvision: ⚠️ Extension not available: {module}")
+        logging.info(f"[HOOK] torchvision: ⚠️ Extension not available: {module}")
     except Exception as e:
-        print(f"[HOOK] torchvision:  Error testing {module}: {e}")
+        logging.info(f"[HOOK] torchvision:  Error testing {module}: {e}")
 
 # Collect torchvision binary files (DLLs, shared libraries)
 try:
@@ -83,23 +83,23 @@ try:
                 extension_files.append((src_path, dest_dir))
                 
     datas.extend(extension_files)
-    print(f"[HOOK] torchvision:   Found {len(extension_files)} binary extension files")
+    logging.info(f"[HOOK] torchvision:   Found {len(extension_files)} binary extension files")
     
     # Log some example extension files for debugging
     for i, (src, dest) in enumerate(extension_files[:3]):
-        print(f"[HOOK] torchvision: Extension file {i+1}: {os.path.basename(src)} -> {dest}")
+        logging.info(f"[HOOK] torchvision: Extension file {i+1}: {os.path.basename(src)} -> {dest}")
     
 except Exception as e:
-    print(f"[HOOK] torchvision: ⚠️ Binary collection failed: {e}")
+    logging.info(f"[HOOK] torchvision: ⚠️ Binary collection failed: {e}")
 
 # Try to collect additional data files that might be needed
 try:
     # Collect any additional data files from torchvision
     additional_datas = collect_data_files('torchvision', include_py_files=False)
     datas.extend(additional_datas)
-    print(f"[HOOK] torchvision:   Found {len(additional_datas)} additional data files")
+    logging.info(f"[HOOK] torchvision:   Found {len(additional_datas)} additional data files")
 except Exception as e:
-    print(f"[HOOK] torchvision: ⚠️ Additional data collection failed: {e}")
+    logging.info(f"[HOOK] torchvision: ⚠️ Additional data collection failed: {e}")
 
 # Special handling for torchvision.ops which often contains extensions
 try:
@@ -107,19 +107,19 @@ try:
     for module in ops_modules:
         if module not in hiddenimports:
             hiddenimports.append(module)
-    print(f"[HOOK] torchvision:   Collected {len(ops_modules)} ops modules")
+    logging.info(f"[HOOK] torchvision:   Collected {len(ops_modules)} ops modules")
 except Exception as e:
-    print(f"[HOOK] torchvision: ⚠️ Ops modules collection failed: {e}")
+    logging.info(f"[HOOK] torchvision: ⚠️ Ops modules collection failed: {e}")
 
 # Remove duplicates from hiddenimports
 hiddenimports = list(set(hiddenimports))
 
 # Final summary
-print(f"[HOOK] torchvision: FINAL SUMMARY:")
-print(f"[HOOK] torchvision:   - {len(hiddenimports)} hidden imports")
-print(f"[HOOK] torchvision:   - {len(datas)} data files") 
-print(f"[HOOK] torchvision:   - {len(binaries)} binaries")
-print(f"[HOOK] torchvision:   - {len(extensions_found)} extensions found: {extensions_found}")
+logging.info(f"[HOOK] torchvision: FINAL SUMMARY:")
+logging.info(f"[HOOK] torchvision:   - {len(hiddenimports)} hidden imports")
+logging.info(f"[HOOK] torchvision:   - {len(datas)} data files") 
+logging.info(f"[HOOK] torchvision:   - {len(binaries)} binaries")
+logging.info(f"[HOOK] torchvision:   - {len(extensions_found)} extensions found: {extensions_found}")
 
 # Export for PyInstaller
 excludedimports = [

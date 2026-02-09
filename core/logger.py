@@ -7,6 +7,6 @@ def set_log_callback(cb):
     _log_callback = cb
 
 def _log(msg: str):
-    print("[LOG]", msg)
+    logging.info("[LOG]", msg)
     if _log_callback:
         _log_callback(msg)

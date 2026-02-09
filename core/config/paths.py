@@ -11,7 +11,7 @@ import pydicom
 from datetime import datetime
 from PIL import Image  #   TAMBAHAN
 import numpy as np     #   TAMBAHAN
-
+import logging
 # Load environment variables
 load_dotenv()
 
@@ -66,12 +66,12 @@ def get_yolo_model_path():
     
     for path in potential_paths:
         if path.exists():
-            print(f"[PATHS] Found YOLO model at: {path}")
+            logging.info(f"[PATHS] Found YOLO model at: {path}")
             return path
     
-    print(f"[PATHS] YOLO model not found in any location:")
+    logging.info(f"[PATHS] YOLO model not found in any location:")
     for path in potential_paths:
-        print(f"[PATHS]   Checked: {path} (exists: {path.exists()})")
+        logging.info(f"[PATHS]   Checked: {path} (exists: {path.exists()})")
     
     # Return first path as fallback
     return potential_paths[0]
@@ -102,22 +102,6 @@ EDITABLE_FILES = [
     "post_hotspot_classification.png"
 ]
 def get_newest_hotspot_classification_path(patient_folder: Path, view: str) -> Path:
-    """
-    Get the newest hotspot classification file path by comparing date and timestamp.
-    
-    Args:
-        patient_folder: Patient directory path (e.g., data/PLANAR/ALL/102/20251211 or data/PLANAR/NSY/101)
-        view: View name ("ant" or "post" or "anterior" or "posterior")
-        
-    Returns:
-        Path to the newest hotspot classification PNG file
-        
-    Logic:
-        1. If patient folder has date subfolders (YYYYMMDD), search in all of them
-        2. Find all hotspot classification files with timestamps
-        3. Compare by date first, then by timestamp
-        4. If no timestamped files found, return the original file from base folder
-    """
     view_short = "ant" if view.lower() in ["anterior", "ant"] else "post"
     base_filename = f"{view_short}_hotspot_classification.png"
     
@@ -422,38 +406,26 @@ def extract_study_date_from_dicom(dicom_path: Path) -> str:
         return datetime.now().strftime("%Y%m%d")
         
     except Exception as e:
-        print(f"Warning: Could not extract study date from {dicom_path}: {e}")
+        logging.info(f"Warning: Could not extract study date from {dicom_path}: {e}")
         return datetime.now().strftime("%Y%m%d")
 
 def check_dicom_exists(session_code: str, patient_id: str, study_date: str, original_filename: str = None) -> bool:
-    """
-    Check if DICOM already exists based on patient ID and study date
-    
-    Args:
-        session_code: Session code (NSY, ATL, etc.)
-        patient_id: Patient ID from DICOM
-        study_date: Study date in YYYYMMDD format
-        original_filename: Original DICOM filename (optional for specific file check)
-        
-    Returns:
-        True if DICOM already exists, False otherwise
-    """
     try:
-        print(f"  [CHECK_DICOM_EXISTS] Checking: session={session_code}, patient={patient_id}, study_date={study_date}")
+        logging.info(f"  [CHECK_DICOM_EXISTS] Checking: session={session_code}, patient={patient_id}, study_date={study_date}")
         
         # Get expected patient study date path
         study_date_path = get_patient_planar_path(session_code, patient_id, study_date)
-        print(f"  [CHECK_DICOM_EXISTS] Expected path: {study_date_path}")
+        logging.info(f"  [CHECK_DICOM_EXISTS] Expected path: {study_date_path}")
         
         if not study_date_path.exists():
-            print(f"  [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE")
+            logging.info(f"  [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE")
             return False
         
         # If specific filename provided, check for that exact file
         if original_filename:
             specific_file = study_date_path / original_filename
             exists = specific_file.exists()
-            print(f"  [CHECK_DICOM_EXISTS] Specific file {original_filename} exists: {exists}")
+            logging.info(f"  [CHECK_DICOM_EXISTS] Specific file {original_filename} exists: {exists}")
             return exists
         
         # Otherwise, check if any DICOM files exist in the study date folder
@@ -466,16 +438,16 @@ def check_dicom_exists(session_code: str, patient_id: str, study_date: str, orig
             list(study_date_path.glob("*_hotspot_*.xml"))
         )
         
-        print(f"  [CHECK_DICOM_EXISTS] Found {len(dicom_files)} DICOM files")
-        print(f"  [CHECK_DICOM_EXISTS] Found {len(processed_files)} processed files")
+        logging.info(f"  [CHECK_DICOM_EXISTS] Found {len(dicom_files)} DICOM files")
+        logging.info(f"  [CHECK_DICOM_EXISTS] Found {len(processed_files)} processed files")
         
         result = len(dicom_files) > 0 or len(processed_files) > 0
-        print(f"  [CHECK_DICOM_EXISTS] Final result: {result}")
+        logging.info(f"  [CHECK_DICOM_EXISTS] Final result: {result}")
         
         return result
         
     except Exception as e:
-        print(f"  [CHECK_DICOM_EXISTS] ERROR: {e}")
+        logging.info(f"  [CHECK_DICOM_EXISTS] ERROR: {e}")
         return False
 
 def get_existing_dicom_info(session_code: str, patient_id: str, study_date: str) -> Dict[str, any]:
@@ -505,7 +477,7 @@ def get_existing_dicom_info(session_code: str, patient_id: str, study_date: str)
         }
         
     except Exception as e:
-        print(f"[ERROR] Error getting existing DICOM info: {e}")
+        logging.info(f"[ERROR] Error getting existing DICOM info: {e}")
         return {"exists": False, "error": str(e)}
 
 def generate_filename_stem(patient_id: str, study_date: str) -> str:
@@ -561,19 +533,6 @@ def get_study_date_path(session_code: str, patient_id: str, study_date: str) -> 
     return get_patient_planar_path(session_code, patient_id, study_date)
 
 def get_edit_timestamp_path(session_code: str, patient_id: str, study_date: str, editor_code: str = None, edit_date: str = None) -> Path:
-    """
-    Get path for timestamp-based edits (both individual and ALL user)
-    
-    Args:
-        session_code: Session code (NSY, ATL, NBL, ALL)
-        patient_id: Patient ID
-        study_date: Study date in YYYYMMDD format
-        editor_code: Doctor code who made the edit (for ALL user only)
-        edit_date: Date of edit in YYYYMMDD format
-        
-    Returns:
-        Path for edit folder
-    """
     base_path = get_patient_planar_path(session_code, patient_id, study_date)
     
     if session_code == "ALL":
@@ -582,7 +541,6 @@ def get_edit_timestamp_path(session_code: str, patient_id: str, study_date: str,
             raise ValueError("editor_code required for ALL user edits")
         return base_path / editor_code / edit_date
     else:
-        # Individual user: data/PLANAR/NSY/101/20250101/20250816/
         if not edit_date:
             edit_date = datetime.now().strftime("%Y%m%d")
         return base_path / edit_date
@@ -647,18 +605,6 @@ def get_planar_segmentation_files(patient_folder: Path, view: str, with_priority
             'mask_png': patient_folder / mask_filename
         }
 def get_planar_hotspot_files(patient_folder: Path, view: str, with_priority: bool = True, session_code: str = None):
-    """
-      UPDATED: Get hotspot file paths with priority system for edited files
-    
-    Args:
-        patient_folder: Patient directory path (study_date folder)
-        view: View name (ant/post or anterior/posterior)
-        with_priority: Whether to use priority system (edited > original)
-        session_code: Session code for ALL user context (NSY, ATL, etc.)
-        
-    Returns:
-        Dictionary with hotspot file paths using priority system
-    """
     vtag = "ant" if view.lower() in ["anterior", "ant"] else "post"
     
     #   Base files (non-editable) - always from study_date folder
@@ -707,9 +653,9 @@ def get_planar_hotspot_files(patient_folder: Path, view: str, with_priority: boo
             )
             if priority_png and priority_png.exists():
                 base_files['classification_png'] = priority_png
-                print(f"[PRIORITY] Using edited PNG: {priority_png}")
+                logging.info(f"[PRIORITY] Using edited PNG: {priority_png}")
             else:
-                print(f"[PRIORITY] Using original PNG: {base_files['classification_png']}")
+                logging.info(f"[PRIORITY] Using original PNG: {base_files['classification_png']}")
         
         if classification_xml_filename in EDITABLE_FILES:
             priority_xml = get_file_with_priority(
@@ -717,16 +663,16 @@ def get_planar_hotspot_files(patient_folder: Path, view: str, with_priority: boo
             )
             if priority_xml and priority_xml.exists():
                 base_files['classification_xml'] = priority_xml
-                print(f"[PRIORITY] Using edited XML: {priority_xml}")
+                logging.info(f"[PRIORITY] Using edited XML: {priority_xml}")
             else:
-                print(f"[PRIORITY] Using original XML: {base_files['classification_xml']}")
+                logging.info(f"[PRIORITY] Using original XML: {base_files['classification_xml']}")
     
     #   DEBUG: Print final file selection
-    print(f"[HOTSPOT FILES] Final selection for {vtag}:")
+    logging.info(f"[HOTSPOT FILES] Final selection for {vtag}:")
     for key, path in base_files.items():
         exists = path.exists() if path else False
         is_edited = "edited" if (path and "_20" in str(path) and len(path.stem.split('_')[-1]) == 6) else "original"
-        print(f"[HOTSPOT FILES]   {key}: {path} (exists: {exists}, type: {is_edited})")
+        logging.info(f"[HOTSPOT FILES]   {key}: {path} (exists: {exists}, type: {is_edited})")
     
     return base_files
 
@@ -753,26 +699,26 @@ def load_original_image_from_path(dicom_path: Path, view_name: str, frame_map: d
         study_date_dir = dicom_path.parent
         png_path = study_date_dir / png_filename
         
-        print(f"[DEBUG] Looking for original PNG in study_date dir: {png_path}")
+        logging.info(f"[DEBUG] Looking for original PNG in study_date dir: {png_path}")
         
         if png_path.exists():
             # Found in study_date directory
             original_image = Image.open(png_path)
             if original_image.mode != 'L':
                 original_image = original_image.convert('L')
-            print(f"[DEBUG] Loaded original PNG from study_date dir: {original_image.size}")
+            logging.info(f"[DEBUG] Loaded original PNG from study_date dir: {original_image.size}")
             return original_image
         
         #   FALLBACK: Cari di parent direktori (patient level)
         patient_dir = study_date_dir.parent
         png_path_fallback = patient_dir / png_filename
-        print(f"[DEBUG] Fallback: Looking in patient dir: {png_path_fallback}")
+        logging.info(f"[DEBUG] Fallback: Looking in patient dir: {png_path_fallback}")
         
         if png_path_fallback.exists():
             original_image = Image.open(png_path_fallback)
             if original_image.mode != 'L':
                 original_image = original_image.convert('L')
-            print(f"[DEBUG] Loaded original PNG from patient dir: {original_image.size}")
+            logging.info(f"[DEBUG] Loaded original PNG from patient dir: {original_image.size}")
             return original_image
         
         #   FALLBACK: Load from DICOM frames if PNG not available
@@ -788,77 +734,77 @@ def load_original_image_from_path(dicom_path: Path, view_name: str, frame_map: d
                 
                 # Convert to PIL Image
                 original_image = Image.fromarray(frame_uint8, 'L')
-                print(f"[DEBUG] Fallback: Loaded from DICOM frame: {original_image.size}")
+                logging.info(f"[DEBUG] Fallback: Loaded from DICOM frame: {original_image.size}")
                 return original_image
         
-        print(f"[DEBUG] No image source available for {view_name}")
+        logging.info(f"[DEBUG] No image source available for {view_name}")
         return None
         
     except Exception as e:
-        print(f"[ERROR] Failed to load original image: {e}")
+        logging.info(f"[ERROR] Failed to load original image: {e}")
         return None
 
 def debug_quantification_paths(patient_folder: Path, patient_id: str = None) -> None:
     """Debug helper untuk check quantification file paths"""
     
-    print(f"\n  [DEBUG PATHS GANTENG] ===================")
-    print(f"  [DEBUG PATHS] Patient folder: {patient_folder}")
-    print(f"  [DEBUG PATHS] Patient ID: {patient_id}")
-    print(f"  [DEBUG PATHS] Folder exists: {patient_folder.exists()}")
+    logging.info(f"\n  [DEBUG PATHS GANTENG] ===================")
+    logging.info(f"  [DEBUG PATHS] Patient folder: {patient_folder}")
+    logging.info(f"  [DEBUG PATHS] Patient ID: {patient_id}")
+    logging.info(f"  [DEBUG PATHS] Folder exists: {patient_folder.exists()}")
     
     if not patient_folder.exists():
-        print(f"  [DEBUG PATHS]  Folder does not exist!")
+        logging.info(f"  [DEBUG PATHS]  Folder does not exist!")
         return
     
-    print(f"  [DEBUG PATHS] Folder structure:")
+    logging.info(f"  [DEBUG PATHS] Folder structure:")
     
     # Check main folder contents
     for item in patient_folder.iterdir():
         if item.is_file():
             size = item.stat().st_size
-            print(f"  [DEBUG PATHS]   FILE: {item.name} ({size} bytes)")
+            logging.info(f"  [DEBUG PATHS]   FILE: {item.name} ({size} bytes)")
         elif item.is_dir():
-            print(f"  [DEBUG PATHS]   DIR:  {item.name}/")
+            logging.info(f"  [DEBUG PATHS]   DIR:  {item.name}/")
             # Check subdirectory contents (for study_date folders)
             if len(item.name) == 8 and item.name.isdigit():
-                print(f"  [DEBUG PATHS]     Study date folder contents:")
+                logging.info(f"  [DEBUG PATHS]     Study date folder contents:")
                 for subitem in item.iterdir():
                     if subitem.is_file():
                         sub_size = subitem.stat().st_size
-                        print(f"  [DEBUG PATHS]       FILE: {subitem.name} ({sub_size} bytes)")
+                        logging.info(f"  [DEBUG PATHS]       FILE: {subitem.name} ({sub_size} bytes)")
                     elif subitem.is_dir():
-                        print(f"  [DEBUG PATHS]       DIR:  {subitem.name}/")
+                        logging.info(f"  [DEBUG PATHS]       DIR:  {subitem.name}/")
     
     # Test new quantification paths
     try:
         quant_files = get_planar_quantification_files(patient_folder)
-        print(f"  [DEBUG PATHS] New quantification paths:")
+        logging.info(f"  [DEBUG PATHS] New quantification paths:")
         for key, path in quant_files.items():
             exists = path.exists()
             size = path.stat().st_size if exists else 0
-            print(f"  [DEBUG PATHS]   {key}: {path} (exists: {exists}, size: {size} bytes)")
+            logging.info(f"  [DEBUG PATHS]   {key}: {path} (exists: {exists}, size: {size} bytes)")
             
             if exists:
                 # Try to read file content
                 try:
                     with open(path, 'r') as f:
                         content = f.read()
-                        print(f"  [DEBUG PATHS]     Content preview: {content[:100]}...")
+                        logging.info(f"  [DEBUG PATHS]     Content preview: {content[:100]}...")
                 except Exception as e:
-                    print(f"  [DEBUG PATHS]     Error reading file: {e}")
+                    logging.info(f"  [DEBUG PATHS]     Error reading file: {e}")
                     
     except Exception as e:
-        print(f"  [DEBUG PATHS] Error with new paths: {e}")
+        logging.info(f"  [DEBUG PATHS] Error with new paths: {e}")
         import traceback
         traceback.print_exc()
     
     # Test old pattern if patient_id provided
     if patient_id:
-        print(f"  [DEBUG PATHS] Old pattern search:")
+        logging.info(f"  [DEBUG PATHS] Old pattern search:")
         old_ant = list(patient_folder.glob(f"{patient_id}_*_bsi_quantification_anterior.json"))
         old_post = list(patient_folder.glob(f"{patient_id}_*_bsi_quantification_posterior.json"))
-        print(f"  [DEBUG PATHS]   Old anterior: {[f.name for f in old_ant]}")
-        print(f"  [DEBUG PATHS]   Old posterior: {[f.name for f in old_post]}")
+        logging.info(f"  [DEBUG PATHS]   Old anterior: {[f.name for f in old_ant]}")
+        logging.info(f"  [DEBUG PATHS]   Old posterior: {[f.name for f in old_post]}")
         
         # Also check study_date subfolders
         for item in patient_folder.iterdir():
@@ -869,18 +815,18 @@ def debug_quantification_paths(patient_folder: Path, patient_id: str = None) -> 
                 study_new_post = list(item.glob("bsi_quantification_posterior.json"))
                 
                 if study_old_ant or study_old_post or study_new_ant or study_new_post:
-                    print(f"  [DEBUG PATHS]   In study_date folder {item.name}:")
-                    print(f"  [DEBUG PATHS]     Old anterior: {[f.name for f in study_old_ant]}")
-                    print(f"  [DEBUG PATHS]     Old posterior: {[f.name for f in study_old_post]}")
-                    print(f"  [DEBUG PATHS]     New anterior: {[f.name for f in study_new_ant]}")
-                    print(f"  [DEBUG PATHS]     New posterior: {[f.name for f in study_new_post]}")
+                    logging.info(f"  [DEBUG PATHS]   In study_date folder {item.name}:")
+                    logging.info(f"  [DEBUG PATHS]     Old anterior: {[f.name for f in study_old_ant]}")
+                    logging.info(f"  [DEBUG PATHS]     Old posterior: {[f.name for f in study_old_post]}")
+                    logging.info(f"  [DEBUG PATHS]     New anterior: {[f.name for f in study_new_ant]}")
+                    logging.info(f"  [DEBUG PATHS]     New posterior: {[f.name for f in study_new_post]}")
 
 
 def get_planar_quantification_files(patient_folder: Path):
     """
       AUTO-DETECT: Get BSI quantification file paths with study_date structure detection
     """
-    print(f"  [DEBUG QUANT FILES] Getting quantification files for: {patient_folder}")
+    logging.info(f"  [DEBUG QUANT FILES] Getting quantification files for: {patient_folder}")
     
     #   AUTO-DETECT: Check if this is study_date folder or patient folder
     folder_name = patient_folder.name
@@ -889,7 +835,7 @@ def get_planar_quantification_files(patient_folder: Path):
     if is_study_date_folder:
         # Files are in study_date folder
         search_folder = patient_folder
-        print(f"  [DEBUG QUANT FILES] Detected study_date folder: {search_folder}")
+        logging.info(f"  [DEBUG QUANT FILES] Detected study_date folder: {search_folder}")
     else:
         # Look for study_date subfolders
         study_date_folders = [d for d in patient_folder.iterdir() 
@@ -899,21 +845,21 @@ def get_planar_quantification_files(patient_folder: Path):
             # Use the latest study_date folder
             latest_study_date = sorted(study_date_folders, key=lambda x: x.name)[-1]
             search_folder = latest_study_date
-            print(f"  [DEBUG QUANT FILES] Using latest study_date folder: {search_folder}")
+            logging.info(f"  [DEBUG QUANT FILES] Using latest study_date folder: {search_folder}")
         else:
             # No study_date folders, use patient folder directly
             search_folder = patient_folder
-            print(f"  [DEBUG QUANT FILES] Using patient folder: {search_folder}")
+            logging.info(f"  [DEBUG QUANT FILES] Using patient folder: {search_folder}")
     
     files = {
         'bsi_json_ant': search_folder / "bsi_quantification_ant.json",
         'bsi_json_post': search_folder / "bsi_quantification_post.json"
     }
     
-    print(f"  [DEBUG QUANT FILES] Generated paths:")
+    logging.info(f"  [DEBUG QUANT FILES] Generated paths:")
     for key, path in files.items():
         exists = path.exists()
-        print(f"  [DEBUG QUANT FILES]   {key}: {path} (exists: {exists})")
+        logging.info(f"  [DEBUG QUANT FILES]   {key}: {path} (exists: {exists})")
     
     return files
 
@@ -937,14 +883,14 @@ def get_current_session_code() -> str:
             
             session_code = config.get("last_session", {}).get("session_code")
             if session_code:
-                print(f"[SESSION] Found session code from config: {session_code}")
+                logging.info(f"[SESSION] Found session code from config: {session_code}")
                 return session_code
         
-        print(f"[SESSION] No session found in config, using 'unknown'")
+        logging.info(f"[SESSION] No session found in config, using 'unknown'")
         return "unknown"
         
     except Exception as e:
-        print(f"[SESSION] Error reading session config: {e}")
+        logging.info(f"[SESSION] Error reading session config: {e}")
         return "unknown"
 
 def get_planar_files_complete(patient_folder: Path, view: str, original_dicom_name: str = None, with_priority: bool = True):
@@ -1260,69 +1206,69 @@ def debug_timestamp_file_detection(patient_folder: Path, filename: str, session_
     """
     Debug function to trace timestamp file detection
     """
-    print(f"\n  [DEBUG TIMESTAMP GANTENG] ===================")
-    print(f"  [DEBUG TIMESTAMP] Looking for: {filename}")
-    print(f"  [DEBUG TIMESTAMP] In folder: {patient_folder}")
-    print(f"  [DEBUG TIMESTAMP] Session code: {session_code}")
-    print(f"  [DEBUG TIMESTAMP] Is editable: {filename in EDITABLE_FILES}")
+    logging.info(f"\n  [DEBUG TIMESTAMP GANTENG] ===================")
+    logging.info(f"  [DEBUG TIMESTAMP] Looking for: {filename}")
+    logging.info(f"  [DEBUG TIMESTAMP] In folder: {patient_folder}")
+    logging.info(f"  [DEBUG TIMESTAMP] Session code: {session_code}")
+    logging.info(f"  [DEBUG TIMESTAMP] Is editable: {filename in EDITABLE_FILES}")
     
     if filename not in EDITABLE_FILES:
-        print(f"  [DEBUG TIMESTAMP]  File not in EDITABLE_FILES: {EDITABLE_FILES}")
+        logging.info(f"  [DEBUG TIMESTAMP]  File not in EDITABLE_FILES: {EDITABLE_FILES}")
         return None
     
     # Check folder structure
-    print(f"  [DEBUG TIMESTAMP] Folder contents:")
+    logging.info(f"  [DEBUG TIMESTAMP] Folder contents:")
     if patient_folder.exists():
         for item in patient_folder.iterdir():
             if item.is_dir():
-                print(f"  [DEBUG TIMESTAMP]   DIR:  {item.name}")
+                logging.info(f"  [DEBUG TIMESTAMP]   DIR:  {item.name}")
                 # Check if it's a date directory
                 if len(item.name) == 8 and item.name.isdigit():
-                    print(f"  [DEBUG TIMESTAMP]     This is a date directory!")
+                    logging.info(f"  [DEBUG TIMESTAMP]     This is a date directory!")
                     # Check contents of date directory
                     for sub_item in item.iterdir():
                         if sub_item.is_file():
-                            print(f"  [DEBUG TIMESTAMP]       FILE: {sub_item.name}")
+                            logging.info(f"  [DEBUG TIMESTAMP]       FILE: {sub_item.name}")
                             # Check if it matches our pattern
                             base_name = filename.rsplit('.', 1)[0]  # ant_hotspot_classification
                             extension = filename.split('.')[-1]     # png
                             
                             if sub_item.name.startswith(base_name + '_') and sub_item.name.endswith('.' + extension):
-                                print(f"  [DEBUG TIMESTAMP]         MATCHES PATTERN!")
+                                logging.info(f"  [DEBUG TIMESTAMP]         MATCHES PATTERN!")
                                 
                                 # Extract timestamp
                                 parts = sub_item.name.rsplit('.', 1)[0].split('_')
-                                print(f"  [DEBUG TIMESTAMP]       File parts: {parts}")
+                                logging.info(f"  [DEBUG TIMESTAMP]       File parts: {parts}")
                                 
                                 if len(parts) >= 3:
                                     potential_timestamp = parts[-1]
-                                    print(f"  [DEBUG TIMESTAMP]       Potential timestamp: {potential_timestamp}")
+                                    logging.info(f"  [DEBUG TIMESTAMP]       Potential timestamp: {potential_timestamp}")
                                     
                                     if len(potential_timestamp) == 6 and potential_timestamp.isdigit():
-                                        print(f"  [DEBUG TIMESTAMP]         VALID TIMESTAMP!")
+                                        logging.info(f"  [DEBUG TIMESTAMP]         VALID TIMESTAMP!")
                                         
                                         # Try to parse datetime
                                         try:
                                             full_datetime_str = f"{item.name}_{potential_timestamp}"
                                             full_datetime = datetime.strptime(full_datetime_str, "%Y%m%d_%H%M%S")
-                                            print(f"  [DEBUG TIMESTAMP]         VALID DATETIME: {full_datetime}")
+                                            logging.info(f"  [DEBUG TIMESTAMP]         VALID DATETIME: {full_datetime}")
                                         except ValueError as e:
-                                            print(f"  [DEBUG TIMESTAMP]        INVALID DATETIME: {e}")
+                                            logging.info(f"  [DEBUG TIMESTAMP]        INVALID DATETIME: {e}")
                                     else:
-                                        print(f"  [DEBUG TIMESTAMP]        Invalid timestamp format")
+                                        logging.info(f"  [DEBUG TIMESTAMP]        Invalid timestamp format")
                                 else:
-                                    print(f"  [DEBUG TIMESTAMP]        Not enough parts")
+                                    logging.info(f"  [DEBUG TIMESTAMP]        Not enough parts")
                             else:
-                                print(f"  [DEBUG TIMESTAMP]        Doesn't match pattern")
+                                logging.info(f"  [DEBUG TIMESTAMP]        Doesn't match pattern")
             else:
-                print(f"  [DEBUG TIMESTAMP]   FILE: {item.name}")
+                logging.info(f"  [DEBUG TIMESTAMP]   FILE: {item.name}")
     else:
-        print(f"  [DEBUG TIMESTAMP]  Folder doesn't exist!")
+        logging.info(f"  [DEBUG TIMESTAMP]  Folder doesn't exist!")
     
     # Now run the actual function
-    print(f"  [DEBUG TIMESTAMP] Running get_latest_timestamp_file...")
+    logging.info(f"  [DEBUG TIMESTAMP] Running get_latest_timestamp_file...")
     result = get_latest_timestamp_file(patient_folder, filename, session_code)
-    print(f"  [DEBUG TIMESTAMP] Result: {result}")
+    logging.info(f"  [DEBUG TIMESTAMP] Result: {result}")
     
     return result
 
@@ -1330,36 +1276,36 @@ def debug_file_with_priority(base_path: Path, filename: str, session_code: str =
     """
     Debug function to trace file priority selection
     """
-    print(f"\n  [DEBUG PRIORITY GANTENG] ===================")
-    print(f"  [DEBUG PRIORITY] Looking for: {filename}")
-    print(f"  [DEBUG PRIORITY] In path: {base_path}")
-    print(f"  [DEBUG PRIORITY] Session code: {session_code}")
+    logging.info(f"\n  [DEBUG PRIORITY GANTENG] ===================")
+    logging.info(f"  [DEBUG PRIORITY] Looking for: {filename}")
+    logging.info(f"  [DEBUG PRIORITY] In path: {base_path}")
+    logging.info(f"  [DEBUG PRIORITY] Session code: {session_code}")
     
     # Check original file first
     original_file = base_path / filename
-    print(f"  [DEBUG PRIORITY] Original file: {original_file}")
-    print(f"  [DEBUG PRIORITY] Original exists: {original_file.exists()}")
+    logging.info(f"  [DEBUG PRIORITY] Original file: {original_file}")
+    logging.info(f"  [DEBUG PRIORITY] Original exists: {original_file.exists()}")
     
     # Check for edited version
     if filename in EDITABLE_FILES:
-        print(f"  [DEBUG PRIORITY] File is editable, checking for timestamp version...")
+        logging.info(f"  [DEBUG PRIORITY] File is editable, checking for timestamp version...")
         
         # Debug the timestamp detection
         latest_edited = debug_timestamp_file_detection(base_path, filename, session_code)
         
         if latest_edited and latest_edited.exists():
-            print(f"  [DEBUG PRIORITY]   Found edited version: {latest_edited}")
+            logging.info(f"  [DEBUG PRIORITY]   Found edited version: {latest_edited}")
             return latest_edited
         else:
-            print(f"  [DEBUG PRIORITY]  No edited version found")
+            logging.info(f"  [DEBUG PRIORITY]  No edited version found")
     else:
-        print(f"  [DEBUG PRIORITY] File is not editable")
+        logging.info(f"  [DEBUG PRIORITY] File is not editable")
     
     if original_file.exists():
-        print(f"  [DEBUG PRIORITY]   Using original file: {original_file}")
+        logging.info(f"  [DEBUG PRIORITY]   Using original file: {original_file}")
         return original_file
     else:
-        print(f"  [DEBUG PRIORITY]  No file found at all")
+        logging.info(f"  [DEBUG PRIORITY]  No file found at all")
         return None
 def get_all_possible_paths_for_file(study_date_path: Path, filename: str, session_code: str = None) -> List[Path]:
     """
