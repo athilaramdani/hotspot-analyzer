@@ -1470,40 +1470,7 @@ class DicomViewSelectorDialog(QDialog):
         """)
         title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label)
-        
-        # # Enhanced subtitle with pan instructions
-        # subtitle_label = QLabel("Review auto-detected views • Mouse wheel: zoom • Drag: pan (when zoomed) • Double-click: reset view")
-        # subtitle_label.setStyleSheet(f"""
-        #     {DIALOG_SUBTITLE_STYLE}
-        #     font-size: 13px;
-        #     padding: 8px;
-        # """)
-        # subtitle_label.setAlignment(Qt.AlignCenter)
-        # main_layout.addWidget(subtitle_label)
-        
-        # #   FIX 3: Enhanced instructions with detection status explanation
-        # instructions = QLabel(
-        #     "  Selection Guide:\n"
-        #     "•   auto-tagged: Clear DICOM tags found, auto-selected\n"
-        #     "• ⚠️ Please confirm: Partial tags found, verify selection\n" 
-        #     "•  Manual required: No tags found, select manually\n"
-        #     "• Minimum requirement: 1 Anterior + 1 Posterior frame\n"
-        #     "• Extra frames can be left unselected\n"
-        #     "• Use zoom/pan to examine images before confirming"
-        # )
-        # instructions.setStyleSheet(f"""
-        #     QLabel {{
-        #         background: linear-gradient(135deg, {Colors.LIGHT_GRAY} 0%, rgba(240, 248, 255, 0.8) 100%);
-        #         border: 1px solid {Colors.BORDER_LIGHT};
-        #         border-radius: 8px;
-        #         padding: 12px;
-        #         font-size: 11px;
-        #         color: {Colors.DARK_GRAY};
-        #         line-height: 1.4;
-        #     }}
-        # """)
-        # main_layout.addWidget(instructions)
-        
+
         # Enhanced scroll area
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
