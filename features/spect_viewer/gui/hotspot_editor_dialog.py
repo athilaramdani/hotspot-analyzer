@@ -554,9 +554,9 @@ class HotspotEditorDialog(BaseEditorDialog):
 
         editor_layout.addWidget(self.canvas)
         
-        # Add to main layout
-        canvas_layout.addLayout(scan_layout)
+        # Add to main layout - SWAPPED ORDER: Editor (Left) | Scan View (Right)
         canvas_layout.addLayout(editor_layout)
+        canvas_layout.addLayout(scan_layout)
         self.main_area_layout.addLayout(canvas_layout)
 
     def _connect_signals(self):
