@@ -1,0 +1,548 @@
+2025-09-12 00:55:43 - [INFO] - Logger berhasil dikonfigurasi. Memulai aplikasi...
+2025-09-12 00:55:43 - [INFO] - Running in development mode
+2025-09-12 00:55:43 - [INFO] - [DEBUG] Starting TELPLASTINA...
+2025-09-12 00:55:43 - [INFO] - [UI] Application icon loaded: assets\icon.ico
+2025-09-12 00:55:43 - [INFO] - [UI] Poppins font applied
+2025-09-12 00:55:43 - [INFO] - [DEBUG] TELPLASTINA application created and configured
+2025-09-12 00:55:43 - [INFO] - [DEBUG] Starting session with 100ms delay...
+2025-09-12 00:55:43 - [INFO] - [DEBUG] === Starting new session ===
+2025-09-12 00:55:43 - [INFO] - [DEBUG] Development mode - creating dialog immediately
+2025-09-12 00:55:43 - [INFO] - [DEBUG] Creating doctor selection dialog (attempt 1/3)...
+2025-09-12 00:55:44 - [INFO] - [PATHS] Found YOLO model at: F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\models\model_detection_hs_yolov8.pt
+2025-09-12 00:55:44 - [INFO] - [DEBUG] Dialog class imported successfully
+2025-09-12 00:55:45 - [INFO] - [DEBUG] Dialog instance created successfully
+2025-09-12 00:55:45 - [INFO] - [DEBUG] Dialog window properties set
+2025-09-12 00:55:45 - [INFO] - [DEBUG] Showing dialog to user...
+2025-09-12 00:55:45 - [INFO] - [DEBUG] Dialog shown successfully
+2025-09-12 00:55:45 - [INFO] - [DEBUG] Waiting for user input...
+2025-09-12 00:55:48 - [INFO] - [SESSION] Created session: ATL_Planar_20250912_005548
+2025-09-12 00:55:48 - [INFO] - [SESSION] Created: ATL_Planar_20250912_005548
+2025-09-12 00:55:48 - [INFO] - [DEBUG] Dialog execution completed with result: 1
+2025-09-12 00:55:48 - [INFO] - [DEBUG] Quick close detected: False
+2025-09-12 00:55:48 - [INFO] - [DEBUG] Session selected - Code: ATL, Modality: Planar
+2025-09-12 00:55:48 - [INFO] - [DEBUG] Data directory confirmed: data
+2025-09-12 00:55:48 - [INFO] - [DEBUG] Starting PLANAR session with code: ATL
+2025-09-12 00:55:48 - [INFO] - [DEBUG] Creating main window for session: ATL
+2025-09-12 00:55:51 - [INFO] - [YOLO] Module loaded - model will be loaded on-demand
+2025-09-12 00:55:52 - [INFO] - [DEBUG] session_code in MainWindow = ATL
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Timeline keyboard shortcuts enabled: Ctrl+/- for zoom, Ctrl+0 for reset
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Connecting invert checkbox...
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Testing checkbox connection...
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Timeline widget exists: True
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Timeline widget type: <class 'features.spect_viewer.gui.scan_timeline.ScanTimelineWidget'>
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Invert checkbox created and connected
+2025-09-12 00:55:52 - [INFO] - [MainWindow]   Global keyboard shortcuts setup complete
+2025-09-12 00:55:52 - [INFO] - [MainWindow] Syncing view 'Anterior' across all components
+2025-09-12 00:55:52 - [INFO] - [DEBUG] set_active_view called with 'Anterior', but is now ignored.
+2025-09-12 00:55:52 - [INFO] - [MainWindow]   View sync completed
+2025-09-12 00:55:52 - [INFO] - [MainWindow]   Complete integration initialization finished
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Starting folder scan for session: ATL
+2025-09-12 00:55:52 - [INFO] - Ditemukan 44 file DICOM di 'F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR'
+2025-09-12 00:55:52 - [INFO] - Ditemukan 8 session, 32 pasien (total 44 file DICOM).
+2025-09-12 00:55:52 - [INFO] -     ALL: 1 pasien, 1 file
+2025-09-12 00:55:52 - [INFO] -     ATL: 4 pasien, 4 file
+2025-09-12 00:55:52 - [INFO] -     HAH: 14 pasien, 14 file
+2025-09-12 00:55:52 - [INFO] -     HEHE: 2 pasien, 2 file
+2025-09-12 00:55:52 - [INFO] -     NBL: 1 pasien, 5 file
+2025-09-12 00:55:52 - [INFO] -     NSY: 4 pasien, 8 file
+2025-09-12 00:55:52 - [INFO] -     PVSA: 2 pasien, 2 file
+2025-09-12 00:55:52 - [INFO] -     WKW: 4 pasien, 8 file
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Found 8 total sessions: ['ALL', 'ATL', 'HAH', 'HEHE', 'NBL', 'NSY', 'PVSA', 'WKW']
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Filtered to session ATL: 4 patients
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Added 4 patients to combo box for session ATL
+2025-09-12 00:55:52 - [INFO] - [DEBUG] display_timeline called with 0 scan(s), focusing on index = -1
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:52 - [INFO] - [BSI SIDE PANEL] Clearing data...
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Folder scan completed
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Main window created successfully for session: ATL
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Main window created successfully
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Logout signal connected
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Main window displayed
+2025-09-12 00:55:52 - [INFO] - [DEBUG] Active windows count: 1
+2025-09-12 00:55:53 - [INFO] - [TEST] Testing invert connection...
+2025-09-12 00:55:53 - [INFO] - [TEST] Timeline widget exists: True
+2025-09-12 00:55:53 - [INFO] - [TEST] Checkbox exists: True
+2025-09-12 00:55:53 - [INFO] - [TEST] Current checkbox state: False
+2025-09-12 00:55:53 - [INFO] - [DEBUG] === INVERT CHECKBOX CHANGED ===
+2025-09-12 00:55:53 - [INFO] - [DEBUG] Checkbox state: 2, isChecked(): True
+2025-09-12 00:55:53 - [INFO] - [DEBUG] Invert flag changed: False -> True
+2025-09-12 00:55:53 - [INFO] - [DEBUG] Calling timeline_widget.set_invert_original(True)
+2025-09-12 00:55:53 - [INFO] - [DEBUG] set_invert_original called: True (current: False)
+2025-09-12 00:55:53 - [INFO] - [CACHE CLEAR] Cleared 0 layer cache entries
+2025-09-12 00:55:53 - [INFO] - [CACHE CLEAR] Cleared zoom cache (0 labels)
+2025-09-12 00:55:53 - [INFO] - [DEBUG] Cleared layer cache due to invert change
+2025-09-12 00:55:53 - [INFO] - [DEBUG] No scans loaded, rebuild skipped
+2025-09-12 00:55:53 - [INFO] - [DEBUG]   Timeline invert method called successfully
+2025-09-12 00:55:53 - [INFO] - [TEST] Toggled checkbox to: True
+2025-09-12 00:55:54 - [INFO] - [DEBUG] item activated → ID: 0000416849 (ATL) @ index 0
+2025-09-12 00:55:54 - [INFO] - [DEBUG] item activated → ID: 0000416849 (ATL)
+2025-09-12 00:55:54 - [INFO] - 
+  [DEBUG SELECT GANTENG] ===================
+2025-09-12 00:55:54 - [INFO] -   [DEBUG SELECT] Patient selected: ID: 0000416849 (ATL)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG SELECT] Parsed - Patient: 0000416849, Session: ATL
+2025-09-12 00:55:54 - [INFO] -   [DEBUG SELECT] Patient path from paths.py: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849
+2025-09-12 00:55:54 - [INFO] -   [DEBUG SELECT] Patient path exists: True
+2025-09-12 00:55:54 - [INFO] -   [DEBUG SELECT] Patient path contents:
+2025-09-12 00:55:54 - [INFO] -   [DEBUG SELECT]   - 20250807 (DIR)
+2025-09-12 00:55:54 - [INFO] - 
+  [DEBUG PATHS GANTENG] ===================
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS] Patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS] Patient ID: 0000416849
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS] Folder exists: True
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS] Folder structure:
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]   DIR:  20250807/
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]     Study date folder contents:
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: ANT001_DS.dcm (1054360 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_classification.json (15969 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_classification.png (968 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_classification.xml (1380 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored.png (1291 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_otsu_colored_blend.png (104142 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_otsu_grayscale.png (676 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_yolo.xml (2571 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: ant_mask.png (2873 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: ant_original.png (78424 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: ant_segm.png (5349 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: bsi_quantification_ant.json (3661 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: bsi_quantification_post.json (3675 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: post_hotspot_classification.json (17625 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: post_hotspot_classification.png (983 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: post_hotspot_classification.xml (921 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: post_hotspot_otsu_colored.png (1411 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: post_hotspot_otsu_colored_blend.png (112011 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: post_hotspot_otsu_grayscale.png (757 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: post_hotspot_yolo.xml (1625 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: post_mask.png (2855 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: post_original.png (82353 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]       FILE: post_segm.png (5228 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES] Using latest study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_ant.json (exists: True)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_post.json (exists: True)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS] New quantification paths:
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_ant.json (exists: True, size: 3661 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]     Content preview: {
+  "patient_info": {
+    "patient_id": "0000416849",
+    "study_date": "20250807",
+    "filename_st...
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_post.json (exists: True, size: 3675 bytes)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]     Content preview: {
+  "patient_info": {
+    "patient_id": "0000416849",
+    "study_date": "20250807",
+    "filename_st...
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS] Old pattern search:
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]   Old anterior: []
+2025-09-12 00:55:54 - [INFO] -   [DEBUG PATHS]   Old posterior: []
+2025-09-12 00:55:54 - [INFO] -   [DEBUG SELECT] Found DICOM files: 1
+2025-09-12 00:55:54 - [INFO] -   [DEBUG SELECT]   DICOM: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ANT001_DS.dcm
+2025-09-12 00:55:54 - [INFO] -   [DEBUG SELECT]   DICOM folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_ant.json (exists: True)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_post.json (exists: True)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG SELECT]   BSI files near DICOM:
+2025-09-12 00:55:54 - [INFO] -   [DEBUG SELECT]     Anterior: True
+2025-09-12 00:55:54 - [INFO] -   [DEBUG SELECT]     Posterior: True
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Loading patient: 0000416849 from session: ATL
+2025-09-12 00:55:54 - [INFO] - [CACHE DEBUG] Cache key: 0000416849_ATL
+2025-09-12 00:55:54 - [INFO] - [CACHE DEBUG] Existing cache keys: []
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Loading scans for 0000416849_ATL from disk...
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Found 1 DICOM files for patient 0000416849
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Enriched scan data for: ANT001_DS.dcm
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Scan files for 0000416849_20250807:
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Available files: None
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Available PNG files for 0000416849_20250807: None
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Saving 1 scans to cache for 0000416849_ATL
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Layers changed to: []
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-12 00:55:54 - [INFO] - [EDIT BUTTONS] Has scan: False, Has seg data: False, Can edit hotspot: False
+2025-09-12 00:55:54 - [INFO] - [EDIT BUTTONS] Seg button enabled: False, Hotspot button enabled: False
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Set Image opacity to 1.00
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Set Segmentation opacity to 0.35
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Set Hotspot opacity to 0.50
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Set HotspotBBox opacity to 1.00
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Setting default layers: 'Image' checkbox should now be ON.
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Active layers: ['Image']
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Layers changed to: ['Image']
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Layers added: ['Image']
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Timeline active layers set to: ['Image']
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-12 00:55:54 - [INFO] - [EDIT BUTTONS] Has scan: False, Has seg data: False, Can edit hotspot: False
+2025-09-12 00:55:54 - [INFO] - [EDIT BUTTONS] Seg button enabled: False, Hotspot button enabled: False
+2025-09-12 00:55:54 - [INFO] - [DEBUG] All data loaded. Total scans: 1
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Layers changed to: []
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Layers removed: ['Image']
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-12 00:55:54 - [INFO] - [EDIT BUTTONS] Has scan: False, Has seg data: False, Can edit hotspot: False
+2025-09-12 00:55:54 - [INFO] - [EDIT BUTTONS] Seg button enabled: False, Hotspot button enabled: False
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Set Image opacity to 1.00
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Set Segmentation opacity to 0.35
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Set Hotspot opacity to 0.50
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Set HotspotBBox opacity to 1.00
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Setting default layers: 'Image' checkbox should now be ON.
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Active layers: ['Image']
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Layers changed to: ['Image']
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Layers added: ['Image']
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Timeline active layers set to: ['Image']
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-12 00:55:54 - [INFO] - [EDIT BUTTONS] Has scan: False, Has seg data: False, Can edit hotspot: False
+2025-09-12 00:55:54 - [INFO] - [EDIT BUTTONS] Seg button enabled: False, Hotspot button enabled: False
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Timeline active layers set to: ['Image']
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Set Image opacity to 1.00
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Set Segmentation opacity to 0.40
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Set Hotspot opacity to 0.50
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Set HotspotBBox opacity to 1.00
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-12 00:55:54 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-12 00:55:54 - [INFO] - [MainWindow] Updating timeline with 1 scans
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Session code: ATL
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ANT001_DS.dcm
+2025-09-12 00:55:54 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ANT001_DS.dcm
+2025-09-12 00:55:54 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250807
+2025-09-12 00:55:54 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 0000416849
+2025-09-12 00:55:54 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 0000416849, Study: 20250807
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 0000416849, Study: 20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_ant.json (exists: True)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_post.json (exists: True)
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI] Found study_date folder: 20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - 20250807 (DIR)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ANT001_DS.dcm (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_original.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - 20250807 (DIR)
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20250807', 'anterior_bsi': 0.050954233833611265, 'posterior_bsi': 0.11132373573384713, 'combined_bsi': 0.08113898478372919, 'bsi_score': 0.08113898478372919, 'file_source': 'bsi_quantification_ant.json + bsi_quantification_post.json', 'processing_mode': 'dual_view', 'is_v2': True, 'source_location': 'Study date folder'}
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 0.050954233833611265
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 0.11132373573384713
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION]   Processing mode: dual_view
+2025-09-12 00:55:54 - [INFO] - [MainWindow]   BSI integration completed for 1 scans
+2025-09-12 00:55:54 - [INFO] - [MainWindow DEBUG] First scan meta keys: ['patient_id', 'patient_name', 'patient_birth_date', 'patient_sex', 'patient_weight', 'patient_size', 'patient_age', 'study_date', 'series_date', 'study_time', 'modality', 'series_description', 'study_instance_uid', 'series_instance_uid', 'has_bsi', 'bsi_anterior', 'bsi_posterior', 'bsi_combined', 'bsi_processing_mode', 'bsi_file_source']
+2025-09-12 00:55:54 - [INFO] - [MainWindow DEBUG] has_bsi: True
+2025-09-12 00:55:54 - [INFO] - [MainWindow DEBUG] bsi_anterior: 0.050954233833611265
+2025-09-12 00:55:54 - [INFO] - [MainWindow DEBUG] bsi_posterior: 0.11132373573384713
+2025-09-12 00:55:54 - [INFO] - [DEBUG] display_timeline called with 1 scan(s), focusing on index = 0
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Session code: ATL
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ANT001_DS.dcm
+2025-09-12 00:55:54 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ANT001_DS.dcm
+2025-09-12 00:55:54 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250807
+2025-09-12 00:55:54 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 0000416849
+2025-09-12 00:55:54 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 0000416849, Study: 20250807
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 0000416849, Study: 20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_ant.json (exists: True)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_post.json (exists: True)
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Found BSI files in study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Using patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI] Detected study_date folder, using parent: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI] Found study_date folder: 20250807
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - 20250807 (DIR)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ANT001_DS.dcm (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_original.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-12 00:55:54 - [INFO] -   [DEBUG BSI]     - 20250807 (DIR)
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION] Found BSI data: {'study_date': '20250807', 'anterior_bsi': 0.050954233833611265, 'posterior_bsi': 0.11132373573384713, 'combined_bsi': 0.08113898478372919, 'bsi_score': 0.08113898478372919, 'file_source': 'bsi_quantification_ant.json + bsi_quantification_post.json', 'processing_mode': 'dual_view', 'is_v2': True, 'source_location': 'Study date folder'}
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION]   Updated meta with BSI data:
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION]   Anterior BSI: 0.050954233833611265
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION]   Posterior BSI: 0.11132373573384713
+2025-09-12 00:55:54 - [INFO] - [BSI META INTEGRATION]   Processing mode: dual_view
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: 0
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Anterior
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-12 00:55:54 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ANT001_DS.dcm
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Current view: Anterior
+2025-09-12 00:55:54 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-12 00:55:54 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-12 00:55:54 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-12 00:55:54 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-12 00:55:54 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Path extraction: session=ATL, patient=0000416849, study_date=20250807
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Extracted patient info - ID: 0000416849, Session: ATL
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ANT001_DS.dcm
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Study date: 20250807
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Patient ID: 0000416849
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Session code: ATL
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Loading original image for Anterior
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ant_original.png
+2025-09-12 00:55:54 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-12 00:55:54 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-12 00:55:54 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-12 00:55:54 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-12 00:55:54 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-12 00:55:54 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Loading segmentation layer for Anterior
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ant_segm.png
+2025-09-12 00:55:54 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-12 00:55:54 - [DEBUG] - STREAM b'IDAT' 41 5292
+2025-09-12 00:55:54 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ant_segm.png
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Loading hotspot layer for Anterior
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ant_hotspot_classification.png
+2025-09-12 00:55:54 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-12 00:55:54 - [DEBUG] - STREAM b'IDAT' 41 911
+2025-09-12 00:55:54 - [INFO] - [DEBUG]   Loaded hotspot layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ant_hotspot_classification.png
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Hotspot type: ORIGINAL
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Loading bbox layer for Anterior
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ant_hotspot_classification.xml
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Loading CLASSIFICATION XML for bbox: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ant_hotspot_classification.xml
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (115,55) -> (129,67)
+2025-09-12 00:55:54 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (106,78) -> (122,93)
+2025-09-12 00:55:54 - [INFO] - [DEBUG]   Created CLASSIFICATION bbox visualization with 2 boxes
+2025-09-12 00:55:54 - [INFO] - [DEBUG]   Loaded bbox layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ant_hotspot_classification.xml
+2025-09-12 00:55:55 - [INFO] - [DEBUG] BBox XML type: ORIGINAL
+2025-09-12 00:55:55 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-12 00:55:55 - [INFO] - [DEBUG]   Loaded 4 layers for Anterior: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-12 00:55:55 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-12 00:55:55 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Posterior
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-12 00:55:55 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ANT001_DS.dcm
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Current view: Posterior
+2025-09-12 00:55:55 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-12 00:55:55 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-12 00:55:55 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-12 00:55:55 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-12 00:55:55 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Path extraction: session=ATL, patient=0000416849, study_date=20250807
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Extracted patient info - ID: 0000416849, Session: ATL
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ANT001_DS.dcm
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Study date: 20250807
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Patient ID: 0000416849
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Session code: ATL
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Loading original image for Posterior
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\post_original.png
+2025-09-12 00:55:55 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-12 00:55:55 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (256, 1024)
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Original image loaded: (256, 1024)
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-12 00:55:55 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (256, 1024)
+2025-09-12 00:55:55 - [INFO] - [DEBUG] simple_invert_image: input shape = (1024, 256), dtype = uint8
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Simple inversion completed: [0-255] -> [0-255]
+2025-09-12 00:55:55 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-12 00:55:55 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Loading segmentation layer for Posterior
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\post_segm.png
+2025-09-12 00:55:55 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-12 00:55:55 - [DEBUG] - STREAM b'IDAT' 41 5171
+2025-09-12 00:55:55 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\post_segm.png
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Loading hotspot layer for Posterior
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\post_hotspot_classification.png
+2025-09-12 00:55:55 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-12 00:55:55 - [DEBUG] - STREAM b'IDAT' 41 926
+2025-09-12 00:55:55 - [INFO] - [DEBUG]   Loaded hotspot layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\post_hotspot_classification.png
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Hotspot type: ORIGINAL
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Loading bbox layer for Posterior
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\post_hotspot_classification.xml
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Loading CLASSIFICATION XML for bbox: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\post_hotspot_classification.xml
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Drew CLASSIFICATION Abnormal bbox: (158,156) -> (179,177)
+2025-09-12 00:55:55 - [INFO] - [DEBUG]   Created CLASSIFICATION bbox visualization with 1 boxes
+2025-09-12 00:55:55 - [INFO] - [DEBUG]   Loaded bbox layer: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\post_hotspot_classification.xml
+2025-09-12 00:55:55 - [INFO] - [DEBUG] BBox XML type: ORIGINAL
+2025-09-12 00:55:55 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-12 00:55:55 - [INFO] - [DEBUG]   Loaded 4 layers for Posterior: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation', 'Hotspot', 'HotspotBBox']
+2025-09-12 00:55:55 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-12 00:55:55 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-12 00:55:55 - [INFO] - [SMART UPDATE] State updated - Type: full
+2025-09-12 00:55:55 - [INFO] - [MainWindow]   Timeline updated with BSI integration
+2025-09-12 00:55:55 - [INFO] - 
+🏠 [DEBUG MAIN GANTENG] ===================
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] Loading BSI data for selected scan
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] Session code: ATL
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] Scan data keys: ['meta', 'frames', 'path', 'workflow_files']
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ANT001_DS.dcm
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] DICOM exists: True
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] Initial patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] Initial patient folder exists: True
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] Initial patient folder name: 20250807
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] Study date from DICOM: 20250807
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] Detected study_date folder structure
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] Corrected patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] Corrected patient ID: 0000416849
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] Corrected study date: 20250807
+2025-09-12 00:55:55 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:55 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:55 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-12 00:55:55 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_ant.json (exists: True)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_post.json (exists: True)
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] BSI files in study_date folder:
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN]   Anterior: True
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN]   Posterior: True
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] Found BSI files in study_date folder, using it
+2025-09-12 00:55:55 - [INFO] - [BSI CANVAS] Using patient folder for trend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI] Using patient folder directly: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI] Found study_date folder: 20250807
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - 20250807 (DIR)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - ANT001_DS.dcm (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.json (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.png (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - ant_hotspot_classification.xml (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored.png (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_colored_blend.png (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - ant_hotspot_otsu_grayscale.png (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - ant_hotspot_yolo.xml (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - ant_mask.png (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - ant_original.png (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - ant_segm.png (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - bsi_quantification_ant.json (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - bsi_quantification_post.json (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - post_hotspot_classification.json (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - post_hotspot_classification.png (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - post_hotspot_classification.xml (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored.png (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_colored_blend.png (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - post_hotspot_otsu_grayscale.png (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - post_hotspot_yolo.xml (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - post_mask.png (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - post_original.png (FILE)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG BSI]     - post_segm.png (FILE)
+2025-09-12 00:55:55 - [INFO] - [DEBUG BSI CANVAS] Processing date: 20250807, mode: dual_view
+2025-09-12 00:55:55 - [INFO] - [DEBUG BSI CANVAS] Added: Ant=0.050954233833611265 Post=0.11132373573384713
+2025-09-12 00:55:55 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:55 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807
+2025-09-12 00:55:55 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-12 00:55:55 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_ant.json (exists: True)
+2025-09-12 00:55:55 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\bsi_quantification_post.json (exists: True)
+2025-09-12 00:55:55 - [INFO] - 📖 [DEBUG RESULTS] Combined BSI: 0.08
+2025-09-12 00:55:55 - [INFO] - 📖 [DEBUG RESULTS]   Successfully loaded V1.2 results
+2025-09-12 00:55:55 - [INFO] - 🏠 [DEBUG MAIN] BSI panel load result: True
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Path extraction: session=ATL, patient=0000416849, study_date=20250807
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Extracted patient info - ID: 0000416849, Session: ATL
+2025-09-12 00:55:55 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0000416849\20250807\ANT001_DS.dcm
+2025-09-12 00:55:55 - [INFO] - [EDIT BUTTONS] Has scan: True, Has seg data: True, Can edit hotspot: True
+2025-09-12 00:55:55 - [INFO] - [EDIT BUTTONS] Seg button enabled: True, Hotspot button enabled: True
+2025-09-12 00:56:01 - [INFO] - [BSI EXPORT] Excel exported to F:/projek dosen/BSI_Results_0000416849_20250807.xlsx
+2025-09-12 00:59:04 - [INFO] - [DEBUG] Membersihkan sumber daya di MainWindow (SPECT)...
+2025-09-12 00:59:04 - [INFO] - [DEBUG] Menutup process pool...
+2025-09-12 00:59:04 - [INFO] - [DEBUG] Application exited with code: 0
+2025-09-12 00:59:04 - [INFO] - Aplikasi terminated normally

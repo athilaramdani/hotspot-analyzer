@@ -1,0 +1,827 @@
+2025-09-14 18:30:04 - [INFO] - Logger berhasil dikonfigurasi. Memulai aplikasi...
+2025-09-14 18:30:04 - [INFO] - Running in development mode
+2025-09-14 18:30:04 - [INFO] - [DEBUG] Starting TELPLASTINA...
+2025-09-14 18:30:04 - [INFO] - [UI] Application icon loaded: assets\icon.ico
+2025-09-14 18:30:04 - [INFO] - [UI] Poppins font applied
+2025-09-14 18:30:04 - [INFO] - [DEBUG] TELPLASTINA application created and configured
+2025-09-14 18:30:04 - [INFO] - [DEBUG] Starting session with 100ms delay...
+2025-09-14 18:30:04 - [INFO] - [DEBUG] === Starting new session ===
+2025-09-14 18:30:04 - [INFO] - [DEBUG] Development mode - creating dialog immediately
+2025-09-14 18:30:04 - [INFO] - [DEBUG] Creating doctor selection dialog (attempt 1/3)...
+2025-09-14 18:30:05 - [INFO] - [PATHS] Found YOLO model at: F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\models\model_detection_hs_yolov8.pt
+2025-09-14 18:30:05 - [INFO] - [DEBUG] Dialog class imported successfully
+2025-09-14 18:30:06 - [INFO] - [DEBUG] Dialog instance created successfully
+2025-09-14 18:30:06 - [INFO] - [DEBUG] Dialog window properties set
+2025-09-14 18:30:06 - [INFO] - [DEBUG] Showing dialog to user...
+2025-09-14 18:30:06 - [INFO] - [DEBUG] Dialog shown successfully
+2025-09-14 18:30:06 - [INFO] - [DEBUG] Waiting for user input...
+2025-09-14 18:30:07 - [INFO] - [SESSION] Created session: HAHH_Planar_20250914_183007
+2025-09-14 18:30:07 - [INFO] - [SESSION] Created: HAHH_Planar_20250914_183007
+2025-09-14 18:30:07 - [INFO] - [DEBUG] Dialog execution completed with result: 1
+2025-09-14 18:30:07 - [INFO] - [DEBUG] Quick close detected: False
+2025-09-14 18:30:07 - [INFO] - [DEBUG] Session selected - Code: HAHH, Modality: Planar
+2025-09-14 18:30:07 - [INFO] - [DEBUG] Data directory confirmed: data
+2025-09-14 18:30:07 - [INFO] - [DEBUG] Starting PLANAR session with code: HAHH
+2025-09-14 18:30:07 - [INFO] - [DEBUG] Creating main window for session: HAHH
+2025-09-14 18:30:10 - [INFO] - [YOLO] Module loaded - model will be loaded on-demand
+2025-09-14 18:30:10 - [INFO] - [DEBUG] Timeline keyboard shortcuts enabled: Ctrl+/- for zoom, Ctrl+0 for reset
+2025-09-14 18:30:11 - [INFO] - [DEBUG] set_active_view called with 'Anterior', but is now ignored.
+2025-09-14 18:30:11 - [INFO] - Ditemukan 47 file DICOM di 'F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR'
+2025-09-14 18:30:11 - [INFO] - Ditemukan 9 session, 35 pasien (total 47 file DICOM).
+2025-09-14 18:30:11 - [INFO] -     ALL: 1 pasien, 1 file
+2025-09-14 18:30:11 - [INFO] -     ATL: 4 pasien, 4 file
+2025-09-14 18:30:11 - [INFO] -     HAH: 14 pasien, 14 file
+2025-09-14 18:30:11 - [INFO] -     HAHH: 3 pasien, 3 file
+2025-09-14 18:30:11 - [INFO] -     HEHE: 2 pasien, 2 file
+2025-09-14 18:30:11 - [INFO] -     NBL: 1 pasien, 5 file
+2025-09-14 18:30:11 - [INFO] -     NSY: 4 pasien, 8 file
+2025-09-14 18:30:11 - [INFO] -     PVSA: 2 pasien, 2 file
+2025-09-14 18:30:11 - [INFO] -     WKW: 4 pasien, 8 file
+2025-09-14 18:30:11 - [INFO] - [DEBUG] display_timeline called with 0 scan(s), focusing on index = -1
+2025-09-14 18:30:11 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 18:30:11 - [INFO] - [BSI SIDE PANEL] Clearing data...
+2025-09-14 18:30:11 - [INFO] - [DEBUG] Main window created successfully for session: HAHH
+2025-09-14 18:30:11 - [INFO] - [DEBUG] Main window created successfully
+2025-09-14 18:30:11 - [INFO] - [DEBUG] Logout signal connected
+2025-09-14 18:30:11 - [INFO] - [DEBUG] Main window displayed
+2025-09-14 18:30:11 - [INFO] - [DEBUG] Active windows count: 1
+2025-09-14 18:30:12 - [INFO] - [DEBUG] set_invert_original called: True (current: False)
+2025-09-14 18:30:12 - [INFO] - [CACHE CLEAR] Cleared 0 layer cache entries
+2025-09-14 18:30:12 - [INFO] - [CACHE CLEAR] Cleared zoom cache (0 labels)
+2025-09-14 18:30:12 - [INFO] - [DEBUG] Cleared layer cache due to invert change
+2025-09-14 18:30:12 - [INFO] - [DEBUG] No scans loaded, rebuild skipped
+2025-09-14 18:30:24 - [INFO] - [ADD_FILES] Mulai analisis 3 file
+2025-09-14 18:30:24 - [INFO] - [ADD_FILES] fungsi duplicate-check OK
+2025-09-14 18:30:24 - [INFO] - [ADD_FILES] 1/3 13.dcm → PID=13 SD=20250628
+2025-09-14 18:30:24 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=13, study_date=20250628
+2025-09-14 18:30:24 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\13\20250628
+2025-09-14 18:30:24 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-14 18:30:24 - [INFO] - [ADD_FILES]   -> NEW, dimasukkan
+2025-09-14 18:30:24 - [INFO] - [ADD_FILES] 2/3 14.dcm → PID=14 SD=20250628
+2025-09-14 18:30:24 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=14, study_date=20250628
+2025-09-14 18:30:24 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\14\20250628
+2025-09-14 18:30:24 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-14 18:30:24 - [INFO] - [ADD_FILES]   -> NEW, dimasukkan
+2025-09-14 18:30:24 - [INFO] - [ADD_FILES] 3/3 15.dcm → PID=15 SD=20250628
+2025-09-14 18:30:24 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=15, study_date=20250628
+2025-09-14 18:30:24 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\15\20250628
+2025-09-14 18:30:24 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-14 18:30:24 - [INFO] - [ADD_FILES]   -> NEW, dimasukkan
+2025-09-14 18:30:24 - [INFO] - [ADD_FILES] NEW added: 3, already analyzed: 0, redundant skipped: 0, errors: 0
+2025-09-14 18:30:24 - [INFO] -   DEBUG: Starting quick detection for 3 files...
+2025-09-14 18:30:24 - [INFO] -   DEBUG: Processing detection result for 13.dcm
+2025-09-14 18:30:24 - [INFO] -   13.dcm: Fully auto-tagged (2 frames)
+2025-09-14 18:30:24 - [INFO] -   DEBUG: Processing detection result for 14.dcm
+2025-09-14 18:30:24 - [INFO] -   14.dcm: Fully auto-tagged (2 frames)
+2025-09-14 18:30:24 - [INFO] -   DEBUG: Processing detection result for 15.dcm
+2025-09-14 18:30:24 - [INFO] - 📊 Detection Analysis Complete:
+2025-09-14 18:30:24 - [INFO] -      3 files fully auto-tagged
+2025-09-14 18:30:24 - [INFO] - 🎉 All files auto-tagged! You can proceed directly to import.
+2025-09-14 18:30:24 - [INFO] - Next step: Configure Views (or proceed if all auto-tagged)
+2025-09-14 18:30:24 - [INFO] -   15.dcm: Fully auto-tagged (2 frames)
+2025-09-14 18:30:25 - [INFO] -   Opening enhanced view configuration dialog...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Opening view selector with 3 files
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Opening view configuration with 3 files:
+2025-09-14 18:30:25 - [INFO] -    1. 13.dcm
+2025-09-14 18:30:25 - [INFO] -    2. 14.dcm
+2025-09-14 18:30:25 - [INFO] -    3. 15.dcm
+2025-09-14 18:30:25 - [INFO] -      No duplicates found in selected_files
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Connecting signals...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Executing dialog...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Processing 2 frames from 13.dcm
+2025-09-14 18:30:25 - [INFO] -   Frame 0: 'anterior'
+2025-09-14 18:30:25 - [INFO] -     Detected: Anterior (confidence: high)
+2025-09-14 18:30:25 - [INFO] -       auto-tagged: Anterior (high confidence)
+2025-09-14 18:30:25 - [INFO] - 
+  STARTING BACKGROUND ANALYSIS FOR FRAME 0...
+2025-09-14 18:30:25 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 18:30:25 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 18:30:25 - [INFO] - Frame dtype: uint16
+2025-09-14 18:30:25 - [INFO] - Frame range: 0 to 117
+2025-09-14 18:30:25 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 18:30:25 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 18:30:25 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 18:30:25 - [INFO] - 🏠 Corner means: [0.355, 0.37, 0.0, 0.065]
+2025-09-14 18:30:25 - [INFO] - 🏠 Overall corner mean: 0.2
+2025-09-14 18:30:25 - [INFO] - 🔲 Edge analysis:
+2025-09-14 18:30:25 - [INFO] -    Edge mean: 0.6
+2025-09-14 18:30:25 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 18:30:25 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 18:30:25 - [INFO] - 📊 Overall statistics:
+2025-09-14 18:30:25 - [INFO] -    Image mean: 15.5
+2025-09-14 18:30:25 - [INFO] -    Dark pixels (<50): 235,456 (89.8%)
+2025-09-14 18:30:25 - [INFO] -    Bright pixels (>200): 21 (0.0%)
+2025-09-14 18:30:25 - [INFO] -    Mid-range pixels: 26,667 (10.2%)
+2025-09-14 18:30:25 - [INFO] - 📈 Histogram analysis:
+2025-09-14 18:30:25 - [INFO] -    Found 1 peaks: [(15, 15188)]
+2025-09-14 18:30:25 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 18:30:25 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 18:30:25 - [INFO] -      Dark corners (0.2 < 50) → BLACK (+40)
+2025-09-14 18:30:25 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 18:30:25 - [INFO] -      Dark image (15.5 < 80) supports BLACK (+10)
+2025-09-14 18:30:25 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 18:30:25 - [INFO] -    Background Type: BLACK
+2025-09-14 18:30:25 - [INFO] -    Confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 18:30:25 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 235456, 'object_pixels': 26688, 'background_percentage': 89.8193359375, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.1975, 'edge_mean': 0.586328125, 'image_mean': 15.473308563232422, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.2 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (15.5 < 80) supports BLACK (+10)']}}
+2025-09-14 18:30:25 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 18:30:25 - [INFO] -   BACKGROUND ANALYSIS RESULT:
+2025-09-14 18:30:25 - [INFO] -    Type: black
+2025-09-14 18:30:25 - [INFO] -    Confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    Background area: 89.8%
+2025-09-14 18:30:25 - [INFO] -    Will auto-select: black radio button
+2025-09-14 18:30:25 - [INFO] -    Factors: 3
+2025-09-14 18:30:25 - [INFO] -     ⚠️ manual tagged REQUIRED: 80 confidence
+2025-09-14 18:30:25 - [INFO] -   Frame 1: 'posterior'
+2025-09-14 18:30:25 - [INFO] -     Detected: Posterior (confidence: high)
+2025-09-14 18:30:25 - [INFO] -       auto-tagged: Posterior (high confidence)
+2025-09-14 18:30:25 - [INFO] - 
+  STARTING BACKGROUND ANALYSIS FOR FRAME 1...
+2025-09-14 18:30:25 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 18:30:25 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 18:30:25 - [INFO] - Frame dtype: uint16
+2025-09-14 18:30:25 - [INFO] - Frame range: 0 to 105
+2025-09-14 18:30:25 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 18:30:25 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 18:30:25 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 18:30:25 - [INFO] - 🏠 Corner means: [0.01, 0.045, 0.0, 0.0]
+2025-09-14 18:30:25 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 18:30:25 - [INFO] - 🔲 Edge analysis:
+2025-09-14 18:30:25 - [INFO] -    Edge mean: 0.4
+2025-09-14 18:30:25 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 18:30:25 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 18:30:25 - [INFO] - 📊 Overall statistics:
+2025-09-14 18:30:25 - [INFO] -    Image mean: 17.1
+2025-09-14 18:30:25 - [INFO] -    Dark pixels (<50): 231,999 (88.5%)
+2025-09-14 18:30:25 - [INFO] -    Bright pixels (>200): 59 (0.0%)
+2025-09-14 18:30:25 - [INFO] -    Mid-range pixels: 30,086 (11.5%)
+2025-09-14 18:30:25 - [INFO] - 📈 Histogram analysis:
+2025-09-14 18:30:25 - [INFO] -    Found 2 peaks: [(25, 11879), (45, 6432)]
+2025-09-14 18:30:25 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 18:30:25 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 18:30:25 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 18:30:25 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 18:30:25 - [INFO] -      Dark image (17.1 < 80) supports BLACK (+10)
+2025-09-14 18:30:25 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 18:30:25 - [INFO] -    Background Type: BLACK
+2025-09-14 18:30:25 - [INFO] -    Confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 18:30:25 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 231999, 'object_pixels': 30145, 'background_percentage': 88.50059509277344, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.01375, 'edge_mean': 0.437109375, 'image_mean': 17.137420654296875, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (17.1 < 80) supports BLACK (+10)']}}
+2025-09-14 18:30:25 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 18:30:25 - [INFO] -   BACKGROUND ANALYSIS RESULT:
+2025-09-14 18:30:25 - [INFO] -    Type: black
+2025-09-14 18:30:25 - [INFO] -    Confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    Background area: 88.5%
+2025-09-14 18:30:25 - [INFO] -    Will auto-select: black radio button
+2025-09-14 18:30:25 - [INFO] -    Factors: 3
+2025-09-14 18:30:25 - [INFO] -     ⚠️ manual tagged REQUIRED: 80 confidence
+2025-09-14 18:30:25 - [INFO] - Summary: 13.dcm
+2025-09-14 18:30:25 - [INFO] -     Reliable detections: 2/2
+2025-09-14 18:30:25 - [INFO] -     Has reliable detection: True
+2025-09-14 18:30:25 - [INFO] -     Needs manual tagged: False
+2025-09-14 18:30:25 - [INFO] -   Loaded DICOM info for: 13.dcm
+2025-09-14 18:30:25 - [INFO] -     Reliable detection: True
+2025-09-14 18:30:25 - [INFO] -     Needs manual tagged: False
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Processing 2 frames from 14.dcm
+2025-09-14 18:30:25 - [INFO] -   Frame 0: 'anterior'
+2025-09-14 18:30:25 - [INFO] -     Detected: Anterior (confidence: high)
+2025-09-14 18:30:25 - [INFO] -       auto-tagged: Anterior (high confidence)
+2025-09-14 18:30:25 - [INFO] - 
+  STARTING BACKGROUND ANALYSIS FOR FRAME 0...
+2025-09-14 18:30:25 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 18:30:25 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 18:30:25 - [INFO] - Frame dtype: uint16
+2025-09-14 18:30:25 - [INFO] - Frame range: 0 to 116
+2025-09-14 18:30:25 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 18:30:25 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 18:30:25 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 18:30:25 - [INFO] - 🏠 Corner means: [0.34, 0.17, 3.7875, 0.0]
+2025-09-14 18:30:25 - [INFO] - 🏠 Overall corner mean: 1.1
+2025-09-14 18:30:25 - [INFO] - 🔲 Edge analysis:
+2025-09-14 18:30:25 - [INFO] -    Edge mean: 0.6
+2025-09-14 18:30:25 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 18:30:25 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 18:30:25 - [INFO] - 📊 Overall statistics:
+2025-09-14 18:30:25 - [INFO] -    Image mean: 15.0
+2025-09-14 18:30:25 - [INFO] -    Dark pixels (<50): 238,966 (91.2%)
+2025-09-14 18:30:25 - [INFO] -    Bright pixels (>200): 41 (0.0%)
+2025-09-14 18:30:25 - [INFO] -    Mid-range pixels: 23,137 (8.8%)
+2025-09-14 18:30:25 - [INFO] - 📈 Histogram analysis:
+2025-09-14 18:30:25 - [INFO] -    Found 1 peaks: [(15, 16015)]
+2025-09-14 18:30:25 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 18:30:25 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 18:30:25 - [INFO] -      Dark corners (1.1 < 50) → BLACK (+40)
+2025-09-14 18:30:25 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 18:30:25 - [INFO] -      Dark image (15.0 < 80) supports BLACK (+10)
+2025-09-14 18:30:25 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 18:30:25 - [INFO] -    Background Type: BLACK
+2025-09-14 18:30:25 - [INFO] -    Confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 18:30:25 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 238966, 'object_pixels': 23178, 'background_percentage': 91.15829467773438, 'total_pixels': 262144, 'debug_info': {'corner_mean': 1.074375, 'edge_mean': 0.611328125, 'image_mean': 14.969062805175781, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (1.1 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (15.0 < 80) supports BLACK (+10)']}}
+2025-09-14 18:30:25 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 18:30:25 - [INFO] -   BACKGROUND ANALYSIS RESULT:
+2025-09-14 18:30:25 - [INFO] -    Type: black
+2025-09-14 18:30:25 - [INFO] -    Confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    Background area: 91.2%
+2025-09-14 18:30:25 - [INFO] -    Will auto-select: black radio button
+2025-09-14 18:30:25 - [INFO] -    Factors: 3
+2025-09-14 18:30:25 - [INFO] -     ⚠️ manual tagged REQUIRED: 80 confidence
+2025-09-14 18:30:25 - [INFO] -   Frame 1: 'posterior'
+2025-09-14 18:30:25 - [INFO] -     Detected: Posterior (confidence: high)
+2025-09-14 18:30:25 - [INFO] -       auto-tagged: Posterior (high confidence)
+2025-09-14 18:30:25 - [INFO] - 
+  STARTING BACKGROUND ANALYSIS FOR FRAME 1...
+2025-09-14 18:30:25 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 18:30:25 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 18:30:25 - [INFO] - Frame dtype: uint16
+2025-09-14 18:30:25 - [INFO] - Frame range: 0 to 135
+2025-09-14 18:30:25 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 18:30:25 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 18:30:25 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 18:30:25 - [INFO] - 🏠 Corner means: [0.3275, 0.1625, 0.1875, 3.6725]
+2025-09-14 18:30:25 - [INFO] - 🏠 Overall corner mean: 1.1
+2025-09-14 18:30:25 - [INFO] - 🔲 Edge analysis:
+2025-09-14 18:30:25 - [INFO] -    Edge mean: 0.5
+2025-09-14 18:30:25 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 18:30:25 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 18:30:25 - [INFO] - 📊 Overall statistics:
+2025-09-14 18:30:25 - [INFO] -    Image mean: 12.8
+2025-09-14 18:30:25 - [INFO] -    Dark pixels (<50): 244,788 (93.4%)
+2025-09-14 18:30:25 - [INFO] -    Bright pixels (>200): 80 (0.0%)
+2025-09-14 18:30:25 - [INFO] -    Mid-range pixels: 17,276 (6.6%)
+2025-09-14 18:30:25 - [INFO] - 📈 Histogram analysis:
+2025-09-14 18:30:25 - [INFO] -    Found 1 peaks: [(25, 17145)]
+2025-09-14 18:30:25 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 18:30:25 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 18:30:25 - [INFO] -      Dark corners (1.1 < 50) → BLACK (+40)
+2025-09-14 18:30:25 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 18:30:25 - [INFO] -      Dark image (12.8 < 80) supports BLACK (+10)
+2025-09-14 18:30:25 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 18:30:25 - [INFO] -    Background Type: BLACK
+2025-09-14 18:30:25 - [INFO] -    Confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 18:30:25 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 244788, 'object_pixels': 17356, 'background_percentage': 93.37921142578125, 'total_pixels': 262144, 'debug_info': {'corner_mean': 1.0875, 'edge_mean': 0.5140625, 'image_mean': 12.784049987792969, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (1.1 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (12.8 < 80) supports BLACK (+10)']}}
+2025-09-14 18:30:25 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 18:30:25 - [INFO] -   BACKGROUND ANALYSIS RESULT:
+2025-09-14 18:30:25 - [INFO] -    Type: black
+2025-09-14 18:30:25 - [INFO] -    Confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    Background area: 93.4%
+2025-09-14 18:30:25 - [INFO] -    Will auto-select: black radio button
+2025-09-14 18:30:25 - [INFO] -    Factors: 3
+2025-09-14 18:30:25 - [INFO] -     ⚠️ manual tagged REQUIRED: 80 confidence
+2025-09-14 18:30:25 - [INFO] - Summary: 14.dcm
+2025-09-14 18:30:25 - [INFO] -     Reliable detections: 2/2
+2025-09-14 18:30:25 - [INFO] -     Has reliable detection: True
+2025-09-14 18:30:25 - [INFO] -     Needs manual tagged: False
+2025-09-14 18:30:25 - [INFO] -   Loaded DICOM info for: 14.dcm
+2025-09-14 18:30:25 - [INFO] -     Reliable detection: True
+2025-09-14 18:30:25 - [INFO] -     Needs manual tagged: False
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Processing 2 frames from 15.dcm
+2025-09-14 18:30:25 - [INFO] -   Frame 0: 'anterior'
+2025-09-14 18:30:25 - [INFO] -     Detected: Anterior (confidence: high)
+2025-09-14 18:30:25 - [INFO] -       auto-tagged: Anterior (high confidence)
+2025-09-14 18:30:25 - [INFO] - 
+  STARTING BACKGROUND ANALYSIS FOR FRAME 0...
+2025-09-14 18:30:25 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 18:30:25 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 18:30:25 - [INFO] - Frame dtype: uint16
+2025-09-14 18:30:25 - [INFO] - Frame range: 0 to 122
+2025-09-14 18:30:25 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 18:30:25 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 18:30:25 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 18:30:25 - [INFO] - 🏠 Corner means: [0.0, 0.0, 0.0, 0.0]
+2025-09-14 18:30:25 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 18:30:25 - [INFO] - 🔲 Edge analysis:
+2025-09-14 18:30:25 - [INFO] -    Edge mean: 2.0
+2025-09-14 18:30:25 - [INFO] -    Dark edges (<50): 2541/2560 (99.3%)
+2025-09-14 18:30:25 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 18:30:25 - [INFO] - 📊 Overall statistics:
+2025-09-14 18:30:25 - [INFO] -    Image mean: 14.1
+2025-09-14 18:30:25 - [INFO] -    Dark pixels (<50): 237,452 (90.6%)
+2025-09-14 18:30:25 - [INFO] -    Bright pixels (>200): 65 (0.0%)
+2025-09-14 18:30:25 - [INFO] -    Mid-range pixels: 24,627 (9.4%)
+2025-09-14 18:30:25 - [INFO] - 📈 Histogram analysis:
+2025-09-14 18:30:25 - [INFO] -    Found 1 peaks: [(15, 20431)]
+2025-09-14 18:30:25 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 18:30:25 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 18:30:25 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 18:30:25 - [INFO] -      Dark edges (99.3%) support BLACK (+30)
+2025-09-14 18:30:25 - [INFO] -      Dark image (14.1 < 80) supports BLACK (+10)
+2025-09-14 18:30:25 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 18:30:25 - [INFO] -    Background Type: BLACK
+2025-09-14 18:30:25 - [INFO] -    Confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 18:30:25 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 237452, 'object_pixels': 24692, 'background_percentage': 90.58074951171875, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.0, 'edge_mean': 2.042578125, 'image_mean': 14.076026916503906, 'dark_edge_ratio': 0.992578125, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (99.3%) support BLACK (+30)', '  Dark image (14.1 < 80) supports BLACK (+10)']}}
+2025-09-14 18:30:25 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 18:30:25 - [INFO] -   BACKGROUND ANALYSIS RESULT:
+2025-09-14 18:30:25 - [INFO] -    Type: black
+2025-09-14 18:30:25 - [INFO] -    Confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    Background area: 90.6%
+2025-09-14 18:30:25 - [INFO] -    Will auto-select: black radio button
+2025-09-14 18:30:25 - [INFO] -    Factors: 3
+2025-09-14 18:30:25 - [INFO] -     ⚠️ manual tagged REQUIRED: 80 confidence
+2025-09-14 18:30:25 - [INFO] -   Frame 1: 'posterior'
+2025-09-14 18:30:25 - [INFO] -     Detected: Posterior (confidence: high)
+2025-09-14 18:30:25 - [INFO] -       auto-tagged: Posterior (high confidence)
+2025-09-14 18:30:25 - [INFO] - 
+  STARTING BACKGROUND ANALYSIS FOR FRAME 1...
+2025-09-14 18:30:25 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 18:30:25 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 18:30:25 - [INFO] - Frame dtype: uint16
+2025-09-14 18:30:25 - [INFO] - Frame range: 0 to 134
+2025-09-14 18:30:25 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 18:30:25 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 18:30:25 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 18:30:25 - [INFO] - 🏠 Corner means: [0.0, 0.0, 0.0, 0.0]
+2025-09-14 18:30:25 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 18:30:25 - [INFO] - 🔲 Edge analysis:
+2025-09-14 18:30:25 - [INFO] -    Edge mean: 4.3
+2025-09-14 18:30:25 - [INFO] -    Dark edges (<50): 2522/2560 (98.5%)
+2025-09-14 18:30:25 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 18:30:25 - [INFO] - 📊 Overall statistics:
+2025-09-14 18:30:25 - [INFO] -    Image mean: 17.8
+2025-09-14 18:30:25 - [INFO] -    Dark pixels (<50): 234,784 (89.6%)
+2025-09-14 18:30:25 - [INFO] -    Bright pixels (>200): 78 (0.0%)
+2025-09-14 18:30:25 - [INFO] -    Mid-range pixels: 27,282 (10.4%)
+2025-09-14 18:30:25 - [INFO] - 📈 Histogram analysis:
+2025-09-14 18:30:25 - [INFO] -    Found 2 peaks: [(15, 25117), (35, 10586)]
+2025-09-14 18:30:25 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 18:30:25 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 18:30:25 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 18:30:25 - [INFO] -      Dark edges (98.5%) support BLACK (+30)
+2025-09-14 18:30:25 - [INFO] -      Dark image (17.8 < 80) supports BLACK (+10)
+2025-09-14 18:30:25 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 18:30:25 - [INFO] -    Background Type: BLACK
+2025-09-14 18:30:25 - [INFO] -    Confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 18:30:25 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 234784, 'object_pixels': 27360, 'background_percentage': 89.56298828125, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.0, 'edge_mean': 4.25703125, 'image_mean': 17.812091827392578, 'dark_edge_ratio': 0.98515625, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (98.5%) support BLACK (+30)', '  Dark image (17.8 < 80) supports BLACK (+10)']}}
+2025-09-14 18:30:25 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 18:30:25 - [INFO] -   BACKGROUND ANALYSIS RESULT:
+2025-09-14 18:30:25 - [INFO] -    Type: black
+2025-09-14 18:30:25 - [INFO] -    Confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    Background area: 89.6%
+2025-09-14 18:30:25 - [INFO] -    Will auto-select: black radio button
+2025-09-14 18:30:25 - [INFO] -    Factors: 3
+2025-09-14 18:30:25 - [INFO] -     ⚠️ manual tagged REQUIRED: 80 confidence
+2025-09-14 18:30:25 - [INFO] - Summary: 15.dcm
+2025-09-14 18:30:25 - [INFO] -     Reliable detections: 2/2
+2025-09-14 18:30:25 - [INFO] -     Has reliable detection: True
+2025-09-14 18:30:25 - [INFO] -     Needs manual tagged: False
+2025-09-14 18:30:25 - [INFO] -   Loaded DICOM info for: 15.dcm
+2025-09-14 18:30:25 - [INFO] -     Reliable detection: True
+2025-09-14 18:30:25 - [INFO] -     Needs manual tagged: False
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Loading finished. Loaded 3 DICOM info objects
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Starting widget setup...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Processing 3 files in optimized order...
+2025-09-14 18:30:25 - [INFO] -   13.dcm: auto
+2025-09-14 18:30:25 - [INFO] -   14.dcm: auto
+2025-09-14 18:30:25 - [INFO] -   15.dcm: auto
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating widget 1/3 for 13.dcm...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating DicomFileWidget with 2 frames...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Initializing DicomFileWidget for 13.dcm with 2 frames
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Setting up UI for 13.dcm...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Initializing FrameWidget for frame 0 from 13.dcm
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Setting up UI for frame 0...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: ZoomableImageLabel init - shape: (1024, 256), dtype: uint16
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Medical image detected: True
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating pixmap...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Starting pixmap creation - shape: (1024, 256)
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Frame data copied - dtype: uint16
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Converting from uint16 to uint8...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Data range: 0 to 117
+2025-09-14 18:30:25 - [INFO] -   Normalization completed
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Final frame dimensions: 256x1024
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Enhancing medical image display...
+2025-09-14 18:30:25 - [INFO] -   Image already uint8, no enhancement needed
+2025-09-14 18:30:25 - [INFO] -   Medical image enhancement applied
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating PIL Image...
+2025-09-14 18:30:25 - [INFO] -   PIL Image created
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Detected potential medical scan
+2025-09-14 18:30:25 - [INFO] -   DEBUG: High aspect ratio (4.0), checking for rotation...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Rotation did not improve, keeping original orientation
+2025-09-14 18:30:25 - [INFO] -   PIL Image finalized - size: (256, 1024)
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Original dimensions: 256x1024
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Tall image - resize to 70x280
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Final resize dimensions: 70x280
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Using NEAREST resampling for medical image
+2025-09-14 18:30:25 - [INFO] -   Image resized
+2025-09-14 18:30:25 - [INFO] -   QPixmap created successfully
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Updating display...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Using Smooth transformation for medical image
+2025-09-14 18:30:25 - [INFO] -   ZoomableImageLabel initialized successfully
+2025-09-14 18:30:25 - [INFO] - 
+  FRAME 0 AUTO-SELECTION DEBUG:
+2025-09-14 18:30:25 - [INFO] -    detected_bg: 'black'
+2025-09-14 18:30:25 - [INFO] -    pixel_analysis exists: True
+2025-09-14 18:30:25 - [INFO] -    analysis.background_type: 'black'
+2025-09-14 18:30:25 - [INFO] -    analysis.confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    corner_mean: 0.1975
+2025-09-14 18:30:25 - [INFO] -    edge_mean: 0.586328125
+2025-09-14 18:30:25 - [INFO] -    image_mean: 15.473308563232422
+2025-09-14 18:30:25 - [INFO] -   AUTO-SELECTED: BLACK background radio button
+2025-09-14 18:30:25 - [INFO] -    Final state - Black checked: True
+2025-09-14 18:30:25 - [INFO] -    Final state - White checked: False
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Connecting signals for frame 0...
+2025-09-14 18:30:25 - [INFO] -   FrameWidget setup completed for frame 0
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Initializing FrameWidget for frame 1 from 13.dcm
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Setting up UI for frame 1...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: ZoomableImageLabel init - shape: (1024, 256), dtype: uint16
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Medical image detected: True
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating pixmap...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Starting pixmap creation - shape: (1024, 256)
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Frame data copied - dtype: uint16
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Converting from uint16 to uint8...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Data range: 0 to 105
+2025-09-14 18:30:25 - [INFO] -   Normalization completed
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Final frame dimensions: 256x1024
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Enhancing medical image display...
+2025-09-14 18:30:25 - [INFO] -   Image already uint8, no enhancement needed
+2025-09-14 18:30:25 - [INFO] -   Medical image enhancement applied
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating PIL Image...
+2025-09-14 18:30:25 - [INFO] -   PIL Image created
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Detected potential medical scan
+2025-09-14 18:30:25 - [INFO] -   DEBUG: High aspect ratio (4.0), checking for rotation...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Rotation did not improve, keeping original orientation
+2025-09-14 18:30:25 - [INFO] -   PIL Image finalized - size: (256, 1024)
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Original dimensions: 256x1024
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Tall image - resize to 70x280
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Final resize dimensions: 70x280
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Using NEAREST resampling for medical image
+2025-09-14 18:30:25 - [INFO] -   Image resized
+2025-09-14 18:30:25 - [INFO] -   QPixmap created successfully
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Updating display...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Using Smooth transformation for medical image
+2025-09-14 18:30:25 - [INFO] -   ZoomableImageLabel initialized successfully
+2025-09-14 18:30:25 - [INFO] - 
+  FRAME 1 AUTO-SELECTION DEBUG:
+2025-09-14 18:30:25 - [INFO] -    detected_bg: 'black'
+2025-09-14 18:30:25 - [INFO] -    pixel_analysis exists: True
+2025-09-14 18:30:25 - [INFO] -    analysis.background_type: 'black'
+2025-09-14 18:30:25 - [INFO] -    analysis.confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    corner_mean: 0.01375
+2025-09-14 18:30:25 - [INFO] -    edge_mean: 0.437109375
+2025-09-14 18:30:25 - [INFO] -    image_mean: 17.137420654296875
+2025-09-14 18:30:25 - [INFO] -   AUTO-SELECTED: BLACK background radio button
+2025-09-14 18:30:25 - [INFO] -    Final state - Black checked: True
+2025-09-14 18:30:25 - [INFO] -    Final state - White checked: False
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Connecting signals for frame 1...
+2025-09-14 18:30:25 - [INFO] -   FrameWidget setup completed for frame 1
+2025-09-14 18:30:25 - [INFO] -   UI setup completed for 13.dcm
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Widget created successfully, connecting signals...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Signals connected, adding to layout...
+2025-09-14 18:30:25 - [INFO] -   Successfully created widget for 13.dcm
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating widget 2/3 for 14.dcm...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating DicomFileWidget with 2 frames...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Initializing DicomFileWidget for 14.dcm with 2 frames
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Setting up UI for 14.dcm...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Initializing FrameWidget for frame 0 from 14.dcm
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Setting up UI for frame 0...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: ZoomableImageLabel init - shape: (1024, 256), dtype: uint16
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Medical image detected: True
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating pixmap...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Starting pixmap creation - shape: (1024, 256)
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Frame data copied - dtype: uint16
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Converting from uint16 to uint8...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Data range: 0 to 116
+2025-09-14 18:30:25 - [INFO] -   Normalization completed
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Final frame dimensions: 256x1024
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Enhancing medical image display...
+2025-09-14 18:30:25 - [INFO] -   Image already uint8, no enhancement needed
+2025-09-14 18:30:25 - [INFO] -   Medical image enhancement applied
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating PIL Image...
+2025-09-14 18:30:25 - [INFO] -   PIL Image created
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Detected potential medical scan
+2025-09-14 18:30:25 - [INFO] -   DEBUG: High aspect ratio (4.0), checking for rotation...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Rotation did not improve, keeping original orientation
+2025-09-14 18:30:25 - [INFO] -   PIL Image finalized - size: (256, 1024)
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Original dimensions: 256x1024
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Tall image - resize to 70x280
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Final resize dimensions: 70x280
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Using NEAREST resampling for medical image
+2025-09-14 18:30:25 - [INFO] -   Image resized
+2025-09-14 18:30:25 - [INFO] -   QPixmap created successfully
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Updating display...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Using Smooth transformation for medical image
+2025-09-14 18:30:25 - [INFO] -   ZoomableImageLabel initialized successfully
+2025-09-14 18:30:25 - [INFO] - 
+  FRAME 0 AUTO-SELECTION DEBUG:
+2025-09-14 18:30:25 - [INFO] -    detected_bg: 'black'
+2025-09-14 18:30:25 - [INFO] -    pixel_analysis exists: True
+2025-09-14 18:30:25 - [INFO] -    analysis.background_type: 'black'
+2025-09-14 18:30:25 - [INFO] -    analysis.confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    corner_mean: 1.074375
+2025-09-14 18:30:25 - [INFO] -    edge_mean: 0.611328125
+2025-09-14 18:30:25 - [INFO] -    image_mean: 14.969062805175781
+2025-09-14 18:30:25 - [INFO] -   AUTO-SELECTED: BLACK background radio button
+2025-09-14 18:30:25 - [INFO] -    Final state - Black checked: True
+2025-09-14 18:30:25 - [INFO] -    Final state - White checked: False
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Connecting signals for frame 0...
+2025-09-14 18:30:25 - [INFO] -   FrameWidget setup completed for frame 0
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Initializing FrameWidget for frame 1 from 14.dcm
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Setting up UI for frame 1...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: ZoomableImageLabel init - shape: (1024, 256), dtype: uint16
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Medical image detected: True
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating pixmap...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Starting pixmap creation - shape: (1024, 256)
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Frame data copied - dtype: uint16
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Converting from uint16 to uint8...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Data range: 0 to 135
+2025-09-14 18:30:25 - [INFO] -   Normalization completed
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Final frame dimensions: 256x1024
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Enhancing medical image display...
+2025-09-14 18:30:25 - [INFO] -   Image already uint8, no enhancement needed
+2025-09-14 18:30:25 - [INFO] -   Medical image enhancement applied
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating PIL Image...
+2025-09-14 18:30:25 - [INFO] -   PIL Image created
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Detected potential medical scan
+2025-09-14 18:30:25 - [INFO] -   DEBUG: High aspect ratio (4.0), checking for rotation...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Rotation did not improve, keeping original orientation
+2025-09-14 18:30:25 - [INFO] -   PIL Image finalized - size: (256, 1024)
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Original dimensions: 256x1024
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Tall image - resize to 70x280
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Final resize dimensions: 70x280
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Using NEAREST resampling for medical image
+2025-09-14 18:30:25 - [INFO] -   Image resized
+2025-09-14 18:30:25 - [INFO] -   QPixmap created successfully
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Updating display...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Using Smooth transformation for medical image
+2025-09-14 18:30:25 - [INFO] -   ZoomableImageLabel initialized successfully
+2025-09-14 18:30:25 - [INFO] - 
+  FRAME 1 AUTO-SELECTION DEBUG:
+2025-09-14 18:30:25 - [INFO] -    detected_bg: 'black'
+2025-09-14 18:30:25 - [INFO] -    pixel_analysis exists: True
+2025-09-14 18:30:25 - [INFO] -    analysis.background_type: 'black'
+2025-09-14 18:30:25 - [INFO] -    analysis.confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    corner_mean: 1.0875
+2025-09-14 18:30:25 - [INFO] -    edge_mean: 0.5140625
+2025-09-14 18:30:25 - [INFO] -    image_mean: 12.784049987792969
+2025-09-14 18:30:25 - [INFO] -   AUTO-SELECTED: BLACK background radio button
+2025-09-14 18:30:25 - [INFO] -    Final state - Black checked: True
+2025-09-14 18:30:25 - [INFO] -    Final state - White checked: False
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Connecting signals for frame 1...
+2025-09-14 18:30:25 - [INFO] -   FrameWidget setup completed for frame 1
+2025-09-14 18:30:25 - [INFO] -   UI setup completed for 14.dcm
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Widget created successfully, connecting signals...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Signals connected, adding to layout...
+2025-09-14 18:30:25 - [INFO] -   Successfully created widget for 14.dcm
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating widget 3/3 for 15.dcm...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating DicomFileWidget with 2 frames...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Initializing DicomFileWidget for 15.dcm with 2 frames
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Setting up UI for 15.dcm...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Initializing FrameWidget for frame 0 from 15.dcm
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Setting up UI for frame 0...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: ZoomableImageLabel init - shape: (1024, 256), dtype: uint16
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Medical image detected: True
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating pixmap...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Starting pixmap creation - shape: (1024, 256)
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Frame data copied - dtype: uint16
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Converting from uint16 to uint8...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Data range: 0 to 122
+2025-09-14 18:30:25 - [INFO] -   Normalization completed
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Final frame dimensions: 256x1024
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Enhancing medical image display...
+2025-09-14 18:30:25 - [INFO] -   Image already uint8, no enhancement needed
+2025-09-14 18:30:25 - [INFO] -   Medical image enhancement applied
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating PIL Image...
+2025-09-14 18:30:25 - [INFO] -   PIL Image created
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Detected potential medical scan
+2025-09-14 18:30:25 - [INFO] -   DEBUG: High aspect ratio (4.0), checking for rotation...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Rotation did not improve, keeping original orientation
+2025-09-14 18:30:25 - [INFO] -   PIL Image finalized - size: (256, 1024)
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Original dimensions: 256x1024
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Tall image - resize to 70x280
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Final resize dimensions: 70x280
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Using NEAREST resampling for medical image
+2025-09-14 18:30:25 - [INFO] -   Image resized
+2025-09-14 18:30:25 - [INFO] -   QPixmap created successfully
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Updating display...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Using Smooth transformation for medical image
+2025-09-14 18:30:25 - [INFO] -   ZoomableImageLabel initialized successfully
+2025-09-14 18:30:25 - [INFO] - 
+  FRAME 0 AUTO-SELECTION DEBUG:
+2025-09-14 18:30:25 - [INFO] -    detected_bg: 'black'
+2025-09-14 18:30:25 - [INFO] -    pixel_analysis exists: True
+2025-09-14 18:30:25 - [INFO] -    analysis.background_type: 'black'
+2025-09-14 18:30:25 - [INFO] -    analysis.confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    corner_mean: 0.0
+2025-09-14 18:30:25 - [INFO] -    edge_mean: 2.042578125
+2025-09-14 18:30:25 - [INFO] -    image_mean: 14.076026916503906
+2025-09-14 18:30:25 - [INFO] -   AUTO-SELECTED: BLACK background radio button
+2025-09-14 18:30:25 - [INFO] -    Final state - Black checked: True
+2025-09-14 18:30:25 - [INFO] -    Final state - White checked: False
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Connecting signals for frame 0...
+2025-09-14 18:30:25 - [INFO] -   FrameWidget setup completed for frame 0
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Initializing FrameWidget for frame 1 from 15.dcm
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Setting up UI for frame 1...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: ZoomableImageLabel init - shape: (1024, 256), dtype: uint16
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Medical image detected: True
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating pixmap...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Starting pixmap creation - shape: (1024, 256)
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Frame data copied - dtype: uint16
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Converting from uint16 to uint8...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Data range: 0 to 134
+2025-09-14 18:30:25 - [INFO] -   Normalization completed
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Final frame dimensions: 256x1024
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Enhancing medical image display...
+2025-09-14 18:30:25 - [INFO] -   Image already uint8, no enhancement needed
+2025-09-14 18:30:25 - [INFO] -   Medical image enhancement applied
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Creating PIL Image...
+2025-09-14 18:30:25 - [INFO] -   PIL Image created
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Detected potential medical scan
+2025-09-14 18:30:25 - [INFO] -   DEBUG: High aspect ratio (4.0), checking for rotation...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Rotation did not improve, keeping original orientation
+2025-09-14 18:30:25 - [INFO] -   PIL Image finalized - size: (256, 1024)
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Original dimensions: 256x1024
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Tall image - resize to 70x280
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Final resize dimensions: 70x280
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Using NEAREST resampling for medical image
+2025-09-14 18:30:25 - [INFO] -   Image resized
+2025-09-14 18:30:25 - [INFO] -   QPixmap created successfully
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Updating display...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Using Smooth transformation for medical image
+2025-09-14 18:30:25 - [INFO] -   ZoomableImageLabel initialized successfully
+2025-09-14 18:30:25 - [INFO] - 
+  FRAME 1 AUTO-SELECTION DEBUG:
+2025-09-14 18:30:25 - [INFO] -    detected_bg: 'black'
+2025-09-14 18:30:25 - [INFO] -    pixel_analysis exists: True
+2025-09-14 18:30:25 - [INFO] -    analysis.background_type: 'black'
+2025-09-14 18:30:25 - [INFO] -    analysis.confidence: 80%
+2025-09-14 18:30:25 - [INFO] -    corner_mean: 0.0
+2025-09-14 18:30:25 - [INFO] -    edge_mean: 4.25703125
+2025-09-14 18:30:25 - [INFO] -    image_mean: 17.812091827392578
+2025-09-14 18:30:25 - [INFO] -   AUTO-SELECTED: BLACK background radio button
+2025-09-14 18:30:25 - [INFO] -    Final state - Black checked: True
+2025-09-14 18:30:25 - [INFO] -    Final state - White checked: False
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Connecting signals for frame 1...
+2025-09-14 18:30:25 - [INFO] -   FrameWidget setup completed for frame 1
+2025-09-14 18:30:25 - [INFO] -   UI setup completed for 15.dcm
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Widget created successfully, connecting signals...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Signals connected, adding to layout...
+2025-09-14 18:30:25 - [INFO] -   Successfully created widget for 15.dcm
+2025-09-14 18:30:25 - [INFO] - 📊 Widget creation summary:
+2025-09-14 18:30:25 - [INFO] -   Success: 3
+2025-09-14 18:30:25 - [INFO] -   Errors: 0
+2025-09-14 18:30:25 - [INFO] -   auto-tagged: 3
+2025-09-14 18:30:25 - [INFO] -   Manual required: 0
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Widget setup completed, updating validation...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Validating 3 widgets...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Validating widget 1/3...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Validating widget 2/3...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Validating widget 3/3...
+2025-09-14 18:30:25 - [INFO] -   DICOM widgets setup completed successfully
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Confirming selections...
+2025-09-14 18:30:25 - [INFO] - 📄 13.dcm: {0: 'Anterior', 1: 'Posterior'}
+2025-09-14 18:30:25 - [INFO] - 🎨 Background selections: {0: {'view': 'Anterior', 'background': 'black'}, 1: {'view': 'Posterior', 'background': 'black'}}
+2025-09-14 18:30:25 - [INFO] - 📄 14.dcm: {0: 'Anterior', 1: 'Posterior'}
+2025-09-14 18:30:25 - [INFO] - 🎨 Background selections: {0: {'view': 'Anterior', 'background': 'black'}, 1: {'view': 'Posterior', 'background': 'black'}}
+2025-09-14 18:30:25 - [INFO] - 📄 15.dcm: {0: 'Anterior', 1: 'Posterior'}
+2025-09-14 18:30:25 - [INFO] - 🎨 Background selections: {0: {'view': 'Anterior', 'background': 'black'}, 1: {'view': 'Posterior', 'background': 'black'}}
+2025-09-14 18:30:25 - [INFO] -   Validation passed - emitting signal
+2025-09-14 18:30:25 - [INFO] -   DEBUG: About to emit views_confirmed signal with 3 files
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Emitting views_confirmed signal (string paths)...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Emitting views_confirmed signal with background data...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Signal received! Processing 2 assignments
+2025-09-14 18:30:25 - [INFO] -   DEBUG: _on_views_configured called with payload keys: ['background_assignments', 'view_assignments']
+2025-09-14 18:30:25 - [INFO] -   DEBUG: view_assignments contains 3 files
+2025-09-14 18:30:25 - [INFO] -    📄 F:\projek dosen\prototype riset\raw data cropped (dcom)\13.dcm
+2025-09-14 18:30:25 - [INFO] -    📄 F:\projek dosen\prototype riset\raw data cropped (dcom)\14.dcm
+2025-09-14 18:30:25 - [INFO] -    📄 F:\projek dosen\prototype riset\raw data cropped (dcom)\15.dcm
+2025-09-14 18:30:25 - [INFO] - 🎨 Background assignments received: 3 files
+2025-09-14 18:30:25 - [INFO] -   View assignments and background selections configured
+2025-09-14 18:30:25 - [INFO] - Files with assignments: 3
+2025-09-14 18:30:25 - [INFO] - Files with background selections: 3
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Signal emitted, closing dialog...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Dialog finished, cleaning up...
+2025-09-14 18:30:25 - [INFO] -   DEBUG: Dialog accepted and closed
+2025-09-14 18:30:25 - [INFO] -   DEBUG: View dialog result: 1
+2025-09-14 18:30:25 - [INFO] -   Dialog accepted
+2025-09-14 18:30:26 - [INFO] - [START_IMPORT] Mulai filter item yang boleh diproses...
+2025-09-14 18:30:26 - [INFO] - [START_IMPORT] assignments: 3 files, list items: 3
+2025-09-14 18:30:26 - [INFO] - [START_IMPORT]   13.dcm flag=None
+2025-09-14 18:30:26 - [INFO] - [START_IMPORT]   -> queued
+2025-09-14 18:30:26 - [INFO] - [START_IMPORT]   14.dcm flag=None
+2025-09-14 18:30:26 - [INFO] - [START_IMPORT]   -> queued
+2025-09-14 18:30:26 - [INFO] - [START_IMPORT]   15.dcm flag=None
+2025-09-14 18:30:26 - [INFO] - [START_IMPORT]   -> queued
+2025-09-14 18:30:26 - [INFO] - [START_IMPORT] queued=3, skipped_flagged=0
+2025-09-14 18:30:26 - [INFO] - [START_IMPORT] Start processing...
+2025-09-14 18:30:26 - [INFO] - [START_IMPORT] total to process: 3 (auto=3, manual=0)
+2025-09-14 18:30:26 - [INFO] - [START_IMPORT] Session: HAHH → data/PLANAR/HAHH/[patient_id]/
+2025-09-14 18:30:26 - [INFO] - ## Background assignments provided for 3 files
+2025-09-14 18:30:26 - [INFO] - ## Starting batch import with view assignments: 3 file(s)
+2025-09-14 18:30:26 - [INFO] - ## Session code: HAHH
+2025-09-14 18:30:26 - [INFO] - ## Target directory: data/PLANAR/HAHH/[patient_id]/
+2025-09-14 18:30:26 - [INFO] - ##   DICOM PROTECTION: Original DICOM files will NOT be modified
+2025-09-14 18:30:26 - [INFO] - ##   OUTPUT ONLY: PNG/XML files for analysis results
+2025-09-14 18:30:26 - [INFO] - ## 🎨 BACKGROUND PROCESSING: 3 files have background selections
+2025-09-14 18:30:26 - [INFO] - ## Background conversion: White → Black (for model compatibility)
+2025-09-14 18:30:26 - [INFO] - ## Processing workflow: Copy Original → PNG outputs → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG
+2025-09-14 18:30:26 - [INFO] - 
+## Processing file 1/3: 13.dcm
+2025-09-14 18:30:26 - [INFO] - 
+=== Processing 13.dcm ===
+2025-09-14 18:30:26 - [INFO] -   Patient ID: 13
+2025-09-14 18:30:26 - [INFO] -   Study Date: 20250628
+2025-09-14 18:30:26 - [INFO] -     Path structure validated: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\13\20250628
+2025-09-14 18:30:26 - [INFO] - [ERROR] File 1/3 failed: ProcessingThread.run.<locals>.progress_callback_wrapper() missing 3 required positional arguments: '...
+2025-09-14 18:30:26 - [INFO] - [FULL ERROR] F:\projek dosen\prototype riset\raw data cropped (dcom)\13.dcm failed: ProcessingThread.run.<locals>.progress_callback_wrapper() missing 3 required positional arguments: 'current', 'total', and 'filename'
+Traceback (most recent call last):
+  File "F:\projek dosen\prototype riset\hotspot-analyzer\features\dicom_import\logic\input_data.py", line 550, in process_files_with_assignments
+    result = _process_one_with_assignments(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\projek dosen\prototype riset\hotspot-analyzer\features\dicom_import\logic\input_data.py", line 258, in _process_one_with_assignments
+    if progress_cb: progress_cb(status="Copying original file...")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ProcessingThread.run.<locals>.progress_callback_wrapper() missing 3 required positional arguments: 'current', 'total', and 'filename'
+
+2025-09-14 18:30:26 - [INFO] - 
+## Processing file 2/3: 14.dcm
+2025-09-14 18:30:26 - [INFO] - 
+=== Processing 14.dcm ===
+2025-09-14 18:30:26 - [INFO] -   Patient ID: 14
+2025-09-14 18:30:26 - [INFO] -   Study Date: 20250628
+2025-09-14 18:30:26 - [INFO] -     Path structure validated: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\14\20250628
+2025-09-14 18:30:26 - [INFO] - [ERROR] File 2/3 failed: ProcessingThread.run.<locals>.progress_callback_wrapper() missing 3 required positional arguments: '...
+2025-09-14 18:30:26 - [INFO] - [FULL ERROR] F:\projek dosen\prototype riset\raw data cropped (dcom)\14.dcm failed: ProcessingThread.run.<locals>.progress_callback_wrapper() missing 3 required positional arguments: 'current', 'total', and 'filename'
+Traceback (most recent call last):
+  File "F:\projek dosen\prototype riset\hotspot-analyzer\features\dicom_import\logic\input_data.py", line 550, in process_files_with_assignments
+    result = _process_one_with_assignments(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\projek dosen\prototype riset\hotspot-analyzer\features\dicom_import\logic\input_data.py", line 258, in _process_one_with_assignments
+    if progress_cb: progress_cb(status="Copying original file...")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ProcessingThread.run.<locals>.progress_callback_wrapper() missing 3 required positional arguments: 'current', 'total', and 'filename'
+
+2025-09-14 18:30:26 - [INFO] - 
+## Processing file 3/3: 15.dcm
+2025-09-14 18:30:26 - [INFO] - 
+=== Processing 15.dcm ===
+2025-09-14 18:30:26 - [INFO] -   Patient ID: 15
+2025-09-14 18:30:26 - [INFO] -   Study Date: 20250628
+2025-09-14 18:30:26 - [INFO] -     Path structure validated: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\15\20250628
+2025-09-14 18:30:26 - [INFO] - [ERROR] File 3/3 failed: ProcessingThread.run.<locals>.progress_callback_wrapper() missing 3 required positional arguments: '...
+2025-09-14 18:30:26 - [INFO] - [FULL ERROR] F:\projek dosen\prototype riset\raw data cropped (dcom)\15.dcm failed: ProcessingThread.run.<locals>.progress_callback_wrapper() missing 3 required positional arguments: 'current', 'total', and 'filename'
+Traceback (most recent call last):
+  File "F:\projek dosen\prototype riset\hotspot-analyzer\features\dicom_import\logic\input_data.py", line 550, in process_files_with_assignments
+    result = _process_one_with_assignments(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\projek dosen\prototype riset\hotspot-analyzer\features\dicom_import\logic\input_data.py", line 258, in _process_one_with_assignments
+    if progress_cb: progress_cb(status="Copying original file...")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ProcessingThread.run.<locals>.progress_callback_wrapper() missing 3 required positional arguments: 'current', 'total', and 'filename'
+
+2025-09-14 18:30:26 - [INFO] - ## Batch import process completed
+2025-09-14 18:30:26 - [INFO] - ##   DICOM PROTECTION: All original DICOM files preserved without modification
+2025-09-14 18:30:26 - [INFO] - ##   OUTPUT GENERATION: PNG/XML analysis files created successfully
+2025-09-14 18:30:26 - [INFO] - ##   CLOUD UPLOAD: Original PNG files uploaded to cloud storage
+2025-09-14 18:30:26 - [INFO] - ## All files use study date naming convention with proper view names.
+2025-09-14 18:30:26 - [INFO] - 🎉 Enhanced import workflow completed!
+2025-09-14 18:30:26 - [INFO] - All files processed with proper Anterior/Posterior naming
+2025-09-14 18:30:26 - [INFO] -   Successfully processed: All 3 auto-tagged files
+2025-09-14 18:30:26 - [INFO] - Rescanning folder...
+2025-09-14 18:30:26 - [INFO] - Ditemukan 47 file DICOM di 'F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR'
+2025-09-14 18:30:26 - [INFO] - Ditemukan 9 session, 35 pasien (total 47 file DICOM).
+2025-09-14 18:30:26 - [INFO] -     ALL: 1 pasien, 1 file
+2025-09-14 18:30:26 - [INFO] -     ATL: 4 pasien, 4 file
+2025-09-14 18:30:26 - [INFO] -     HAH: 14 pasien, 14 file
+2025-09-14 18:30:26 - [INFO] -     HAHH: 3 pasien, 3 file
+2025-09-14 18:30:26 - [INFO] -     HEHE: 2 pasien, 2 file
+2025-09-14 18:30:26 - [INFO] -     NBL: 1 pasien, 5 file
+2025-09-14 18:30:26 - [INFO] -     NSY: 4 pasien, 8 file
+2025-09-14 18:30:26 - [INFO] -     PVSA: 2 pasien, 2 file
+2025-09-14 18:30:26 - [INFO] -     WKW: 4 pasien, 8 file
+2025-09-14 18:30:26 - [INFO] - [DEBUG] display_timeline called with 0 scan(s), focusing on index = -1
+2025-09-14 18:30:26 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 18:30:26 - [INFO] - [BSI SIDE PANEL] Clearing data...
+2025-09-14 18:35:13 - [INFO] - [DEBUG] Application exited with code: 0
+2025-09-14 18:35:13 - [INFO] - Aplikasi terminated normally

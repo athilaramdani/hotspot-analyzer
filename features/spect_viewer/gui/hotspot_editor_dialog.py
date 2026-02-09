@@ -41,16 +41,22 @@ from features.spect_viewer.logic.hotspot_processor import parse_xml_annotations,
 
 from core.gui.loading_dialog import LoadingDialog, show_loading_dialog
 
+#   NEW: Import Contrast Logic
+from features.spect_viewer.logic.adjust_contrast import apply_gamma_mid, ContrastDialog
+from features.spect_viewer.logic.image_inverter import simple_invert_image
+
 
 class HotspotEditorDialog(BaseEditorDialog):
     """Hotspot editor dialog using modular components."""
     
     editor_completed = Signal()
 
-    def __init__(self, scan: Dict, view: str, parent=None):
+    def __init__(self, scan: Dict, view: str, gamma: float = 1.0, mid: float = 0.0, parent=None):
         # 1. STORE INITIAL DATA
         self.scan = scan
         self.view = view
+        self.current_gamma = gamma
+        self.current_mid = mid
         view_key = view.lower()
         vtag = "ant" if "ant" in view_key else "post"
 
@@ -106,8 +112,13 @@ class HotspotEditorDialog(BaseEditorDialog):
             self.original_image_data = scan["frames"][view_key]
             self.has_orig_png = False
 
-        from features.spect_viewer.logic.image_inverter import simple_invert_image
-        self.processed_image_data = simple_invert_image(self.original_image_data.copy())
+        #   IMPROVED: Initial image processing (Invert + Gamma/Mid)
+        #   Calculated dynamically to respect passed parameters
+        self.processed_image_data = self._calculate_processed_image(
+            invert=True, # Default invert is True
+            gamma=self.current_gamma,
+            mid=self.current_mid
+        )
         
         # Load mask using the newest paths
         self.mask_arr = self._load_existing_mask()
@@ -124,6 +135,52 @@ class HotspotEditorDialog(BaseEditorDialog):
         self._setup_editing_timer()
         # 9. INITIALIZE EDITOR SESSION
         self.editor_session = None
+
+    def _calculate_processed_image(self, invert: bool, gamma: float, mid: float) -> np.ndarray:
+        """Helper to calculate processed image from original data."""
+        data = self.original_image_data.copy()
+        
+        # 1. Invert
+        if invert:
+            data = simple_invert_image(data)
+            
+        # 2. Gamma/Mid
+        if gamma != 1.0 or mid != 0.0:
+            img = Image.fromarray(data)
+            img = apply_gamma_mid(img, gamma, mid)
+            data = np.array(img)
+            
+        return data
+
+    def _reprocess_and_update(self, override_gamma=None, override_mid=None):
+        """Reprocess image with current settings and update canvas."""
+        invert = self.invert_checkbox.isChecked()
+        gamma = override_gamma if override_gamma is not None else self.current_gamma
+        mid = override_mid if override_mid is not None else self.current_mid
+        
+        new_data = self._calculate_processed_image(invert, gamma, mid)
+        self._update_canvas_images(new_data)
+
+    def _open_contrast_popup(self):
+        """Open contrast dialog."""
+        dlg = ContrastDialog(self)
+        dlg.set_initial_values(self.current_gamma, self.current_mid)
+        
+        # Preview callback
+        def preview(g, m):
+            self._reprocess_and_update(override_gamma=g, override_mid=m)
+            
+        dlg.adjustment_changed.connect(preview)
+        
+        if dlg.exec():
+            # Accepted - store new values
+            vals = dlg.get_values()
+            if vals:
+                self.current_gamma, self.current_mid = vals
+                self._reprocess_and_update() # Final update
+        else:
+            # Cancelled - revert to stored values
+            self._reprocess_and_update()
 
     def _load_existing_mask(self) -> np.ndarray:
         """Load existing mask with proper priority using NEWEST paths."""
@@ -713,18 +770,7 @@ class HotspotEditorDialog(BaseEditorDialog):
 
     def _on_invert_changed(self, state: int):
         """Handle image inversion toggle."""
-        from features.spect_viewer.logic.image_inverter import simple_invert_image
-        
-        try:
-            if self.invert_checkbox.isChecked():
-                inverted_data = simple_invert_image(self.original_image_data)
-            else:
-                inverted_data = self.original_image_data.copy()
-            
-            self._update_canvas_images(inverted_data)
-        except Exception as e:
-            logging.info(f"✗ Error during image inversion: {e}")
-            self.invert_checkbox.setChecked(not self.invert_checkbox.isChecked())
+        self._reprocess_and_update()
 
     def _update_canvas_images(self, new_image_data: np.ndarray):
         """Update both canvases with new image data."""

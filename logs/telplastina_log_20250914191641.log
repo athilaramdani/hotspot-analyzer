@@ -1,0 +1,1958 @@
+2025-09-14 19:16:41 - [INFO] - Logger berhasil dikonfigurasi. Memulai aplikasi...
+2025-09-14 19:16:41 - [INFO] - Running in development mode
+2025-09-14 19:16:41 - [INFO] - [DEBUG] Starting TELPLASTINA...
+2025-09-14 19:16:41 - [INFO] - [UI] Application icon loaded: assets\icon.ico
+2025-09-14 19:16:41 - [INFO] - [UI] Poppins font applied
+2025-09-14 19:16:41 - [INFO] - [DEBUG] TELPLASTINA application created and configured
+2025-09-14 19:16:41 - [INFO] - [DEBUG] Starting session with 100ms delay...
+2025-09-14 19:16:41 - [INFO] - [DEBUG] === Starting new session ===
+2025-09-14 19:16:41 - [INFO] - [DEBUG] Development mode - creating dialog immediately
+2025-09-14 19:16:41 - [INFO] - [DEBUG] Creating doctor selection dialog (attempt 1/3)...
+2025-09-14 19:16:41 - [INFO] - [PATHS] Found YOLO model at: F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\models\model_detection_hs_yolov8.pt
+2025-09-14 19:16:41 - [INFO] - [DEBUG] Dialog class imported successfully
+2025-09-14 19:16:42 - [INFO] - [DEBUG] Dialog instance created successfully
+2025-09-14 19:16:42 - [INFO] - [DEBUG] Dialog window properties set
+2025-09-14 19:16:42 - [INFO] - [DEBUG] Showing dialog to user...
+2025-09-14 19:16:42 - [INFO] - [DEBUG] Dialog shown successfully
+2025-09-14 19:16:42 - [INFO] - [DEBUG] Waiting for user input...
+2025-09-14 19:16:44 - [INFO] - [SESSION] Created session: HAHH_Planar_20250914_191644
+2025-09-14 19:16:44 - [INFO] - [SESSION] Created: HAHH_Planar_20250914_191644
+2025-09-14 19:16:44 - [INFO] - [DEBUG] Dialog execution completed with result: 1
+2025-09-14 19:16:44 - [INFO] - [DEBUG] Quick close detected: False
+2025-09-14 19:16:44 - [INFO] - [DEBUG] Session selected - Code: HAHH, Modality: Planar
+2025-09-14 19:16:44 - [INFO] - [DEBUG] Data directory confirmed: data
+2025-09-14 19:16:44 - [INFO] - [DEBUG] Starting PLANAR session with code: HAHH
+2025-09-14 19:16:44 - [INFO] - [DEBUG] Creating main window for session: HAHH
+2025-09-14 19:16:47 - [INFO] - [YOLO] Module loaded - model will be loaded on-demand
+2025-09-14 19:16:47 - [INFO] - [DEBUG] Timeline keyboard shortcuts enabled: Ctrl+/- for zoom, Ctrl+0 for reset
+2025-09-14 19:16:47 - [INFO] - [DEBUG] set_active_view called with 'Anterior', but is now ignored.
+2025-09-14 19:16:47 - [INFO] - Ditemukan 81 file DICOM di 'F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR'
+2025-09-14 19:16:47 - [INFO] - Ditemukan 9 session, 69 pasien (total 81 file DICOM).
+2025-09-14 19:16:47 - [INFO] -     ALL: 1 pasien, 1 file
+2025-09-14 19:16:47 - [INFO] -     ATL: 4 pasien, 4 file
+2025-09-14 19:16:47 - [INFO] -     HAH: 14 pasien, 14 file
+2025-09-14 19:16:47 - [INFO] -     HAHH: 37 pasien, 37 file
+2025-09-14 19:16:47 - [INFO] -     HEHE: 2 pasien, 2 file
+2025-09-14 19:16:47 - [INFO] -     NBL: 1 pasien, 5 file
+2025-09-14 19:16:47 - [INFO] -     NSY: 4 pasien, 8 file
+2025-09-14 19:16:47 - [INFO] -     PVSA: 2 pasien, 2 file
+2025-09-14 19:16:47 - [INFO] -     WKW: 4 pasien, 8 file
+2025-09-14 19:16:47 - [INFO] - [DEBUG] display_timeline called with 0 scan(s), focusing on index = -1
+2025-09-14 19:16:47 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:16:47 - [INFO] - [BSI SIDE PANEL] Clearing data...
+2025-09-14 19:16:47 - [INFO] - [DEBUG] Main window created successfully for session: HAHH
+2025-09-14 19:16:47 - [INFO] - [DEBUG] Main window created successfully
+2025-09-14 19:16:47 - [INFO] - [DEBUG] Logout signal connected
+2025-09-14 19:16:48 - [INFO] - [DEBUG] Main window displayed
+2025-09-14 19:16:48 - [INFO] - [DEBUG] Active windows count: 1
+2025-09-14 19:16:48 - [INFO] - [DEBUG] set_invert_original called: True (current: False)
+2025-09-14 19:16:48 - [INFO] - [CACHE CLEAR] Cleared 0 layer cache entries
+2025-09-14 19:16:48 - [INFO] - [CACHE CLEAR] Cleared zoom cache (0 labels)
+2025-09-14 19:16:48 - [INFO] - [DEBUG] Cleared layer cache due to invert change
+2025-09-14 19:16:48 - [INFO] - [DEBUG] No scans loaded, rebuild skipped
+2025-09-14 19:17:01 - [INFO] - [ADD_FILES] Mulai analisis 1 file
+2025-09-14 19:17:01 - [INFO] - [ADD_FILES] fungsi duplicate-check OK
+2025-09-14 19:17:01 - [INFO] - [ADD_FILES] 1/1 gajelas.dcm → PID=123456 SD=20250914
+2025-09-14 19:17:01 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:01 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:01 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-14 19:17:01 - [INFO] - [ADD_FILES]   -> NEW, dimasukkan
+2025-09-14 19:17:01 - [INFO] - [ADD_FILES] NEW added: 1, already analyzed: 0, redundant skipped: 0, errors: 0
+2025-09-14 19:17:01 - [INFO] -   DEBUG: Starting quick detection for 1 files...
+2025-09-14 19:17:01 - [INFO] -    ⚠️  Generic fallback: ['Frame 1', 'Frame 2', 'Frame 3']
+2025-09-14 19:17:01 - [INFO] -    ⚠️  Non-standard view name: Frame 1
+2025-09-14 19:17:01 - [INFO] -    ⚠️  Non-standard view name: Frame 2
+2025-09-14 19:17:01 - [INFO] -    ⚠️  Non-standard view name: Frame 3
+2025-09-14 19:17:01 - [INFO] -   DEBUG: Processing detection result for gajelas.dcm
+2025-09-14 19:17:01 - [INFO] - 📊 Detection Analysis Complete:
+2025-09-14 19:17:01 - [INFO] -     1 files need manual configuration
+2025-09-14 19:17:01 - [INFO] - ⚙️ Manual configuration required for some files.
+2025-09-14 19:17:01 - [INFO] - Next step: Configure Views (or proceed if all auto-tagged)
+2025-09-14 19:17:01 - [INFO] -  gajelas.dcm: Manual configuration required (3 frames)
+2025-09-14 19:17:02 - [INFO] -   Opening enhanced view configuration dialog...
+2025-09-14 19:17:02 - [INFO] -   DEBUG: Opening view selector with 1 files
+2025-09-14 19:17:02 - [INFO] -   DEBUG: Opening view configuration with 1 files:
+2025-09-14 19:17:02 - [INFO] -    1. gajelas.dcm
+2025-09-14 19:17:02 - [INFO] -      No duplicates found in selected_files
+2025-09-14 19:17:02 - [INFO] -   DEBUG: Connecting signals...
+2025-09-14 19:17:02 - [INFO] -   DEBUG: Executing dialog...
+2025-09-14 19:17:02 - [INFO] -    ⚠️  Generic fallback: ['Frame 1', 'Frame 2', 'Frame 3']
+2025-09-14 19:17:02 - [INFO] -    ⚠️  Non-standard view name: Frame 1
+2025-09-14 19:17:02 - [INFO] -    ⚠️  Non-standard view name: Frame 2
+2025-09-14 19:17:02 - [INFO] -    ⚠️  Non-standard view name: Frame 3
+2025-09-14 19:17:02 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:17:02 - [INFO] - Frame shape: (547, 783)
+2025-09-14 19:17:02 - [INFO] - Frame dtype: uint8
+2025-09-14 19:17:02 - [INFO] - Frame range: 7 to 255
+2025-09-14 19:17:02 - [INFO] -   Already uint8: 7 to 255
+2025-09-14 19:17:02 - [INFO] - 📐 Image dimensions: 783x547 (428,301 pixels)
+2025-09-14 19:17:02 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:17:02 - [INFO] - 🏠 Corner means: [96.1525, 73.42, 84.015, 83.7475]
+2025-09-14 19:17:02 - [INFO] - 🏠 Overall corner mean: 84.3
+2025-09-14 19:17:02 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:17:02 - [INFO] -    Edge mean: 87.8
+2025-09-14 19:17:02 - [INFO] -    Dark edges (<50): 258/2660 (9.7%)
+2025-09-14 19:17:02 - [INFO] -    Bright edges (>200): 0/2660 (0.0%)
+2025-09-14 19:17:02 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:17:02 - [INFO] -    Image mean: 91.2
+2025-09-14 19:17:02 - [INFO] -    Dark pixels (<50): 49,947 (11.7%)
+2025-09-14 19:17:02 - [INFO] -    Bright pixels (>200): 15,408 (3.6%)
+2025-09-14 19:17:02 - [INFO] -    Mid-range pixels: 362,946 (84.7%)
+2025-09-14 19:17:02 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:17:02 - [INFO] -    Found 4 peaks: [(30, 20679), (51, 7271), (61, 11034), (81, 118876)]
+2025-09-14 19:17:02 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:17:02 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:17:02 - [INFO] -    ⚠️ Neutral corners (84.3) → No strong signal
+2025-09-14 19:17:02 - [INFO] -    ⚠️ Mixed edges (dark: 9.7%, bright: 0.0%)
+2025-09-14 19:17:02 - [INFO] -    ⚠️ Mid-brightness image (91.2)
+2025-09-14 19:17:02 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:17:02 - [INFO] -    Background Type: BLACK
+2025-09-14 19:17:02 - [INFO] -    Confidence: 0%
+2025-09-14 19:17:02 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:17:02 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 0, 'background_pixels': 49947, 'object_pixels': 378354, 'background_percentage': 11.661658506517613, 'total_pixels': 428301, 'debug_info': {'corner_mean': 84.33375, 'edge_mean': 87.83947368421053, 'image_mean': 91.17237176658472, 'dark_edge_ratio': 0.09699248120300752, 'bright_edge_ratio': 0.0, 'decision_factors': ['⚠️ Neutral corners (84.3) → No strong signal', '⚠️ Mixed edges (dark: 9.7%, bright: 0.0%)', '⚠️ Mid-brightness image (91.2)']}}
+2025-09-14 19:17:02 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:17:02 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:17:02 - [INFO] - Frame shape: (547, 783)
+2025-09-14 19:17:02 - [INFO] - Frame dtype: uint8
+2025-09-14 19:17:02 - [INFO] - Frame range: 28 to 232
+2025-09-14 19:17:02 - [INFO] -   Already uint8: 28 to 232
+2025-09-14 19:17:02 - [INFO] - 📐 Image dimensions: 783x547 (428,301 pixels)
+2025-09-14 19:17:02 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:17:02 - [INFO] - 🏠 Corner means: [85.9575, 83.475, 34.675, 61.0275]
+2025-09-14 19:17:02 - [INFO] - 🏠 Overall corner mean: 66.3
+2025-09-14 19:17:02 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:17:02 - [INFO] -    Edge mean: 69.9
+2025-09-14 19:17:02 - [INFO] -    Dark edges (<50): 931/2660 (35.0%)
+2025-09-14 19:17:02 - [INFO] -    Bright edges (>200): 0/2660 (0.0%)
+2025-09-14 19:17:02 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:17:02 - [INFO] -    Image mean: 103.6
+2025-09-14 19:17:02 - [INFO] -    Dark pixels (<50): 103,373 (24.1%)
+2025-09-14 19:17:02 - [INFO] -    Bright pixels (>200): 46,650 (10.9%)
+2025-09-14 19:17:02 - [INFO] -    Mid-range pixels: 278,278 (65.0%)
+2025-09-14 19:17:02 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:17:02 - [INFO] -    Found 12 peaks: [(30, 71702), (51, 6694), (61, 5429), (86, 64225), (102, 10772), (117, 13969), (132, 6219), (153, 5590), (168, 4449), (193, 6864), (204, 8228), (219, 9112)]
+2025-09-14 19:17:02 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:17:02 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:17:02 - [INFO] -    ⚠️ Neutral corners (66.3) → No strong signal
+2025-09-14 19:17:02 - [INFO] -    ⚠️ Mixed edges (dark: 35.0%, bright: 0.0%)
+2025-09-14 19:17:02 - [INFO] -    ⚠️ Mid-brightness image (103.6)
+2025-09-14 19:17:02 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:17:02 - [INFO] -    Background Type: BLACK
+2025-09-14 19:17:02 - [INFO] -    Confidence: 0%
+2025-09-14 19:17:02 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:17:02 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 0, 'background_pixels': 103373, 'object_pixels': 324928, 'background_percentage': 24.135596227886463, 'total_pixels': 428301, 'debug_info': {'corner_mean': 66.28375, 'edge_mean': 69.92932330827068, 'image_mean': 103.59506515277808, 'dark_edge_ratio': 0.35, 'bright_edge_ratio': 0.0, 'decision_factors': ['⚠️ Neutral corners (66.3) → No strong signal', '⚠️ Mixed edges (dark: 35.0%, bright: 0.0%)', '⚠️ Mid-brightness image (103.6)']}}
+2025-09-14 19:17:02 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:17:02 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:17:02 - [INFO] - Frame shape: (547, 783)
+2025-09-14 19:17:02 - [INFO] - Frame dtype: uint8
+2025-09-14 19:17:02 - [INFO] - Frame range: 9 to 255
+2025-09-14 19:17:02 - [INFO] -   Already uint8: 9 to 255
+2025-09-14 19:17:02 - [INFO] - 📐 Image dimensions: 783x547 (428,301 pixels)
+2025-09-14 19:17:02 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:17:02 - [INFO] - 🏠 Corner means: [213.585, 65.635, 113.7325, 91.3025]
+2025-09-14 19:17:02 - [INFO] - 🏠 Overall corner mean: 121.1
+2025-09-14 19:17:02 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:17:02 - [INFO] -    Edge mean: 129.5
+2025-09-14 19:17:02 - [INFO] -    Dark edges (<50): 61/2660 (2.3%)
+2025-09-14 19:17:02 - [INFO] -    Bright edges (>200): 552/2660 (20.8%)
+2025-09-14 19:17:02 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:17:02 - [INFO] -    Image mean: 111.5
+2025-09-14 19:17:02 - [INFO] -    Dark pixels (<50): 45,961 (10.7%)
+2025-09-14 19:17:02 - [INFO] -    Bright pixels (>200): 50,390 (11.8%)
+2025-09-14 19:17:02 - [INFO] -    Mid-range pixels: 331,950 (77.5%)
+2025-09-14 19:17:02 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:17:02 - [INFO] -    Found 10 peaks: [(10, 6893), (20, 6857), (45, 12141), (61, 39389), (96, 38655), (112, 32188), (147, 10337), (173, 6802), (193, 3390), (209, 24476)]
+2025-09-14 19:17:02 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:17:02 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:17:02 - [INFO] -    ⚠️ Neutral corners (121.1) → No strong signal
+2025-09-14 19:17:02 - [INFO] -    ⚠️ Mixed edges (dark: 2.3%, bright: 20.8%)
+2025-09-14 19:17:02 - [INFO] -    ⚠️ Mid-brightness image (111.5)
+2025-09-14 19:17:02 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:17:02 - [INFO] -    Background Type: BLACK
+2025-09-14 19:17:02 - [INFO] -    Confidence: 0%
+2025-09-14 19:17:02 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:17:02 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 0, 'background_pixels': 45961, 'object_pixels': 382340, 'background_percentage': 10.731004597234188, 'total_pixels': 428301, 'debug_info': {'corner_mean': 121.06375, 'edge_mean': 129.46654135338346, 'image_mean': 111.54739540650151, 'dark_edge_ratio': 0.02293233082706767, 'bright_edge_ratio': 0.2075187969924812, 'decision_factors': ['⚠️ Neutral corners (121.1) → No strong signal', '⚠️ Mixed edges (dark: 2.3%, bright: 20.8%)', '⚠️ Mid-brightness image (111.5)']}}
+2025-09-14 19:17:02 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:17:05 - [INFO] -   DEBUG: Signal received! Processing 2 assignments
+2025-09-14 19:17:05 - [INFO] -   DEBUG: _on_views_configured called with payload keys: ['background_assignments', 'view_assignments']
+2025-09-14 19:17:05 - [INFO] -   DEBUG: view_assignments contains 1 files
+2025-09-14 19:17:05 - [INFO] -    📄 F:\projek dosen\prototype riset\PembuatanDicom\gajelas.dcm
+2025-09-14 19:17:05 - [INFO] - 🎨 Background assignments received: 1 files
+2025-09-14 19:17:05 - [INFO] -   View assignments and background selections configured
+2025-09-14 19:17:05 - [INFO] - Files with assignments: 1
+2025-09-14 19:17:05 - [INFO] - Files with background selections: 1
+2025-09-14 19:17:05 - [INFO] -   DEBUG: Dialog finished, cleaning up...
+2025-09-14 19:17:05 - [INFO] -   DEBUG: View dialog result: 1
+2025-09-14 19:17:05 - [INFO] -   Dialog accepted
+2025-09-14 19:17:08 - [INFO] -   Opening enhanced view configuration dialog...
+2025-09-14 19:17:08 - [INFO] -   DEBUG: Opening view selector with 1 files
+2025-09-14 19:17:08 - [INFO] -   DEBUG: Opening view configuration with 1 files:
+2025-09-14 19:17:08 - [INFO] -    1. gajelas.dcm
+2025-09-14 19:17:08 - [INFO] -      No duplicates found in selected_files
+2025-09-14 19:17:08 - [INFO] -   DEBUG: Connecting signals...
+2025-09-14 19:17:08 - [INFO] -   DEBUG: Executing dialog...
+2025-09-14 19:17:08 - [INFO] -    ⚠️  Generic fallback: ['Frame 1', 'Frame 2', 'Frame 3']
+2025-09-14 19:17:08 - [INFO] -    ⚠️  Non-standard view name: Frame 1
+2025-09-14 19:17:08 - [INFO] -    ⚠️  Non-standard view name: Frame 2
+2025-09-14 19:17:08 - [INFO] -    ⚠️  Non-standard view name: Frame 3
+2025-09-14 19:17:08 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:17:08 - [INFO] - Frame shape: (547, 783)
+2025-09-14 19:17:08 - [INFO] - Frame dtype: uint8
+2025-09-14 19:17:08 - [INFO] - Frame range: 7 to 255
+2025-09-14 19:17:08 - [INFO] -   Already uint8: 7 to 255
+2025-09-14 19:17:08 - [INFO] - 📐 Image dimensions: 783x547 (428,301 pixels)
+2025-09-14 19:17:08 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:17:08 - [INFO] - 🏠 Corner means: [96.1525, 73.42, 84.015, 83.7475]
+2025-09-14 19:17:08 - [INFO] - 🏠 Overall corner mean: 84.3
+2025-09-14 19:17:08 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:17:08 - [INFO] -    Edge mean: 87.8
+2025-09-14 19:17:08 - [INFO] -    Dark edges (<50): 258/2660 (9.7%)
+2025-09-14 19:17:08 - [INFO] -    Bright edges (>200): 0/2660 (0.0%)
+2025-09-14 19:17:08 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:17:08 - [INFO] -    Image mean: 91.2
+2025-09-14 19:17:08 - [INFO] -    Dark pixels (<50): 49,947 (11.7%)
+2025-09-14 19:17:08 - [INFO] -    Bright pixels (>200): 15,408 (3.6%)
+2025-09-14 19:17:08 - [INFO] -    Mid-range pixels: 362,946 (84.7%)
+2025-09-14 19:17:08 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:17:08 - [INFO] -    Found 4 peaks: [(30, 20679), (51, 7271), (61, 11034), (81, 118876)]
+2025-09-14 19:17:08 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:17:08 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:17:08 - [INFO] -    ⚠️ Neutral corners (84.3) → No strong signal
+2025-09-14 19:17:08 - [INFO] -    ⚠️ Mixed edges (dark: 9.7%, bright: 0.0%)
+2025-09-14 19:17:08 - [INFO] -    ⚠️ Mid-brightness image (91.2)
+2025-09-14 19:17:08 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:17:08 - [INFO] -    Background Type: BLACK
+2025-09-14 19:17:08 - [INFO] -    Confidence: 0%
+2025-09-14 19:17:08 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:17:08 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 0, 'background_pixels': 49947, 'object_pixels': 378354, 'background_percentage': 11.661658506517613, 'total_pixels': 428301, 'debug_info': {'corner_mean': 84.33375, 'edge_mean': 87.83947368421053, 'image_mean': 91.17237176658472, 'dark_edge_ratio': 0.09699248120300752, 'bright_edge_ratio': 0.0, 'decision_factors': ['⚠️ Neutral corners (84.3) → No strong signal', '⚠️ Mixed edges (dark: 9.7%, bright: 0.0%)', '⚠️ Mid-brightness image (91.2)']}}
+2025-09-14 19:17:08 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:17:08 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:17:08 - [INFO] - Frame shape: (547, 783)
+2025-09-14 19:17:08 - [INFO] - Frame dtype: uint8
+2025-09-14 19:17:08 - [INFO] - Frame range: 28 to 232
+2025-09-14 19:17:08 - [INFO] -   Already uint8: 28 to 232
+2025-09-14 19:17:08 - [INFO] - 📐 Image dimensions: 783x547 (428,301 pixels)
+2025-09-14 19:17:08 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:17:08 - [INFO] - 🏠 Corner means: [85.9575, 83.475, 34.675, 61.0275]
+2025-09-14 19:17:08 - [INFO] - 🏠 Overall corner mean: 66.3
+2025-09-14 19:17:08 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:17:08 - [INFO] -    Edge mean: 69.9
+2025-09-14 19:17:08 - [INFO] -    Dark edges (<50): 931/2660 (35.0%)
+2025-09-14 19:17:08 - [INFO] -    Bright edges (>200): 0/2660 (0.0%)
+2025-09-14 19:17:08 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:17:08 - [INFO] -    Image mean: 103.6
+2025-09-14 19:17:08 - [INFO] -    Dark pixels (<50): 103,373 (24.1%)
+2025-09-14 19:17:08 - [INFO] -    Bright pixels (>200): 46,650 (10.9%)
+2025-09-14 19:17:08 - [INFO] -    Mid-range pixels: 278,278 (65.0%)
+2025-09-14 19:17:08 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:17:08 - [INFO] -    Found 12 peaks: [(30, 71702), (51, 6694), (61, 5429), (86, 64225), (102, 10772), (117, 13969), (132, 6219), (153, 5590), (168, 4449), (193, 6864), (204, 8228), (219, 9112)]
+2025-09-14 19:17:08 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:17:08 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:17:08 - [INFO] -    ⚠️ Neutral corners (66.3) → No strong signal
+2025-09-14 19:17:08 - [INFO] -    ⚠️ Mixed edges (dark: 35.0%, bright: 0.0%)
+2025-09-14 19:17:08 - [INFO] -    ⚠️ Mid-brightness image (103.6)
+2025-09-14 19:17:08 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:17:08 - [INFO] -    Background Type: BLACK
+2025-09-14 19:17:08 - [INFO] -    Confidence: 0%
+2025-09-14 19:17:08 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:17:08 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 0, 'background_pixels': 103373, 'object_pixels': 324928, 'background_percentage': 24.135596227886463, 'total_pixels': 428301, 'debug_info': {'corner_mean': 66.28375, 'edge_mean': 69.92932330827068, 'image_mean': 103.59506515277808, 'dark_edge_ratio': 0.35, 'bright_edge_ratio': 0.0, 'decision_factors': ['⚠️ Neutral corners (66.3) → No strong signal', '⚠️ Mixed edges (dark: 35.0%, bright: 0.0%)', '⚠️ Mid-brightness image (103.6)']}}
+2025-09-14 19:17:08 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:17:08 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:17:08 - [INFO] - Frame shape: (547, 783)
+2025-09-14 19:17:08 - [INFO] - Frame dtype: uint8
+2025-09-14 19:17:08 - [INFO] - Frame range: 9 to 255
+2025-09-14 19:17:08 - [INFO] -   Already uint8: 9 to 255
+2025-09-14 19:17:08 - [INFO] - 📐 Image dimensions: 783x547 (428,301 pixels)
+2025-09-14 19:17:08 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:17:08 - [INFO] - 🏠 Corner means: [213.585, 65.635, 113.7325, 91.3025]
+2025-09-14 19:17:08 - [INFO] - 🏠 Overall corner mean: 121.1
+2025-09-14 19:17:08 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:17:08 - [INFO] -    Edge mean: 129.5
+2025-09-14 19:17:08 - [INFO] -    Dark edges (<50): 61/2660 (2.3%)
+2025-09-14 19:17:08 - [INFO] -    Bright edges (>200): 552/2660 (20.8%)
+2025-09-14 19:17:08 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:17:08 - [INFO] -    Image mean: 111.5
+2025-09-14 19:17:08 - [INFO] -    Dark pixels (<50): 45,961 (10.7%)
+2025-09-14 19:17:08 - [INFO] -    Bright pixels (>200): 50,390 (11.8%)
+2025-09-14 19:17:08 - [INFO] -    Mid-range pixels: 331,950 (77.5%)
+2025-09-14 19:17:08 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:17:08 - [INFO] -    Found 10 peaks: [(10, 6893), (20, 6857), (45, 12141), (61, 39389), (96, 38655), (112, 32188), (147, 10337), (173, 6802), (193, 3390), (209, 24476)]
+2025-09-14 19:17:08 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:17:08 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:17:08 - [INFO] -    ⚠️ Neutral corners (121.1) → No strong signal
+2025-09-14 19:17:08 - [INFO] -    ⚠️ Mixed edges (dark: 2.3%, bright: 20.8%)
+2025-09-14 19:17:08 - [INFO] -    ⚠️ Mid-brightness image (111.5)
+2025-09-14 19:17:08 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:17:08 - [INFO] -    Background Type: BLACK
+2025-09-14 19:17:08 - [INFO] -    Confidence: 0%
+2025-09-14 19:17:08 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:17:08 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 0, 'background_pixels': 45961, 'object_pixels': 382340, 'background_percentage': 10.731004597234188, 'total_pixels': 428301, 'debug_info': {'corner_mean': 121.06375, 'edge_mean': 129.46654135338346, 'image_mean': 111.54739540650151, 'dark_edge_ratio': 0.02293233082706767, 'bright_edge_ratio': 0.2075187969924812, 'decision_factors': ['⚠️ Neutral corners (121.1) → No strong signal', '⚠️ Mixed edges (dark: 2.3%, bright: 20.8%)', '⚠️ Mid-brightness image (111.5)']}}
+2025-09-14 19:17:08 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:17:12 - [INFO] -   DEBUG: Signal received! Processing 2 assignments
+2025-09-14 19:17:12 - [INFO] -   DEBUG: _on_views_configured called with payload keys: ['background_assignments', 'view_assignments']
+2025-09-14 19:17:12 - [INFO] -   DEBUG: view_assignments contains 1 files
+2025-09-14 19:17:12 - [INFO] -    📄 F:\projek dosen\prototype riset\PembuatanDicom\gajelas.dcm
+2025-09-14 19:17:12 - [INFO] - 🎨 Background assignments received: 1 files
+2025-09-14 19:17:12 - [INFO] -   View assignments and background selections configured
+2025-09-14 19:17:12 - [INFO] - Files with assignments: 1
+2025-09-14 19:17:12 - [INFO] - Files with background selections: 1
+2025-09-14 19:17:12 - [INFO] -   DEBUG: Dialog finished, cleaning up...
+2025-09-14 19:17:12 - [INFO] -   DEBUG: View dialog result: 1
+2025-09-14 19:17:12 - [INFO] -   Dialog accepted
+2025-09-14 19:17:13 - [INFO] - [START_IMPORT] Mulai filter item yang boleh diproses...
+2025-09-14 19:17:13 - [INFO] - [START_IMPORT] assignments: 1 files, list items: 1
+2025-09-14 19:17:13 - [INFO] - [START_IMPORT]   gajelas.dcm flag=None
+2025-09-14 19:17:13 - [INFO] - [START_IMPORT]   -> queued
+2025-09-14 19:17:13 - [INFO] - [START_IMPORT] queued=1, skipped_flagged=0
+2025-09-14 19:17:13 - [INFO] - [START_IMPORT] Start processing...
+2025-09-14 19:17:13 - [INFO] - [START_IMPORT] total to process: 1 (auto=0, manual=1)
+2025-09-14 19:17:13 - [INFO] - [START_IMPORT] Session: HAHH → data/PLANAR/HAHH/[patient_id]/
+2025-09-14 19:17:13 - [INFO] - ## Background assignments provided for 1 files
+2025-09-14 19:17:13 - [INFO] - ## Starting batch import with view assignments: 1 file(s)
+2025-09-14 19:17:13 - [INFO] - ## Session code: HAHH
+2025-09-14 19:17:13 - [INFO] - ## Target directory: data/PLANAR/HAHH/[patient_id]/
+2025-09-14 19:17:13 - [INFO] - ##   DICOM PROTECTION: Original DICOM files will NOT be modified
+2025-09-14 19:17:13 - [INFO] - ##   OUTPUT ONLY: PNG/XML files for analysis results
+2025-09-14 19:17:13 - [INFO] - ## 🎨 BACKGROUND PROCESSING: 1 files have background selections
+2025-09-14 19:17:13 - [INFO] - ## Background conversion: White → Black (for model compatibility)
+2025-09-14 19:17:13 - [INFO] - ## Processing workflow: Copy Original → PNG outputs → Segmentation → YOLO → Otsu → Classification → Quantification → Upload PNG
+2025-09-14 19:17:13 - [INFO] - 
+## Processing file 1/1: gajelas.dcm
+2025-09-14 19:17:13 - [INFO] - 
+=== Processing gajelas.dcm ===
+2025-09-14 19:17:13 - [INFO] -   Patient ID: 123456
+2025-09-14 19:17:13 - [INFO] -   Study Date: 20250914
+2025-09-14 19:17:13 - [INFO] -     Path structure validated: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:13 - [INFO] -  >> Copying ORIGINAL DICOM without modification...
+2025-09-14 19:17:13 - [INFO] -   Copied ORIGINAL → F:\projek dosen\prototype riset\hotspot-analyzer\data\PLA...
+2025-09-14 19:17:13 - [INFO] -  >> Loading ORIGINAL DICOM frames with view assignments...
+2025-09-14 19:17:13 - [INFO] -    ⚠️  Non-standard view name: Frame 3
+2025-09-14 19:17:13 - [INFO] -   Frames detected: ['anterior', 'posterior', 'frame 3']
+2025-09-14 19:17:13 - [INFO] -   >> Processing background selections...
+2025-09-14 19:17:13 - [INFO] -      Processing anterior with black background
+2025-09-14 19:17:13 - [INFO] -   Keeping black background
+2025-09-14 19:17:13 - [INFO] -        anterior background processed
+2025-09-14 19:17:13 - [INFO] -      Processing posterior with black background
+2025-09-14 19:17:13 - [INFO] -   Keeping black background
+2025-09-14 19:17:13 - [INFO] -        posterior background processed
+2025-09-14 19:17:13 - [INFO] -      Using original frame 3 (no background assignment)
+2025-09-14 19:17:13 - [INFO] -     Background processing completed
+2025-09-14 19:17:13 - [INFO] -   >> Normalized 'anterior' → 'Anterior'
+2025-09-14 19:17:13 - [INFO] -   >> Normalized 'posterior' → 'Posterior'
+2025-09-14 19:17:13 - [INFO] -   [WARN] Unknown view name: frame 3
+2025-09-14 19:17:13 - [INFO] -     Final views: ['Anterior', 'Posterior', 'frame 3']
+2025-09-14 19:17:13 - [INFO] -     Normalized views: ['Anterior', 'Posterior', 'frame 3']
+2025-09-14 19:17:13 - [INFO] -   >> Saving original frames for classification...
+2025-09-14 19:17:13 - [INFO] -      Original frame saved: ant_original.png
+2025-09-14 19:17:13 - [INFO] -      Original frame saved: post_original.png
+2025-09-14 19:17:13 - [INFO] -   [WARN] Skipping non-standard view: frame 3
+2025-09-14 19:17:13 - [INFO] -   >> Generating segmentation masks and colored overlays...
+2025-09-14 19:17:13 - [INFO] -   >> [1/3] Processing Anterior
+2025-09-14 19:17:13 - [INFO] -      Segmenting bone mask...
+2025-09-14 19:17:13 - [INFO] - [SAFE_INFERENCE] Running predict_bone_mask
+2025-09-14 19:17:13 - [INFO] - [MEMORY] predict_bone_mask - Before: 433.4 MB
+2025-09-14 19:17:13 - [INFO] - [INFO]  Starting bone mask segmentation...
+2025-09-14 19:17:13 - [INFO] - [INFO]  Input image shape: (547, 783), dtype: uint8
+2025-09-14 19:17:13 - [INFO] - [INFO]  Preprocessing: resizing to (256, 1024)...
+2025-09-14 19:17:13 - [INFO] - [INFO]  Preprocessing completed
+2025-09-14 19:17:13 - [INFO] - [INFO]  Loading segmentation model...
+2025-09-14 19:17:15 - [INFO] - [INFO]  Loading bone segmentation model...
+2025-09-14 19:17:15 - [INFO] - [INFO]  Model path: F:\projek dosen\prototype riset\hotspot-analyzer\models\s...
+2025-09-14 19:17:15 - [INFO] - [INFO]  CUDA available: False – using cpu
+2025-09-14 19:17:15 - [INFO] - [INFO]  Primary predictor created successfully (Device: cpu)
+2025-09-14 19:17:15 - [INFO] - [INFO]  Switching to CPU-only fallback configuration.
+2025-09-14 19:17:15 - [INFO] - [INFO]  Initializing model from trained weights on device: cpu...
+2025-09-14 19:17:16 - [DEBUG] - Loaded backend agg version v2.2.
+2025-09-14 19:17:21 - [INFO] - [INFO]  Bone segmentation model loaded successfully
+2025-09-14 19:17:21 - [INFO] - [INFO]  Performing bone segmentation inference...
+2025-09-14 19:17:21 - [INFO] - [INFO]  Running sliding window inference...
+2025-09-14 19:17:21 - [INFO] - [INFO]  Input image shape: (1024, 256)
+2025-09-14 19:17:22 - [INFO] - [INFO]  Prediction completed, output shape: (1024, 256)
+2025-09-14 19:17:22 - [INFO] - [INFO]  Segmentation completed in 9.14s
+2025-09-14 19:17:22 - [INFO] - [INFO]  Output mask shape: (1024, 256)
+2025-09-14 19:17:22 - [INFO] - [INFO]  Unique labels found: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+2025-09-14 19:17:22 - [INFO] - [INFO]  Returning raw segmentation mask
+2025-09-14 19:17:22 - [INFO] - [MEMORY] predict_bone_mask - After: 1308.9 MB (diff: +875.5 MB)
+2025-09-14 19:17:22 - [INFO] - [SAFE_INFERENCE] Completed predict_bone_mask
+2025-09-14 19:17:22 - [INFO] - [SAFE_INFERENCE] Post-cleanup for predict_bone_mask
+2025-09-14 19:17:22 - [INFO] - [CLEANUP] nnUNet cache cleared
+2025-09-14 19:17:22 - [INFO] - No valid config parameter, using defaults: {'minimumROIDimensions': 2, 'minimumROISize': None, 'normalize': False, 'normalizeScale': 1, 'removeOutliers': None, 'resampledPixelSpacing': None, 'interpolator': 'sitkBSpline', 'preCrop': False, 'padDistance': 5, 'distances': [1], 'force2D': False, 'force2Ddimension': 0, 'resegmentRange': None, 'label': 1, 'additionalInfo': True}
+2025-09-14 19:17:22 - [INFO] - Enabled image types: {'Original': {}}
+2025-09-14 19:17:22 - [INFO] - Enabled features: {'firstorder': [], 'glcm': [], 'gldm': [], 'glrlm': [], 'glszm': [], 'ngtdm': [], 'shape': []}
+2025-09-14 19:17:22 - [INFO] - [CLEANUP] Classification models cleared
+2025-09-14 19:17:22 - [INFO] - [CLEANUP] Complete model cleanup finished
+2025-09-14 19:17:22 - [INFO] -      Generating colored overlay...
+2025-09-14 19:17:22 - [INFO] - [SAFE_INFERENCE] Running predict_bone_mask
+2025-09-14 19:17:22 - [INFO] - [MEMORY] predict_bone_mask - Before: 1415.8 MB
+2025-09-14 19:17:22 - [INFO] - [INFO]  Starting bone mask segmentation...
+2025-09-14 19:17:22 - [INFO] - [INFO]  Input image shape: (547, 783), dtype: uint8
+2025-09-14 19:17:22 - [INFO] - [INFO]  Preprocessing: resizing to (256, 1024)...
+2025-09-14 19:17:22 - [INFO] - [INFO]  Preprocessing completed
+2025-09-14 19:17:22 - [INFO] - [INFO]  Loading segmentation model...
+2025-09-14 19:17:22 - [INFO] - [INFO]  Loading bone segmentation model...
+2025-09-14 19:17:22 - [INFO] - [INFO]  Model path: F:\projek dosen\prototype riset\hotspot-analyzer\models\s...
+2025-09-14 19:17:22 - [INFO] - [INFO]  CUDA available: False – using cpu
+2025-09-14 19:17:22 - [INFO] - [INFO]  Primary predictor created successfully (Device: cpu)
+2025-09-14 19:17:22 - [INFO] - [INFO]  Switching to CPU-only fallback configuration.
+2025-09-14 19:17:22 - [INFO] - [INFO]  Initializing model from trained weights on device: cpu...
+2025-09-14 19:17:24 - [INFO] - [INFO]  Bone segmentation model loaded successfully
+2025-09-14 19:17:24 - [INFO] - [INFO]  Performing bone segmentation inference...
+2025-09-14 19:17:24 - [INFO] - [INFO]  Running sliding window inference...
+2025-09-14 19:17:24 - [INFO] - [INFO]  Input image shape: (1024, 256)
+2025-09-14 19:17:25 - [INFO] - [INFO]  Prediction completed, output shape: (1024, 256)
+2025-09-14 19:17:25 - [INFO] - [INFO]  Segmentation completed in 2.79s
+2025-09-14 19:17:25 - [INFO] - [INFO]  Output mask shape: (1024, 256)
+2025-09-14 19:17:25 - [INFO] - [INFO]  Unique labels found: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+2025-09-14 19:17:25 - [INFO] - [INFO]  Converting mask to colored RGB image...
+2025-09-14 19:17:25 - [INFO] - [INFO]  RGB conversion completed, shape: (1024, 256, 3)
+2025-09-14 19:17:25 - [INFO] - [MEMORY] predict_bone_mask - After: 1470.4 MB (diff: +54.6 MB)
+2025-09-14 19:17:25 - [INFO] - [SAFE_INFERENCE] Completed predict_bone_mask
+2025-09-14 19:17:25 - [INFO] - [SAFE_INFERENCE] Post-cleanup for predict_bone_mask
+2025-09-14 19:17:25 - [INFO] - [CLEANUP] nnUNet cache cleared
+2025-09-14 19:17:25 - [INFO] - [CLEANUP] Classification models cleared
+2025-09-14 19:17:25 - [INFO] - [CLEANUP] Complete model cleanup finished
+2025-09-14 19:17:25 - [INFO] -      Segmentation completed for Anterior
+2025-09-14 19:17:25 - [INFO] -        Saved: ant_mask.png, ant_segm.png
+2025-09-14 19:17:25 - [INFO] -   >> [2/3] Processing Posterior
+2025-09-14 19:17:25 - [INFO] -      Segmenting bone mask...
+2025-09-14 19:17:25 - [INFO] - [SAFE_INFERENCE] Running predict_bone_mask
+2025-09-14 19:17:25 - [INFO] - [MEMORY] predict_bone_mask - Before: 1467.2 MB
+2025-09-14 19:17:25 - [INFO] - [INFO]  Starting bone mask segmentation...
+2025-09-14 19:17:25 - [INFO] - [INFO]  Input image shape: (547, 783), dtype: uint8
+2025-09-14 19:17:25 - [INFO] - [INFO]  Preprocessing: resizing to (256, 1024)...
+2025-09-14 19:17:25 - [INFO] - [INFO]  Preprocessing completed
+2025-09-14 19:17:25 - [INFO] - [INFO]  Loading segmentation model...
+2025-09-14 19:17:25 - [INFO] - [INFO]  Loading bone segmentation model...
+2025-09-14 19:17:25 - [INFO] - [INFO]  Model path: F:\projek dosen\prototype riset\hotspot-analyzer\models\s...
+2025-09-14 19:17:25 - [INFO] - [INFO]  CUDA available: False – using cpu
+2025-09-14 19:17:25 - [INFO] - [INFO]  Primary predictor created successfully (Device: cpu)
+2025-09-14 19:17:25 - [INFO] - [INFO]  Switching to CPU-only fallback configuration.
+2025-09-14 19:17:25 - [INFO] - [INFO]  Initializing model from trained weights on device: cpu...
+2025-09-14 19:17:27 - [INFO] - [INFO]  Bone segmentation model loaded successfully
+2025-09-14 19:17:27 - [INFO] - [INFO]  Performing bone segmentation inference...
+2025-09-14 19:17:27 - [INFO] - [INFO]  Running sliding window inference...
+2025-09-14 19:17:27 - [INFO] - [INFO]  Input image shape: (1024, 256)
+2025-09-14 19:17:27 - [INFO] - [INFO]  Prediction completed, output shape: (1024, 256)
+2025-09-14 19:17:27 - [INFO] - [INFO]  Segmentation completed in 2.02s
+2025-09-14 19:17:27 - [INFO] - [INFO]  Output mask shape: (1024, 256)
+2025-09-14 19:17:27 - [INFO] - [INFO]  Unique labels found: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+2025-09-14 19:17:27 - [INFO] - [INFO]  Returning raw segmentation mask
+2025-09-14 19:17:27 - [INFO] - [MEMORY] predict_bone_mask - After: 1469.1 MB (diff: +2.0 MB)
+2025-09-14 19:17:27 - [INFO] - [SAFE_INFERENCE] Completed predict_bone_mask
+2025-09-14 19:17:27 - [INFO] - [SAFE_INFERENCE] Post-cleanup for predict_bone_mask
+2025-09-14 19:17:27 - [INFO] - [CLEANUP] nnUNet cache cleared
+2025-09-14 19:17:27 - [INFO] - [CLEANUP] Classification models cleared
+2025-09-14 19:17:28 - [INFO] - [CLEANUP] Complete model cleanup finished
+2025-09-14 19:17:28 - [INFO] -      Generating colored overlay...
+2025-09-14 19:17:28 - [INFO] - [SAFE_INFERENCE] Running predict_bone_mask
+2025-09-14 19:17:28 - [INFO] - [MEMORY] predict_bone_mask - Before: 1469.2 MB
+2025-09-14 19:17:28 - [INFO] - [INFO]  Starting bone mask segmentation...
+2025-09-14 19:17:28 - [INFO] - [INFO]  Input image shape: (547, 783), dtype: uint8
+2025-09-14 19:17:28 - [INFO] - [INFO]  Preprocessing: resizing to (256, 1024)...
+2025-09-14 19:17:28 - [INFO] - [INFO]  Preprocessing completed
+2025-09-14 19:17:28 - [INFO] - [INFO]  Loading segmentation model...
+2025-09-14 19:17:28 - [INFO] - [INFO]  Loading bone segmentation model...
+2025-09-14 19:17:28 - [INFO] - [INFO]  Model path: F:\projek dosen\prototype riset\hotspot-analyzer\models\s...
+2025-09-14 19:17:28 - [INFO] - [INFO]  CUDA available: False – using cpu
+2025-09-14 19:17:28 - [INFO] - [INFO]  Primary predictor created successfully (Device: cpu)
+2025-09-14 19:17:28 - [INFO] - [INFO]  Switching to CPU-only fallback configuration.
+2025-09-14 19:17:28 - [INFO] - [INFO]  Initializing model from trained weights on device: cpu...
+2025-09-14 19:17:29 - [INFO] - [INFO]  Bone segmentation model loaded successfully
+2025-09-14 19:17:29 - [INFO] - [INFO]  Performing bone segmentation inference...
+2025-09-14 19:17:29 - [INFO] - [INFO]  Running sliding window inference...
+2025-09-14 19:17:29 - [INFO] - [INFO]  Input image shape: (1024, 256)
+2025-09-14 19:17:30 - [INFO] - [INFO]  Prediction completed, output shape: (1024, 256)
+2025-09-14 19:17:30 - [INFO] - [INFO]  Segmentation completed in 2.04s
+2025-09-14 19:17:30 - [INFO] - [INFO]  Output mask shape: (1024, 256)
+2025-09-14 19:17:30 - [INFO] - [INFO]  Unique labels found: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+2025-09-14 19:17:30 - [INFO] - [INFO]  Converting mask to colored RGB image...
+2025-09-14 19:17:30 - [INFO] - [INFO]  RGB conversion completed, shape: (1024, 256, 3)
+2025-09-14 19:17:30 - [INFO] - [MEMORY] predict_bone_mask - After: 1480.6 MB (diff: +11.4 MB)
+2025-09-14 19:17:30 - [INFO] - [SAFE_INFERENCE] Completed predict_bone_mask
+2025-09-14 19:17:30 - [INFO] - [SAFE_INFERENCE] Post-cleanup for predict_bone_mask
+2025-09-14 19:17:30 - [INFO] - [CLEANUP] nnUNet cache cleared
+2025-09-14 19:17:30 - [INFO] - [CLEANUP] Classification models cleared
+2025-09-14 19:17:30 - [INFO] - [CLEANUP] Complete model cleanup finished
+2025-09-14 19:17:30 - [INFO] -      Segmentation completed for Posterior
+2025-09-14 19:17:30 - [INFO] -        Saved: post_mask.png, post_segm.png
+2025-09-14 19:17:30 - [INFO] -   [WARN] Skipping segmentation for non-standard view: frame 3
+2025-09-14 19:17:30 - [INFO] -   >> Running YOLO hotspot detection...
+2025-09-14 19:17:30 - [INFO] - [SAFE_INFERENCE] Running run_yolo_detection_wrapper
+2025-09-14 19:17:30 - [INFO] - [MEMORY] run_yolo_detection_wrapper - Before: 1477.8 MB
+2025-09-14 19:17:30 - [INFO] - [YOLO WRAPPER] Starting YOLO detection for 123456
+2025-09-14 19:17:30 - [INFO] - [YOLO WRAPPER] Model path: F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\models\model_detection_hs_yolov8.pt
+2025-09-14 19:17:30 - [INFO] - [YOLO WRAPPER] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:30 - [INFO] - [SAFE_INFERENCE] Running run_yolo_detection_for_patient
+2025-09-14 19:17:30 - [INFO] - [MEMORY] run_yolo_detection_for_patient - Before: 1477.9 MB
+2025-09-14 19:17:30 - [INFO] - [YOLO WRAPPER] Starting detection for patient 123456
+2025-09-14 19:17:30 - [INFO] - [YOLO WRAPPER] DICOM file: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:30 - [INFO] - [YOLO] FORCING model load - application requires YOLO functionality
+2025-09-14 19:17:30 - [INFO] - [YOLO WRAPPER] Extracted session from path: HAHH
+2025-09-14 19:17:30 - [INFO] - [DETECTION] Processing DICOM: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:30 - [INFO] - [DETECTION] FORCED YOLO execution - application requires this functionality
+2025-09-14 19:17:30 - [INFO] -    ⚠️  Generic fallback: ['Frame 1', 'Frame 2', 'Frame 3']
+2025-09-14 19:17:30 - [INFO] -    ⚠️  Non-standard view name: Frame 1
+2025-09-14 19:17:30 - [INFO] -    ⚠️  Non-standard view name: Frame 2
+2025-09-14 19:17:30 - [INFO] -    ⚠️  Non-standard view name: Frame 3
+2025-09-14 19:17:30 - [INFO] - [DETECTION] Patient: 123456, Session: HAHH, Study Date: 20250914
+2025-09-14 19:17:30 - [INFO] - [DETECTION] Loaded 3 frames: ['frame 1', 'frame 2', 'frame 3']
+2025-09-14 19:17:30 - [INFO] - [DETECTION WARNING] Unknown view 'frame 1', defaulting to anterior
+2025-09-14 19:17:30 - [INFO] - [DETECTION] Processing view: frame 1 -> anterior
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES] Final selection for ant:
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_yolo.xml (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_colored.png (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_colored_blend.png (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_grayscale.png (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [DETECTION] Running YOLO on anterior view...
+2025-09-14 19:17:30 - [INFO] - [YOLO] FORCING model load - application critical functionality
+2025-09-14 19:17:30 - [INFO] - [YOLO] Loading model on-demand (FORCED, thread-safe)...
+2025-09-14 19:17:30 - [INFO] - [YOLO] FORCING model initialization - critical for application
+2025-09-14 19:17:30 - [INFO] - [YOLO] Attempting to load model from: F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\models\model_detection_hs_yolov8.pt
+2025-09-14 19:17:30 - [INFO] - [YOLO] Model loaded successfully (FORCED CPU mode)
+2025-09-14 19:17:30 - [INFO] - [DETECTION] No detections found, creating empty XML for pipeline continuity
+2025-09-14 19:17:30 - [INFO] - [DETECTION] No hotspots detected in anterior
+2025-09-14 19:17:30 - [INFO] - [XML] Saved detection XML to: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_yolo.xml
+2025-09-14 19:17:30 - [INFO] - [DETECTION WARNING] Unknown view 'frame 2', defaulting to anterior
+2025-09-14 19:17:30 - [INFO] - [DETECTION] Processing view: frame 2 -> anterior
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES] Final selection for ant:
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_yolo.xml (exists: True, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_colored.png (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_colored_blend.png (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_grayscale.png (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [DETECTION] XML already exists for anterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_yolo.xml
+2025-09-14 19:17:30 - [INFO] - [DETECTION WARNING] Unknown view 'frame 3', defaulting to anterior
+2025-09-14 19:17:30 - [INFO] - [DETECTION] Processing view: frame 3 -> anterior
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES] Final selection for ant:
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_yolo.xml (exists: True, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_colored.png (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_colored_blend.png (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_grayscale.png (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png (exists: False, type: original)
+2025-09-14 19:17:30 - [INFO] - [DETECTION] XML already exists for anterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_yolo.xml
+2025-09-14 19:17:30 - [INFO] - [YOLO WRAPPER] Detection completed:
+2025-09-14 19:17:30 - [INFO] -   Anterior: ✓
+2025-09-14 19:17:30 - [INFO] -   Posterior: ✗
+2025-09-14 19:17:30 - [INFO] - [MEMORY] run_yolo_detection_for_patient - After: 1496.0 MB (diff: +18.0 MB)
+2025-09-14 19:17:30 - [INFO] - [SAFE_INFERENCE] Completed run_yolo_detection_for_patient
+2025-09-14 19:17:30 - [INFO] - [SAFE_INFERENCE] Post-cleanup for run_yolo_detection_for_patient
+2025-09-14 19:17:30 - [INFO] - [CLEANUP] YOLO model cleared
+2025-09-14 19:17:30 - [INFO] - [CLEANUP] nnUNet cache cleared
+2025-09-14 19:17:30 - [INFO] - [CLEANUP] Classification models cleared
+2025-09-14 19:17:30 - [INFO] - [CLEANUP] Complete model cleanup finished
+2025-09-14 19:17:30 - [INFO] - [YOLO WRAPPER] Detection completed with results: {'anterior': True, 'posterior': False}
+2025-09-14 19:17:30 - [INFO] - [MEMORY] run_yolo_detection_wrapper - After: 1496.0 MB (diff: +18.2 MB)
+2025-09-14 19:17:30 - [INFO] - [SAFE_INFERENCE] Completed run_yolo_detection_wrapper
+2025-09-14 19:17:30 - [INFO] - [SAFE_INFERENCE] Post-cleanup for run_yolo_detection_wrapper
+2025-09-14 19:17:30 - [INFO] - [CLEANUP] nnUNet cache cleared
+2025-09-14 19:17:30 - [INFO] - [CLEANUP] Classification models cleared
+2025-09-14 19:17:31 - [INFO] - [CLEANUP] Complete model cleanup finished
+2025-09-14 19:17:31 - [INFO] -      YOLO detection completed - XML files created
+2025-09-14 19:17:31 - [INFO] -   >> Running Otsu hotspot processing...
+2025-09-14 19:17:31 - [INFO] - [SAFE_INFERENCE] Running run_hotspot_processing_in_process
+2025-09-14 19:17:31 - [INFO] - [MEMORY] run_hotspot_processing_in_process - Before: 1496.0 MB
+2025-09-14 19:17:31 - [INFO] - --- MENJALANKAN FUNGSI HOTSPOT DENGAN LOGIKA PENYIMPANAN FILE ---
+2025-09-14 19:17:31 - [INFO] -    ⚠️  Generic fallback: ['Frame 1', 'Frame 2', 'Frame 3']
+2025-09-14 19:17:31 - [INFO] -    ⚠️  Non-standard view name: Frame 1
+2025-09-14 19:17:31 - [INFO] -    ⚠️  Non-standard view name: Frame 2
+2025-09-14 19:17:31 - [INFO] -    ⚠️  Non-standard view name: Frame 3
+2025-09-14 19:17:31 - [INFO] - [SESSION] Found session code from config: HAHH
+2025-09-14 19:17:31 - [INFO] - [DEBUG] Using session: HAHH, patient: 123456, study_date: 20250914
+2025-09-14 19:17:31 - [INFO] - [DEBUG] Expected patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:31 - [INFO] - 
+  [DEBUG PRIORITY GANTENG] ===================
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY] Looking for: ant_hotspot_classification.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY] In path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY] Session code: None
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY] Original file: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY] Original exists: False
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY] File is editable, checking for timestamp version...
+2025-09-14 19:17:31 - [INFO] - 
+  [DEBUG TIMESTAMP GANTENG] ===================
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] Looking for: ant_hotspot_classification.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] In folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] Session code: None
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] Is editable: True
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] Folder contents:
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_hotspot_yolo.xml
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_mask.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_original.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_segm.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: gajelas.dcm
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_mask.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_original.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_segm.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] Running get_latest_timestamp_file...
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] Result: None
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY]  No edited version found
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY]  No file found at all
+2025-09-14 19:17:31 - [INFO] - [PRIORITY] Using original PNG: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES] Final selection for ant:
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_yolo.xml (exists: True, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_colored.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_colored_blend.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_grayscale.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - 
+  [DEBUG PRIORITY GANTENG] ===================
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY] Looking for: post_hotspot_classification.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY] In path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY] Session code: None
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY] Original file: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY] Original exists: False
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY] File is editable, checking for timestamp version...
+2025-09-14 19:17:31 - [INFO] - 
+  [DEBUG TIMESTAMP GANTENG] ===================
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] Looking for: post_hotspot_classification.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] In folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] Session code: None
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] Is editable: True
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] Folder contents:
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_hotspot_yolo.xml
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_mask.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_original.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: ant_segm.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: gajelas.dcm
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_mask.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_original.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP]   FILE: post_segm.png
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] Running get_latest_timestamp_file...
+2025-09-14 19:17:31 - [INFO] -   [DEBUG TIMESTAMP] Result: None
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY]  No edited version found
+2025-09-14 19:17:31 - [INFO] -   [DEBUG PRIORITY]  No file found at all
+2025-09-14 19:17:31 - [INFO] - [PRIORITY] Using original PNG: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES] Final selection for post:
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_yolo.xml (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_otsu_colored.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_otsu_colored_blend.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_otsu_grayscale.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.xml (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [PROCESS] Hotspot processing completed for gajelas.dcm
+2025-09-14 19:17:31 - [INFO] - [MEMORY] run_hotspot_processing_in_process - After: 1497.0 MB (diff: +1.0 MB)
+2025-09-14 19:17:31 - [INFO] - [SAFE_INFERENCE] Completed run_hotspot_processing_in_process
+2025-09-14 19:17:31 - [INFO] - [SAFE_INFERENCE] Post-cleanup for run_hotspot_processing_in_process
+2025-09-14 19:17:31 - [INFO] - [CLEANUP] nnUNet cache cleared
+2025-09-14 19:17:31 - [INFO] - [CLEANUP] Classification models cleared
+2025-09-14 19:17:31 - [INFO] - [CLEANUP] Complete model cleanup finished
+2025-09-14 19:17:31 - [INFO] -      Otsu processing completed - hotspot PNG files created
+2025-09-14 19:17:31 - [INFO] -   >> Running hotspot classification inference...
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES] Final selection for ant:
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_yolo.xml (exists: True, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_colored.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_colored_blend.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_grayscale.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES] Final selection for post:
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   yolo_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_yolo.xml (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   otsu_colored: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_otsu_colored.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   otsu_colored_blend: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_otsu_colored_blend.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   otsu_grayscale: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_otsu_grayscale.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   classification_xml: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.xml (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] - [HOTSPOT FILES]   classification_png: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png (exists: False, type: original)
+2025-09-14 19:17:31 - [INFO] -      Mapped: ant_original.png -> 123456_20250914_anterior_original.png
+2025-09-14 19:17:31 - [INFO] -      Mapped: post_original.png -> 123456_20250914_posterior_original.png
+2025-09-14 19:17:31 - [INFO] -      Mapped: ant_segm.png -> 123456_20250914_anterior_colored.png
+2025-09-14 19:17:31 - [INFO] -      Mapped: post_segm.png -> 123456_20250914_posterior_colored.png
+2025-09-14 19:17:31 - [INFO] -      Missing: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_otsu_grayscale.png -> 123456_20250914_ant_hotspot_mask.png
+2025-09-14 19:17:31 - [INFO] -      Missing: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_otsu_grayscale.png -> 123456_20250914_post_hotspot_mask.png
+2025-09-14 19:17:31 - [INFO] -      Mapped: ant_hotspot_yolo.xml -> 123456_20250914_ant.xml
+2025-09-14 19:17:31 - [INFO] -      Missing: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_yolo.xml -> 123456_20250914_post.xml
+2025-09-14 19:17:31 - [INFO] -      Successfully mapped 5 files for classification
+2025-09-14 19:17:31 - [INFO] -      Running classification in temp directory: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\temp_classification
+2025-09-14 19:17:31 - [INFO] - [SAFE_INFERENCE] Running run_classification_for_patient
+2025-09-14 19:17:31 - [INFO] - [MEMORY] run_classification_for_patient - Before: 1488.8 MB
+2025-09-14 19:17:31 - [INFO] - [CLASSIFICATION] Starting classification for patient 123456
+2025-09-14 19:17:31 - [INFO] - [SESSION] Found session code from config: HAHH
+2025-09-14 19:17:31 - [INFO] - [CLASSIFICATION] Using session: HAHH
+2025-09-14 19:17:31 - [INFO] - >>>>>> [BUKTI] MEMUAT classification_wrapper.py VERSI TERBARU <<<<<<
+2025-09-14 19:17:31 - [INFO] -      Starting classification for patient 123456
+2025-09-14 19:17:31 - [INFO] -      Study date: 20250914
+2025-09-14 19:17:31 - [INFO] -      Session: 123456
+2025-09-14 19:17:31 - [INFO] -      Grayscale conversion: Enabled
+2025-09-14 19:17:31 - [INFO] -      Processing anterior view with grayscale conversion...
+2025-09-14 19:17:31 - [INFO] -        Found raw_original: 123456_20250914_anterior_original.png
+2025-09-14 19:17:31 - [INFO] -        Found region_mask: 123456_20250914_anterior_colored.png
+2025-09-14 19:17:31 - [INFO] -        Found xml_file: 123456_20250914_ant.xml
+2025-09-14 19:17:31 - [INFO] -      Missing files for anterior: hotspot_mask (123456_20250914_ant_hotspot_mask.png)
+2025-09-14 19:17:31 - [INFO] -      Processing posterior view with grayscale conversion...
+2025-09-14 19:17:31 - [INFO] -        Found raw_original: 123456_20250914_posterior_original.png
+2025-09-14 19:17:31 - [INFO] -        Found region_mask: 123456_20250914_posterior_colored.png
+2025-09-14 19:17:31 - [INFO] -      Missing files for posterior: hotspot_mask (123456_20250914_post_hotspot_mask.png), xml_file (123456_20250914_post.xml)
+2025-09-14 19:17:31 - [INFO] -      Classification failed for all views
+2025-09-14 19:17:31 - [INFO] - [CLASSIFICATION] Classification failed
+2025-09-14 19:17:31 - [INFO] - [MEMORY] run_classification_for_patient - After: 1489.0 MB (diff: +0.3 MB)
+2025-09-14 19:17:31 - [INFO] - [SAFE_INFERENCE] Completed run_classification_for_patient
+2025-09-14 19:17:31 - [INFO] - [SAFE_INFERENCE] Post-cleanup for run_classification_for_patient
+2025-09-14 19:17:31 - [INFO] - [CLEANUP] nnUNet cache cleared
+2025-09-14 19:17:31 - [INFO] - [CLEANUP] Classification models cleared
+2025-09-14 19:17:31 - [INFO] - [CLEANUP] Complete model cleanup finished
+2025-09-14 19:17:31 - [INFO] -        Cleaned up temp directory
+2025-09-14 19:17:31 - [INFO] -      Classification completed - no classifications generated
+2025-09-14 19:17:31 - [INFO] -   >> Running BSI quantification with classification masks...
+2025-09-14 19:17:31 - [INFO] - [SESSION] Found session code from config: HAHH
+2025-09-14 19:17:31 - [INFO] - [PROCESSING] Running V1.2 quantification for patient 123456 in session HAHH
+2025-09-14 19:17:31 - [INFO] -      Starting V1.2 BSI quantification for patient 123456
+2025-09-14 19:17:31 - [INFO] -      New workflow: Color-based segmentation + Single/Dual view processing
+2025-09-14 19:17:31 - [INFO] - 
+🔧 [DEBUG WRAPPER GANTENG] ===================
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER] Getting quantification input paths:
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER]   Patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER]   Filename stem: 123456_20250914
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER]   Folder exists: True
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER] Classification files:
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER]   Anterior mask: False
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER]   Posterior mask: False
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER] Segmentation files:
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER]   Anterior seg: True
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER]   Posterior seg: True
+2025-09-14 19:17:31 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:31 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:31 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-14 19:17:31 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_ant.json (exists: False)
+2025-09-14 19:17:31 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_post.json (exists: False)
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER] Final paths:
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER]   segmentation_anterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_segm.png (exists: True)
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER]   segmentation_posterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_segm.png (exists: True)
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER]   hotspot_anterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png (exists: False)
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER]   hotspot_posterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png (exists: False)
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER]   output_anterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_ant.json (exists: False)
+2025-09-14 19:17:31 - [INFO] - 🔧 [DEBUG WRAPPER]   output_posterior: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_post.json (exists: False)
+2025-09-14 19:17:31 - [INFO] -      Cannot proceed with V1.2 quantification. Missing files: hotspot_anterior (ant_hotspot_classification.png), hotspot_posterior (post_hotspot_classification.png)
+2025-09-14 19:17:31 - [INFO] -      Need at least ONE complete pair (anterior OR posterior segmentation + classification)
+2025-09-14 19:17:31 - [INFO] - [PROCESSING]  V1.2 quantification failed for 123456
+2025-09-14 19:17:31 - [INFO] -      BSI quantification failed - missing required files
+2025-09-14 19:17:31 - [INFO] -   >> Cloud storage disabled - skipping upload
+2025-09-14 19:17:31 - [INFO] -     DICOM processing completed - ORIGINAL DICOM UNTOUCHED
+2025-09-14 19:17:31 - [INFO] -   Files saved locally: 6 PNG output files
+2025-09-14 19:17:31 - [INFO] -   Views processed: ['Anterior', 'Posterior', 'frame 3']
+2025-09-14 19:17:31 - [INFO] -   ORIGINAL DICOM: gajelas.dcm (NO MODIFICATION)
+2025-09-14 19:17:31 - [INFO] - ## File 1/1 completed successfully - ORIGINAL DICOM PRESERVED
+2025-09-14 19:17:31 - [INFO] - ## Batch import process completed
+2025-09-14 19:17:31 - [INFO] - ##   DICOM PROTECTION: All original DICOM files preserved without modification
+2025-09-14 19:17:31 - [INFO] - ##   OUTPUT GENERATION: PNG/XML analysis files created successfully
+2025-09-14 19:17:31 - [INFO] - ##   CLOUD UPLOAD: Original PNG files uploaded to cloud storage
+2025-09-14 19:17:31 - [INFO] - ## All files use study date naming convention with proper view names.
+2025-09-14 19:17:31 - [INFO] - 🎉 Enhanced import workflow completed!
+2025-09-14 19:17:31 - [INFO] - All files processed with proper Anterior/Posterior naming
+2025-09-14 19:17:31 - [INFO] -   Successfully processed: All 1 manually configured files
+2025-09-14 19:17:31 - [INFO] - Rescanning folder...
+2025-09-14 19:17:31 - [INFO] - Ditemukan 82 file DICOM di 'F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR'
+2025-09-14 19:17:31 - [INFO] - Ditemukan 9 session, 70 pasien (total 82 file DICOM).
+2025-09-14 19:17:31 - [INFO] -     ALL: 1 pasien, 1 file
+2025-09-14 19:17:31 - [INFO] -     ATL: 4 pasien, 4 file
+2025-09-14 19:17:31 - [INFO] -     HAH: 14 pasien, 14 file
+2025-09-14 19:17:31 - [INFO] -     HAHH: 38 pasien, 38 file
+2025-09-14 19:17:31 - [INFO] -     HEHE: 2 pasien, 2 file
+2025-09-14 19:17:31 - [INFO] -     NBL: 1 pasien, 5 file
+2025-09-14 19:17:31 - [INFO] -     NSY: 4 pasien, 8 file
+2025-09-14 19:17:31 - [INFO] -     PVSA: 2 pasien, 2 file
+2025-09-14 19:17:31 - [INFO] -     WKW: 4 pasien, 8 file
+2025-09-14 19:17:31 - [INFO] - [DEBUG] display_timeline called with 0 scan(s), focusing on index = -1
+2025-09-14 19:17:31 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:31 - [INFO] - [BSI SIDE PANEL] Clearing data...
+2025-09-14 19:17:40 - [INFO] - [DEBUG] item activated → ID: 123456 (HAHH) @ index 14
+2025-09-14 19:17:40 - [INFO] - [DEBUG] item activated → ID: 123456 (HAHH)
+2025-09-14 19:17:40 - [INFO] - 
+  [DEBUG PATHS GANTENG] ===================
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS] Patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS] Patient ID: 123456
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS] Folder exists: True
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS] Folder structure:
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]   DIR:  20250914/
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]     Study date folder contents:
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]       FILE: ant_hotspot_yolo.xml (350 bytes)
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]       FILE: ant_mask.png (6773 bytes)
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]       FILE: ant_original.png (165345 bytes)
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]       FILE: ant_segm.png (12919 bytes)
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]       FILE: gajelas.dcm (1285780 bytes)
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]       FILE: post_mask.png (5116 bytes)
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]       FILE: post_original.png (67231 bytes)
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]       FILE: post_segm.png (10413 bytes)
+2025-09-14 19:17:40 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456
+2025-09-14 19:17:40 - [INFO] -   [DEBUG QUANT FILES] Using latest study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:40 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-14 19:17:40 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_ant.json (exists: False)
+2025-09-14 19:17:40 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_post.json (exists: False)
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS] New quantification paths:
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_ant.json (exists: False, size: 0 bytes)
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_post.json (exists: False, size: 0 bytes)
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS] Old pattern search:
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]   Old anterior: []
+2025-09-14 19:17:40 - [INFO] -   [DEBUG PATHS]   Old posterior: []
+2025-09-14 19:17:40 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:40 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:40 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-14 19:17:40 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_ant.json (exists: False)
+2025-09-14 19:17:40 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_post.json (exists: False)
+2025-09-14 19:17:40 - [INFO] -    ⚠️  Generic fallback: ['Frame 1', 'Frame 2', 'Frame 3']
+2025-09-14 19:17:40 - [INFO] -    ⚠️  Non-standard view name: Frame 1
+2025-09-14 19:17:40 - [INFO] -    ⚠️  Non-standard view name: Frame 2
+2025-09-14 19:17:40 - [INFO] -    ⚠️  Non-standard view name: Frame 3
+2025-09-14 19:17:40 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:40 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-14 19:17:40 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-14 19:17:40 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:40 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-14 19:17:40 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-14 19:17:40 - [INFO] - [DEBUG] Set Image opacity to 1.00
+2025-09-14 19:17:40 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:40 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-14 19:17:40 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:40 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-14 19:17:40 - [INFO] - [DEBUG] Set Segmentation opacity to 0.35
+2025-09-14 19:17:40 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:40 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Set Hotspot opacity to 0.50
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Set HotspotBBox opacity to 1.00
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Active layers: ['Image']
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Layers added: ['Image']
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Timeline active layers set to: ['Image']
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Layers removed: ['Image']
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Timeline active layers set to: []
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Set Image opacity to 1.00
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Set Segmentation opacity to 0.35
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Set Hotspot opacity to 0.50
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Set HotspotBBox opacity to 1.00
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Active layers: ['Image']
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Layers added: ['Image']
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Timeline active layers set to: ['Image']
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Timeline active layers set to: ['Image']
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] No changes detected, skipping update
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Set Image opacity to 1.00
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Set Segmentation opacity to 0.40
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Set Hotspot opacity to 0.50
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Set HotspotBBox opacity to 1.00
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Change type: none
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] Using full rebuild for opacity change
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: rebuild
+2025-09-14 19:17:41 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-14 19:17:41 - [INFO] - [BSI META INTEGRATION] Session code: HAHH
+2025-09-14 19:17:41 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:41 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:41 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250914
+2025-09-14 19:17:41 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 123456
+2025-09-14 19:17:41 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 123456, Study: 20250914
+2025-09-14 19:17:41 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 123456, Study: 20250914
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_ant.json (exists: False)
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_post.json (exists: False)
+2025-09-14 19:17:41 - [INFO] - [BSI META INTEGRATION] No BSI files in study_date folder, trying patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Using latest study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_ant.json (exists: False)
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_post.json (exists: False)
+2025-09-14 19:17:41 - [INFO] - [BSI META INTEGRATION] Could not determine patient folder with BSI files
+2025-09-14 19:17:41 - [INFO] - [DEBUG] display_timeline called with 1 scan(s), focusing on index = 0
+2025-09-14 19:17:41 - [INFO] - [BSI META INTEGRATION] Updating scan meta with BSI data
+2025-09-14 19:17:41 - [INFO] - [BSI META INTEGRATION] Session code: HAHH
+2025-09-14 19:17:41 - [INFO] - [BSI META INTEGRATION] Scan path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:41 - [INFO] - [BSI EXTRACT INFO] Extracting from path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:41 - [INFO] - [BSI EXTRACT INFO] Extracted study_date from DICOM: 20250914
+2025-09-14 19:17:41 - [INFO] - [BSI EXTRACT INFO] Extracted patient_id from study_date structure: 123456
+2025-09-14 19:17:41 - [INFO] - [BSI EXTRACT INFO] Final result - Patient: 123456, Study: 20250914
+2025-09-14 19:17:41 - [INFO] - [BSI META INTEGRATION] Extracted - Patient: 123456, Study: 20250914
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_ant.json (exists: False)
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_post.json (exists: False)
+2025-09-14 19:17:41 - [INFO] - [BSI META INTEGRATION] No BSI files in study_date folder, trying patient folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Using latest study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_ant.json (exists: False)
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_post.json (exists: False)
+2025-09-14 19:17:41 - [INFO] - [BSI META INTEGRATION] Could not determine patient folder with BSI files
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: 0
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Anterior
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-14 19:17:41 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Current view: Anterior
+2025-09-14 19:17:41 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-14 19:17:41 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-14 19:17:41 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-14 19:17:41 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-14 19:17:41 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Study date: 20250914
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Patient ID: 123456
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Session code: HAHH
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Loading original image for Anterior
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_original.png
+2025-09-14 19:17:41 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:41 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (783, 547)
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Original image loaded: (783, 547)
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-14 19:17:41 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (783, 547)
+2025-09-14 19:17:41 - [INFO] - [DEBUG] simple_invert_image: input shape = (547, 783), dtype = uint8
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Simple inversion completed: [7-255] -> [0-248]
+2025-09-14 19:17:41 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-14 19:17:41 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Loading segmentation layer for Anterior
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_segm.png
+2025-09-14 19:17:41 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:41 - [DEBUG] - STREAM b'IDAT' 41 12862
+2025-09-14 19:17:41 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_segm.png
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Loading hotspot layer for Anterior
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png
+2025-09-14 19:17:41 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Loading bbox layer for Anterior
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml
+2025-09-14 19:17:41 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml
+2025-09-14 19:17:41 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-14 19:17:41 - [INFO] - [DEBUG]   Loaded 2 layers for Anterior: ['Image', 'Segmentation']
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-14 19:17:41 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-14 19:17:41 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Posterior
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Active layers selected: ['Image']
+2025-09-14 19:17:41 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Current view: Posterior
+2025-09-14 19:17:41 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-14 19:17:41 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-14 19:17:41 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-14 19:17:41 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-14 19:17:41 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Study date: 20250914
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Patient ID: 123456
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Session code: HAHH
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Loading original image for Posterior
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_original.png
+2025-09-14 19:17:41 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:41 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (783, 547)
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Original image loaded: (783, 547)
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-14 19:17:41 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (783, 547)
+2025-09-14 19:17:41 - [INFO] - [DEBUG] simple_invert_image: input shape = (547, 783), dtype = uint8
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Simple inversion completed: [28-232] -> [23-227]
+2025-09-14 19:17:41 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-14 19:17:41 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Loading segmentation layer for Posterior
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_segm.png
+2025-09-14 19:17:41 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:41 - [DEBUG] - STREAM b'IDAT' 41 10356
+2025-09-14 19:17:41 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_segm.png
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Loading hotspot layer for Posterior
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png
+2025-09-14 19:17:41 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Loading bbox layer for Posterior
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.xml
+2025-09-14 19:17:41 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.xml
+2025-09-14 19:17:41 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-14 19:17:41 - [INFO] - [DEBUG]   Loaded 2 layers for Posterior: ['Image', 'Segmentation']
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-14 19:17:41 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-14 19:17:41 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image']
+2025-09-14 19:17:41 - [INFO] - [SMART UPDATE] State updated - Type: full
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Detected study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_ant.json (exists: False)
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_post.json (exists: False)
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Getting quantification files for: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Using latest study_date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES] Generated paths:
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_ant: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_ant.json (exists: False)
+2025-09-14 19:17:41 - [INFO] -   [DEBUG QUANT FILES]   bsi_json_post: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\bsi_quantification_post.json (exists: False)
+2025-09-14 19:17:41 - [INFO] - [BSI SIDE PANEL] Clearing data...
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:41 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Active layers: ['Image', 'Segmentation']
+2025-09-14 19:17:43 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-14 19:17:43 - [INFO] - [SMART UPDATE] Layers added: ['Segmentation']
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Timeline active layers set to: ['Image', 'Segmentation']
+2025-09-14 19:17:43 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: 0
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Anterior
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Active layers selected: ['Image', 'Segmentation']
+2025-09-14 19:17:43 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Current view: Anterior
+2025-09-14 19:17:43 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-14 19:17:43 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-14 19:17:43 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-14 19:17:43 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-14 19:17:43 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Study date: 20250914
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Patient ID: 123456
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Session code: HAHH
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Loading original image for Anterior
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_original.png
+2025-09-14 19:17:43 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:43 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (783, 547)
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Original image loaded: (783, 547)
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-14 19:17:43 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (783, 547)
+2025-09-14 19:17:43 - [INFO] - [DEBUG] simple_invert_image: input shape = (547, 783), dtype = uint8
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Simple inversion completed: [7-255] -> [0-248]
+2025-09-14 19:17:43 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-14 19:17:43 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Loading segmentation layer for Anterior
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_segm.png
+2025-09-14 19:17:43 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:43 - [DEBUG] - STREAM b'IDAT' 41 12862
+2025-09-14 19:17:43 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_segm.png
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Loading hotspot layer for Anterior
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png
+2025-09-14 19:17:43 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Loading bbox layer for Anterior
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml
+2025-09-14 19:17:43 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml
+2025-09-14 19:17:43 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-14 19:17:43 - [INFO] - [DEBUG]   Loaded 2 layers for Anterior: ['Image', 'Segmentation']
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-14 19:17:43 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-14 19:17:43 - [INFO] - [DEBUG]   Added CLASSIFICATION Segmentation to card 0 (opacity: 0.40)
+2025-09-14 19:17:43 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image', 'Segmentation']
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Posterior
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Active layers selected: ['Image', 'Segmentation']
+2025-09-14 19:17:43 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Current view: Posterior
+2025-09-14 19:17:43 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-14 19:17:43 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-14 19:17:43 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-14 19:17:43 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-14 19:17:43 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Study date: 20250914
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Patient ID: 123456
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Session code: HAHH
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Loading original image for Posterior
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_original.png
+2025-09-14 19:17:43 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:43 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (783, 547)
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Original image loaded: (783, 547)
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-14 19:17:43 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (783, 547)
+2025-09-14 19:17:43 - [INFO] - [DEBUG] simple_invert_image: input shape = (547, 783), dtype = uint8
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Simple inversion completed: [28-232] -> [23-227]
+2025-09-14 19:17:43 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-14 19:17:43 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Loading segmentation layer for Posterior
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_segm.png
+2025-09-14 19:17:43 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:43 - [DEBUG] - STREAM b'IDAT' 41 10356
+2025-09-14 19:17:43 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_segm.png
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Loading hotspot layer for Posterior
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png
+2025-09-14 19:17:43 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Loading bbox layer for Posterior
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.xml
+2025-09-14 19:17:43 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.xml
+2025-09-14 19:17:43 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-14 19:17:43 - [INFO] - [DEBUG]   Loaded 2 layers for Posterior: ['Image', 'Segmentation']
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-14 19:17:43 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-14 19:17:43 - [INFO] - [DEBUG]   Added CLASSIFICATION Segmentation to card 0 (opacity: 0.40)
+2025-09-14 19:17:43 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image', 'Segmentation']
+2025-09-14 19:17:43 - [INFO] - [SMART UPDATE] State updated - Type: full
+2025-09-14 19:17:43 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:43 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Active layers: ['Image', 'Segmentation', 'Hotspot']
+2025-09-14 19:17:44 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-14 19:17:44 - [INFO] - [SMART UPDATE] Layers added: ['Hotspot']
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Timeline active layers set to: ['Image', 'Segmentation', 'Hotspot']
+2025-09-14 19:17:44 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: 0
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Anterior
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Active layers selected: ['Image', 'Segmentation', 'Hotspot']
+2025-09-14 19:17:44 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Current view: Anterior
+2025-09-14 19:17:44 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-14 19:17:44 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-14 19:17:44 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-14 19:17:44 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-14 19:17:44 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Study date: 20250914
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Patient ID: 123456
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Session code: HAHH
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Loading original image for Anterior
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_original.png
+2025-09-14 19:17:44 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:44 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (783, 547)
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Original image loaded: (783, 547)
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-14 19:17:44 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (783, 547)
+2025-09-14 19:17:44 - [INFO] - [DEBUG] simple_invert_image: input shape = (547, 783), dtype = uint8
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Simple inversion completed: [7-255] -> [0-248]
+2025-09-14 19:17:44 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-14 19:17:44 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Loading segmentation layer for Anterior
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_segm.png
+2025-09-14 19:17:44 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:44 - [DEBUG] - STREAM b'IDAT' 41 12862
+2025-09-14 19:17:44 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_segm.png
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Loading hotspot layer for Anterior
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png
+2025-09-14 19:17:44 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Loading bbox layer for Anterior
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml
+2025-09-14 19:17:44 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml
+2025-09-14 19:17:44 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-14 19:17:44 - [INFO] - [DEBUG]   Loaded 2 layers for Anterior: ['Image', 'Segmentation']
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-14 19:17:44 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-14 19:17:44 - [INFO] - [DEBUG]   Added CLASSIFICATION Segmentation to card 0 (opacity: 0.40)
+2025-09-14 19:17:44 - [INFO] - [DEBUG]  Layer Hotspot not found in CLASSIFICATION files for card 0
+2025-09-14 19:17:44 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image', 'Segmentation']
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Posterior
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Active layers selected: ['Image', 'Segmentation', 'Hotspot']
+2025-09-14 19:17:44 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Current view: Posterior
+2025-09-14 19:17:44 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-14 19:17:44 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-14 19:17:44 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-14 19:17:44 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-14 19:17:44 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Study date: 20250914
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Patient ID: 123456
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Session code: HAHH
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Loading original image for Posterior
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_original.png
+2025-09-14 19:17:44 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:44 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (783, 547)
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Original image loaded: (783, 547)
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-14 19:17:44 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (783, 547)
+2025-09-14 19:17:44 - [INFO] - [DEBUG] simple_invert_image: input shape = (547, 783), dtype = uint8
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Simple inversion completed: [28-232] -> [23-227]
+2025-09-14 19:17:44 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-14 19:17:44 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Loading segmentation layer for Posterior
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_segm.png
+2025-09-14 19:17:44 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:44 - [DEBUG] - STREAM b'IDAT' 41 10356
+2025-09-14 19:17:44 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_segm.png
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Loading hotspot layer for Posterior
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png
+2025-09-14 19:17:44 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Loading bbox layer for Posterior
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.xml
+2025-09-14 19:17:44 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.xml
+2025-09-14 19:17:44 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-14 19:17:44 - [INFO] - [DEBUG]   Loaded 2 layers for Posterior: ['Image', 'Segmentation']
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-14 19:17:44 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-14 19:17:44 - [INFO] - [DEBUG]   Added CLASSIFICATION Segmentation to card 0 (opacity: 0.40)
+2025-09-14 19:17:44 - [INFO] - [DEBUG]  Layer Hotspot not found in CLASSIFICATION files for card 0
+2025-09-14 19:17:44 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image', 'Segmentation']
+2025-09-14 19:17:44 - [INFO] - [SMART UPDATE] State updated - Type: full
+2025-09-14 19:17:44 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:44 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Active layers: ['Image', 'Segmentation']
+2025-09-14 19:17:45 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-14 19:17:45 - [INFO] - [SMART UPDATE] Layers removed: ['Hotspot']
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Timeline active layers set to: ['Image', 'Segmentation']
+2025-09-14 19:17:45 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: 0
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Anterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Active layers selected: ['Image', 'Segmentation']
+2025-09-14 19:17:45 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Current view: Anterior
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-14 19:17:45 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Study date: 20250914
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Patient ID: 123456
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Session code: HAHH
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loading original image for Anterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_original.png
+2025-09-14 19:17:45 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:45 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (783, 547)
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Original image loaded: (783, 547)
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-14 19:17:45 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (783, 547)
+2025-09-14 19:17:45 - [INFO] - [DEBUG] simple_invert_image: input shape = (547, 783), dtype = uint8
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Simple inversion completed: [7-255] -> [0-248]
+2025-09-14 19:17:45 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loading segmentation layer for Anterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_segm.png
+2025-09-14 19:17:45 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:45 - [DEBUG] - STREAM b'IDAT' 41 12862
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_segm.png
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loading hotspot layer for Anterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png
+2025-09-14 19:17:45 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loading bbox layer for Anterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml
+2025-09-14 19:17:45 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml
+2025-09-14 19:17:45 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Loaded 2 layers for Anterior: ['Image', 'Segmentation']
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Added CLASSIFICATION Segmentation to card 0 (opacity: 0.40)
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image', 'Segmentation']
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Posterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Active layers selected: ['Image', 'Segmentation']
+2025-09-14 19:17:45 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Current view: Posterior
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-14 19:17:45 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Study date: 20250914
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Patient ID: 123456
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Session code: HAHH
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loading original image for Posterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_original.png
+2025-09-14 19:17:45 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:45 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (783, 547)
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Original image loaded: (783, 547)
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-14 19:17:45 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (783, 547)
+2025-09-14 19:17:45 - [INFO] - [DEBUG] simple_invert_image: input shape = (547, 783), dtype = uint8
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Simple inversion completed: [28-232] -> [23-227]
+2025-09-14 19:17:45 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loading segmentation layer for Posterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_segm.png
+2025-09-14 19:17:45 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:45 - [DEBUG] - STREAM b'IDAT' 41 10356
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_segm.png
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loading hotspot layer for Posterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png
+2025-09-14 19:17:45 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loading bbox layer for Posterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.xml
+2025-09-14 19:17:45 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.xml
+2025-09-14 19:17:45 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Loaded 2 layers for Posterior: ['Image', 'Segmentation']
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Added CLASSIFICATION Segmentation to card 0 (opacity: 0.40)
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image', 'Segmentation']
+2025-09-14 19:17:45 - [INFO] - [SMART UPDATE] State updated - Type: full
+2025-09-14 19:17:45 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Active layers: ['Image', 'Segmentation', 'Hotspot']
+2025-09-14 19:17:45 - [INFO] - [SMART UPDATE] Change type: layers
+2025-09-14 19:17:45 - [INFO] - [SMART UPDATE] Layers added: ['Hotspot']
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Timeline active layers set to: ['Image', 'Segmentation', 'Hotspot']
+2025-09-14 19:17:45 - [INFO] - [SMART UPDATE] Full rebuild required for change type: layers
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: 0
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Anterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Active layers selected: ['Image', 'Segmentation', 'Hotspot']
+2025-09-14 19:17:45 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Current view: Anterior
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-14 19:17:45 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Study date: 20250914
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Patient ID: 123456
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Session code: HAHH
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loading original image for Anterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_original.png
+2025-09-14 19:17:45 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:45 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (783, 547)
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Original image loaded: (783, 547)
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-14 19:17:45 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (783, 547)
+2025-09-14 19:17:45 - [INFO] - [DEBUG] simple_invert_image: input shape = (547, 783), dtype = uint8
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Simple inversion completed: [7-255] -> [0-248]
+2025-09-14 19:17:45 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loading segmentation layer for Anterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_segm.png
+2025-09-14 19:17:45 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:45 - [DEBUG] - STREAM b'IDAT' 41 12862
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_segm.png
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loading hotspot layer for Anterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png
+2025-09-14 19:17:45 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.png
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Loading bbox layer for Anterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml
+2025-09-14 19:17:45 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\ant_hotspot_classification.xml
+2025-09-14 19:17:45 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Loaded 2 layers for Anterior: ['Image', 'Segmentation']
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   Added CLASSIFICATION Segmentation to card 0 (opacity: 0.40)
+2025-09-14 19:17:45 - [INFO] - [DEBUG]  Layer Hotspot not found in CLASSIFICATION files for card 0
+2025-09-14 19:17:45 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image', 'Segmentation']
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Creating CLASSIFICATION card 0 for view: Posterior
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Active layers selected: ['Image', 'Segmentation', 'Hotspot']
+2025-09-14 19:17:45 - [INFO] - [DEBUG] DICOM path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Current view: Posterior
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] use_cache=False
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] has_adjustments=False (B=0.00, C=1.00)
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] has_overrides=False (override_b=None, override_c=None)
+2025-09-14 19:17:45 - [INFO] - [CACHE DEBUG] invert_original=True
+2025-09-14 19:17:45 - [INFO] - [CACHE SKIP] Skipping cache due to adjustments/overrides/invert
+2025-09-14 19:17:45 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Study date: 20250914
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Patient ID: 123456
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Session code: HAHH
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Study date folder: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Loading original image for Posterior
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Looking for original PNG in study_date dir: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_original.png
+2025-09-14 19:17:46 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:46 - [DEBUG] - STREAM b'IDAT' 41 65536
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Loaded original PNG from study_date dir: (783, 547)
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Original image loaded: (783, 547)
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Applying invert to original image
+2025-09-14 19:17:46 - [INFO] - [DEBUG] simple_invert_pil_image: Processing L image, size = (783, 547)
+2025-09-14 19:17:46 - [INFO] - [DEBUG] simple_invert_image: input shape = (547, 783), dtype = uint8
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Simple inversion completed: [28-232] -> [23-227]
+2025-09-14 19:17:46 - [INFO] - [DEBUG] simple_invert_pil_image: completed
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Using STORED B/C values: B=0.00, C=1.00
+2025-09-14 19:17:46 - [INFO] - [DEBUG]   Image layer loaded and processed
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Loading segmentation layer for Posterior
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Looking for segmentation (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_segm.png
+2025-09-14 19:17:46 - [DEBUG] - STREAM b'IHDR' 16 13
+2025-09-14 19:17:46 - [DEBUG] - STREAM b'IDAT' 41 10356
+2025-09-14 19:17:46 - [INFO] - [DEBUG]   Loaded segmentation with transparency: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_segm.png
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Segmentation type: ORIGINAL
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Loading hotspot layer for Posterior
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Looking for hotspot classification (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png
+2025-09-14 19:17:46 - [INFO] - [DEBUG] No hotspot classification found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.png
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Loading bbox layer for Posterior
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Looking for classification XML (NEWEST): F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.xml
+2025-09-14 19:17:46 - [INFO] - [DEBUG] No classification XML found: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\post_hotspot_classification.xml
+2025-09-14 19:17:46 - [INFO] - [CACHE STORE] Not caching due to adjustments/overrides/invert
+2025-09-14 19:17:46 - [INFO] - [DEBUG]   Loaded 2 layers for Posterior: ['Image', 'Segmentation']
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Available CLASSIFICATION layers in files: ['Image', 'Segmentation']
+2025-09-14 19:17:46 - [INFO] - [DEBUG]   Added CLASSIFICATION Image to card 0 (opacity: 1.00)
+2025-09-14 19:17:46 - [INFO] - [DEBUG]   Added CLASSIFICATION Segmentation to card 0 (opacity: 0.40)
+2025-09-14 19:17:46 - [INFO] - [DEBUG]  Layer Hotspot not found in CLASSIFICATION files for card 0
+2025-09-14 19:17:46 - [INFO] - [DEBUG]   CLASSIFICATION card 0 composite created with layers: ['Image', 'Segmentation']
+2025-09-14 19:17:46 - [INFO] - [SMART UPDATE] State updated - Type: full
+2025-09-14 19:17:46 - [INFO] - [SMART UPDATE] State updated - Type: layers
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Path extraction: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Extracted patient info - ID: 123456, Session: HAHH
+2025-09-14 19:17:46 - [INFO] - [DEBUG] Original path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914\gajelas.dcm
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Timeline zoom in: 1.15
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Smooth zoom update for 2 labels
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 0: 350 -> 402
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 1: 350 -> 402
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Timeline zoom in: 1.32
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Smooth zoom update for 2 labels
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 0: 350 -> 462
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 1: 350 -> 462
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Timeline zoom in: 1.52
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Smooth zoom update for 2 labels
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 0: 350 -> 532
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 1: 350 -> 532
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Timeline zoom in: 1.75
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Smooth zoom update for 2 labels
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 0: 350 -> 612
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 1: 350 -> 612
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Timeline zoom in: 2.01
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Smooth zoom update for 2 labels
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 0: 350 -> 703
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 1: 350 -> 703
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Timeline zoom in: 2.31
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Smooth zoom update for 2 labels
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 0: 350 -> 809
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 1: 350 -> 809
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Timeline zoom in: 2.66
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Smooth zoom update for 2 labels
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 0: 350 -> 931
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 1: 350 -> 931
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Timeline zoom in: 3.06
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Smooth zoom update for 2 labels
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 0: 350 -> 1070
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 1: 350 -> 1070
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Timeline zoom in: 3.52
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Smooth zoom update for 2 labels
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 0: 350 -> 1231
+2025-09-14 19:17:47 - [INFO] - [DEBUG] Scaled label 1: 350 -> 1231
+2025-09-14 19:17:52 - [INFO] - [ADD_FILES] Mulai analisis 1 file
+2025-09-14 19:17:52 - [INFO] - [ADD_FILES] fungsi duplicate-check OK
+2025-09-14 19:17:52 - [INFO] - [ADD_FILES] 1/1 gajelas.dcm → PID=123456 SD=20250914
+2025-09-14 19:17:52 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=123456, study_date=20250914
+2025-09-14 19:17:52 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\123456\20250914
+2025-09-14 19:17:52 - [INFO] -   [CHECK_DICOM_EXISTS] Found 1 DICOM files
+2025-09-14 19:17:52 - [INFO] -   [CHECK_DICOM_EXISTS] Found 5 processed files
+2025-09-14 19:17:52 - [INFO] -   [CHECK_DICOM_EXISTS] Final result: True
+2025-09-14 19:17:52 - [INFO] - [ADD_FILES]   -> ALREADY ANALYZED (card abu), tidak ikut proses
+2025-09-14 19:17:52 - [INFO] - [ADD_FILES] • Marked as already analyzed: gajelas.dcm (PID=123456, SD=20250914)
+2025-09-14 19:17:52 - [INFO] - [ADD_FILES] NEW added: 0, already analyzed: 1, redundant skipped: 0, errors: 0
+2025-09-14 19:17:59 - [INFO] - [ADD_FILES] Mulai analisis 5 file
+2025-09-14 19:17:59 - [INFO] - [ADD_FILES] fungsi duplicate-check OK
+2025-09-14 19:17:59 - [INFO] - [ADD_FILES] 1/5 5001_1.dcm → PID=5001 SD=20250115
+2025-09-14 19:17:59 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=5001, study_date=20250115
+2025-09-14 19:17:59 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\5001\20250115
+2025-09-14 19:17:59 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-14 19:17:59 - [INFO] - [ADD_FILES]   -> NEW, dimasukkan
+2025-09-14 19:18:00 - [INFO] - [ADD_FILES] 2/5 5001_2.dcm → PID=5001 SD=20250214
+2025-09-14 19:18:00 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=5001, study_date=20250214
+2025-09-14 19:18:00 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\5001\20250214
+2025-09-14 19:18:00 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-14 19:18:00 - [INFO] - [ADD_FILES]   -> NEW, dimasukkan
+2025-09-14 19:18:00 - [INFO] - [ADD_FILES] 3/5 5001_3.dcm → PID=5001 SD=20250316
+2025-09-14 19:18:00 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=5001, study_date=20250316
+2025-09-14 19:18:00 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\5001\20250316
+2025-09-14 19:18:00 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-14 19:18:00 - [INFO] - [ADD_FILES]   -> NEW, dimasukkan
+2025-09-14 19:18:00 - [INFO] - [ADD_FILES] 4/5 5001_4.dcm → PID=5001 SD=20250415
+2025-09-14 19:18:00 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=5001, study_date=20250415
+2025-09-14 19:18:00 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\5001\20250415
+2025-09-14 19:18:00 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-14 19:18:00 - [INFO] - [ADD_FILES]   -> NEW, dimasukkan
+2025-09-14 19:18:00 - [INFO] - [ADD_FILES] 5/5 5001_5.dcm → PID=5001 SD=20250515
+2025-09-14 19:18:00 - [INFO] -   [CHECK_DICOM_EXISTS] Checking: session=HAHH, patient=5001, study_date=20250515
+2025-09-14 19:18:00 - [INFO] -   [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\HAHH\5001\20250515
+2025-09-14 19:18:00 - [INFO] -   [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-14 19:18:00 - [INFO] - [ADD_FILES]   -> NEW, dimasukkan
+2025-09-14 19:18:00 - [INFO] - [ADD_FILES] NEW added: 5, already analyzed: 0, redundant skipped: 0, errors: 0
+2025-09-14 19:18:00 - [INFO] -   DEBUG: Starting quick detection for 5 files...
+2025-09-14 19:18:00 - [INFO] -   DEBUG: Processing detection result for 5001_1.dcm
+2025-09-14 19:18:00 - [INFO] -   5001_1.dcm: Fully auto-tagged (2 frames)
+2025-09-14 19:18:00 - [INFO] -   DEBUG: Processing detection result for 5001_2.dcm
+2025-09-14 19:18:00 - [INFO] -   5001_2.dcm: Fully auto-tagged (2 frames)
+2025-09-14 19:18:00 - [INFO] -   DEBUG: Processing detection result for 5001_3.dcm
+2025-09-14 19:18:00 - [INFO] -   5001_3.dcm: Fully auto-tagged (2 frames)
+2025-09-14 19:18:00 - [INFO] -   DEBUG: Processing detection result for 5001_4.dcm
+2025-09-14 19:18:00 - [INFO] -   5001_4.dcm: Fully auto-tagged (2 frames)
+2025-09-14 19:18:00 - [INFO] -   DEBUG: Processing detection result for 5001_5.dcm
+2025-09-14 19:18:00 - [INFO] - 📊 Detection Analysis Complete:
+2025-09-14 19:18:00 - [INFO] -      5 files fully auto-tagged
+2025-09-14 19:18:00 - [INFO] - 🎉 All files auto-tagged! You can proceed directly to import.
+2025-09-14 19:18:00 - [INFO] - Next step: Configure Views (or proceed if all auto-tagged)
+2025-09-14 19:18:00 - [INFO] -   5001_5.dcm: Fully auto-tagged (2 frames)
+2025-09-14 19:18:00 - [INFO] -   Opening enhanced view configuration dialog...
+2025-09-14 19:18:00 - [INFO] -   DEBUG: Opening view selector with 5 files
+2025-09-14 19:18:00 - [INFO] -   DEBUG: Opening view configuration with 5 files:
+2025-09-14 19:18:00 - [INFO] -    1. 5001_1.dcm
+2025-09-14 19:18:00 - [INFO] -    2. 5001_2.dcm
+2025-09-14 19:18:00 - [INFO] -    3. 5001_3.dcm
+2025-09-14 19:18:00 - [INFO] -    4. 5001_4.dcm
+2025-09-14 19:18:00 - [INFO] -    5. 5001_5.dcm
+2025-09-14 19:18:00 - [INFO] -      No duplicates found in selected_files
+2025-09-14 19:18:00 - [INFO] -   DEBUG: Connecting signals...
+2025-09-14 19:18:00 - [INFO] -   DEBUG: Executing dialog...
+2025-09-14 19:18:00 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:18:00 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:18:00 - [INFO] - Frame dtype: uint16
+2025-09-14 19:18:00 - [INFO] - Frame range: 0 to 124
+2025-09-14 19:18:00 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:18:00 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner means: [0.0, 0.0, 0.0, 0.0]
+2025-09-14 19:18:00 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:18:00 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:18:00 - [INFO] -    Edge mean: 0.2
+2025-09-14 19:18:00 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:18:00 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:18:00 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:18:00 - [INFO] -    Image mean: 11.5
+2025-09-14 19:18:00 - [INFO] -    Dark pixels (<50): 251,095 (95.8%)
+2025-09-14 19:18:00 - [INFO] -    Bright pixels (>200): 35 (0.0%)
+2025-09-14 19:18:00 - [INFO] -    Mid-range pixels: 11,014 (4.2%)
+2025-09-14 19:18:00 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:18:00 - [INFO] -    Found 2 peaks: [(15, 24135), (25, 12817)]
+2025-09-14 19:18:00 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:18:00 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:18:00 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:18:00 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:18:00 - [INFO] -      Dark image (11.5 < 80) supports BLACK (+10)
+2025-09-14 19:18:00 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:18:00 - [INFO] -    Background Type: BLACK
+2025-09-14 19:18:00 - [INFO] -    Confidence: 80%
+2025-09-14 19:18:00 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:18:00 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 251095, 'object_pixels': 11049, 'background_percentage': 95.78514099121094, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.0, 'edge_mean': 0.1609375, 'image_mean': 11.50732421875, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (11.5 < 80) supports BLACK (+10)']}}
+2025-09-14 19:18:00 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:18:00 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:18:00 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:18:00 - [INFO] - Frame dtype: uint16
+2025-09-14 19:18:00 - [INFO] - Frame range: 0 to 136
+2025-09-14 19:18:00 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:18:00 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner means: [0.0, 0.0325, 0.0, 0.0]
+2025-09-14 19:18:00 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:18:00 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:18:00 - [INFO] -    Edge mean: 0.2
+2025-09-14 19:18:00 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:18:00 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:18:00 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:18:00 - [INFO] -    Image mean: 10.5
+2025-09-14 19:18:00 - [INFO] -    Dark pixels (<50): 250,828 (95.7%)
+2025-09-14 19:18:00 - [INFO] -    Bright pixels (>200): 14 (0.0%)
+2025-09-14 19:18:00 - [INFO] -    Mid-range pixels: 11,302 (4.3%)
+2025-09-14 19:18:00 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:18:00 - [INFO] -    Found 2 peaks: [(10, 29139), (25, 9181)]
+2025-09-14 19:18:00 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:18:00 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:18:00 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:18:00 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:18:00 - [INFO] -      Dark image (10.5 < 80) supports BLACK (+10)
+2025-09-14 19:18:00 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:18:00 - [INFO] -    Background Type: BLACK
+2025-09-14 19:18:00 - [INFO] -    Confidence: 80%
+2025-09-14 19:18:00 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:18:00 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 250828, 'object_pixels': 11316, 'background_percentage': 95.68328857421875, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.008125, 'edge_mean': 0.166015625, 'image_mean': 10.510772705078125, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (10.5 < 80) supports BLACK (+10)']}}
+2025-09-14 19:18:00 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:18:00 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:18:00 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:18:00 - [INFO] - Frame dtype: uint16
+2025-09-14 19:18:00 - [INFO] - Frame range: 0 to 255
+2025-09-14 19:18:00 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:18:00 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner means: [0.03, 0.02, 0.1, 0.0]
+2025-09-14 19:18:00 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:18:00 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:18:00 - [INFO] -    Edge mean: 0.1
+2025-09-14 19:18:00 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:18:00 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:18:00 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:18:00 - [INFO] -    Image mean: 7.2
+2025-09-14 19:18:00 - [INFO] -    Dark pixels (<50): 257,543 (98.2%)
+2025-09-14 19:18:00 - [INFO] -    Bright pixels (>200): 43 (0.0%)
+2025-09-14 19:18:00 - [INFO] -    Mid-range pixels: 4,558 (1.7%)
+2025-09-14 19:18:00 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:18:00 - [INFO] -    Found 0 peaks: []
+2025-09-14 19:18:00 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:18:00 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:18:00 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:18:00 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:18:00 - [INFO] -      Dark image (7.2 < 80) supports BLACK (+10)
+2025-09-14 19:18:00 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:18:00 - [INFO] -    Background Type: BLACK
+2025-09-14 19:18:00 - [INFO] -    Confidence: 80%
+2025-09-14 19:18:00 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:18:00 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 257543, 'object_pixels': 4601, 'background_percentage': 98.24485778808594, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.0375, 'edge_mean': 0.10625, 'image_mean': 7.158672332763672, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (7.2 < 80) supports BLACK (+10)']}}
+2025-09-14 19:18:00 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:18:00 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:18:00 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:18:00 - [INFO] - Frame dtype: uint16
+2025-09-14 19:18:00 - [INFO] - Frame range: 0 to 191
+2025-09-14 19:18:00 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:18:00 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner means: [0.0, 0.1225, 0.0, 0.0]
+2025-09-14 19:18:00 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:18:00 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:18:00 - [INFO] -    Edge mean: 0.2
+2025-09-14 19:18:00 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:18:00 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:18:00 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:18:00 - [INFO] -    Image mean: 9.5
+2025-09-14 19:18:00 - [INFO] -    Dark pixels (<50): 252,031 (96.1%)
+2025-09-14 19:18:00 - [INFO] -    Bright pixels (>200): 47 (0.0%)
+2025-09-14 19:18:00 - [INFO] -    Mid-range pixels: 10,066 (3.8%)
+2025-09-14 19:18:00 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:18:00 - [INFO] -    Found 1 peaks: [(20, 11683)]
+2025-09-14 19:18:00 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:18:00 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:18:00 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:18:00 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:18:00 - [INFO] -      Dark image (9.5 < 80) supports BLACK (+10)
+2025-09-14 19:18:00 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:18:00 - [INFO] -    Background Type: BLACK
+2025-09-14 19:18:00 - [INFO] -    Confidence: 80%
+2025-09-14 19:18:00 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:18:00 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 252031, 'object_pixels': 10113, 'background_percentage': 96.14219665527344, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.030625, 'edge_mean': 0.18671875, 'image_mean': 9.475337982177734, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (9.5 < 80) supports BLACK (+10)']}}
+2025-09-14 19:18:00 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:18:00 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:18:00 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:18:00 - [INFO] - Frame dtype: uint16
+2025-09-14 19:18:00 - [INFO] - Frame range: 0 to 181
+2025-09-14 19:18:00 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:18:00 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner means: [0.0, 0.0, 0.0, 0.0]
+2025-09-14 19:18:00 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:18:00 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:18:00 - [INFO] -    Edge mean: 0.4
+2025-09-14 19:18:00 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:18:00 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:18:00 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:18:00 - [INFO] -    Image mean: 9.2
+2025-09-14 19:18:00 - [INFO] -    Dark pixels (<50): 252,417 (96.3%)
+2025-09-14 19:18:00 - [INFO] -    Bright pixels (>200): 36 (0.0%)
+2025-09-14 19:18:00 - [INFO] -    Mid-range pixels: 9,691 (3.7%)
+2025-09-14 19:18:00 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:18:00 - [INFO] -    Found 1 peaks: [(20, 12725)]
+2025-09-14 19:18:00 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:18:00 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:18:00 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:18:00 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:18:00 - [INFO] -      Dark image (9.2 < 80) supports BLACK (+10)
+2025-09-14 19:18:00 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:18:00 - [INFO] -    Background Type: BLACK
+2025-09-14 19:18:00 - [INFO] -    Confidence: 80%
+2025-09-14 19:18:00 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:18:00 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 252417, 'object_pixels': 9727, 'background_percentage': 96.28944396972656, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.0, 'edge_mean': 0.375390625, 'image_mean': 9.233341217041016, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (9.2 < 80) supports BLACK (+10)']}}
+2025-09-14 19:18:00 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:18:00 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:18:00 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:18:00 - [INFO] - Frame dtype: uint16
+2025-09-14 19:18:00 - [INFO] - Frame range: 0 to 255
+2025-09-14 19:18:00 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:18:00 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner means: [0.0, 0.0, 0.0, 0.0]
+2025-09-14 19:18:00 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:18:00 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:18:00 - [INFO] -    Edge mean: 0.3
+2025-09-14 19:18:00 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:18:00 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:18:00 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:18:00 - [INFO] -    Image mean: 6.9
+2025-09-14 19:18:00 - [INFO] -    Dark pixels (<50): 255,219 (97.4%)
+2025-09-14 19:18:00 - [INFO] -    Bright pixels (>200): 39 (0.0%)
+2025-09-14 19:18:00 - [INFO] -    Mid-range pixels: 6,886 (2.6%)
+2025-09-14 19:18:00 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:18:00 - [INFO] -    Found 0 peaks: []
+2025-09-14 19:18:00 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:18:00 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:18:00 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:18:00 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:18:00 - [INFO] -      Dark image (6.9 < 80) supports BLACK (+10)
+2025-09-14 19:18:00 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:18:00 - [INFO] -    Background Type: BLACK
+2025-09-14 19:18:00 - [INFO] -    Confidence: 80%
+2025-09-14 19:18:00 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:18:00 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 255219, 'object_pixels': 6925, 'background_percentage': 97.35832214355469, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.0, 'edge_mean': 0.30859375, 'image_mean': 6.912464141845703, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (6.9 < 80) supports BLACK (+10)']}}
+2025-09-14 19:18:00 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:18:00 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:18:00 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:18:00 - [INFO] - Frame dtype: uint16
+2025-09-14 19:18:00 - [INFO] - Frame range: 0 to 126
+2025-09-14 19:18:00 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:18:00 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner means: [0.0, 0.01, 0.0, 0.0]
+2025-09-14 19:18:00 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:18:00 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:18:00 - [INFO] -    Edge mean: 0.1
+2025-09-14 19:18:00 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:18:00 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:18:00 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:18:00 - [INFO] -    Image mean: 14.4
+2025-09-14 19:18:00 - [INFO] -    Dark pixels (<50): 242,601 (92.5%)
+2025-09-14 19:18:00 - [INFO] -    Bright pixels (>200): 66 (0.0%)
+2025-09-14 19:18:00 - [INFO] -    Mid-range pixels: 19,477 (7.4%)
+2025-09-14 19:18:00 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:18:00 - [INFO] -    Found 3 peaks: [(15, 21234), (25, 13325), (35, 8162)]
+2025-09-14 19:18:00 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:18:00 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:18:00 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:18:00 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:18:00 - [INFO] -      Dark image (14.4 < 80) supports BLACK (+10)
+2025-09-14 19:18:00 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:18:00 - [INFO] -    Background Type: BLACK
+2025-09-14 19:18:00 - [INFO] -    Confidence: 80%
+2025-09-14 19:18:00 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:18:00 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 242601, 'object_pixels': 19543, 'background_percentage': 92.54493713378906, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.0025, 'edge_mean': 0.14609375, 'image_mean': 14.393230438232422, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (14.4 < 80) supports BLACK (+10)']}}
+2025-09-14 19:18:00 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:18:00 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:18:00 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:18:00 - [INFO] - Frame dtype: uint16
+2025-09-14 19:18:00 - [INFO] - Frame range: 0 to 114
+2025-09-14 19:18:00 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:18:00 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner means: [0.0, 0.0, 0.0, 0.0]
+2025-09-14 19:18:00 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:18:00 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:18:00 - [INFO] -    Edge mean: 0.2
+2025-09-14 19:18:00 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:18:00 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:18:00 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:18:00 - [INFO] -    Image mean: 15.6
+2025-09-14 19:18:00 - [INFO] -    Dark pixels (<50): 240,145 (91.6%)
+2025-09-14 19:18:00 - [INFO] -    Bright pixels (>200): 50 (0.0%)
+2025-09-14 19:18:00 - [INFO] -    Mid-range pixels: 21,949 (8.4%)
+2025-09-14 19:18:00 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:18:00 - [INFO] -    Found 2 peaks: [(10, 31508), (30, 12037)]
+2025-09-14 19:18:00 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:18:00 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:18:00 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:18:00 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:18:00 - [INFO] -      Dark image (15.6 < 80) supports BLACK (+10)
+2025-09-14 19:18:00 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:18:00 - [INFO] -    Background Type: BLACK
+2025-09-14 19:18:00 - [INFO] -    Confidence: 80%
+2025-09-14 19:18:00 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:18:00 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 240145, 'object_pixels': 21999, 'background_percentage': 91.60804748535156, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.0, 'edge_mean': 0.18515625, 'image_mean': 15.631072998046875, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (15.6 < 80) supports BLACK (+10)']}}
+2025-09-14 19:18:00 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:18:00 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:18:00 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:18:00 - [INFO] - Frame dtype: uint16
+2025-09-14 19:18:00 - [INFO] - Frame range: 0 to 96
+2025-09-14 19:18:00 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:18:00 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner means: [0.0, 0.0, 0.0, 0.0]
+2025-09-14 19:18:00 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:18:00 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:18:00 - [INFO] -    Edge mean: 0.3
+2025-09-14 19:18:00 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:18:00 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:18:00 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:18:00 - [INFO] -    Image mean: 20.3
+2025-09-14 19:18:00 - [INFO] -    Dark pixels (<50): 227,389 (86.7%)
+2025-09-14 19:18:00 - [INFO] -    Bright pixels (>200): 43 (0.0%)
+2025-09-14 19:18:00 - [INFO] -    Mid-range pixels: 34,712 (13.2%)
+2025-09-14 19:18:00 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:18:00 - [INFO] -    Found 4 peaks: [(10, 26139), (20, 20404), (30, 15224), (45, 8526)]
+2025-09-14 19:18:00 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:18:00 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:18:00 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:18:00 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:18:00 - [INFO] -      Dark image (20.3 < 80) supports BLACK (+10)
+2025-09-14 19:18:00 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:18:00 - [INFO] -    Background Type: BLACK
+2025-09-14 19:18:00 - [INFO] -    Confidence: 80%
+2025-09-14 19:18:00 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:18:00 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 227389, 'object_pixels': 34755, 'background_percentage': 86.74201965332031, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.0, 'edge_mean': 0.3375, 'image_mean': 20.295379638671875, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (20.3 < 80) supports BLACK (+10)']}}
+2025-09-14 19:18:00 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:18:00 - [INFO] - 
+  === BACKGROUND ANALYSIS DEBUG ===
+2025-09-14 19:18:00 - [INFO] - Frame shape: (1024, 256)
+2025-09-14 19:18:00 - [INFO] - Frame dtype: uint16
+2025-09-14 19:18:00 - [INFO] - Frame range: 0 to 161
+2025-09-14 19:18:00 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-14 19:18:00 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-14 19:18:00 - [INFO] - 🏠 Corner means: [0.0, 0.0, 0.0, 0.0]
+2025-09-14 19:18:00 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-14 19:18:00 - [INFO] - 🔲 Edge analysis:
+2025-09-14 19:18:00 - [INFO] -    Edge mean: 0.1
+2025-09-14 19:18:00 - [INFO] -    Dark edges (<50): 2560/2560 (100.0%)
+2025-09-14 19:18:00 - [INFO] -    Bright edges (>200): 0/2560 (0.0%)
+2025-09-14 19:18:00 - [INFO] - 📊 Overall statistics:
+2025-09-14 19:18:00 - [INFO] -    Image mean: 11.8
+2025-09-14 19:18:00 - [INFO] -    Dark pixels (<50): 252,430 (96.3%)
+2025-09-14 19:18:00 - [INFO] -    Bright pixels (>200): 14 (0.0%)
+2025-09-14 19:18:00 - [INFO] -    Mid-range pixels: 9,700 (3.7%)
+2025-09-14 19:18:00 - [INFO] - 📈 Histogram analysis:
+2025-09-14 19:18:00 - [INFO] -    Found 2 peaks: [(20, 17324), (35, 6439)]
+2025-09-14 19:18:00 - [INFO] - 
+  DECISION PROCESS:
+2025-09-14 19:18:00 - [INFO] - 
+📋 DECISION FACTORS:
+2025-09-14 19:18:00 - [INFO] -      Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-14 19:18:00 - [INFO] -      Dark edges (100.0%) support BLACK (+30)
+2025-09-14 19:18:00 - [INFO] -      Dark image (11.8 < 80) supports BLACK (+10)
+2025-09-14 19:18:00 - [INFO] - 
+  FINAL DECISION:
+2025-09-14 19:18:00 - [INFO] -    Background Type: BLACK
+2025-09-14 19:18:00 - [INFO] -    Confidence: 80%
+2025-09-14 19:18:00 - [INFO] -    Reasoning: 3 factors analyzed
+2025-09-14 19:18:00 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 252430, 'object_pixels': 9714, 'background_percentage': 96.29440307617188, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.0, 'edge_mean': 0.1328125, 'image_mean': 11.827228546142578, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (11.8 < 80) supports BLACK (+10)']}}
+2025-09-14 19:18:00 - [INFO] -   === END BACKGROUND ANALYSIS ===
+
+2025-09-14 19:23:15 - [INFO] -   DEBUG: Dialog finished, cleaning up...
+2025-09-14 19:23:15 - [INFO] -   DEBUG: View dialog result: 0
+2025-09-14 19:23:15 - [INFO] -  View configuration cancelled
+2025-09-14 19:23:16 - [INFO] - [DEBUG] Application exited with code: 0
+2025-09-14 19:23:16 - [INFO] - Aplikasi terminated normally

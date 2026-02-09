@@ -401,8 +401,21 @@ class MainWindowSpect(QMainWindow):
             # ===================================================================
             # <<< END of ADDED ROBUST LOGIC
  
+            # ===================================================================
+            # <<< END of ADDED ROBUST LOGIC
+
+            #   FIX: Get current contrast from timeline
+            current_contrast = self.timeline_widget.get_brightness_contrast(selected_view)
+            current_gamma = current_contrast.get("gamma", 1.0)
+            current_mid = current_contrast.get("mid", 0.0)
+ 
             try:
-                dlg = SegmentationEditorDialog(scan, selected_view, parent=self)
+                dlg = SegmentationEditorDialog(
+                    scan, selected_view, 
+                    gamma=current_gamma, 
+                    mid=current_mid, 
+                    parent=self
+                )
                 
                 #   CONNECT SIGNAL WITH DEBUG
                 print("🔗 [DEBUG CONNECTION] Connecting segmentation editor signal...")
@@ -463,8 +476,20 @@ class MainWindowSpect(QMainWindow):
                     return
             # ===================================================================
 
+            # ===================================================================
+
+            #   FIX: Get current contrast from timeline
+            current_contrast = self.timeline_widget.get_brightness_contrast(selected_view)
+            current_gamma = current_contrast.get("gamma", 1.0)
+            current_mid = current_contrast.get("mid", 0.0)
+
             try:
-                dlg = HotspotEditorDialog(scan, selected_view, parent=self)
+                dlg = HotspotEditorDialog(
+                    scan, selected_view, 
+                    gamma=current_gamma, 
+                    mid=current_mid, 
+                    parent=self
+                )
                 
                 #   CONNECT SIGNAL WITH DEBUG
                 print("🔗 [DEBUG CONNECTION] Connecting hotspot editor signal...")
@@ -818,7 +843,7 @@ class MainWindowSpect(QMainWindow):
             print(f"[DEBUG] Timeline has layer data - Hotspot: {self.timeline_widget.has_layer_data('Hotspot')}")
 
     def _open_contrast_dialog(self):
-        """Opens the B/C dialog after asking the user to select a view."""
+        """Opens the Gamma/Mid dialog after asking the user to select a view."""
         
         if not self.timeline_widget._scans_cache:
             QMessageBox.warning(self, "No Scan", "Please select a patient and scan first.")
@@ -832,14 +857,15 @@ class MainWindowSpect(QMainWindow):
         if ok and selected_view:
             #   FIX: Use the new getter method to get the initial state for the SELECTED view
             initial_state = self.timeline_widget.get_brightness_contrast(selected_view)
-            initial_b = initial_state["brightness"]
-            initial_c = initial_state["contrast"]
+            initial_gamma = initial_state.get("gamma", 1.0)
+            initial_mid = initial_state.get("mid", 0.0)
 
             dialog = ContrastDialog(self)
-            dialog.set_initial_values(initial_b, initial_c)
+            dialog.set_initial_values(initial_gamma, initial_mid)
 
             # Connect the live preview signal using a lambda to pass the selected view
-            preview_connection = lambda b, c: self.timeline_widget.preview_brightness_contrast(selected_view, b, c)
+            # Note: Arguments are now (gamma, mid)
+            preview_connection = lambda g, m: self.timeline_widget.preview_brightness_contrast(selected_view, g, m)
             dialog.adjustment_changed.connect(preview_connection)
             
             result = dialog.exec()
@@ -848,15 +874,18 @@ class MainWindowSpect(QMainWindow):
                 # Apply the final values to the correct view
                 values = dialog.get_values()
                 if values:
-                    brightness, contrast = values
-                    self.timeline_widget.set_brightness_contrast(selected_view, brightness, contrast)
+                    gamma, mid = values
+                    self.timeline_widget.set_brightness_contrast(selected_view, gamma, mid)
             else:
                 # Revert the changes for the correct view if cancelled
                 print(f"[DEBUG] Contrast dialog for {selected_view} cancelled, reverting.")
-                self.timeline_widget.set_brightness_contrast(selected_view, initial_b, initial_c)
+                self.timeline_widget.set_brightness_contrast(selected_view, initial_gamma, initial_mid)
 
             # Disconnect the signal to be safe
-            dialog.adjustment_changed.disconnect(preview_connection)
+            try:
+                dialog.adjustment_changed.disconnect(preview_connection)
+            except:
+                pass
 
     #   NEW: BSI panel event handlers
     def _on_bsi_export_requested(self, export_type: str):

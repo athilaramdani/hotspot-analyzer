@@ -1,0 +1,364 @@
+2025-09-10 12:18:59 - [INFO] - Logger berhasil dikonfigurasi. Memulai aplikasi...
+2025-09-10 12:18:59 - [INFO] - [DEBUG] Running in development mode
+2025-09-10 12:18:59 - [INFO] - [DEBUG] Starting TELPLASTINA...
+2025-09-10 12:18:59 - [INFO] - [UI] Application icon loaded: assets\icon.ico
+2025-09-10 12:18:59 - [INFO] - [UI] Poppins font applied
+2025-09-10 12:18:59 - [INFO] - [DEBUG] TELPLASTINA application created and configured
+2025-09-10 12:18:59 - [INFO] - [DEBUG] Starting session with 100ms delay...
+2025-09-10 12:18:59 - [INFO] - [DEBUG] === Starting new session ===
+2025-09-10 12:18:59 - [INFO] - [DEBUG] Development mode - creating dialog immediately
+2025-09-10 12:18:59 - [INFO] - [DEBUG] Creating doctor selection dialog (attempt 1/3)...
+2025-09-10 12:18:59 - [INFO] - [PATHS] Found YOLO model at: F:\projek dosen\prototype riset\hotspot-analyzer\models\hotspot_detection\models\model_detection_hs_yolov8.pt
+2025-09-10 12:18:59 - [INFO] - [DEBUG] Dialog class imported successfully
+2025-09-10 12:19:00 - [INFO] - [DEBUG] Dialog instance created successfully
+2025-09-10 12:19:00 - [INFO] - [DEBUG] Dialog window properties set
+2025-09-10 12:19:00 - [INFO] - [DEBUG] Showing dialog to user...
+2025-09-10 12:19:00 - [INFO] - [DEBUG] Dialog shown successfully
+2025-09-10 12:19:00 - [INFO] - [DEBUG] Waiting for user input...
+2025-09-10 12:19:02 - [INFO] - [SESSION] Created session: WKW_Planar_20250910_121902
+2025-09-10 12:19:02 - [INFO] - [SESSION] Created: WKW_Planar_20250910_121902
+2025-09-10 12:19:02 - [INFO] - [DEBUG] Dialog execution completed with result: 1
+2025-09-10 12:19:02 - [INFO] - [DEBUG] Quick close detected: False
+2025-09-10 12:19:02 - [INFO] - [DEBUG] Session selected - Code: WKW, Modality: Planar
+2025-09-10 12:19:02 - [INFO] - [DEBUG] Data directory confirmed: data
+2025-09-10 12:19:02 - [INFO] - [DEBUG] Starting PLANAR session with code: WKW
+2025-09-10 12:19:02 - [INFO] - [DEBUG] Creating main window for session: WKW
+2025-09-10 12:19:05 - [INFO] - [YOLO] Module loaded - model will be loaded on-demand
+2025-09-10 12:19:05 - [INFO] - [DEBUG] session_code in MainWindow = WKW
+2025-09-10 12:19:05 - [INFO] - [DEBUG] Timeline keyboard shortcuts enabled: Ctrl+/- for zoom, Ctrl+0 for reset
+2025-09-10 12:19:05 - [INFO] - [DEBUG] Connecting invert checkbox...
+2025-09-10 12:19:05 - [INFO] - [DEBUG] Testing checkbox connection...
+2025-09-10 12:19:05 - [INFO] - [DEBUG] Timeline widget exists: True
+2025-09-10 12:19:05 - [INFO] - [DEBUG] Timeline widget type: <class 'features.spect_viewer.gui.scan_timeline.ScanTimelineWidget'>
+2025-09-10 12:19:05 - [INFO] - [DEBUG] Invert checkbox created and connected
+2025-09-10 12:19:06 - [INFO] - [MainWindow]   Global keyboard shortcuts setup complete
+2025-09-10 12:19:06 - [INFO] - [MainWindow] Syncing view 'Anterior' across all components
+2025-09-10 12:19:06 - [INFO] - [DEBUG] set_active_view called with 'Anterior', but is now ignored.
+2025-09-10 12:19:06 - [INFO] - [MainWindow]   View sync completed
+2025-09-10 12:19:06 - [INFO] - [MainWindow]   Complete integration initialization finished
+2025-09-10 12:19:06 - [INFO] - [DEBUG] Starting folder scan for session: WKW
+2025-09-10 12:19:06 - [INFO] - Ditemukan 23 file DICOM di 'F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR'
+2025-09-10 12:19:06 - [INFO] - Ditemukan 5 session, 11 pasien (total 23 file DICOM).
+2025-09-10 12:19:06 - [INFO] - ALL: 1 pasien, 1 file
+2025-09-10 12:19:06 - [INFO] - ATL: 4 pasien, 4 file
+2025-09-10 12:19:06 - [INFO] - NBL: 1 pasien, 5 file
+2025-09-10 12:19:06 - [INFO] - NSY: 4 pasien, 8 file
+2025-09-10 12:19:06 - [INFO] - WKW: 1 pasien, 5 file
+2025-09-10 12:19:06 - [INFO] - [DEBUG] Found 5 total sessions: ['ALL', 'ATL', 'NBL', 'NSY', 'WKW']
+2025-09-10 12:19:06 - [INFO] - [DEBUG] Filtered to session WKW: 1 patients
+2025-09-10 12:19:06 - [INFO] - [DEBUG] Added 1 patients to combo box for session WKW
+2025-09-10 12:19:06 - [INFO] - [DEBUG] display_timeline called with 0 scan(s), focusing on index = -1
+2025-09-10 12:19:06 - [INFO] - [DEBUG] Rebuilding timeline for active scan index: -1
+2025-09-10 12:19:06 - [INFO] - [BSI SIDE PANEL] Clearing data...
+2025-09-10 12:19:06 - [INFO] - [DEBUG] Folder scan completed
+2025-09-10 12:19:06 - [INFO] - [DEBUG] Main window created successfully for session: WKW
+2025-09-10 12:19:06 - [INFO] - [DEBUG] Main window created successfully
+2025-09-10 12:19:06 - [INFO] - [DEBUG] Logout signal connected
+2025-09-10 12:19:06 - [INFO] - [DEBUG] Main window displayed
+2025-09-10 12:19:06 - [INFO] - [DEBUG] Active windows count: 1
+2025-09-10 12:19:07 - [INFO] - [TEST] Testing invert connection...
+2025-09-10 12:19:07 - [INFO] - [TEST] Timeline widget exists: True
+2025-09-10 12:19:07 - [INFO] - [TEST] Checkbox exists: True
+2025-09-10 12:19:07 - [INFO] - [TEST] Current checkbox state: False
+2025-09-10 12:19:07 - [INFO] - [DEBUG] === INVERT CHECKBOX CHANGED ===
+2025-09-10 12:19:07 - [INFO] - [DEBUG] Checkbox state: 2, isChecked(): True
+2025-09-10 12:19:07 - [INFO] - [DEBUG] Invert flag changed: False -> True
+2025-09-10 12:19:07 - [INFO] - [DEBUG] Calling timeline_widget.set_invert_original(True)
+2025-09-10 12:19:07 - [INFO] - [DEBUG] set_invert_original called: True (current: False)
+2025-09-10 12:19:07 - [INFO] - [CACHE CLEAR] Cleared 0 layer cache entries
+2025-09-10 12:19:07 - [INFO] - [CACHE CLEAR] Cleared zoom cache (0 labels)
+2025-09-10 12:19:07 - [INFO] - [DEBUG] Cleared layer cache due to invert change
+2025-09-10 12:19:07 - [INFO] - [DEBUG] No scans loaded, rebuild skipped
+2025-09-10 12:19:07 - [INFO] - [DEBUG]   Timeline invert method called successfully
+2025-09-10 12:19:07 - [INFO] - [TEST] Toggled checkbox to: True
+2025-09-10 12:19:08 - [INFO] - [DEBUG] Opening DICOM import dialog...
+2025-09-10 12:19:19 - [INFO] -   [DUPLICATE DEBUG] Starting duplicate check for 1 selected files
+2025-09-10 12:19:19 - [INFO] -   [DUPLICATE DEBUG] Session code: WKW
+2025-09-10 12:19:19 - [INFO] -    1. ANT001_DS.dcm
+2025-09-10 12:19:19 - [INFO] -   [DUPLICATE DEBUG]   Successfully imported duplicate checking functions
+2025-09-10 12:19:19 - [INFO] -   [MANUAL TEST] Testing duplicate check function...
+2025-09-10 12:19:19 - [INFO] - [CHECK_DICOM_EXISTS] Checking: session=ATL, patient=0001158915, study_date=20241204
+2025-09-10 12:19:19 - [INFO] - [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\ATL\0001158915\20241204
+2025-09-10 12:19:19 - [INFO] - [CHECK_DICOM_EXISTS] Found 1 DICOM files
+2025-09-10 12:19:19 - [INFO] - [CHECK_DICOM_EXISTS] Found 7 processed files
+2025-09-10 12:19:19 - [INFO] - [CHECK_DICOM_EXISTS] Final result: True
+2025-09-10 12:19:19 - [INFO] -   [MANUAL TEST] check_dicom_exists('ATL', '0001158915', '20241204') = True
+2025-09-10 12:19:19 - [INFO] -   [MANUAL TEST] Existing info: {'exists': True, 'study_date_path': WindowsPath('F:/projek dosen/prototype riset/hotspot-analyzer/data/PLANAR/ATL/0001158915/20241204'), 'dicom_count': 1, 'dicom_files': ['ANT001_DS.dcm'], 'has_processed_files': True, 'last_modified': 1755090376.0898347}
+2025-09-10 12:19:19 - [INFO] -   [DUPLICATE DEBUG] Starting individual file analysis...
+2025-09-10 12:19:19 - [INFO] -   [DUPLICATE DEBUG] Analyzing file 1/1: ANT001_DS.dcm
+2025-09-10 12:19:19 - [INFO] -    📄 Reading DICOM metadata...
+2025-09-10 12:19:19 - [INFO] -    📋 Patient ID: 0001158915
+2025-09-10 12:19:19 - [INFO] -    📅 Study Date: 20241204
+2025-09-10 12:19:19 - [INFO] -    🔑 Combination Key: ('0001158915', '20241204')
+2025-09-10 12:19:19 - [INFO] -      Checking against existing data in session WKW...
+2025-09-10 12:19:19 - [INFO] - [CHECK_DICOM_EXISTS] Checking: session=WKW, patient=0001158915, study_date=20241204
+2025-09-10 12:19:19 - [INFO] - [CHECK_DICOM_EXISTS] Expected path: F:\projek dosen\prototype riset\hotspot-analyzer\data\PLANAR\WKW\0001158915\20241204
+2025-09-10 12:19:19 - [INFO] - [CHECK_DICOM_EXISTS] Path does not exist - NOT DUPLICATE
+2025-09-10 12:19:19 - [INFO] -      check_dicom_exists result: False
+2025-09-10 12:19:19 - [INFO] -      No duplicate found in system
+2025-09-10 12:19:19 - [INFO] -    ➕ Adding as NEW file
+2025-09-10 12:19:19 - [INFO] -   [DUPLICATE DEBUG] Analysis complete:
+2025-09-10 12:19:19 - [INFO] -      New files: 1
+2025-09-10 12:19:19 - [INFO] -    🔄 System duplicates: 0
+2025-09-10 12:19:19 - [INFO] -    🔄 Internal duplicates: 0
+2025-09-10 12:19:19 - [INFO] -     Errors: 0
+2025-09-10 12:19:19 - [INFO] -   Selected 1 file(s) for import:
+2025-09-10 12:19:19 - [INFO] -      1 new file(s) will be imported
+2025-09-10 12:19:19 - [INFO] -   DEBUG: About to add 1 new files to selected_files list
+2025-09-10 12:19:19 - [INFO] -    ➕ Added to processing queue: ANT001_DS.dcm
+2025-09-10 12:19:19 - [INFO] -   DEBUG: About to add 0 duplicate files to UI (display only)
+2025-09-10 12:19:19 - [INFO] -   DEBUG: Final counts - New files: 1, Duplicate files shown: 0
+2025-09-10 12:19:19 - [INFO] -   DEBUG: selected_files now contains 1 files
+2025-09-10 12:19:19 - [INFO] - DEBUG: Added 1 new files
+2025-09-10 12:19:19 - [INFO] - ➕ Successfully added 1 new file(s) to import queue
+2025-09-10 12:19:19 - [INFO] -   Starting instant view detection analysis for new files...
+2025-09-10 12:19:19 - [INFO] - DEBUG: Starting quick detection for 1 files...
+2025-09-10 12:19:19 - [INFO] - DEBUG: Processing detection result for ANT001_DS.dcm
+2025-09-10 12:19:19 - [INFO] - 📊 Detection Analysis Complete:
+2025-09-10 12:19:19 - [INFO] -      1 files fully auto-tagged
+2025-09-10 12:19:19 - [INFO] - 🎉 All files auto-tagged! You can proceed directly to import.
+2025-09-10 12:19:19 - [INFO] - Next step: Configure Views (or proceed if all auto-tagged)
+2025-09-10 12:19:19 - [INFO] -   ANT001_DS.dcm: Fully auto-tagged (2 frames)
+2025-09-10 12:19:26 - [INFO] -   Opening enhanced view configuration dialog...
+2025-09-10 12:19:26 - [INFO] - DEBUG: Opening view selector with 1 files
+2025-09-10 12:19:26 - [INFO] -   DEBUG: Opening view configuration with 1 files:
+2025-09-10 12:19:26 - [INFO] -    1. ANT001_DS.dcm
+2025-09-10 12:19:26 - [INFO] -      No duplicates found in selected_files
+2025-09-10 12:19:26 - [INFO] - DEBUG: Connecting signals...
+2025-09-10 12:19:26 - [INFO] - DEBUG: Executing dialog...
+2025-09-10 12:19:26 - [INFO] - DEBUG: Processing 2 frames from ANT001_DS.dcm
+2025-09-10 12:19:26 - [INFO] - Frame 0: 'anterior'
+2025-09-10 12:19:26 - [INFO] - Detected: Anterior (confidence: high)
+2025-09-10 12:19:26 - [INFO] - auto-tagged: Anterior (high confidence)
+2025-09-10 12:19:26 - [INFO] - 
+2025-09-10 12:19:26 - [INFO] - STARTING BACKGROUND ANALYSIS FOR FRAME 0...
+2025-09-10 12:19:26 - [INFO] - 
+2025-09-10 12:19:26 - [INFO] - === BACKGROUND ANALYSIS DEBUG ===
+2025-09-10 12:19:26 - [INFO] - Frame shape: (1024, 256)
+2025-09-10 12:19:26 - [INFO] - Frame dtype: uint16
+2025-09-10 12:19:26 - [INFO] - Frame range: 0 to 189
+2025-09-10 12:19:26 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-10 12:19:26 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-10 12:19:26 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-10 12:19:26 - [INFO] - 🏠 Corner means: [0.0025, 0.0175, 0.0, 0.0]
+2025-09-10 12:19:26 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-10 12:19:26 - [INFO] - 🔲 Edge analysis:
+2025-09-10 12:19:26 - [INFO] - Edge mean: 0.0
+2025-09-10 12:19:26 - [INFO] - Dark edges (<50): 2560/2560 (100.0%)
+2025-09-10 12:19:26 - [INFO] - Bright edges (>200): 0/2560 (0.0%)
+2025-09-10 12:19:26 - [INFO] - 📊 Overall statistics:
+2025-09-10 12:19:26 - [INFO] - Image mean: 9.8
+2025-09-10 12:19:26 - [INFO] - Dark pixels (<50): 249,963 (95.4%)
+2025-09-10 12:19:26 - [INFO] - Bright pixels (>200): 157 (0.1%)
+2025-09-10 12:19:26 - [INFO] - Mid-range pixels: 12,024 (4.6%)
+2025-09-10 12:19:26 - [INFO] - 📈 Histogram analysis:
+2025-09-10 12:19:26 - [INFO] - Found 0 peaks: []
+2025-09-10 12:19:26 - [INFO] - 
+2025-09-10 12:19:26 - [INFO] - DECISION PROCESS:
+2025-09-10 12:19:26 - [INFO] - 
+2025-09-10 12:19:26 - [INFO] - 📋 DECISION FACTORS:
+2025-09-10 12:19:26 - [INFO] - Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-10 12:19:26 - [INFO] - Dark edges (100.0%) support BLACK (+30)
+2025-09-10 12:19:26 - [INFO] - Dark image (9.8 < 80) supports BLACK (+10)
+2025-09-10 12:19:26 - [INFO] - 
+2025-09-10 12:19:26 - [INFO] - FINAL DECISION:
+2025-09-10 12:19:26 - [INFO] - Background Type: BLACK
+2025-09-10 12:19:26 - [INFO] - Confidence: 80%
+2025-09-10 12:19:26 - [INFO] - Reasoning: 3 factors analyzed
+2025-09-10 12:19:26 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 249963, 'object_pixels': 12181, 'background_percentage': 95.35331726074219, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.005, 'edge_mean': 0.0, 'image_mean': 9.770809173583984, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (9.8 < 80) supports BLACK (+10)']}}
+2025-09-10 12:19:26 - [INFO] - === END BACKGROUND ANALYSIS ===
+2025-09-10 12:19:26 - [INFO] - BACKGROUND ANALYSIS RESULT:
+2025-09-10 12:19:26 - [INFO] - Type: black
+2025-09-10 12:19:26 - [INFO] - Confidence: 80%
+2025-09-10 12:19:26 - [INFO] - Background area: 95.4%
+2025-09-10 12:19:26 - [INFO] - Will auto-select: black radio button
+2025-09-10 12:19:26 - [INFO] - Factors: 3
+2025-09-10 12:19:26 - [INFO] - ⚠️ manual tagged REQUIRED: 80 confidence
+2025-09-10 12:19:26 - [INFO] - Frame 1: 'posterior'
+2025-09-10 12:19:26 - [INFO] - Detected: Posterior (confidence: high)
+2025-09-10 12:19:26 - [INFO] - auto-tagged: Posterior (high confidence)
+2025-09-10 12:19:26 - [INFO] - 
+2025-09-10 12:19:26 - [INFO] - STARTING BACKGROUND ANALYSIS FOR FRAME 1...
+2025-09-10 12:19:26 - [INFO] - 
+2025-09-10 12:19:26 - [INFO] - === BACKGROUND ANALYSIS DEBUG ===
+2025-09-10 12:19:26 - [INFO] - Frame shape: (1024, 256)
+2025-09-10 12:19:26 - [INFO] - Frame dtype: uint16
+2025-09-10 12:19:26 - [INFO] - Frame range: 0 to 149
+2025-09-10 12:19:26 - [INFO] - 🔄 Normalized to uint8: 0 to 255
+2025-09-10 12:19:26 - [INFO] - 📐 Image dimensions: 256x1024 (262,144 pixels)
+2025-09-10 12:19:26 - [INFO] - 🏠 Corner analysis with size: 20x20
+2025-09-10 12:19:26 - [INFO] - 🏠 Corner means: [0.045, 0.0175, 0.0, 0.0]
+2025-09-10 12:19:26 - [INFO] - 🏠 Overall corner mean: 0.0
+2025-09-10 12:19:26 - [INFO] - 🔲 Edge analysis:
+2025-09-10 12:19:26 - [INFO] - Edge mean: 0.0
+2025-09-10 12:19:26 - [INFO] - Dark edges (<50): 2560/2560 (100.0%)
+2025-09-10 12:19:26 - [INFO] - Bright edges (>200): 0/2560 (0.0%)
+2025-09-10 12:19:26 - [INFO] - 📊 Overall statistics:
+2025-09-10 12:19:26 - [INFO] - Image mean: 11.7
+2025-09-10 12:19:26 - [INFO] - Dark pixels (<50): 245,885 (93.8%)
+2025-09-10 12:19:26 - [INFO] - Bright pixels (>200): 100 (0.0%)
+2025-09-10 12:19:26 - [INFO] - Mid-range pixels: 16,159 (6.2%)
+2025-09-10 12:19:26 - [INFO] - 📈 Histogram analysis:
+2025-09-10 12:19:26 - [INFO] - Found 0 peaks: []
+2025-09-10 12:19:26 - [INFO] - 
+2025-09-10 12:19:26 - [INFO] - DECISION PROCESS:
+2025-09-10 12:19:26 - [INFO] - 
+2025-09-10 12:19:26 - [INFO] - 📋 DECISION FACTORS:
+2025-09-10 12:19:26 - [INFO] - Dark corners (0.0 < 50) → BLACK (+40)
+2025-09-10 12:19:26 - [INFO] - Dark edges (100.0%) support BLACK (+30)
+2025-09-10 12:19:26 - [INFO] - Dark image (11.7 < 80) supports BLACK (+10)
+2025-09-10 12:19:26 - [INFO] - 
+2025-09-10 12:19:26 - [INFO] - FINAL DECISION:
+2025-09-10 12:19:26 - [INFO] - Background Type: BLACK
+2025-09-10 12:19:26 - [INFO] - Confidence: 80%
+2025-09-10 12:19:26 - [INFO] - Reasoning: 3 factors analyzed
+2025-09-10 12:19:26 - [INFO] - 📊 RESULT: {'background_type': 'black', 'confidence': 80, 'background_pixels': 245885, 'object_pixels': 16259, 'background_percentage': 93.79768371582031, 'total_pixels': 262144, 'debug_info': {'corner_mean': 0.015625, 'edge_mean': 0.0, 'image_mean': 11.672203063964844, 'dark_edge_ratio': 1.0, 'bright_edge_ratio': 0.0, 'decision_factors': ['  Dark corners (0.0 < 50) → BLACK (+40)', '  Dark edges (100.0%) support BLACK (+30)', '  Dark image (11.7 < 80) supports BLACK (+10)']}}
+2025-09-10 12:19:26 - [INFO] - === END BACKGROUND ANALYSIS ===
+2025-09-10 12:19:26 - [INFO] - BACKGROUND ANALYSIS RESULT:
+2025-09-10 12:19:26 - [INFO] - Type: black
+2025-09-10 12:19:26 - [INFO] - Confidence: 80%
+2025-09-10 12:19:26 - [INFO] - Background area: 93.8%
+2025-09-10 12:19:26 - [INFO] - Will auto-select: black radio button
+2025-09-10 12:19:26 - [INFO] - Factors: 3
+2025-09-10 12:19:26 - [INFO] - ⚠️ manual tagged REQUIRED: 80 confidence
+2025-09-10 12:19:26 - [INFO] - Summary: ANT001_DS.dcm
+2025-09-10 12:19:26 - [INFO] - Reliable detections: 2/2
+2025-09-10 12:19:26 - [INFO] - Has reliable detection: True
+2025-09-10 12:19:26 - [INFO] - Needs manual tagged: False
+2025-09-10 12:19:26 - [INFO] - Loaded DICOM info for: ANT001_DS.dcm
+2025-09-10 12:19:26 - [INFO] - Reliable detection: True
+2025-09-10 12:19:26 - [INFO] - Needs manual tagged: False
+2025-09-10 12:19:26 - [INFO] - DEBUG: Loading finished. Loaded 1 DICOM info objects
+2025-09-10 12:19:26 - [INFO] - DEBUG: Starting widget setup...
+2025-09-10 12:19:26 - [INFO] - DEBUG: Processing 1 files in optimized order...
+2025-09-10 12:19:26 - [INFO] - ANT001_DS.dcm: auto
+2025-09-10 12:19:26 - [INFO] - DEBUG: Creating widget 1/1 for ANT001_DS.dcm...
+2025-09-10 12:19:26 - [INFO] - DEBUG: Creating DicomFileWidget with 2 frames...
+2025-09-10 12:19:26 - [INFO] - DEBUG: Initializing DicomFileWidget for ANT001_DS.dcm with 2 frames
+2025-09-10 12:19:26 - [INFO] - DEBUG: Setting up UI for ANT001_DS.dcm...
+2025-09-10 12:19:26 - [INFO] - DEBUG: Initializing FrameWidget for frame 0 from ANT001_DS.dcm
+2025-09-10 12:19:26 - [INFO] - DEBUG: Setting up UI for frame 0...
+2025-09-10 12:19:26 - [INFO] - DEBUG: ZoomableImageLabel init - shape: (1024, 256), dtype: uint16
+2025-09-10 12:19:26 - [INFO] - DEBUG: Medical image detected: True
+2025-09-10 12:19:26 - [INFO] - DEBUG: Creating pixmap...
+2025-09-10 12:19:26 - [INFO] - DEBUG: Starting pixmap creation - shape: (1024, 256)
+2025-09-10 12:19:26 - [INFO] - DEBUG: Frame data copied - dtype: uint16
+2025-09-10 12:19:26 - [INFO] - DEBUG: Converting from uint16 to uint8...
+2025-09-10 12:19:26 - [INFO] - DEBUG: Data range: 0 to 189
+2025-09-10 12:19:26 - [INFO] - Normalization completed
+2025-09-10 12:19:26 - [INFO] - DEBUG: Final frame dimensions: 256x1024
+2025-09-10 12:19:26 - [INFO] - DEBUG: Enhancing medical image display...
+2025-09-10 12:19:26 - [INFO] - Image already uint8, no enhancement needed
+2025-09-10 12:19:26 - [INFO] - Medical image enhancement applied
+2025-09-10 12:19:26 - [INFO] - DEBUG: Creating PIL Image...
+2025-09-10 12:19:26 - [INFO] - PIL Image created
+2025-09-10 12:19:26 - [INFO] - DEBUG: Detected potential medical scan
+2025-09-10 12:19:26 - [INFO] - DEBUG: High aspect ratio (4.0), checking for rotation...
+2025-09-10 12:19:26 - [INFO] - DEBUG: Rotation did not improve, keeping original orientation
+2025-09-10 12:19:26 - [INFO] - PIL Image finalized - size: (256, 1024)
+2025-09-10 12:19:26 - [INFO] - DEBUG: Original dimensions: 256x1024
+2025-09-10 12:19:26 - [INFO] - DEBUG: Tall image - resize to 70x280
+2025-09-10 12:19:26 - [INFO] - DEBUG: Final resize dimensions: 70x280
+2025-09-10 12:19:26 - [INFO] - DEBUG: Using NEAREST resampling for medical image
+2025-09-10 12:19:26 - [INFO] - Image resized
+2025-09-10 12:19:26 - [INFO] - QPixmap created successfully
+2025-09-10 12:19:26 - [INFO] - DEBUG: Updating display...
+2025-09-10 12:19:26 - [INFO] - DEBUG: Using Smooth transformation for medical image
+2025-09-10 12:19:26 - [INFO] - ZoomableImageLabel initialized successfully
+2025-09-10 12:19:27 - [INFO] - 
+2025-09-10 12:19:27 - [INFO] - FRAME 0 AUTO-SELECTION DEBUG:
+2025-09-10 12:19:27 - [INFO] - detected_bg: 'black'
+2025-09-10 12:19:27 - [INFO] - pixel_analysis exists: True
+2025-09-10 12:19:27 - [INFO] - analysis.background_type: 'black'
+2025-09-10 12:19:27 - [INFO] - analysis.confidence: 80%
+2025-09-10 12:19:27 - [INFO] - corner_mean: 0.005
+2025-09-10 12:19:27 - [INFO] - edge_mean: 0.0
+2025-09-10 12:19:27 - [INFO] - image_mean: 9.770809173583984
+2025-09-10 12:19:27 - [INFO] - AUTO-SELECTED: BLACK background radio button
+2025-09-10 12:19:27 - [INFO] - Final state - Black checked: True
+2025-09-10 12:19:27 - [INFO] - Final state - White checked: False
+2025-09-10 12:19:27 - [INFO] - DEBUG: Connecting signals for frame 0...
+2025-09-10 12:19:27 - [INFO] - FrameWidget setup completed for frame 0
+2025-09-10 12:19:27 - [INFO] - DEBUG: Initializing FrameWidget for frame 1 from ANT001_DS.dcm
+2025-09-10 12:19:27 - [INFO] - DEBUG: Setting up UI for frame 1...
+2025-09-10 12:19:27 - [INFO] - DEBUG: ZoomableImageLabel init - shape: (1024, 256), dtype: uint16
+2025-09-10 12:19:27 - [INFO] - DEBUG: Medical image detected: True
+2025-09-10 12:19:27 - [INFO] - DEBUG: Creating pixmap...
+2025-09-10 12:19:27 - [INFO] - DEBUG: Starting pixmap creation - shape: (1024, 256)
+2025-09-10 12:19:27 - [INFO] - DEBUG: Frame data copied - dtype: uint16
+2025-09-10 12:19:27 - [INFO] - DEBUG: Converting from uint16 to uint8...
+2025-09-10 12:19:27 - [INFO] - DEBUG: Data range: 0 to 149
+2025-09-10 12:19:27 - [INFO] - Normalization completed
+2025-09-10 12:19:27 - [INFO] - DEBUG: Final frame dimensions: 256x1024
+2025-09-10 12:19:27 - [INFO] - DEBUG: Enhancing medical image display...
+2025-09-10 12:19:27 - [INFO] - Image already uint8, no enhancement needed
+2025-09-10 12:19:27 - [INFO] - Medical image enhancement applied
+2025-09-10 12:19:27 - [INFO] - DEBUG: Creating PIL Image...
+2025-09-10 12:19:27 - [INFO] - PIL Image created
+2025-09-10 12:19:27 - [INFO] - DEBUG: Detected potential medical scan
+2025-09-10 12:19:27 - [INFO] - DEBUG: High aspect ratio (4.0), checking for rotation...
+2025-09-10 12:19:27 - [INFO] - DEBUG: Rotation did not improve, keeping original orientation
+2025-09-10 12:19:27 - [INFO] - PIL Image finalized - size: (256, 1024)
+2025-09-10 12:19:27 - [INFO] - DEBUG: Original dimensions: 256x1024
+2025-09-10 12:19:27 - [INFO] - DEBUG: Tall image - resize to 70x280
+2025-09-10 12:19:27 - [INFO] - DEBUG: Final resize dimensions: 70x280
+2025-09-10 12:19:27 - [INFO] - DEBUG: Using NEAREST resampling for medical image
+2025-09-10 12:19:27 - [INFO] - Image resized
+2025-09-10 12:19:27 - [INFO] - QPixmap created successfully
+2025-09-10 12:19:27 - [INFO] - DEBUG: Updating display...
+2025-09-10 12:19:27 - [INFO] - DEBUG: Using Smooth transformation for medical image
+2025-09-10 12:19:27 - [INFO] - ZoomableImageLabel initialized successfully
+2025-09-10 12:19:27 - [INFO] - 
+2025-09-10 12:19:27 - [INFO] - FRAME 1 AUTO-SELECTION DEBUG:
+2025-09-10 12:19:27 - [INFO] - detected_bg: 'black'
+2025-09-10 12:19:27 - [INFO] - pixel_analysis exists: True
+2025-09-10 12:19:27 - [INFO] - analysis.background_type: 'black'
+2025-09-10 12:19:27 - [INFO] - analysis.confidence: 80%
+2025-09-10 12:19:27 - [INFO] - corner_mean: 0.015625
+2025-09-10 12:19:27 - [INFO] - edge_mean: 0.0
+2025-09-10 12:19:27 - [INFO] - image_mean: 11.672203063964844
+2025-09-10 12:19:27 - [INFO] - AUTO-SELECTED: BLACK background radio button
+2025-09-10 12:19:27 - [INFO] - Final state - Black checked: True
+2025-09-10 12:19:27 - [INFO] - Final state - White checked: False
+2025-09-10 12:19:27 - [INFO] - DEBUG: Connecting signals for frame 1...
+2025-09-10 12:19:27 - [INFO] - FrameWidget setup completed for frame 1
+2025-09-10 12:19:27 - [INFO] - UI setup completed for ANT001_DS.dcm
+2025-09-10 12:19:27 - [INFO] - DEBUG: Widget created successfully, connecting signals...
+2025-09-10 12:19:27 - [INFO] - DEBUG: Signals connected, adding to layout...
+2025-09-10 12:19:27 - [INFO] - Successfully created widget for ANT001_DS.dcm
+2025-09-10 12:19:27 - [INFO] - 📊 Widget creation summary:
+2025-09-10 12:19:27 - [INFO] - Success: 1
+2025-09-10 12:19:27 - [INFO] - Errors: 0
+2025-09-10 12:19:27 - [INFO] - auto-tagged: 1
+2025-09-10 12:19:27 - [INFO] - Manual required: 0
+2025-09-10 12:19:27 - [INFO] - DEBUG: Widget setup completed, updating validation...
+2025-09-10 12:19:27 - [INFO] - DEBUG: Validating 1 widgets...
+2025-09-10 12:19:27 - [INFO] - DEBUG: Validating widget 1/1...
+2025-09-10 12:19:27 - [INFO] - DICOM widgets setup completed successfully
+2025-09-10 12:19:38 - [INFO] - DEBUG: Dialog finished, cleaning up...
+2025-09-10 12:19:38 - [INFO] - DEBUG: View dialog result: 0
+2025-09-10 12:19:38 - [INFO] -  View configuration cancelled
+2025-09-10 12:19:39 - [INFO] - [DEBUG] Import dialog cancelled
+2025-09-10 12:19:40 - [INFO] - [DEBUG] Membersihkan sumber daya di MainWindow (SPECT)...
+2025-09-10 12:19:40 - [INFO] - [DEBUG] Menutup process pool...
+2025-09-10 12:19:40 - [ERROR] - Traceback (most recent call last):
+2025-09-10 12:19:40 - [ERROR] - File "F:\projek dosen\prototype riset\hotspot-analyzer\features\spect_viewer\gui\main_window_spect.py", line 1308, in closeEvent
+2025-09-10 12:19:40 - [ERROR] - if self._pool is not None:
+2025-09-10 12:19:40 - [ERROR] - ^
+2025-09-10 12:19:40 - [ERROR] - ^
+2025-09-10 12:19:40 - [ERROR] - ^
+2025-09-10 12:19:40 - [ERROR] - ^
+2025-09-10 12:19:40 - [ERROR] - ^
+2025-09-10 12:19:40 - [ERROR] - ^
+2025-09-10 12:19:40 - [ERROR] - ^
+2025-09-10 12:19:40 - [ERROR] - ^
+2025-09-10 12:19:40 - [ERROR] - ^
+2025-09-10 12:19:40 - [ERROR] - ^
+2025-09-10 12:19:40 - [ERROR] - AttributeError
+2025-09-10 12:19:40 - [ERROR] - :
+2025-09-10 12:19:40 - [ERROR] - 'MainWindowSpect' object has no attribute '_pool'
+2025-09-10 12:19:40 - [ERROR] - . Did you mean: '
+2025-09-10 12:19:40 - [ERROR] - pool
+2025-09-10 12:19:40 - [ERROR] - '?
+2025-09-10 12:19:40 - [INFO] - [DEBUG] Application exited with code: 0
+2025-09-10 12:19:40 - [INFO] - [DEBUG] Application terminated normally

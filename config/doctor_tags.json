@@ -1,28 +1,16 @@
 {
   "doctor_tags": [
     {
-      "code": "NSY",
-      "name": "Nasywa Kamila",
-      "color": "#4e73ff",
-      "shared": false
-    },
-    {
-      "code": "ATL",
-      "name": "Athila Ramdani Saputra",
-      "color": "#28a745",
-      "shared": false
-    },
-    {
-      "code": "NBL",
-      "name": "Nabila Putri Azhari",
-      "color": "#dc3545",
-      "shared": false
-    },
-    {
       "code": "ALL",
       "name": "Shared Access (All Users)",
       "color": "#ffc107",
       "shared": true
+    },
+    {
+      "code": "EMA",
+      "name": "TEST",
+      "color": "#6c757d",
+      "shared": false
     }
   ],
   "last_updated": -1
