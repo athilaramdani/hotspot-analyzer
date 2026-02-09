@@ -6,7 +6,7 @@
 ; ==== APP METADATA ====
 #define MyAppName       "Telplastina"
 #define MyAppExeName    "telplastina.exe"
-#define MyAppVersion    "1.7.7"
+#define MyAppVersion    "1.8.0"
 #define MyAppPublisher  "Telplastina Team"
 #define MyAppURL        "https://example.com"   ; optional
 
@@ -79,6 +79,10 @@ Source: "{#MyDistRoot}\models\*";     DestDir: "{app}\models";     Flags: ignore
 Source: "{#MyDistRoot}\data\*";       DestDir: "{app}\data";       Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#MyDistRoot}\_internal\*";  DestDir: "{app}\_internal";  Flags: ignoreversion recursesubdirs createallsubdirs
 
+; --- MICROSOFT VC REDISTRIBUTABLE (Wajib Download manual dulu: https://aka.ms/vs/17/release/vc_redist.x64.exe) ---
+; Simpan file VC_redist.x64.exe di folder root project (sebelah main.py)
+Source: "VC_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+
 ; Opsional:
 ; Source: "{#MyDistRoot}\logs\*";     DestDir: "{app}\logs";  Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 ; Source: "{#MyDistRoot}\temp\*";     DestDir: "{app}\temp";  Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
@@ -93,6 +97,8 @@ Name: "{group}\Uninstall Telplastina"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\Telplastina";   Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; WorkingDir: "{app}"; IconFilename: "{app}\assets\icon.ico"
 
 [Run]
+; Install VC Redist secara silent sebelum menjalankan aplikasi
+Filename: "{tmp}\VC_redist.x64.exe"; Parameters: "/install /passive /norestart"; StatusMsg: "Installing Microsoft Visual C++ Redistributable (Required)..."; Flags: waituntilterminated
 Filename: "{app}\{#MyAppExeName}"; Description: "Run Telplastina now"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]

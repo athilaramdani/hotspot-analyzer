@@ -31,9 +31,13 @@ def setup_assets_path():
     except Exception as e:
         logging.info(f"[ASSETS] Error setting up assets path: {e}")
 
-from app.__main__ import main
-
 if __name__ == "__main__":
-    setup_assets_path()
+    # CRITICAL: freeze_support() must be called BEFORE importing the main app logic
+    # to prevent recursive process spawning loop on Windows.
     multiprocessing.freeze_support()
+    
+    setup_assets_path()
+    
+    # Import main only after freeze_support
+    from app.__main__ import main
     main()
