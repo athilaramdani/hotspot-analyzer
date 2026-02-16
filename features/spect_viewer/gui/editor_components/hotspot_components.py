@@ -61,6 +61,13 @@ class HotspotCanvas(BaseCanvas):
             1: (mask == 1).astype(np.uint8),         # Abnormal
             2: (mask == 2).astype(np.uint8)          # Normal
         }
+
+        # This ensures Undo stack has the base state [State0]
+        self._save_all_states()
+    
+        # Initialize brush tracking
+        self._last_brush_pos = None
+
         
         # Set the hotspot-specific palette
         self._palette = _HOTSPOT_PALLETTE
@@ -258,19 +265,24 @@ class HotspotCanvas(BaseCanvas):
         self._mask_arr = combined
 
     def _apply_brush(self, scene_pos: QPointF):
-        """Apply brush with segmentation validation."""
-        #   FIX: Add safety checks for required attributes
+        """Apply brush (unrestricted)."""
         if not hasattr(self, '_cur_label') or self._cur_label is None:
             return
         if not hasattr(self, '_layers') or self._cur_label not in self._layers:
             return
+
+        # Handle drawing state saving logic (copied from SegmentationCanvas)
+        # Handle drawing state saving logic
+        if not hasattr(self, '_drawing') or not self._drawing:
+            # Start of drawing - just set flag, save happens on release
+            self._drawing = True
             
         x, y = self._get_pixel_coordinates(scene_pos)
         targets = self._get_brush_targets(x, y)
 
-        # Get active layer
         layer = self._layers[self._cur_label]
         
+<<<<<<< Updated upstream
         for px, py in targets:
             # Check if erasing
             is_erasing = hasattr(self, '_eraser') and self._eraser
@@ -290,10 +302,23 @@ class HotspotCanvas(BaseCanvas):
                     layer[py, px] = 0
                 else:
                     layer[py, px] = 1
+=======
+        # New value: 0 if eraser, 1 if painting (binary mask per layer)
+        new_val = 0 if (hasattr(self, '_eraser') and self._eraser) else 1
+        
+        changes_made = False
 
-        # Rebuild and refresh
-        self._rebuild_combined()
-        self._refresh_mask()
+        for px, py in targets:
+            if 0 <= py < layer.shape[0] and 0 <= px < layer.shape[1]:
+                if layer[py, px] != new_val:
+                    layer[py, px] = new_val
+                    changes_made = True
+
+        if changes_made:
+            self._rebuild_combined()
+            self._refresh_mask()
+>>>>>>> Stashed changes
+
 
     def undo(self, label_id: int):
         """Undo for specific layer."""
@@ -334,6 +359,100 @@ class HotspotCanvas(BaseCanvas):
         self._layers[label_id] = state.copy()
         self._rebuild_combined()
         self._refresh_mask()
+
+    def _apply_brush_line(self, start_pos: QPointF, end_pos: QPointF):
+        """Apply brush along a line for smooth drawing."""
+        start_x, start_y = self._get_pixel_coordinates(start_pos)
+        end_x, end_y = self._get_pixel_coordinates(end_pos)
+
+        distance = max(abs(end_x - start_x), abs(end_y - start_y))
+
+        if distance == 0:
+            self._apply_brush(end_pos)
+            return
+
+        if not hasattr(self, '_cur_label') or self._cur_label not in self._layers:
+            return
+
+        layer = self._layers[self._cur_label]
+        new_val = 0 if (hasattr(self, '_eraser') and self._eraser) else 1
+        overall_changes_made = False
+
+        num_points = max(distance, self._brush_radius * 2, 3)
+
+        for i in range(num_points + 1):
+            t = i / num_points if num_points > 0 else 0
+            
+            # Linear interpolation
+            interp_x = start_x + t * (end_x - start_x)
+            interp_y = start_y + t * (end_y - start_y)
+            
+            x, y = int(interp_x + 0.5), int(interp_y + 0.5)
+            targets = self._get_brush_targets(x, y)
+
+            for px, py in targets:
+                if 0 <= py < layer.shape[0] and 0 <= px < layer.shape[1]:
+                    if layer[py, px] != new_val:
+                        layer[py, px] = new_val
+                        overall_changes_made = True
+
+        if overall_changes_made:
+            self._rebuild_combined()
+            self._refresh_mask()
+
+    def mousePressEvent(self, ev):
+        """Handle mouse press."""
+        if ev.button() == Qt.LeftButton and not self._pan_mode:
+            # FIX: Reset drawing state and start new operation
+            self._drawing = False  # Reset first
+            scene_pos = self.mapToScene(ev.position().toPoint())
+            self._last_brush_pos = scene_pos
+            self._apply_brush(scene_pos)
+            ev.accept()
+        elif ev.button() == Qt.MiddleButton:
+            self._pan_mode = True
+            self.setDragMode(QGraphicsView.ScrollHandDrag)
+            self.setCursor(QCursor(Qt.OpenHandCursor))
+            fake_press = ev
+            super().mousePressEvent(fake_press)
+        else:
+            super().mousePressEvent(ev)
+
+    def mouseMoveEvent(self, ev):
+        """Handle mouse move with smooth line interpolation."""
+        scene_pos = self.mapToScene(ev.position().toPoint())
+        self._mouse_pos = scene_pos
+
+        if self._drawing and (ev.buttons() & Qt.LeftButton) and not self._pan_mode:
+            if self._last_brush_pos is not None:
+                self._apply_brush_line(self._last_brush_pos, scene_pos)
+            else:
+                self._apply_brush(scene_pos)
+            
+            self._last_brush_pos = scene_pos
+            ev.accept()
+        elif self._pan_mode:
+            super().mouseMoveEvent(ev)
+        else:
+            self.viewport().update()
+            super().mouseMoveEvent(ev)
+
+    def mouseReleaseEvent(self, ev):
+        """Handle mouse release."""
+        if ev.button() == Qt.LeftButton and self._drawing:
+            # FIX: Save state on RELEASE to capture the stroke result
+            self._save_current_state()
+            self._drawing = False
+            self._last_brush_pos = None
+            ev.accept()
+        elif ev.button() == Qt.MiddleButton and self._pan_mode:
+            self._pan_mode = False
+            self.setDragMode(QGraphicsView.NoDrag)
+            self.setCursor(QCursor(Qt.CrossCursor))
+            super().mouseReleaseEvent(ev)
+        else:
+            super().mouseReleaseEvent(ev)
+
 
 
 class HotspotOpacityPanel(QWidget):
